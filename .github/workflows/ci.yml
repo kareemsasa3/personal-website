@@ -112,8 +112,8 @@ jobs:
       - name: Build infrastructure images
         working-directory: infrastructure
         run: |
-          # Test that the main docker-compose can build
-          docker-compose build --no-cache
+          # Test that the main docker compose can build
+          docker compose build --no-cache
 
   security-scan:
     name: Security Scan
