@@ -1,0 +1,145 @@
+services:
+  # Nginx reverse proxy
+  nginx:
+    image: nginx:alpine
+    container_name: portfolio-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - workfolio
+      - ai-backend
+      - arachne
+    restart: unless-stopped
+    networks:
+      - portfolio-network
+
+  # Workfolio - Main portfolio application
+  workfolio:
+    build:
+      context: ../workfolio
+      dockerfile: Dockerfile
+    container_name: portfolio-workfolio
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+    networks:
+      - portfolio-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:80/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # AI Backend - AI microservice
+  ai-backend:
+    build:
+      context: ../services/ai-backend
+      dockerfile: Dockerfile
+    container_name: portfolio-ai-backend
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+    restart: unless-stopped
+    networks:
+      - portfolio-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:3001/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Arachne - Web scraping service
+  arachne:
+    build:
+      context: ../services/arachne
+      dockerfile: Dockerfile
+    container_name: portfolio-arachne
+    environment:
+      - SCRAPER_REDIS_ADDR=redis:6379
+      - SCRAPER_REDIS_DB=0
+      - SCRAPER_ENABLE_METRICS=true
+      - SCRAPER_ENABLE_LOGGING=true
+      - SCRAPER_LOG_LEVEL=info
+      - SCRAPER_MAX_CONCURRENT=5
+      - SCRAPER_REQUEST_TIMEOUT=120s
+      - SCRAPER_TOTAL_TIMEOUT=180s
+      - SCRAPER_USE_HEADLESS=true
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - portfolio-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:8080/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Redis - Required by Arachne for job storage
+  redis:
+    image: redis:7-alpine
+    container_name: portfolio-redis
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    restart: unless-stopped
+    networks:
+      - portfolio-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis Commander - Optional UI for Redis management
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: portfolio-redis-commander
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    depends_on:
+      - redis
+    restart: unless-stopped
+    networks:
+      - portfolio-network
+
+networks:
+  portfolio-network:
+    driver: bridge
+
+volumes:
+  redis_data:
+    driver: local

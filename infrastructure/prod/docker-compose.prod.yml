@@ -1,0 +1,272 @@
+services:
+  # Certbot service for automatic SSL certificate management
+  certbot:
+    image: certbot/certbot:latest
+    container_name: portfolio-certbot
+    volumes:
+      - ./nginx/ssl:/etc/letsencrypt
+      - ./nginx/certbot/www:/var/www/certbot
+      - ./logs/certbot:/var/log/letsencrypt
+    command: certonly --webroot --webroot-path=/var/www/certbot --email your-email@example.com --agree-tos --no-eff-email --force-renewal -d your-domain.com
+    profiles:
+      - ssl-setup
+    depends_on:
+      - nginx
+    restart: "no"
+
+  # Nginx reverse proxy - Production optimized
+  nginx:
+    image: nginx:alpine
+    container_name: portfolio-nginx-prod
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - ./nginx/certbot/www:/var/www/certbot:ro
+      - ./logs/nginx:/var/log/nginx
+    depends_on:
+      workfolio:
+        condition: service_healthy
+      ai-backend:
+        condition: service_healthy
+      arachne:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - portfolio-network-prod
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:80/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: "0.5"
+        reservations:
+          memory: 128M
+          cpus: "0.25"
+
+  # Workfolio - Production build
+  workfolio:
+    build:
+      context: ../workfolio
+      dockerfile: Dockerfile
+      args:
+        NODE_ENV: production
+    container_name: portfolio-workfolio-prod
+    environment:
+      - NODE_ENV=production
+      - VITE_API_BASE_URL=https://your-domain.com/api
+    restart: unless-stopped
+    networks:
+      - portfolio-network-prod
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:3000",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "1.0"
+        reservations:
+          memory: 256M
+          cpus: "0.5"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # AI Backend - Production optimized
+  ai-backend:
+    build:
+      context: ../services/ai-backend
+      dockerfile: Dockerfile
+      args:
+        NODE_ENV: production
+    container_name: portfolio-ai-backend-prod
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - LOG_LEVEL=info
+      - ENABLE_METRICS=true
+      - RATE_LIMIT_WINDOW_MS=900000
+      - RATE_LIMIT_MAX_REQUESTS=100
+    restart: unless-stopped
+    networks:
+      - portfolio-network-prod
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:3001/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: "1.0"
+        reservations:
+          memory: 512M
+          cpus: "0.5"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Arachne - Production optimized with enhanced settings
+  arachne:
+    build:
+      context: ../services/arachne
+      dockerfile: Dockerfile
+    container_name: portfolio-arachne-prod
+    environment:
+      - SCRAPER_REDIS_ADDR=redis:6379
+      - SCRAPER_REDIS_DB=0
+      - SCRAPER_ENABLE_METRICS=true
+      - SCRAPER_ENABLE_LOGGING=true
+      - SCRAPER_LOG_LEVEL=info
+      - SCRAPER_MAX_CONCURRENT=10
+      - SCRAPER_REQUEST_TIMEOUT=120s
+      - SCRAPER_TOTAL_TIMEOUT=180s
+      - SCRAPER_USE_HEADLESS=true
+      - SCRAPER_USER_AGENT=Mozilla/5.0 (compatible; PortfolioBot/1.0)
+      - SCRAPER_RATE_LIMIT=2
+      - SCRAPER_RATE_LIMIT_WINDOW=1s
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - portfolio-network-prod
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:8080/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: "2.0"
+        reservations:
+          memory: 1G
+          cpus: "1.0"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Redis - Production optimized
+  redis:
+    image: redis:7-alpine
+    container_name: portfolio-redis-prod
+    volumes:
+      - redis_data_prod:/data
+      - ./logs/redis:/var/log/redis
+    command: >
+      redis-server 
+      --appendonly yes 
+      --maxmemory 512mb 
+      --maxmemory-policy allkeys-lru
+      --save 900 1
+      --save 300 10
+      --save 60 10000
+    restart: unless-stopped
+    networks:
+      - portfolio-network-prod
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: "1.0"
+        reservations:
+          memory: 512M
+          cpus: "0.5"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Redis Commander - Optional, can be disabled in production
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: portfolio-redis-commander-prod
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    depends_on:
+      - redis
+    restart: unless-stopped
+    networks:
+      - portfolio-network-prod
+    profiles:
+      - monitoring
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: "0.5"
+        reservations:
+          memory: 128M
+          cpus: "0.25"
+
+networks:
+  portfolio-network-prod:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  redis_data_prod:
+    driver: local

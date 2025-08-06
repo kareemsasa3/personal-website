@@ -1,0 +1,55 @@
+services:
+  # AI Backend - Development mode with live reloading
+  ai-backend:
+    build:
+      context: ../services/ai-backend
+      dockerfile: Dockerfile.dev
+    environment:
+      - NODE_ENV=development
+      - PORT=3001
+    volumes:
+      - ../services/ai-backend:/app
+      - /app/node_modules
+    command: npm run dev
+    ports:
+      - "3001:3001"
+
+  # Workfolio - Development mode with live reloading
+  workfolio:
+    build:
+      context: ../workfolio
+      dockerfile: Dockerfile.dev
+    environment:
+      - NODE_ENV=development
+    volumes:
+      - ../workfolio:/app
+      - /app/node_modules
+    command: npm run dev -- --host
+    ports:
+      - "3000:3000"
+
+  # Arachne - Development mode with live reloading
+  arachne:
+    build:
+      context: ../services/arachne
+      dockerfile: Dockerfile.dev
+    environment:
+      - SCRAPER_REDIS_ADDR=redis:6379
+      - SCRAPER_REDIS_DB=0
+      - SCRAPER_ENABLE_METRICS=true
+      - SCRAPER_ENABLE_LOGGING=true
+      - SCRAPER_LOG_LEVEL=debug
+      - SCRAPER_MAX_CONCURRENT=3
+      - SCRAPER_REQUEST_TIMEOUT=60s
+      - SCRAPER_TOTAL_TIMEOUT=90s
+      - SCRAPER_USE_HEADLESS=true
+    volumes:
+      - ../services/arachne:/app
+    ports:
+      - "8080:8080"
+
+  # Nginx - Always running in development mode
+  nginx:
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
