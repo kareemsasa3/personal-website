@@ -46,7 +46,7 @@ check_requirements() {
         exit 1
     fi
     
-    if ! command -v docker-compose &> /dev/null; then
+    if ! command -v docker compose &> /dev/null; then
         print_error "Docker Compose is not installed. Please install it first."
         exit 1
     fi
@@ -102,13 +102,13 @@ update_configurations() {
     # Update nginx configuration
     sed -i.bak "s/server_name localhost;/server_name $DOMAIN;/g" ../nginx/conf.d/default.conf
     
-    # Update production docker-compose
-    sed -i.bak "s|https://your-domain.com|https://$DOMAIN|g" docker-compose.prod.yml
-    sed -i.bak "s/your-email@example.com/$EMAIL/g" docker-compose.prod.yml
-    sed -i.bak "s/your-domain.com/$DOMAIN/g" docker-compose.prod.yml
+    # Update production docker compose
+    sed -i.bak "s|https://your-domain.com|https://$DOMAIN|g" docker compose.prod.yml
+    sed -i.bak "s/your-email@example.com/$EMAIL/g" docker compose.prod.yml
+    sed -i.bak "s/your-domain.com/$DOMAIN/g" docker compose.prod.yml
     
     # Update workfolio environment
-    sed -i.bak "s|https://your-domain.com|https://$DOMAIN|g" docker-compose.prod.yml
+    sed -i.bak "s|https://your-domain.com|https://$DOMAIN|g" docker compose.prod.yml
     
     print_status "Configuration files updated"
     print_info "Backup files created with .bak extension"
@@ -143,7 +143,7 @@ setup_initial_certificate() {
     
     # Start nginx with HTTP only for ACME challenge
     print_info "Starting nginx for ACME challenge..."
-    docker-compose -f ../docker-compose.yml -f docker-compose.prod.yml up -d nginx
+    docker compose -f ../docker compose.yml -f docker compose.prod.yml up -d nginx
     
     # Wait for nginx to be ready
     print_info "Waiting for nginx to be ready..."
@@ -151,16 +151,16 @@ setup_initial_certificate() {
     
     # Run certbot to obtain initial certificate
     print_info "Obtaining Let's Encrypt certificate..."
-    docker-compose -f ../docker-compose.yml -f docker-compose.prod.yml --profile ssl-setup run --rm certbot
+    docker compose -f ../docker compose.yml -f docker compose.prod.yml --profile ssl-setup run --rm certbot
     
     # Copy certificates to nginx ssl directory
     print_info "Copying certificates..."
-    docker-compose -f ../docker-compose.yml -f docker-compose.prod.yml exec nginx cp /etc/letsencrypt/live/$DOMAIN/fullchain.pem /etc/nginx/ssl/cert.pem
-    docker-compose -f ../docker-compose.yml -f docker-compose.prod.yml exec nginx cp /etc/letsencrypt/live/$DOMAIN/privkey.pem /etc/nginx/ssl/key.pem
+    docker compose -f ../docker compose.yml -f docker compose.prod.yml exec nginx cp /etc/letsencrypt/live/$DOMAIN/fullchain.pem /etc/nginx/ssl/cert.pem
+    docker compose -f ../docker compose.yml -f docker compose.prod.yml exec nginx cp /etc/letsencrypt/live/$DOMAIN/privkey.pem /etc/nginx/ssl/key.pem
     
     # Set proper permissions
-    docker-compose -f ../docker-compose.yml -f docker-compose.prod.yml exec nginx chmod 644 /etc/nginx/ssl/cert.pem
-    docker-compose -f ../docker-compose.yml -f docker-compose.prod.yml exec nginx chmod 600 /etc/nginx/ssl/key.pem
+    docker compose -f ../docker compose.yml -f docker compose.prod.yml exec nginx chmod 644 /etc/nginx/ssl/cert.pem
+    docker compose -f ../docker compose.yml -f docker compose.prod.yml exec nginx chmod 600 /etc/nginx/ssl/key.pem
     
     print_status "Initial certificate setup completed"
 }
@@ -170,10 +170,10 @@ start_production_stack() {
     print_info "Starting full production stack..."
     
     # Stop nginx
-    docker-compose -f ../docker-compose.yml -f docker-compose.prod.yml down
+    docker compose -f ../docker compose.yml -f docker compose.prod.yml down
     
     # Start all services
-    docker-compose -f ../docker-compose.yml -f docker-compose.prod.yml up -d
+    docker compose -f ../docker compose.yml -f docker compose.prod.yml up -d
     
     print_status "Production stack started"
 }
@@ -196,18 +196,18 @@ cd "\$(dirname "\$0")/infrastructure/prod"
 echo "🔄 Renewing SSL certificates..."
 
 # Renew certificates
-docker-compose -f ../docker-compose.yml -f docker-compose.prod.yml --profile ssl-setup run --rm certbot renew
+docker compose -f ../docker compose.yml -f docker compose.prod.yml --profile ssl-setup run --rm certbot renew
 
 # Copy renewed certificates
-docker-compose -f ../docker-compose.yml -f docker-compose.prod.yml exec nginx cp /etc/letsencrypt/live/$DOMAIN/fullchain.pem /etc/nginx/ssl/cert.pem
-docker-compose -f ../docker-compose.yml -f docker-compose.prod.yml exec nginx cp /etc/letsencrypt/live/$DOMAIN/privkey.pem /etc/nginx/ssl/key.pem
+docker compose -f ../docker compose.yml -f docker compose.prod.yml exec nginx cp /etc/letsencrypt/live/$DOMAIN/fullchain.pem /etc/nginx/ssl/cert.pem
+docker compose -f ../docker compose.yml -f docker compose.prod.yml exec nginx cp /etc/letsencrypt/live/$DOMAIN/privkey.pem /etc/nginx/ssl/key.pem
 
 # Set proper permissions
-docker-compose -f ../docker-compose.yml -f docker-compose.prod.yml exec nginx chmod 644 /etc/nginx/ssl/cert.pem
-docker-compose -f ../docker-compose.yml -f docker-compose.prod.yml exec nginx chmod 600 /etc/nginx/ssl/key.pem
+docker compose -f ../docker compose.yml -f docker compose.prod.yml exec nginx chmod 644 /etc/nginx/ssl/cert.pem
+docker compose -f ../docker compose.yml -f docker compose.prod.yml exec nginx chmod 600 /etc/nginx/ssl/key.pem
 
 # Reload nginx
-docker-compose -f ../docker-compose.yml -f docker-compose.prod.yml exec nginx nginx -s reload
+docker compose -f ../docker compose.yml -f docker compose.prod.yml exec nginx nginx -s reload
 
 echo "✅ SSL certificates renewed successfully"
 EOF
@@ -272,9 +272,9 @@ main() {
     echo "   • Add to crontab: 0 12 * * * /path/to/your/project/renew-ssl.sh"
     echo ""
     print_info "Management commands:"
-    echo "   • View logs: docker-compose -f ../docker-compose.yml -f docker-compose.prod.yml logs -f"
+    echo "   • View logs: docker compose -f ../docker compose.yml -f docker compose.prod.yml logs -f"
     echo "   • Renew certificates: ./renew-ssl.sh"
-    echo "   • Stop services: docker-compose -f ../docker-compose.yml -f docker-compose.prod.yml down"
+    echo "   • Stop services: docker compose -f ../docker compose.yml -f docker compose.prod.yml down"
     echo ""
     print_warning "Important: Set up the cron job for automatic certificate renewal!"
 }
