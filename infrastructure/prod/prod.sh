@@ -64,6 +64,16 @@ echo ""
 echo "🚀 Starting production services..."
 docker-compose -f docker-compose.yml -f prod/docker-compose.prod.yml up -d
 
+# Start monitoring stack if requested
+if [ "$1" = "--with-monitoring" ] || [ "$1" = "-m" ]; then
+    echo ""
+    echo "📊 Starting monitoring stack..."
+    docker-compose -f docker-compose.yml -f prod/docker-compose.prod.yml -f prod/docker-compose.monitoring.prod.yml up -d
+    echo "✅ Monitoring stack started!"
+    echo "   • Prometheus: http://localhost:9090"
+    echo "   • Grafana: http://localhost:3000 (admin/admin)"
+fi
+
 # Wait for services to be healthy
 echo ""
 echo "⏳ Waiting for services to become healthy..."
@@ -94,6 +104,7 @@ echo "   • View logs: docker-compose -f docker-compose.yml -f prod/docker-comp
 echo "   • Check status: docker-compose -f docker-compose.yml -f prod/docker-compose.prod.yml ps"
 echo "   • Scale services: docker-compose -f docker-compose.yml -f prod/docker-compose.prod.yml up -d --scale [service]=[count]"
 echo "   • Redis Commander (optional): docker-compose -f docker-compose.yml -f prod/docker-compose.prod.yml --profile monitoring up -d"
+echo "   • Start with monitoring: ./prod.sh --with-monitoring"
 echo ""
 echo "⚠️  Important Production Notes:"
 echo "   • Update VITE_API_BASE_URL in prod/docker-compose.prod.yml with your actual domain"
@@ -106,4 +117,5 @@ echo "⏹️  To stop the production stack:"
 echo "   docker-compose -f docker-compose.yml -f prod/docker-compose.prod.yml down"
 echo ""
 echo "🔄 To update services:"
-echo "   ./prod/prod.sh  # This will rebuild and restart all services" 
+echo "   ./prod/prod.sh  # This will rebuild and restart all services"
+echo "   ./prod/prod.sh --with-monitoring  # This will also start the monitoring stack" 

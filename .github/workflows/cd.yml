@@ -1,0 +1,130 @@
+name: Continuous Deployment
+
+on:
+  push:
+    branches: [main, master]
+
+jobs:
+  build-and-push:
+    name: Build & Push Images
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ghcr.io/${{ github.repository }}/workfolio
+            ghcr.io/${{ github.repository }}/ai-backend
+            ghcr.io/${{ github.repository }}/arachne
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push workfolio
+        uses: docker/build-push-action@v5
+        with:
+          context: ./services/workfolio
+          push: true
+          tags: ghcr.io/${{ github.repository }}/workfolio:${{ github.sha }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Build and push ai-backend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./services/ai-backend
+          push: true
+          tags: ghcr.io/${{ github.repository }}/ai-backend:${{ github.sha }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Build and push arachne
+        uses: docker/build-push-action@v5
+        with:
+          context: ./services/arachne
+          push: true
+          tags: ghcr.io/${{ github.repository }}/arachne:${{ github.sha }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: build-and-push
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to production server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          port: ${{ secrets.PROD_PORT }}
+          script: |
+            # Navigate to the project directory
+            cd /opt/personal-website
+
+            # Log in to GitHub Container Registry
+            echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+            # Pull the latest images
+            docker pull ghcr.io/${{ github.repository }}/workfolio:${{ github.sha }}
+            docker pull ghcr.io/${{ github.repository }}/ai-backend:${{ github.sha }}
+            docker pull ghcr.io/${{ github.repository }}/arachne:${{ github.sha }}
+
+            # Update docker-compose files with new image tags
+            export WORKFOLIO_IMAGE=ghcr.io/${{ github.repository }}/workfolio:${{ github.sha }}
+            export AI_BACKEND_IMAGE=ghcr.io/${{ github.repository }}/ai-backend:${{ github.sha }}
+            export ARACHNE_IMAGE=ghcr.io/${{ github.repository }}/arachne:${{ github.sha }}
+
+            # Deploy with the new images using CI/CD docker-compose files
+            docker-compose -f infrastructure/docker-compose.cicd.yml -f infrastructure/prod/docker-compose.cicd.yml down
+            docker-compose -f infrastructure/docker-compose.cicd.yml -f infrastructure/prod/docker-compose.cicd.yml up -d
+
+            # Clean up old images to save disk space
+            docker image prune -f
+
+            # Verify deployment
+            sleep 10
+            docker-compose -f infrastructure/docker-compose.cicd.yml -f infrastructure/prod/docker-compose.cicd.yml ps
+
+            echo "Deployment completed successfully!"
+
+  notify:
+    name: Notify Deployment Status
+    runs-on: ubuntu-latest
+    needs: deploy
+    if: always()
+
+    steps:
+      - name: Notify on success
+        if: needs.deploy.result == 'success'
+        run: |
+          echo "✅ Deployment to production completed successfully!"
+          echo "Commit: ${{ github.sha }}"
+          echo "Branch: ${{ github.ref_name }}"
+
+      - name: Notify on failure
+        if: needs.deploy.result == 'failure'
+        run: |
+          echo "❌ Deployment to production failed!"
+          echo "Commit: ${{ github.sha }}"
+          echo "Branch: ${{ github.ref_name }}"
+          exit 1

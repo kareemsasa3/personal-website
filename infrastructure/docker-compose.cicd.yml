@@ -6,7 +6,6 @@ services:
     ports:
       - "${NGINX_HTTP_PORT:-80}:80"
       - "${NGINX_HTTPS_PORT:-443}:443"
-      - "8080:8080"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/conf.d:/etc/nginx/conf.d:ro
@@ -17,20 +16,18 @@ services:
       - arachne
     restart: unless-stopped
     networks:
-      - portfolio-network
+      - ${DOCKER_NETWORK_NAME:-portfolio-network}
 
   # Workfolio - Main portfolio application
   workfolio:
-    build:
-      context: ../workfolio
-      dockerfile: Dockerfile
+    image: ${WORKFOLIO_IMAGE:-ghcr.io/your-username/personal-website/workfolio:latest}
     container_name: portfolio-workfolio
     environment:
       - NODE_ENV=${WORKFOLIO_NODE_ENV:-production}
       - VITE_AI_BACKEND_URL=${VITE_AI_BACKEND_URL:-/api/ai}
     restart: unless-stopped
     networks:
-      - portfolio-network
+      - ${DOCKER_NETWORK_NAME:-portfolio-network}
     healthcheck:
       test:
         [
@@ -48,9 +45,7 @@ services:
 
   # AI Backend - AI microservice
   ai-backend:
-    build:
-      context: ../services/ai-backend
-      dockerfile: Dockerfile
+    image: ${AI_BACKEND_IMAGE:-ghcr.io/your-username/personal-website/ai-backend:latest}
     container_name: portfolio-ai-backend
     environment:
       - NODE_ENV=${AI_BACKEND_NODE_ENV:-production}
@@ -62,7 +57,7 @@ services:
       - RATE_LIMIT_MAX_REQUESTS=${AI_BACKEND_RATE_LIMIT_MAX_REQUESTS:-100}
     restart: unless-stopped
     networks:
-      - portfolio-network
+      - ${DOCKER_NETWORK_NAME:-portfolio-network}
     healthcheck:
       test:
         [
@@ -80,9 +75,7 @@ services:
 
   # Arachne - Web scraping service
   arachne:
-    build:
-      context: ../services/arachne
-      dockerfile: Dockerfile
+    image: ${ARACHNE_IMAGE:-ghcr.io/your-username/personal-website/arachne:latest}
     container_name: portfolio-arachne
     environment:
       - SCRAPER_REDIS_ADDR=${ARACHNE_REDIS_ADDR:-redis:6379}
@@ -102,7 +95,7 @@ services:
         condition: service_healthy
     restart: unless-stopped
     networks:
-      - portfolio-network
+      - ${DOCKER_NETWORK_NAME:-portfolio-network}
     healthcheck:
       test:
         [
@@ -127,7 +120,7 @@ services:
     command: redis-server --appendonly yes --maxmemory ${REDIS_MAX_MEMORY:-512mb} --maxmemory-policy ${REDIS_MAX_MEMORY_POLICY:-allkeys-lru}
     restart: unless-stopped
     networks:
-      - portfolio-network
+      - ${DOCKER_NETWORK_NAME:-portfolio-network}
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 30s
@@ -144,10 +137,10 @@ services:
       - redis
     restart: unless-stopped
     networks:
-      - portfolio-network
+      - ${DOCKER_NETWORK_NAME:-portfolio-network}
 
 networks:
-  portfolio-network:
+  ${DOCKER_NETWORK_NAME:-portfolio-network}:
     driver: bridge
 
 volumes:
