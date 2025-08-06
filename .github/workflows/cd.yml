@@ -40,7 +40,7 @@ jobs:
       - name: Build and push workfolio
         uses: docker/build-push-action@v5
         with:
-          context: ./services/workfolio
+          context: ./workfolio
           push: true
           tags: ghcr.io/${{ github.repository }}/workfolio:${{ github.sha }}
           labels: ${{ steps.meta.outputs.labels }}
