@@ -31,20 +31,6 @@ services:
     restart: unless-stopped
     networks:
       - portfolio-network
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "wget",
-          "--no-verbose",
-          "--tries=1",
-          "--spider",
-          "http://localhost:80/health",
-        ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
 
   # AI Backend - AI microservice
   ai-backend:
@@ -63,20 +49,6 @@ services:
     restart: unless-stopped
     networks:
       - portfolio-network
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "wget",
-          "--no-verbose",
-          "--tries=1",
-          "--spider",
-          "http://localhost:3001/health",
-        ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
 
   # Arachne - Web scraping service
   arachne:
@@ -103,20 +75,6 @@ services:
     restart: unless-stopped
     networks:
       - portfolio-network
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "wget",
-          "--no-verbose",
-          "--tries=1",
-          "--spider",
-          "http://localhost:8080/health",
-        ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
 
   # Redis - Required by Arachne for job storage
   redis:
