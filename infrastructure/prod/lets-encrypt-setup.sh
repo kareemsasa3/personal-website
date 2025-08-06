@@ -5,6 +5,11 @@
 
 set -e
 
+# Get the absolute path of the script's directory
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+# Navigate to the parent directory (infrastructure)
+INFRA_DIR="$(dirname "$SCRIPT_DIR")"
+
 echo "🔐 Let's Encrypt SSL Certificate Setup for Production"
 echo "====================================================="
 echo ""
@@ -88,9 +93,9 @@ get_user_input() {
 create_directories() {
     print_info "Creating necessary directories..."
     
-    mkdir -p ../nginx/certbot/www
-    mkdir -p ../logs/certbot
-    mkdir -p ../nginx/ssl
+    mkdir -p "$INFRA_DIR/nginx/certbot/www"
+    mkdir -p "$INFRA_DIR/logs/certbot"
+    mkdir -p "$INFRA_DIR/nginx/ssl"
     
     print_status "Directories created"
 }
@@ -100,7 +105,7 @@ update_configurations() {
     print_info "Updating configuration files..."
     
     # Update nginx configuration
-    sed -i.bak "s/server_name localhost;/server_name $DOMAIN;/g" ../nginx/conf.d/default.conf
+    sed -i.bak "s/server_name localhost;/server_name $DOMAIN;/g" "$INFRA_DIR/nginx/conf.d/default.conf"
     
     # Update production docker compose
     sed -i.bak "s|https://your-domain.com|https://$DOMAIN|g" docker compose.prod.yml
@@ -143,7 +148,7 @@ setup_initial_certificate() {
     
     # Start nginx with HTTP only for ACME challenge
     print_info "Starting nginx for ACME challenge..."
-    docker compose -f ../docker compose.yml -f docker compose.prod.yml up -d nginx
+    (cd "$INFRA_DIR" && docker compose -f docker compose.yml -f prod/docker compose.prod.yml up -d nginx)
     
     # Wait for nginx to be ready
     print_info "Waiting for nginx to be ready..."
@@ -151,16 +156,16 @@ setup_initial_certificate() {
     
     # Run certbot to obtain initial certificate
     print_info "Obtaining Let's Encrypt certificate..."
-    docker compose -f ../docker compose.yml -f docker compose.prod.yml --profile ssl-setup run --rm certbot
+    (cd "$INFRA_DIR" && docker compose -f docker compose.yml -f prod/docker compose.prod.yml --profile ssl-setup run --rm certbot)
     
     # Copy certificates to nginx ssl directory
     print_info "Copying certificates..."
-    docker compose -f ../docker compose.yml -f docker compose.prod.yml exec nginx cp /etc/letsencrypt/live/$DOMAIN/fullchain.pem /etc/nginx/ssl/cert.pem
-    docker compose -f ../docker compose.yml -f docker compose.prod.yml exec nginx cp /etc/letsencrypt/live/$DOMAIN/privkey.pem /etc/nginx/ssl/key.pem
+    (cd "$INFRA_DIR" && docker compose -f docker compose.yml -f prod/docker compose.prod.yml exec nginx cp /etc/letsencrypt/live/$DOMAIN/fullchain.pem /etc/nginx/ssl/cert.pem)
+    (cd "$INFRA_DIR" && docker compose -f docker compose.yml -f prod/docker compose.prod.yml exec nginx cp /etc/letsencrypt/live/$DOMAIN/privkey.pem /etc/nginx/ssl/key.pem)
     
     # Set proper permissions
-    docker compose -f ../docker compose.yml -f docker compose.prod.yml exec nginx chmod 644 /etc/nginx/ssl/cert.pem
-    docker compose -f ../docker compose.yml -f docker compose.prod.yml exec nginx chmod 600 /etc/nginx/ssl/key.pem
+    (cd "$INFRA_DIR" && docker compose -f docker compose.yml -f prod/docker compose.prod.yml exec nginx chmod 644 /etc/nginx/ssl/cert.pem)
+    (cd "$INFRA_DIR" && docker compose -f docker compose.yml -f prod/docker compose.prod.yml exec nginx chmod 600 /etc/nginx/ssl/key.pem)
     
     print_status "Initial certificate setup completed"
 }
@@ -170,10 +175,10 @@ start_production_stack() {
     print_info "Starting full production stack..."
     
     # Stop nginx
-    docker compose -f ../docker compose.yml -f docker compose.prod.yml down
+    (cd "$INFRA_DIR" && docker compose -f docker compose.yml -f prod/docker compose.prod.yml down)
     
     # Start all services
-    docker compose -f ../docker compose.yml -f docker compose.prod.yml up -d
+    (cd "$INFRA_DIR" && docker compose -f docker compose.yml -f prod/docker compose.prod.yml up -d)
     
     print_status "Production stack started"
 }
@@ -183,7 +188,7 @@ setup_auto_renewal() {
     print_info "Setting up automatic certificate renewal..."
     
     # Create renewal script
-    cat > ../renew-ssl.sh << EOF
+    cat > "$INFRA_DIR/renew-ssl.sh" << EOF
 #!/bin/bash
 
 # SSL Certificate Renewal Script
@@ -191,33 +196,33 @@ setup_auto_renewal() {
 
 set -e
 
-cd "\$(dirname "\$0")/infrastructure/prod"
+cd "\$(dirname "\$0")"
 
 echo "🔄 Renewing SSL certificates..."
 
 # Renew certificates
-docker compose -f ../docker compose.yml -f docker compose.prod.yml --profile ssl-setup run --rm certbot renew
+(cd "\$(dirname "\$0")" && docker compose -f docker compose.yml -f prod/docker compose.prod.yml --profile ssl-setup run --rm certbot renew)
 
 # Copy renewed certificates
-docker compose -f ../docker compose.yml -f docker compose.prod.yml exec nginx cp /etc/letsencrypt/live/$DOMAIN/fullchain.pem /etc/nginx/ssl/cert.pem
-docker compose -f ../docker compose.yml -f docker compose.prod.yml exec nginx cp /etc/letsencrypt/live/$DOMAIN/privkey.pem /etc/nginx/ssl/key.pem
+(cd "\$(dirname "\$0")" && docker compose -f docker compose.yml -f prod/docker compose.prod.yml exec nginx cp /etc/letsencrypt/live/$DOMAIN/fullchain.pem /etc/nginx/ssl/cert.pem)
+(cd "\$(dirname "\$0")" && docker compose -f docker compose.yml -f prod/docker compose.prod.yml exec nginx cp /etc/letsencrypt/live/$DOMAIN/privkey.pem /etc/nginx/ssl/key.pem)
 
 # Set proper permissions
-docker compose -f ../docker compose.yml -f docker compose.prod.yml exec nginx chmod 644 /etc/nginx/ssl/cert.pem
-docker compose -f ../docker compose.yml -f docker compose.prod.yml exec nginx chmod 600 /etc/nginx/ssl/key.pem
+(cd "\$(dirname "\$0")" && docker compose -f docker compose.yml -f prod/docker compose.prod.yml exec nginx chmod 644 /etc/nginx/ssl/cert.pem)
+(cd "\$(dirname "\$0")" && docker compose -f docker compose.yml -f prod/docker compose.prod.yml exec nginx chmod 600 /etc/nginx/ssl/key.pem)
 
 # Reload nginx
-docker compose -f ../docker compose.yml -f docker compose.prod.yml exec nginx nginx -s reload
+(cd "\$(dirname "\$0")" && docker compose -f docker compose.yml -f prod/docker compose.prod.yml exec nginx nginx -s reload)
 
 echo "✅ SSL certificates renewed successfully"
 EOF
     
-    chmod +x ../renew-ssl.sh
+    chmod +x "$INFRA_DIR/renew-ssl.sh"
     
-    print_status "Auto-renewal script created: ../renew-ssl.sh"
+    print_status "Auto-renewal script created: $INFRA_DIR/renew-ssl.sh"
     print_info "Add to crontab for automatic renewal:"
     echo "   crontab -e"
-    echo "   Add: 0 12 * * * /path/to/your/project/renew-ssl.sh"
+    echo "   Add: 0 12 * * * $INFRA_DIR/renew-ssl.sh"
 }
 
 # Test SSL configuration
@@ -272,9 +277,9 @@ main() {
     echo "   • Add to crontab: 0 12 * * * /path/to/your/project/renew-ssl.sh"
     echo ""
     print_info "Management commands:"
-    echo "   • View logs: docker compose -f ../docker compose.yml -f docker compose.prod.yml logs -f"
-    echo "   • Renew certificates: ./renew-ssl.sh"
-    echo "   • Stop services: docker compose -f ../docker compose.yml -f docker compose.prod.yml down"
+    echo "   • View logs: (cd \"$INFRA_DIR\" && docker compose -f docker compose.yml -f prod/docker compose.prod.yml logs -f)"
+    echo "   • Renew certificates: $INFRA_DIR/renew-ssl.sh"
+    echo "   • Stop services: (cd \"$INFRA_DIR\" && docker compose -f docker compose.yml -f prod/docker compose.prod.yml down)"
     echo ""
     print_warning "Important: Set up the cron job for automatic certificate renewal!"
 }
