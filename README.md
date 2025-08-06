@@ -88,19 +88,38 @@ This setup orchestrates the following services:
 
 ### Environment Variables
 
-Create a `.env` file in the root directory for custom configuration:
+The portfolio uses a centralized environment variable system. For detailed configuration, see [Environment Setup Guide](infrastructure/ENVIRONMENT_SETUP.md).
 
-```env
-# AI Backend
-AI_API_KEY=your_ai_api_key
+#### Quick Setup
 
-# Arachne
-SCRAPER_MAX_CONCURRENT=5
-SCRAPER_REQUEST_TIMEOUT=120s
-
-# Redis
-REDIS_PASSWORD=optional_redis_password
+```bash
+cd infrastructure
+./setup-env.sh
 ```
+
+This interactive script will help you configure:
+- Domain name and SSL email
+- Google Gemini API key for AI features
+- Resource limits and performance settings
+- Development vs production configurations
+
+#### Manual Setup
+
+```bash
+cd infrastructure
+cp env.example .env
+# Edit .env with your configuration
+nano .env
+```
+
+#### Key Configuration Variables
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `DOMAIN_NAME` | Your domain name | Yes |
+| `SSL_EMAIL` | Email for SSL certificates | Yes |
+| `GEMINI_API_KEY` | Google Gemini API key | For AI features |
+| `VITE_AI_BACKEND_URL` | AI backend URL | Auto-configured |
 
 ### Nginx Configuration
 
@@ -165,11 +184,28 @@ Access Redis Commander at http://localhost/redis/ to monitor Redis operations.
 
 For production deployment:
 
-1. **Set environment variables** in `.env`
-2. **Configure SSL certificates** in nginx
-3. **Set up proper domain names** in nginx configuration
-4. **Use external Redis** if needed
-5. **Configure monitoring and logging**
+1. **Configure environment variables**:
+   ```bash
+   cd infrastructure
+   ./setup-env.sh
+   ```
+
+2. **Set up SSL certificates**:
+   ```bash
+   docker-compose -f prod/docker-compose.prod.yml --profile ssl-setup up certbot
+   ```
+
+3. **Start production services**:
+   ```bash
+   docker-compose -f prod/docker-compose.prod.yml up -d
+   ```
+
+4. **Monitor the deployment**:
+   ```bash
+   docker-compose -f prod/docker-compose.prod.yml logs -f
+   ```
+
+For detailed deployment instructions, see [Environment Setup Guide](infrastructure/ENVIRONMENT_SETUP.md).
 
 ## 📝 Troubleshooting
 
