@@ -18,13 +18,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js (for workfolio and ai-backend)
-        if: matrix.service == 'workfolio' || matrix.service == 'ai-backend'
+      - name: Setup Node.js for workfolio
+        if: matrix.service == 'workfolio'
         uses: actions/setup-node@v4
         with:
           node-version: "18"
           cache: "npm"
-          cache-dependency-path: ${{ matrix.service == 'workfolio' && 'workfolio/package-lock.json' || format('services/{0}/package-lock.json', matrix.service) }}
+          cache-dependency-path: workfolio/package-lock.json
+
+      - name: Setup Node.js for ai-backend
+        if: matrix.service == 'ai-backend'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: "npm"
+          cache-dependency-path: services/ai-backend/package-lock.json
 
       - name: Install dependencies (workfolio)
         if: matrix.service == 'workfolio'
