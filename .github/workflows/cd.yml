@@ -4,6 +4,10 @@ on:
   push:
     branches: [main, master]
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   build-and-push:
     name: Build & Push Images
