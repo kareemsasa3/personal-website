@@ -85,6 +85,11 @@ generate_self_signed() {
     print_info "Certificate location: $cert_dir/"
     print_warning "Note: Self-signed certificates will show security warnings in browsers"
     print_warning "This is suitable for development/testing only"
+    echo ""
+    print_warning "🔒 SECURITY WARNING:"
+    print_warning "   - These files are NOT committed to git (see .gitignore)"
+    print_warning "   - Keep your private key secure and never share it"
+    print_warning "   - For production, use Let's Encrypt or commercial certificates"
 }
 
 # Option 2: Let's Encrypt setup instructions
@@ -133,6 +138,11 @@ manual_certificate() {
     echo "3. Update the domain name in nginx configuration if needed"
     echo ""
     print_warning "Make sure your certificate matches your domain name"
+    echo ""
+    print_warning "🔒 SECURITY WARNING:"
+    print_warning "   - These files are NOT committed to git (see .gitignore)"
+    print_warning "   - Keep your private key secure and never share it"
+    print_warning "   - Never commit private keys to version control"
 }
 
 # Option 4: Test SSL configuration
