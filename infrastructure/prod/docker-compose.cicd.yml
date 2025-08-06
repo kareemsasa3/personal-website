@@ -35,8 +35,6 @@ services:
       arachne:
         condition: service_healthy
     restart: unless-stopped
-    networks:
-      - ${DOCKER_NETWORK_NAME:-portfolio-network}-prod
     healthcheck:
       test:
         [
@@ -68,8 +66,6 @@ services:
       - NODE_ENV=${WORKFOLIO_NODE_ENV:-production}
       - VITE_AI_BACKEND_URL=${VITE_AI_BACKEND_URL:-https://your-domain.com/api/ai}
     restart: unless-stopped
-    networks:
-      - ${DOCKER_NETWORK_NAME:-portfolio-network}-prod
     healthcheck:
       test:
         [
@@ -111,8 +107,6 @@ services:
       - RATE_LIMIT_WINDOW_MS=${AI_BACKEND_RATE_LIMIT_WINDOW_MS:-900000}
       - RATE_LIMIT_MAX_REQUESTS=${AI_BACKEND_RATE_LIMIT_MAX_REQUESTS:-100}
     restart: unless-stopped
-    networks:
-      - ${DOCKER_NETWORK_NAME:-portfolio-network}-prod
     healthcheck:
       test:
         [
@@ -162,8 +156,6 @@ services:
       redis:
         condition: service_healthy
     restart: unless-stopped
-    networks:
-      - ${DOCKER_NETWORK_NAME:-portfolio-network}-prod
     healthcheck:
       test:
         [
@@ -208,8 +200,6 @@ services:
       --save 300 10
       --save 60 10000
     restart: unless-stopped
-    networks:
-      - ${DOCKER_NETWORK_NAME:-portfolio-network}-prod
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 30s
@@ -238,8 +228,6 @@ services:
     depends_on:
       - redis
     restart: unless-stopped
-    networks:
-      - ${DOCKER_NETWORK_NAME:-portfolio-network}-prod
     profiles:
       - monitoring
     deploy:
@@ -250,13 +238,6 @@ services:
         reservations:
           memory: 128M
           cpus: "0.25"
-
-networks:
-  ${DOCKER_NETWORK_NAME:-portfolio-network}-prod:
-    driver: bridge
-    ipam:
-      config:
-        - subnet: ${DOCKER_NETWORK_SUBNET:-172.20.0.0/16}
 
 volumes:
   redis_data_prod:
