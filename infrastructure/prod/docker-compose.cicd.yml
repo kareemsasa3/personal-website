@@ -60,7 +60,7 @@ services:
 
   # Workfolio - Production build from GHCR
   workfolio:
-    image: ${WORKFOLIO_IMAGE:-ghcr.io/your-username/personal-website/workfolio:latest}
+    image: ${WORKFOLIO_IMAGE:-ghcr.io/kareemsasa3/personal-website/workfolio:latest}
     container_name: portfolio-workfolio-prod
     environment:
       - NODE_ENV=${WORKFOLIO_NODE_ENV:-production}
@@ -96,7 +96,7 @@ services:
 
   # AI Backend - Production optimized from GHCR
   ai-backend:
-    image: ${AI_BACKEND_IMAGE:-ghcr.io/your-username/personal-website/ai-backend:latest}
+    image: ${AI_BACKEND_IMAGE:-ghcr.io/kareemsasa3/personal-website/ai-backend:latest}
     container_name: portfolio-ai-backend-prod
     environment:
       - NODE_ENV=${AI_BACKEND_NODE_ENV:-production}
@@ -137,7 +137,7 @@ services:
 
   # Arachne - Production optimized from GHCR
   arachne:
-    image: ${ARACHNE_IMAGE:-ghcr.io/your-username/personal-website/arachne:latest}
+    image: ${ARACHNE_IMAGE:-ghcr.io/kareemsasa3/personal-website/arachne:latest}
     container_name: portfolio-arachne-prod
     environment:
       - SCRAPER_REDIS_ADDR=${ARACHNE_REDIS_ADDR:-redis:6379}
@@ -174,10 +174,10 @@ services:
       resources:
         limits:
           memory: ${ARACHNE_MEMORY_LIMIT:-2G}
-          cpus: "${ARACHNE_CPU_LIMIT:-2.0}"
+          cpus: "0.8"
         reservations:
           memory: 1G
-          cpus: "1.0"
+          cpus: "0.4"
     logging:
       driver: "json-file"
       options:
