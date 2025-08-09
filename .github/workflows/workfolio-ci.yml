@@ -51,8 +51,8 @@ jobs:
       - name: Build Workfolio image (Dockerfile in submodule)
         uses: docker/build-push-action@v5
         with:
-          context: .
-          file: workfolio/Dockerfile
+          context: ./workfolio
+          file: ./workfolio/Dockerfile
           load: ${{ github.ref != 'refs/heads/main' && github.ref != 'refs/heads/master' }}
           push: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' }}
           tags: |
