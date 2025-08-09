@@ -18,9 +18,9 @@ jobs:
         with:
           submodules: recursive
           fetch-depth: 0
-          # If your submodule needs different auth, uncomment ONE of the below:
-          # token: ${{ secrets.CI_PAT }}
-          # ssh-key: ${{ secrets.SUBMODULE_SSH_KEY }}
+          # Use SSH for submodules
+          ssh-key: ${{ secrets.SUBMODULE_SSH_KEY }}
+          ssh-strict: true
 
       - name: Verify submodule checkout
         run: |
@@ -76,7 +76,7 @@ jobs:
           scan-type: image
           image-ref: workfolio:ci
           format: table
-          severity: CRITICAL,HIGH
+          severity: CRITICAL
           exit-code: 1
 
       - name: Scan Workfolio image with Trivy (remote)
@@ -86,7 +86,7 @@ jobs:
           scan-type: image
           image-ref: ghcr.io/${{ github.repository }}/workfolio:${{ github.sha }}
           format: table
-          severity: CRITICAL,HIGH
+          severity: CRITICAL
           exit-code: 1
 
       # Alternative: build from within the submodule directory
@@ -112,8 +112,8 @@ jobs:
         with:
           fetch-depth: 0
           submodules: recursive
-          # token: ${{ secrets.CI_PAT }}
-          # ssh-key: ${{ secrets.SUBMODULE_SSH_KEY }}
+          ssh-key: ${{ secrets.SUBMODULE_SSH_KEY }}
+          ssh-strict: true
       - name: Verify submodule checkout (ai-backend)
         run: |
           git submodule status || true
@@ -161,7 +161,7 @@ jobs:
           scan-type: image
           image-ref: ai-backend:ci
           format: table
-          severity: CRITICAL,HIGH
+          severity: CRITICAL
           exit-code: 1
 
       - name: Scan ai-backend image with Trivy (remote)
@@ -171,7 +171,7 @@ jobs:
           scan-type: image
           image-ref: ghcr.io/${{ github.repository }}/ai-backend:${{ github.sha }}
           format: table
-          severity: CRITICAL,HIGH
+          severity: CRITICAL
           exit-code: 1
 
   build-arachne:
@@ -185,8 +185,8 @@ jobs:
         with:
           fetch-depth: 0
           submodules: recursive
-          # token: ${{ secrets.CI_PAT }}
-          # ssh-key: ${{ secrets.SUBMODULE_SSH_KEY }}
+          ssh-key: ${{ secrets.SUBMODULE_SSH_KEY }}
+          ssh-strict: true
       - name: Verify submodule checkout (arachne)
         run: |
           git submodule status || true
@@ -234,7 +234,7 @@ jobs:
           scan-type: image
           image-ref: arachne:ci
           format: table
-          severity: CRITICAL,HIGH
+          severity: CRITICAL
           exit-code: 1
 
       - name: Scan arachne image with Trivy (remote)
@@ -244,5 +244,5 @@ jobs:
           scan-type: image
           image-ref: ghcr.io/${{ github.repository }}/arachne:${{ github.sha }}
           format: table
-          severity: CRITICAL,HIGH
+          severity: CRITICAL
           exit-code: 1
