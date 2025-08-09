@@ -130,6 +130,31 @@ runs:
           echo "WARNING: infrastructure/prod/.env not found; continuing without extra env" >&2
         fi
 
+        # If TLS certs are missing, obtain them via standalone certbot (binds to host :80)
+        DOMAIN_NAME_VALUE=${DOMAIN_NAME:-kareemsasa.dev}
+        SSL_EMAIL_VALUE=${SSL_EMAIL:-${USER}@localhost}
+        CERT_PATH_HOST="$(pwd)/infrastructure/nginx/ssl/live/${DOMAIN_NAME_VALUE}/fullchain.pem"
+        if [ ! -f "$CERT_PATH_HOST" ]; then
+          echo "TLS certificates for ${DOMAIN_NAME_VALUE} not found. Attempting standalone certbot issuance..."
+          # Ensure directories exist
+          mkdir -p infrastructure/nginx/ssl
+          mkdir -p infrastructure/nginx/certbot/www
+          # Stop any service bound to :80 to free the port (best effort)
+          (docker ps --format '{{.ID}} {{.Ports}} {{.Names}}' | grep -E ':80->|:80/' | awk '{print $1}' | xargs -r docker stop) || true
+          # Run certbot in standalone mode to write into our ssl mount
+          docker run --rm -p 80:80 \
+            -v "$(pwd)/infrastructure/nginx/ssl:/etc/letsencrypt" \
+            certbot/certbot:latest certonly --standalone \
+            -d "$DOMAIN_NAME_VALUE" -m "$SSL_EMAIL_VALUE" \
+            --agree-tos --no-eff-email --non-interactive --preferred-challenges http || {
+              echo "ERROR: Certbot issuance failed. Check DNS A record points to this server and port 80 is reachable." >&2
+              exit 1
+            }
+          echo "Certificate obtained for ${DOMAIN_NAME_VALUE}."
+        else
+          echo "Found existing TLS certificate at $CERT_PATH_HOST"
+        fi
+
         # Ensure CPU limits are valid for the host (avoid errors on single-core hosts)
         HOST_CPUS=$( (command -v nproc >/dev/null 2>&1 && nproc) || sysctl -n hw.ncpu 2>/dev/null || echo 1 )
         if [ "$HOST_CPUS" -lt 2 ]; then
