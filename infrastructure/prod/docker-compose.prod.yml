@@ -259,10 +259,8 @@ services:
 
 networks:
   portfolio-network-prod:
-    driver: bridge
-    ipam:
-      config:
-        - subnet: ${DOCKER_NETWORK_SUBNET:-172.20.0.0/16}
+    external: true
+    name: portfolio-network-prod
 
 volumes:
   redis_data_prod:

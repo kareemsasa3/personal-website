@@ -72,15 +72,24 @@ jobs:
           echo "${GHCR_TOKEN}" | docker login ghcr.io -u "${GHCR_USERNAME}" --password-stdin || true
           echo "Disk usage after cleanup:" && df -h /
           echo "Docker disk usage after cleanup:" && docker system df || true
+          # Load production environment variables from file (do not commit this file)
+          if [ -f infrastructure/prod/.env ]; then
+            echo "Loading environment from infrastructure/prod/.env"
+            set -a
+            . infrastructure/prod/.env
+            set +a
+          else
+            echo "ERROR: Missing infrastructure/prod/.env on server. Create it with required vars (e.g., GEMINI_API_KEY, SSL_EMAIL, DOMAIN_NAME, SESSION_TOKEN_SECRET, TURNSTILE_SECRET)." >&2
+            exit 1
+          fi
           # Choose docker compose command
           if command -v docker-compose >/dev/null 2>&1; then
             COMPOSE_CMD="docker-compose"
           else
             COMPOSE_CMD="docker compose"
           fi
-          # Ensure the production network exists with the expected name
-          \$COMPOSE_CMD -f infrastructure/prod/docker-compose.prod.yml down || true
-          docker network create portfolio-network-prod 2>/dev/null || true
+          # Ensure the production network exists (external network referenced by prod compose)
+          docker network create portfolio-network-prod >/dev/null 2>&1 || true
           \$COMPOSE_CMD -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml pull || true
           \$COMPOSE_CMD -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml up -d
           \$COMPOSE_CMD -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml ps
