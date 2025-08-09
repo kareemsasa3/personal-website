@@ -32,14 +32,17 @@ runs:
       shell: bash
       run: |
         mkdir -p ~/.ssh
-        echo "${{ inputs.ssh_key }}" > ~/.ssh/id_ed25519
+        chmod 700 ~/.ssh
+        # Write the key handling both literal \n sequences and real newlines
+        printf "%s" "${{ inputs.ssh_key }}" | sed 's/\\n/\n/g' > ~/.ssh/id_ed25519
         chmod 600 ~/.ssh/id_ed25519
-        ssh-keyscan -p "${{ inputs.port }}" "${{ inputs.host }}" >> ~/.ssh/known_hosts
+        # Best-effort host key prefetch; do not fail if host is unreachable
+        ssh-keyscan -T 10 -p "${{ inputs.port }}" "${{ inputs.host }}" >> ~/.ssh/known_hosts 2>/dev/null || true
 
     - name: Deploy over SSH
       shell: bash
       run: |
-        ssh -p "${{ inputs.port }}" "${{ inputs.user }}@${{ inputs.host }}" << 'EOF'
+        ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p "${{ inputs.port }}" "${{ inputs.user }}@${{ inputs.host }}" << 'EOF'
         set -e
         cd "\$HOME/personal-website"
 
