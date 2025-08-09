@@ -42,15 +42,28 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build Workfolio image (Dockerfile in submodule)
+      - name: Build Workfolio image (local, PRs only)
+        if: github.ref != 'refs/heads/main' && github.ref != 'refs/heads/master'
         uses: docker/build-push-action@v5
         with:
           context: ./workfolio
-          file: ./workfolio/Dockerfile
-          load: ${{ github.ref != 'refs/heads/main' && github.ref != 'refs/heads/master' }}
-          push: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' }}
+          file: Dockerfile
+          load: true
+          push: false
           tags: |
             workfolio:ci
+          build-args: |
+            VITE_TURNSTILE_SITE_KEY=${{ secrets.VITE_TURNSTILE_SITE_KEY }}
+            VITE_AI_BACKEND_URL=${{ secrets.VITE_AI_BACKEND_URL }}
+
+      - name: Build and push Workfolio image (GHCR, main/master only)
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        uses: docker/build-push-action@v5
+        with:
+          context: ./workfolio
+          file: Dockerfile
+          push: true
+          tags: |
             ghcr.io/${{ github.repository }}/workfolio:${{ github.sha }}
             ghcr.io/${{ github.repository }}/workfolio:${{ github.ref_name }}
             ghcr.io/${{ github.repository }}/workfolio:latest
@@ -114,15 +127,25 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build ai-backend image
+      - name: Build ai-backend image (local, PRs only)
+        if: github.ref != 'refs/heads/main' && github.ref != 'refs/heads/master'
         uses: docker/build-push-action@v5
         with:
           context: ./services/ai-backend
-          file: ./services/ai-backend/Dockerfile
-          load: ${{ github.ref != 'refs/heads/main' && github.ref != 'refs/heads/master' }}
-          push: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' }}
+          file: Dockerfile
+          load: true
+          push: false
           tags: |
             ai-backend:ci
+
+      - name: Build and push ai-backend image (GHCR, main/master only)
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        uses: docker/build-push-action@v5
+        with:
+          context: ./services/ai-backend
+          file: Dockerfile
+          push: true
+          tags: |
             ghcr.io/${{ github.repository }}/ai-backend:${{ github.sha }}
             ghcr.io/${{ github.repository }}/ai-backend:${{ github.ref_name }}
             ghcr.io/${{ github.repository }}/ai-backend:latest
@@ -171,15 +194,25 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build arachne image
+      - name: Build arachne image (local, PRs only)
+        if: github.ref != 'refs/heads/main' && github.ref != 'refs/heads/master'
         uses: docker/build-push-action@v5
         with:
           context: ./services/arachne
-          file: ./services/arachne/Dockerfile
-          load: ${{ github.ref != 'refs/heads/main' && github.ref != 'refs/heads/master' }}
-          push: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' }}
+          file: Dockerfile
+          load: true
+          push: false
           tags: |
             arachne:ci
+
+      - name: Build and push arachne image (GHCR, main/master only)
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        uses: docker/build-push-action@v5
+        with:
+          context: ./services/arachne
+          file: Dockerfile
+          push: true
+          tags: |
             ghcr.io/${{ github.repository }}/arachne:${{ github.sha }}
             ghcr.io/${{ github.repository }}/arachne:${{ github.ref_name }}
             ghcr.io/${{ github.repository }}/arachne:latest
