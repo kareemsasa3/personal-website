@@ -78,6 +78,9 @@ jobs:
           else
             COMPOSE_CMD="docker compose"
           fi
+          # Ensure the production network exists with the expected name
+          \$COMPOSE_CMD -f infrastructure/prod/docker-compose.prod.yml down || true
+          docker network create portfolio-network-prod 2>/dev/null || true
           \$COMPOSE_CMD -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml pull || true
           \$COMPOSE_CMD -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml up -d
           \$COMPOSE_CMD -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml ps

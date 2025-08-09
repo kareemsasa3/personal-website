@@ -36,7 +36,7 @@ services:
         condition: service_healthy
     restart: unless-stopped
     networks:
-      - ${DOCKER_NETWORK_NAME:-portfolio-network}-prod
+      - portfolio-network-prod
     healthcheck:
       test:
         [
@@ -70,7 +70,7 @@ services:
       - VITE_AI_BACKEND_URL=${VITE_AI_BACKEND_URL:-https://your-domain.com/api/ai}
     restart: unless-stopped
     networks:
-      - ${DOCKER_NETWORK_NAME:-portfolio-network}-prod
+      - portfolio-network-prod
     healthcheck:
       test:
         [
@@ -117,7 +117,7 @@ services:
       - TURNSTILE_SECRET=${TURNSTILE_SECRET}
     restart: unless-stopped
     networks:
-      - ${DOCKER_NETWORK_NAME:-portfolio-network}-prod
+      - portfolio-network-prod
     healthcheck:
       test:
         [
@@ -169,7 +169,7 @@ services:
         condition: service_healthy
     restart: unless-stopped
     networks:
-      - ${DOCKER_NETWORK_NAME:-portfolio-network}-prod
+      - portfolio-network-prod
     healthcheck:
       test:
         [
@@ -215,7 +215,7 @@ services:
       --save 60 10000
     restart: unless-stopped
     networks:
-      - ${DOCKER_NETWORK_NAME:-portfolio-network}-prod
+      - portfolio-network-prod
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 30s
@@ -258,7 +258,7 @@ services:
           cpus: "0.25"
 
 networks:
-  ${DOCKER_NETWORK_NAME:-portfolio-network}-prod:
+  portfolio-network-prod:
     driver: bridge
     ipam:
       config:
