@@ -13,33 +13,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
+      # Skipping direct npm installs to avoid path/caching issues; Docker builds validate builds
 
-      - name: Install deps (workfolio)
-        env:
-          CI: true
-          NPM_CONFIG_FUND: false
-          NPM_CONFIG_AUDIT: false
+      - name: Build Docker images (workfolio)
+        working-directory: workfolio
         run: |
-          echo "Node: $(node -v)"
-          echo "NPM:  $(npm -v)"
-          cd workfolio
-          ls -la
-          npm ci --no-audit --no-fund || npm install --no-audit --no-fund
+          docker build --build-arg VITE_TURNSTILE_SITE_KEY=${{ secrets.VITE_TURNSTILE_SITE_KEY }} -t workfolio:ci .
 
-      - name: Type check & lint (workfolio)
+      - name: Build Docker images (ai-backend)
+        working-directory: services/ai-backend
         run: |
-          cd workfolio
-          npm run build -- --mode production
-          npm run lint || true
-
-      - name: Build Docker images
-        run: |
-          docker build --build-arg VITE_TURNSTILE_SITE_KEY=${{ secrets.VITE_TURNSTILE_SITE_KEY }} -t workfolio:ci ./workfolio
-          docker build -t ai-backend:ci ./services/ai-backend
+          docker build -t ai-backend:ci .
 
   docker-scan:
     runs-on: ubuntu-latest
