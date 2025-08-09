@@ -107,7 +107,7 @@ runs:
         echo "Docker disk usage after cleanup:" && docker system df || true
         RSCRIPT
 
-        SSH_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=20 -o ServerAliveInterval=10 -o ServerAliveCountMax=3"
+        SSH_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=60 -o ConnectionAttempts=3 -o ServerAliveInterval=15 -o ServerAliveCountMax=4 -o PreferredAuthentications=publickey -o PubkeyAuthentication=yes -o IPQoS=none"
 
         success=""
         for attempt in 1 2 3; do
@@ -115,12 +115,16 @@ runs:
           if ssh -T $SSH_OPTS -p "$PORT" "$USER@$HOST" bash -s < /tmp/remote_deploy.sh; then
             success="yes"; break
           fi
-          echo "SSH attempt $attempt failed. Retrying in 5s..."
-          sleep 5
+          echo "SSH attempt $attempt failed. Retrying in 15s..."
+          sleep 15
         done
 
         if [ -z "$success" ]; then
           echo "Final SSH attempt with verbose logging (-vvv) for diagnostics:" >&2
+          echo "Printing remote SSH banner via netcat for diagnostics (if available)" >&2
+          if command -v nc >/dev/null 2>&1; then
+            nc -v -w 5 "$HOST" "$PORT" </dev/null || true
+          fi
           ssh -vvv -T $SSH_OPTS -p "$PORT" "$USER@$HOST" bash -s < /tmp/remote_deploy.sh || true
           exit 1
         fi
