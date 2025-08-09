@@ -111,8 +111,15 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Verify ai-backend directory
+          submodules: recursive
+          # token: ${{ secrets.CI_PAT }}
+          # ssh-key: ${{ secrets.SUBMODULE_SSH_KEY }}
+      - name: Verify submodule checkout (ai-backend)
         run: |
+          git submodule status || true
+          git submodule sync --recursive
+          git submodule update --init --recursive
+          ls -la
           ls -la services
           ls -la services/ai-backend
           test -f services/ai-backend/Dockerfile && echo "Found services/ai-backend/Dockerfile" || (echo "Missing services/ai-backend/Dockerfile" && exit 1)
@@ -177,8 +184,15 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Verify arachne directory
+          submodules: recursive
+          # token: ${{ secrets.CI_PAT }}
+          # ssh-key: ${{ secrets.SUBMODULE_SSH_KEY }}
+      - name: Verify submodule checkout (arachne)
         run: |
+          git submodule status || true
+          git submodule sync --recursive
+          git submodule update --init --recursive
+          ls -la
           ls -la services
           ls -la services/arachne
           test -f services/arachne/Dockerfile && echo "Found services/arachne/Dockerfile" || (echo "Missing services/arachne/Dockerfile" && exit 1)
