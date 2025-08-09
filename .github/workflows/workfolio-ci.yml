@@ -18,22 +18,15 @@ jobs:
         with:
           submodules: recursive
           fetch-depth: 0
-        # If your submodule is private in a different org, use a PAT with repo access instead:
-        # with:
-        #   submodules: recursive
-        #   fetch-depth: 0
-        #   token: ${{ secrets.CI_PAT }}
-        # Or for SSH-based private submodule access, use a deploy key:
-        # with:
-        #   submodules: recursive
-        #   fetch-depth: 0
-        #   ssh-key: ${{ secrets.SUBMODULE_SSH_KEY }}
-        #   ssh-known-hosts: github.com
-        #   persist-credentials: false
+          # If your submodule needs different auth, uncomment ONE of the below:
+          # token: ${{ secrets.CI_PAT }}
+          # ssh-key: ${{ secrets.SUBMODULE_SSH_KEY }}
 
       - name: Verify submodule checkout
         run: |
           git submodule status || true
+          git submodule sync --recursive
+          git submodule update --init --recursive
           ls -la
           ls -la workfolio
           test -f workfolio/Dockerfile && echo "Found workfolio/Dockerfile" || (echo "Missing workfolio/Dockerfile" && exit 1)
@@ -53,7 +46,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./workfolio
-          file: Dockerfile
+          file: ./workfolio/Dockerfile
           load: ${{ github.ref != 'refs/heads/main' && github.ref != 'refs/heads/master' }}
           push: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' }}
           tags: |
