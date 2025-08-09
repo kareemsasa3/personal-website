@@ -22,7 +22,6 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./workfolio
-          file: ./workfolio/Dockerfile
           push: false
           load: true
           tags: workfolio:ci
@@ -33,7 +32,6 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./services/ai-backend
-          file: ./services/ai-backend/Dockerfile
           push: false
           load: true
           tags: ai-backend:ci
