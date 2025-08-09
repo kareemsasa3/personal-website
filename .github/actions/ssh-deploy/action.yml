@@ -42,9 +42,17 @@ runs:
     - name: Deploy over SSH
       shell: bash
       run: |
-        ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p "${{ inputs.port }}" "${{ inputs.user }}@${{ inputs.host }}" << 'EOF'
+        echo "Checking TCP connectivity to ${{ inputs.host }}:${{ inputs.port }}" 
+        if command -v nc >/dev/null 2>&1; then
+          nc -zv -w 10 "${{ inputs.host }}" "${{ inputs.port }}" || true
+        else
+          (echo > "/dev/tcp/${{ inputs.host }}/${{ inputs.port }}") >/dev/null 2>&1 || true
+        fi
+
+        # Prepare remote script once, then stream it to SSH (allows retries)
+        cat > /tmp/remote_deploy.sh << 'RSCRIPT'
         set -e
-        cd "\$HOME/personal-website"
+        cd "$HOME/personal-website"
 
         echo "Disk usage before cleanup:" && df -h /
         echo "Docker disk usage before cleanup:" && docker system df || true
@@ -57,7 +65,7 @@ runs:
         sudo journalctl --vacuum-size=100M 2>/dev/null || true
 
         DOCKER_CONFIG_DIR="$(mktemp -d -t docker-config-XXXXXX 2>/dev/null || echo /tmp/docker-config)"
-        export DOCKER_CONFIG="\$DOCKER_CONFIG_DIR"
+        export DOCKER_CONFIG="$DOCKER_CONFIG_DIR"
         echo "${{ inputs.ghcr_token }}" | docker login ghcr.io -u "${{ inputs.ghcr_username }}" --password-stdin
 
         export WORKFOLIO_IMAGE=ghcr.io/${{ inputs.repository }}/workfolio:${{ inputs.sha }}
@@ -80,12 +88,30 @@ runs:
         OVR
 
         if command -v docker-compose >/dev/null 2>&1; then COMPOSE_CMD="docker-compose"; else COMPOSE_CMD="docker compose"; fi
-        \$COMPOSE_CMD -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml -f /tmp/compose.network.override.yml pull || true
-        \$COMPOSE_CMD -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml -f /tmp/compose.network.override.yml up -d
-        \$COMPOSE_CMD -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml -f /tmp/compose.network.override.yml ps
+        $COMPOSE_CMD -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml -f /tmp/compose.network.override.yml pull || true
+        $COMPOSE_CMD -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml -f /tmp/compose.network.override.yml up -d
+        $COMPOSE_CMD -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml -f /tmp/compose.network.override.yml ps
 
         echo "Disk usage after cleanup:" && df -h /
         echo "Docker disk usage after cleanup:" && docker system df || true
-        EOF
+        RSCRIPT
+
+        SSH_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=20 -o ServerAliveInterval=10 -o ServerAliveCountMax=3"
+
+        success=""
+        for attempt in 1 2 3; do
+          echo "SSH attempt $attempt..."
+          if ssh -T $SSH_OPTS -p "${{ inputs.port }}" "${{ inputs.user }}@${{ inputs.host }}" bash -s < /tmp/remote_deploy.sh; then
+            success="yes"; break
+          fi
+          echo "SSH attempt $attempt failed. Retrying in 5s..."
+          sleep 5
+        done
+
+        if [ -z "$success" ]; then
+          echo "Final SSH attempt with verbose logging (-vvv) for diagnostics:" >&2
+          ssh -vvv -T $SSH_OPTS -p "${{ inputs.port }}" "${{ inputs.user }}@${{ inputs.host }}" bash -s < /tmp/remote_deploy.sh || true
+          exit 1
+        fi
 
 
