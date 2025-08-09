@@ -203,6 +203,12 @@ runs:
 
         echo "Disk usage after cleanup:" && df -h /
         echo "Docker disk usage after cleanup:" && docker system df || true
+
+        echo "Ensuring daily cert renewal cron job exists..."
+        CRON_LINE="0 3 * * * bash -lc 'PROJECT_DIR=\"$HOME/personal-website\" $HOME/personal-website/infrastructure/prod/renew-ssl.sh >> $HOME/personal-website/infrastructure/logs/certbot/cron.log 2>&1'"
+        (crontab -l 2>/dev/null || true) | grep -F "$HOME/personal-website/infrastructure/prod/renew-ssl.sh" >/dev/null 2>&1 || \
+        ( (crontab -l 2>/dev/null; echo "$CRON_LINE") | crontab - )
+        echo "Cron entry ensured."
         RSCRIPT
 
         SSH_OPTS="-i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=60 -o ConnectionAttempts=3 -o ServerAliveInterval=15 -o ServerAliveCountMax=4 -o PreferredAuthentications=publickey -o PubkeyAuthentication=yes -o IPQoS=none"
