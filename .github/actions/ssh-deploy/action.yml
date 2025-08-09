@@ -99,6 +99,16 @@ runs:
         export AI_BACKEND_IMAGE=ghcr.io/${{ inputs.repository }}/ai-backend:${{ inputs.sha }}
         export ARACHNE_IMAGE=ghcr.io/${{ inputs.repository }}/arachne:${{ inputs.sha }}
 
+        echo "Pre-pulling images to ensure availability..."
+        MISSING="0"
+        docker pull "$WORKFOLIO_IMAGE" || MISSING="1"
+        docker pull "$AI_BACKEND_IMAGE" || MISSING="1"
+        docker pull "$ARACHNE_IMAGE" || MISSING="1"
+        if [ "$MISSING" = "1" ]; then
+          echo "ERROR: One or more images are missing in GHCR for SHA ${{ inputs.sha }}. Ensure the CI build-and-push job completed successfully." >&2
+          exit 1
+        fi
+
         if [ -f infrastructure/prod/.env ]; then
           echo "Loading environment from infrastructure/prod/.env"
           set -a; . infrastructure/prod/.env; set +a
@@ -116,7 +126,7 @@ runs:
 
         if command -v docker-compose >/dev/null 2>&1; then COMPOSE_CMD="docker-compose"; else COMPOSE_CMD="docker compose"; fi
         $COMPOSE_CMD -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml -f /tmp/compose.network.override.yml pull || true
-        $COMPOSE_CMD -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml -f /tmp/compose.network.override.yml up -d
+        $COMPOSE_CMD -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml -f /tmp/compose.network.override.yml up -d --no-build --pull always
         $COMPOSE_CMD -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml -f /tmp/compose.network.override.yml ps
 
         echo "Disk usage after cleanup:" && df -h /
