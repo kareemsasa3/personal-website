@@ -19,7 +19,6 @@ jobs:
           node-version: "20"
 
       - name: Install deps (workfolio)
-        working-directory: workfolio
         env:
           CI: true
           NPM_CONFIG_FUND: false
@@ -27,11 +26,13 @@ jobs:
         run: |
           echo "Node: $(node -v)"
           echo "NPM:  $(npm -v)"
+          cd workfolio
+          ls -la
           npm ci --no-audit --no-fund || npm install --no-audit --no-fund
 
       - name: Type check & lint (workfolio)
-        working-directory: workfolio
         run: |
+          cd workfolio
           npm run build -- --mode production
           npm run lint || true
 
