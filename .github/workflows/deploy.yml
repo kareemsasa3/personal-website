@@ -90,7 +90,15 @@ jobs:
           fi
           # Ensure the production network exists (external network referenced by prod compose)
           docker network create portfolio-network-prod >/dev/null 2>&1 || true
-          \$COMPOSE_CMD -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml pull || true
-          \$COMPOSE_CMD -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml up -d
-          \$COMPOSE_CMD -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml ps
+          # Extra override to ensure the external network is declared in the project (works around old compose merge quirks)
+          cat > /tmp/compose.network.override.yml << 'OVR'
+          networks:
+            portfolio-network-prod:
+              external: true
+              name: portfolio-network-prod
+          OVR
+          \$COMPOSE_CMD -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml -f /tmp/compose.network.override.yml config >/dev/null
+          \$COMPOSE_CMD -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml -f /tmp/compose.network.override.yml pull || true
+          \$COMPOSE_CMD -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml -f /tmp/compose.network.override.yml up -d
+          \$COMPOSE_CMD -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml -f /tmp/compose.network.override.yml ps
           EOF
