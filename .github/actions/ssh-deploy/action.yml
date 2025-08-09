@@ -117,6 +117,20 @@ runs:
         fi
 
         docker network create portfolio-network-prod >/dev/null 2>&1 || true
+        # Override to force images (and null-out any build) so server never builds locally
+        cat > /tmp/compose.images.override.yml << 'IMG'
+        services:
+          workfolio:
+            build: null
+            image: ${WORKFOLIO_IMAGE}
+          ai-backend:
+            build: null
+            image: ${AI_BACKEND_IMAGE}
+          arachne:
+            build: null
+            image: ${ARACHNE_IMAGE}
+        IMG
+
         cat > /tmp/compose.network.override.yml << 'OVR'
         networks:
           portfolio-network-prod:
@@ -125,9 +139,9 @@ runs:
         OVR
 
         if command -v docker-compose >/dev/null 2>&1; then COMPOSE_CMD="docker-compose"; else COMPOSE_CMD="docker compose"; fi
-        $COMPOSE_CMD -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml -f /tmp/compose.network.override.yml pull || true
-        $COMPOSE_CMD -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml -f /tmp/compose.network.override.yml up -d --no-build --pull always
-        $COMPOSE_CMD -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml -f /tmp/compose.network.override.yml ps
+        $COMPOSE_CMD -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml -f /tmp/compose.images.override.yml -f /tmp/compose.network.override.yml pull || true
+        $COMPOSE_CMD -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml -f /tmp/compose.images.override.yml -f /tmp/compose.network.override.yml up -d --no-build --pull always
+        $COMPOSE_CMD -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml -f /tmp/compose.images.override.yml -f /tmp/compose.network.override.yml ps
 
         echo "Disk usage after cleanup:" && df -h /
         echo "Docker disk usage after cleanup:" && docker system df || true
