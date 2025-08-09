@@ -46,7 +46,7 @@ jobs:
         run: |
           ssh -p "$PROD_PORT" "$PROD_USER@$PROD_HOST" << EOF
           set -e
-          cd /personal-website
+          cd "$HOME/personal-website"
           export WORKFOLIO_IMAGE="${WORKFOLIO_IMAGE}"
           export AI_BACKEND_IMAGE="${AI_BACKEND_IMAGE}"
           export ARACHNE_IMAGE="${ARACHNE_IMAGE}"
