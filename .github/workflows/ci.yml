@@ -16,14 +16,19 @@ jobs:
       # Skipping direct npm installs to avoid path/caching issues; Docker builds validate builds
 
       - name: Build Docker images (workfolio)
-        working-directory: workfolio
         run: |
-          docker build --build-arg VITE_TURNSTILE_SITE_KEY=${{ secrets.VITE_TURNSTILE_SITE_KEY }} -t workfolio:ci .
+          docker build \
+            -f workfolio/Dockerfile \
+            --build-arg VITE_TURNSTILE_SITE_KEY=${{ secrets.VITE_TURNSTILE_SITE_KEY }} \
+            -t workfolio:ci \
+            workfolio
 
       - name: Build Docker images (ai-backend)
-        working-directory: services/ai-backend
         run: |
-          docker build -t ai-backend:ci .
+          docker build \
+            -f services/ai-backend/Dockerfile \
+            -t ai-backend:ci \
+            services/ai-backend
 
   docker-scan:
     runs-on: ubuntu-latest
