@@ -1,0 +1,88 @@
+name: SSH Deploy
+description: Deploy to the production server over SSH with cleanup, network setup, and Docker Compose
+inputs:
+  host:
+    description: Production host
+    required: true
+  user:
+    description: SSH username
+    required: true
+  port:
+    description: SSH port
+    required: true
+  ssh_key:
+    description: SSH private key (ed25519)
+    required: true
+  ghcr_username:
+    description: GHCR username
+    required: true
+  ghcr_token:
+    description: GHCR token
+    required: true
+  repository:
+    description: owner/repo for images
+    required: true
+  sha:
+    description: Git SHA to deploy
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Configure SSH
+      shell: bash
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ inputs.ssh_key }}" > ~/.ssh/id_ed25519
+        chmod 600 ~/.ssh/id_ed25519
+        ssh-keyscan -p "${{ inputs.port }}" "${{ inputs.host }}" >> ~/.ssh/known_hosts
+
+    - name: Deploy over SSH
+      shell: bash
+      run: |
+        ssh -p "${{ inputs.port }}" "${{ inputs.user }}@${{ inputs.host }}" << 'EOF'
+        set -e
+        cd "\$HOME/personal-website"
+
+        echo "Disk usage before cleanup:" && df -h /
+        echo "Docker disk usage before cleanup:" && docker system df || true
+        docker container prune -f || true
+        docker image prune -af || true
+        docker builder prune -af || true
+        docker network prune -f || true
+        docker volume prune -f || true
+        sudo find /var/lib/docker/containers -type f -name "*json.log" -size +100M -exec truncate -s 0 {} \; 2>/dev/null || true
+        sudo journalctl --vacuum-size=100M 2>/dev/null || true
+
+        DOCKER_CONFIG_DIR="$(mktemp -d -t docker-config-XXXXXX 2>/dev/null || echo /tmp/docker-config)"
+        export DOCKER_CONFIG="\$DOCKER_CONFIG_DIR"
+        echo "${{ inputs.ghcr_token }}" | docker login ghcr.io -u "${{ inputs.ghcr_username }}" --password-stdin
+
+        export WORKFOLIO_IMAGE=ghcr.io/${{ inputs.repository }}/workfolio:${{ inputs.sha }}
+        export AI_BACKEND_IMAGE=ghcr.io/${{ inputs.repository }}/ai-backend:${{ inputs.sha }}
+        export ARACHNE_IMAGE=ghcr.io/${{ inputs.repository }}/arachne:${{ inputs.sha }}
+
+        if [ -f infrastructure/prod/.env ]; then
+          echo "Loading environment from infrastructure/prod/.env"
+          set -a; . infrastructure/prod/.env; set +a
+        else
+          echo "WARNING: infrastructure/prod/.env not found; continuing without extra env" >&2
+        fi
+
+        docker network create portfolio-network-prod >/dev/null 2>&1 || true
+        cat > /tmp/compose.network.override.yml << 'OVR'
+        networks:
+          portfolio-network-prod:
+            external: true
+            name: portfolio-network-prod
+        OVR
+
+        if command -v docker-compose >/dev/null 2>&1; then COMPOSE_CMD="docker-compose"; else COMPOSE_CMD="docker compose"; fi
+        \$COMPOSE_CMD -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml -f /tmp/compose.network.override.yml pull || true
+        \$COMPOSE_CMD -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml -f /tmp/compose.network.override.yml up -d
+        \$COMPOSE_CMD -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml -f /tmp/compose.network.override.yml ps
+
+        echo "Disk usage after cleanup:" && df -h /
+        echo "Docker disk usage after cleanup:" && docker system df || true
+        EOF
+
+

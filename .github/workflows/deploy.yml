@@ -8,97 +8,29 @@ on:
 
 jobs:
   deploy:
+    # This job only runs if the CI workflow was successful on the main/master branch
     if: ${{ github.event.workflow_run.conclusion == 'success' && (github.event.workflow_run.head_branch == 'main' || github.event.workflow_run.head_branch == 'master') }}
     runs-on: ubuntu-latest
     permissions:
-      contents: read
-      packages: read
+      contents: read # Required to checkout the repo and read the composite action
+      packages: read # Required for GHCR login, though token handles auth
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        # No fetch-depth needed as we get the SHA from the workflow_run event
+
+      # The composite action now handles all SSH and deployment logic.
+      # The old "Configure SSH" and "Set image tags env" steps are no longer needed.
+      - name: SSH Deploy (composite)
+        uses: ./.github/actions/ssh-deploy
         with:
-          fetch-depth: 0
-
-      - name: Configure SSH
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.PROD_SSH_KEY }}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -p "${{ secrets.PROD_PORT }}" "${{ secrets.PROD_HOST }}" >> ~/.ssh/known_hosts
-
-      - name: Set image tags env
-        id: tags
-        run: |
-          echo "WORKFOLIO_IMAGE=ghcr.io/${{ github.repository }}/workfolio:${{ github.event.workflow_run.head_sha }}" >> $GITHUB_OUTPUT
-          echo "AI_BACKEND_IMAGE=ghcr.io/${{ github.repository }}/ai-backend:${{ github.event.workflow_run.head_sha }}" >> $GITHUB_OUTPUT
-          echo "ARACHNE_IMAGE=ghcr.io/${{ github.repository }}/arachne:${{ github.event.workflow_run.head_sha }}" >> $GITHUB_OUTPUT
-
-      - name: SSH Deploy
-        env:
-          PROD_HOST: ${{ secrets.PROD_HOST }}
-          PROD_USER: ${{ secrets.PROD_USER }}
-          PROD_PORT: ${{ secrets.PROD_PORT }}
-          WORKFOLIO_IMAGE: ${{ steps.tags.outputs.WORKFOLIO_IMAGE }}
-          AI_BACKEND_IMAGE: ${{ steps.tags.outputs.AI_BACKEND_IMAGE }}
-          ARACHNE_IMAGE: ${{ steps.tags.outputs.ARACHNE_IMAGE }}
-          GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
-          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
-        run: |
-          ssh -p "$PROD_PORT" "$PROD_USER@$PROD_HOST" << EOF
-          set -e
-          cd "\$HOME/personal-website"
-          export WORKFOLIO_IMAGE="${WORKFOLIO_IMAGE}"
-          export AI_BACKEND_IMAGE="${AI_BACKEND_IMAGE}"
-          export ARACHNE_IMAGE="${ARACHNE_IMAGE}"
-          echo "Disk usage before cleanup:" && df -h /
-          echo "Docker disk usage before cleanup:" && docker system df || true
-          echo "Pruning unused Docker data to free space..."
-          docker container prune -f || true
-          docker image prune -af || true
-          docker builder prune -af || true
-          docker network prune -f || true
-          docker volume prune -f || true
-          # Truncate very large Docker container logs (requires root; ignore if not permitted)
-          sudo find /var/lib/docker/containers -type f -name "*json.log" -size +100M -exec truncate -s 0 {} \; 2>/dev/null || true
-          # Limit systemd journal size (requires root; ignore if not permitted)
-          sudo journalctl --vacuum-size=100M 2>/dev/null || true
-          # Remove old local docker config if present (to free a bit of space)
-          rm -rf "\$HOME/.docker" 2>/dev/null || true
-          # Use a temp docker config to avoid writing into a full home dir
-          DOCKER_CONFIG_DIR="$(mktemp -d -t docker-config-XXXXXX 2>/dev/null || echo /tmp/docker-config)"
-          mkdir -p "\$DOCKER_CONFIG_DIR" || true
-          export DOCKER_CONFIG="\$DOCKER_CONFIG_DIR"
-          echo "Logging in to GHCR using temporary DOCKER_CONFIG at \$DOCKER_CONFIG" 
-          echo "${GHCR_TOKEN}" | docker login ghcr.io -u "${GHCR_USERNAME}" --password-stdin || true
-          echo "Disk usage after cleanup:" && df -h /
-          echo "Docker disk usage after cleanup:" && docker system df || true
-          # Load production environment variables from file (do not commit this file)
-          if [ -f infrastructure/prod/.env ]; then
-            echo "Loading environment from infrastructure/prod/.env"
-            set -a
-            . infrastructure/prod/.env
-            set +a
-          else
-            echo "ERROR: Missing infrastructure/prod/.env on server. Create it with required vars (e.g., GEMINI_API_KEY, SSL_EMAIL, DOMAIN_NAME, SESSION_TOKEN_SECRET, TURNSTILE_SECRET)." >&2
-            exit 1
-          fi
-          # Choose docker compose command
-          if command -v docker-compose >/dev/null 2>&1; then
-            COMPOSE_CMD="docker-compose"
-          else
-            COMPOSE_CMD="docker compose"
-          fi
-          # Ensure the production network exists (external network referenced by prod compose)
-          docker network create portfolio-network-prod >/dev/null 2>&1 || true
-          # Extra override to ensure the external network is declared in the project (works around old compose merge quirks)
-          cat > /tmp/compose.network.override.yml << 'OVR'
-          networks:
-            portfolio-network-prod:
-              external: true
-              name: portfolio-network-prod
-          OVR
-          \$COMPOSE_CMD -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml -f /tmp/compose.network.override.yml config >/dev/null
-          \$COMPOSE_CMD -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml -f /tmp/compose.network.override.yml pull || true
-          \$COMPOSE_CMD -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml -f /tmp/compose.network.override.yml up -d
-          \$COMPOSE_CMD -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml -f /tmp/compose.network.override.yml ps
-          EOF
+          host: ${{ secrets.PROD_HOST }}
+          user: ${{ secrets.PROD_USER }}
+          port: ${{ secrets.PROD_PORT }}
+          ssh_key: ${{ secrets.PROD_SSH_KEY }}
+          ghcr_username: ${{ secrets.GHCR_USERNAME }}
+          ghcr_token: ${{ secrets.GHCR_TOKEN }}
+          repository: ${{ github.repository }}
+          # We get the commit SHA from the triggering CI workflow run
+          sha: ${{ github.event.workflow_run.head_sha }}

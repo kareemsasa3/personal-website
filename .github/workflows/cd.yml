@@ -17,7 +17,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          submodules: true
+          submodules: recursive
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -76,44 +76,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          submodules: true
+          submodules: recursive
 
-      - name: Deploy to production server
-        uses: appleboy/ssh-action@v1.0.3
+      - name: SSH Deploy (composite)
+        uses: ./.github/actions/ssh-deploy
         with:
           host: ${{ secrets.PROD_HOST }}
-          username: ${{ secrets.PROD_USER }}
-          key: ${{ secrets.PROD_SSH_KEY }}
+          user: ${{ secrets.PROD_USER }}
           port: ${{ secrets.PROD_PORT }}
-          script: |
-            # Navigate to the project directory
-            cd /opt/personal-website
-
-            # Log in to GitHub Container Registry
-            echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-
-            # Pull the latest images
-            docker pull ghcr.io/${{ github.repository }}/workfolio:${{ github.sha }}
-            docker pull ghcr.io/${{ github.repository }}/ai-backend:${{ github.sha }}
-            docker pull ghcr.io/${{ github.repository }}/arachne:${{ github.sha }}
-
-            # Update docker-compose files with new image tags
-            export WORKFOLIO_IMAGE=ghcr.io/${{ github.repository }}/workfolio:${{ github.sha }}
-            export AI_BACKEND_IMAGE=ghcr.io/${{ github.repository }}/ai-backend:${{ github.sha }}
-            export ARACHNE_IMAGE=ghcr.io/${{ github.repository }}/arachne:${{ github.sha }}
-
-            # Deploy with the new images using CI/CD docker-compose files
-            docker-compose -f infrastructure/docker-compose.cicd.yml -f infrastructure/prod/docker-compose.cicd.yml down
-            docker-compose -f infrastructure/docker-compose.cicd.yml -f infrastructure/prod/docker-compose.cicd.yml up -d
-
-            # Clean up old images to save disk space
-            docker image prune -f
-
-            # Verify deployment
-            sleep 10
-            docker-compose -f infrastructure/docker-compose.cicd.yml -f infrastructure/prod/docker-compose.cicd.yml ps
-
-            echo "Deployment completed successfully!"
+          ssh_key: ${{ secrets.PROD_SSH_KEY }}
+          ghcr_username: ${{ github.actor }}
+          ghcr_token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          sha: ${{ github.sha }}
 
   notify:
     name: Notify Deployment Status
