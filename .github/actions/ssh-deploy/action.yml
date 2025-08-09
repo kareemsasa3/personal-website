@@ -33,9 +33,23 @@ runs:
       run: |
         mkdir -p ~/.ssh
         chmod 700 ~/.ssh
-        # Write the key handling both literal \n sequences and real newlines
-        printf "%s" "${{ inputs.ssh_key }}" | sed 's/\\n/\n/g' > ~/.ssh/id_ed25519
+        # Support both raw OpenSSH key and base64-encoded key in secret
+        KEY_RAW="${{ inputs.ssh_key }}"
+        if printf "%s" "$KEY_RAW" | grep -q "-----BEGIN"; then
+          # Looks like a PEM/OpenSSH key; normalize newlines
+          printf "%s" "$KEY_RAW" | sed 's/\\n/\n/g' > ~/.ssh/id_ed25519
+        else
+          # Try base64 decode first; fallback to literal write if decode fails
+          printf "%s" "$KEY_RAW" | tr -d '\r' | base64 -d > ~/.ssh/id_ed25519 2>/dev/null || true
+          if ! grep -q "BEGIN OPENSSH PRIVATE KEY" ~/.ssh/id_ed25519 2>/dev/null; then
+            printf "%s" "$KEY_RAW" | sed 's/\\n/\n/g' > ~/.ssh/id_ed25519
+          fi
+        fi
         chmod 600 ~/.ssh/id_ed25519
+        # Quick validation/warning if the key is passphrase-protected or invalid
+        if ! ssh-keygen -y -f ~/.ssh/id_ed25519 >/dev/null 2>&1; then
+          echo "WARNING: SSH key appears invalid or passphrase-protected. Ensure an unencrypted OpenSSH ed25519 private key is provided in secrets." >&2
+        fi
         # Best-effort host key prefetch; do not fail if host is unreachable
         ssh-keyscan -T 10 -p "${{ inputs.port }}" "${{ inputs.host }}" >> ~/.ssh/known_hosts 2>/dev/null || true
 
@@ -107,7 +121,7 @@ runs:
         echo "Docker disk usage after cleanup:" && docker system df || true
         RSCRIPT
 
-        SSH_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=60 -o ConnectionAttempts=3 -o ServerAliveInterval=15 -o ServerAliveCountMax=4 -o PreferredAuthentications=publickey -o PubkeyAuthentication=yes -o IPQoS=none"
+        SSH_OPTS="-i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=60 -o ConnectionAttempts=3 -o ServerAliveInterval=15 -o ServerAliveCountMax=4 -o PreferredAuthentications=publickey -o PubkeyAuthentication=yes -o IPQoS=none"
 
         success=""
         for attempt in 1 2 3; do
