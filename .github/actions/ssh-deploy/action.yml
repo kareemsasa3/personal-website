@@ -116,6 +116,13 @@ runs:
           echo "WARNING: infrastructure/prod/.env not found; continuing without extra env" >&2
         fi
 
+        # Ensure CPU limits are valid for the host (avoid errors on single-core hosts)
+        HOST_CPUS=$( (command -v nproc >/dev/null 2>&1 && nproc) || sysctl -n hw.ncpu 2>/dev/null || echo 1 )
+        if [ "$HOST_CPUS" -lt 2 ]; then
+          echo "Detected $HOST_CPUS CPU(s) on host; capping ARACHNE_CPU_LIMIT to 1.0 to avoid compose CPU limit errors" >&2
+          export ARACHNE_CPU_LIMIT="1.0"
+        fi
+
         docker network create portfolio-network-prod >/dev/null 2>&1 || true
         # Override to force images (and null-out any build) so server never builds locally
         cat > /tmp/compose.images.override.yml << 'IMG'
@@ -139,6 +146,10 @@ runs:
         OVR
 
         if command -v docker-compose >/dev/null 2>&1; then COMPOSE_CMD="docker-compose"; else COMPOSE_CMD="docker compose"; fi
+        # Bring stack down with same overrides to prevent name conflicts and stale containers
+        $COMPOSE_CMD -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml -f /tmp/compose.images.override.yml -f /tmp/compose.network.override.yml down --remove-orphans || true
+        # Extra safety: remove any lingering conflicting containers
+        docker rm -f portfolio-redis-prod portfolio-workfolio-prod portfolio-ai-backend-prod portfolio-arachne-prod >/dev/null 2>&1 || true
         $COMPOSE_CMD -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml -f /tmp/compose.images.override.yml -f /tmp/compose.network.override.yml pull || true
         $COMPOSE_CMD -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml -f /tmp/compose.images.override.yml -f /tmp/compose.network.override.yml up -d --no-build --pull always
         $COMPOSE_CMD -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml -f /tmp/compose.images.override.yml -f /tmp/compose.network.override.yml ps
