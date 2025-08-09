@@ -46,11 +46,24 @@ jobs:
         run: |
           ssh -p "$PROD_PORT" "$PROD_USER@$PROD_HOST" << EOF
           set -e
-          cd /opt/personal-website
+          cd /personal-website
           export WORKFOLIO_IMAGE="${WORKFOLIO_IMAGE}"
           export AI_BACKEND_IMAGE="${AI_BACKEND_IMAGE}"
           export ARACHNE_IMAGE="${ARACHNE_IMAGE}"
           echo "${GHCR_TOKEN}" | docker login ghcr.io -u "${GHCR_USERNAME}" --password-stdin
+          echo "Disk usage before cleanup:" && df -h /
+          echo "Docker disk usage before cleanup:" && docker system df || true
+          echo "Pruning unused Docker data to free space..."
+          docker container prune -f || true
+          docker image prune -af || true
+          docker builder prune -af || true
+          docker network prune -f || true
+          # Truncate very large Docker container logs (requires root; ignore if not permitted)
+          sudo find /var/lib/docker/containers -type f -name "*json.log" -size +100M -exec truncate -s 0 {} \; 2>/dev/null || true
+          # Limit systemd journal size (requires root; ignore if not permitted)
+          sudo journalctl --vacuum-size=100M 2>/dev/null || true
+          echo "Disk usage after cleanup:" && df -h /
+          echo "Docker disk usage after cleanup:" && docker system df || true
           docker-compose -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml pull || true
           docker-compose -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml up -d
           docker-compose -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml ps
