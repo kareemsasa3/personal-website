@@ -1,4 +1,4 @@
-name: CI - Build Workfolio
+name: Build & Publish Images
 
 on:
   push:

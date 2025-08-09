@@ -55,6 +55,20 @@ runs:
         # Best-effort host key prefetch; do not fail if host is unreachable
         ssh-keyscan -T 10 -p "${{ inputs.port }}" "${{ inputs.host }}" >> ~/.ssh/known_hosts 2>/dev/null || true
 
+    - name: Sync deployment files to server
+      shell: bash
+      run: |
+        HOST_RAW='${{ inputs.host }}'
+        USER_RAW='${{ inputs.user }}'
+        PORT_RAW='${{ inputs.port }}'
+        HOST=$(printf "%s" "$HOST_RAW" | tr -d ' \t\r\n')
+        USER=$(printf "%s" "$USER_RAW" | tr -d ' \t\r\n')
+        PORT=$(printf "%s" "$PORT_RAW" | tr -d ' \t\r\n')
+        if [ -z "$PORT" ]; then PORT=22; fi
+        SSH_OPTS="-i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=60 -o ConnectionAttempts=3 -o ServerAliveInterval=15 -o ServerAliveCountMax=4 -o PreferredAuthentications=publickey -o PubkeyAuthentication=yes -o IPQoS=none"
+        echo "Syncing infrastructure/ to server..."
+        tar -czf - infrastructure | ssh $SSH_OPTS -p "$PORT" "$USER@$HOST" "mkdir -p ~/personal-website && tar -xzf - -C ~/personal-website"
+
     - name: Deploy over SSH
       shell: bash
       run: |
