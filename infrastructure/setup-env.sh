@@ -42,47 +42,156 @@ fi
 
 print_header "PORTFOLIO ENVIRONMENT SETUP"
 
-# Check if .env already exists
-if [ -f ".env" ]; then
-    print_warning ".env file already exists. Do you want to overwrite it? (y/N)"
-    read -r response
-    if [[ ! "$response" =~ ^[Yy]$ ]]; then
-        print_status "Setup cancelled."
-        exit 0
-    fi
+# Ensure we have a .env to edit (create from template if missing)
+if [ ! -f ".env" ]; then
+    print_status "Creating .env file from template..."
+    cp env.example .env
+else
+    print_status "Using existing .env (update-in-place mode)"
 fi
 
-# Copy the example file
-print_status "Creating .env file from template..."
-cp env.example .env
-
-print_status "Now let's configure your environment variables:"
+print_status "Now let's configure your environment variables (Update/Skip prompts):"
 echo
+
+# -----------------------------------------------------------------------------
+# Helpers for reading and writing .env values
+# -----------------------------------------------------------------------------
+get_env_value() {
+  local var_name="$1"
+  if [ -f .env ]; then
+    # Read last occurrence to handle duplicates
+    grep -E "^${var_name}=" .env | tail -n 1 | cut -d'=' -f2-
+  fi
+}
+
+set_env_value() {
+  local var_name="$1"
+  local var_value="$2"
+  local escaped_value
+  # Escape sed delimiter and ampersands
+  escaped_value=$(printf '%s' "$var_value" | sed -e 's/[&/]/\\&/g')
+  if grep -qE "^${var_name}=" .env; then
+    sed -i.bak "s|^${var_name}=.*$|${var_name}=${escaped_value}|" .env
+  else
+    echo "${var_name}=${var_value}" >> .env
+  fi
+}
+
+prompt_update_var() {
+  local var_name="$1"
+  local prompt_text="$2"
+  local required="$3" # "yes" or "no"
+  local current_value
+  current_value=$(get_env_value "$var_name")
+
+  echo
+  print_header "$var_name"
+  if [ -n "$current_value" ]; then
+    print_status "Current value: $current_value"
+  else
+    if [ "$required" = "yes" ]; then
+      print_warning "No current value set (required)."
+    else
+      print_status "No current value set."
+    fi
+  fi
+
+  echo "Do you want to update $var_name? (u) Update / (s) Skip [s]:"
+  read -r action
+  if [[ ! "$action" =~ ^[Uu]$ ]]; then
+    # If required and empty, keep prompting until provided
+    if [ "$required" = "yes" ] && [ -z "$current_value" ] && [ "$var_name" != "SESSION_TOKEN_SECRET" ]; then
+      print_warning "$var_name is required and missing. Please provide a value."
+      echo "Enter value for $var_name:"
+      read -r new_value
+      while [ -z "$new_value" ]; do
+        echo "Value cannot be empty. Enter value for $var_name:"
+        read -r new_value
+      done
+      set_env_value "$var_name" "$new_value"
+    fi
+    return
+  fi
+
+  echo "Enter new value for $var_name (leave empty to keep current):"
+  read -r new_value
+  if [ -z "$new_value" ]; then
+    print_status "Skipped updating $var_name (kept current)."
+  else
+    set_env_value "$var_name" "$new_value"
+    print_status "Updated $var_name."
+  fi
+}
+
+generate_secret() {
+  if command -v openssl >/dev/null 2>&1; then
+    openssl rand -hex 32
+  else
+    date +%s%N | md5
+  fi
+}
 
 # Domain configuration
 print_header "DOMAIN CONFIGURATION"
-echo "Enter your domain name (e.g., yourdomain.com):"
-read -r domain_name
-if [ -n "$domain_name" ]; then
-    sed -i.bak "s/DOMAIN_NAME=your-domain.com/DOMAIN_NAME=$domain_name/" .env
-fi
+prompt_update_var "DOMAIN_NAME" "Enter your domain name (e.g., yourdomain.com)" "yes"
+prompt_update_var "SSL_EMAIL" "Enter your email for SSL certificate notifications" "yes"
 
-echo "Enter your email for SSL certificate notifications:"
-read -r ssl_email
-if [ -n "$ssl_email" ]; then
-    sed -i.bak "s/SSL_EMAIL=your-email@example.com/SSL_EMAIL=$ssl_email/" .env
+# Optionally set VITE_AI_BACKEND_URL based on DOMAIN_NAME
+domain_name=$(get_env_value "DOMAIN_NAME")
+if [ -n "$domain_name" ]; then
+  desired_api_url="https://$domain_name/api/ai"
+  current_api_url=$(get_env_value "VITE_AI_BACKEND_URL")
+  echo
+  print_header "VITE_AI_BACKEND_URL"
+  print_status "Suggested value based on domain: $desired_api_url"
+  if [ -n "$current_api_url" ]; then
+    print_status "Current value: $current_api_url"
+  fi
+  echo "Do you want to update VITE_AI_BACKEND_URL? (u) Update / (s) Skip [s]:"
+  read -r upd
+  if [[ "$upd" =~ ^[Uu]$ ]]; then
+    echo "Enter value for VITE_AI_BACKEND_URL (leave empty to use suggested):"
+    read -r new_api
+    if [ -z "$new_api" ]; then new_api="$desired_api_url"; fi
+    set_env_value "VITE_AI_BACKEND_URL" "$new_api"
+    print_status "Updated VITE_AI_BACKEND_URL."
+  fi
 fi
 
 # AI Backend configuration
 print_header "AI BACKEND CONFIGURATION"
-echo "Enter your Google Gemini API key (or press Enter to skip):"
-read -r gemini_key
-if [ -n "$gemini_key" ]; then
-    sed -i.bak "s/GEMINI_API_KEY=your-gemini-api-key-here/GEMINI_API_KEY=$gemini_key/" .env
+prompt_update_var "GEMINI_API_KEY" "Enter your Google Gemini API key" "no"
+
+print_header "TURNSTILE (OPTIONAL)"
+prompt_update_var "VITE_TURNSTILE_SITE_KEY" "Enter your Cloudflare Turnstile SITE KEY for the frontend" "no"
+prompt_update_var "TURNSTILE_SECRET" "Enter your Cloudflare Turnstile SECRET for the backend" "no"
+
+# SESSION_TOKEN_SECRET handling (required in prod). Auto-generate if missing and user skips.
+echo
+print_header "SESSION_TOKEN_SECRET"
+current_sess=$(get_env_value "SESSION_TOKEN_SECRET")
+if [ -n "$current_sess" ]; then
+  print_status "Current value present."
+  echo "Do you want to update SESSION_TOKEN_SECRET? (u) Update / (s) Skip [s]:"
+  read -r sess_action
+  if [[ "$sess_action" =~ ^[Uu]$ ]]; then
+    echo "Enter new SESSION_TOKEN_SECRET (leave empty to auto-generate):"
+    read -r new_sess
+    if [ -z "$new_sess" ]; then new_sess=$(generate_secret); fi
+    set_env_value "SESSION_TOKEN_SECRET" "$new_sess"
+    print_status "Updated SESSION_TOKEN_SECRET."
+  fi
 else
-    print_warning "No Gemini API key provided. AI chat functionality will not work."
-    print_warning "You can add it later by editing the .env file."
+  print_warning "No SESSION_TOKEN_SECRET set. This is required in production."
+  echo "Enter a value or press Enter to auto-generate:"
+  read -r new_sess
+  if [ -z "$new_sess" ]; then new_sess=$(generate_secret); fi
+  set_env_value "SESSION_TOKEN_SECRET" "$new_sess"
+  print_status "Set SESSION_TOKEN_SECRET."
 fi
+
+print_header "REDIS (OPTIONAL)"
+prompt_update_var "AI_BACKEND_REDIS_URL" "Enter Redis URL for per-IP quotas (default: redis://redis:6379/0)" "no"
 
 # Update VITE_AI_BACKEND_URL if domain was provided
 if [ -n "$domain_name" ]; then

@@ -54,6 +54,9 @@ nano .env
 | Variable | Description | Default | Required |
 |----------|-------------|---------|----------|
 | `GEMINI_API_KEY` | Google Gemini API key for AI chat | - | Yes for AI features |
+| `SESSION_TOKEN_SECRET` | Secret for signing chat session tokens | - | Yes in production |
+| `TURNSTILE_SECRET` | Cloudflare Turnstile secret key | - | Yes if using Turnstile |
+| `AI_BACKEND_REDIS_URL` | Redis URL for per-IP daily quotas | `redis://redis:6379/0` | Recommended |
 | `AI_BACKEND_PORT` | Port for AI backend service | `3001` | No |
 | `AI_BACKEND_NODE_ENV` | Node.js environment | `production` | No |
 | `AI_BACKEND_LOG_LEVEL` | Logging level | `info` | No |
@@ -104,6 +107,7 @@ nano .env
 | `WORKFOLIO_NODE_ENV` | Node.js environment | `production` | No |
 | `WORKFOLIO_PORT` | Frontend port | `3000` | No |
 | `VITE_AI_BACKEND_URL` | AI backend URL for frontend | `https://your-domain.com/api/ai` | No |
+| `VITE_TURNSTILE_SITE_KEY` | Cloudflare Turnstile site key (public) | - | Yes if using Turnstile |
 
 ### Nginx Configuration
 
