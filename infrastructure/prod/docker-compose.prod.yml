@@ -62,11 +62,8 @@ services:
 
   # Workfolio - Production build
   workfolio:
-    build:
-      context: ../workfolio
-      dockerfile: Dockerfile
-      args:
-        NODE_ENV: production
+    build: null
+    image: ${WORKFOLIO_IMAGE:-ghcr.io/your-username/personal-website/workfolio:latest}
     container_name: portfolio-workfolio-prod
     environment:
       - NODE_ENV=${WORKFOLIO_NODE_ENV:-production}
@@ -104,11 +101,8 @@ services:
 
   # AI Backend - Production optimized
   ai-backend:
-    build:
-      context: ../services/ai-backend
-      dockerfile: Dockerfile
-      args:
-        NODE_ENV: production
+    build: null
+    image: ${AI_BACKEND_IMAGE:-ghcr.io/your-username/personal-website/ai-backend:latest}
     container_name: portfolio-ai-backend-prod
     environment:
       - NODE_ENV=${AI_BACKEND_NODE_ENV:-production}
@@ -154,9 +148,8 @@ services:
 
   # Arachne - Production optimized with enhanced settings
   arachne:
-    build:
-      context: ../services/arachne
-      dockerfile: Dockerfile
+    build: null
+    image: ${ARACHNE_IMAGE:-ghcr.io/your-username/personal-website/arachne:latest}
     container_name: portfolio-arachne-prod
     environment:
       - SCRAPER_REDIS_ADDR=${ARACHNE_REDIS_ADDR:-redis:6379}

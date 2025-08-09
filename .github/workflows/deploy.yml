@@ -1,0 +1,57 @@
+name: CD - Deploy to Production
+
+on:
+  workflow_run:
+    workflows: ["CI - Build Workfolio"]
+    types:
+      - completed
+
+jobs:
+  deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' && (github.event.workflow_run.head_branch == 'main' || github.event.workflow_run.head_branch == 'master') }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.PROD_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -p "${{ secrets.PROD_PORT }}" "${{ secrets.PROD_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Set image tags env
+        id: tags
+        run: |
+          echo "WORKFOLIO_IMAGE=ghcr.io/${{ github.repository }}/workfolio:${{ github.event.workflow_run.head_sha }}" >> $GITHUB_OUTPUT
+          echo "AI_BACKEND_IMAGE=ghcr.io/${{ github.repository }}/ai-backend:${{ github.event.workflow_run.head_sha }}" >> $GITHUB_OUTPUT
+          echo "ARACHNE_IMAGE=ghcr.io/${{ github.repository }}/arachne:${{ github.event.workflow_run.head_sha }}" >> $GITHUB_OUTPUT
+
+      - name: SSH Deploy
+        env:
+          PROD_HOST: ${{ secrets.PROD_HOST }}
+          PROD_USER: ${{ secrets.PROD_USER }}
+          PROD_PORT: ${{ secrets.PROD_PORT }}
+          WORKFOLIO_IMAGE: ${{ steps.tags.outputs.WORKFOLIO_IMAGE }}
+          AI_BACKEND_IMAGE: ${{ steps.tags.outputs.AI_BACKEND_IMAGE }}
+          ARACHNE_IMAGE: ${{ steps.tags.outputs.ARACHNE_IMAGE }}
+          GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+        run: |
+          ssh -p "$PROD_PORT" "$PROD_USER@$PROD_HOST" << EOF
+          set -e
+          cd /opt/personal-website
+          export WORKFOLIO_IMAGE="${WORKFOLIO_IMAGE}"
+          export AI_BACKEND_IMAGE="${AI_BACKEND_IMAGE}"
+          export ARACHNE_IMAGE="${ARACHNE_IMAGE}"
+          echo "${GHCR_TOKEN}" | docker login ghcr.io -u "${GHCR_USERNAME}" --password-stdin
+          docker-compose -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml pull || true
+          docker-compose -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml up -d
+          docker-compose -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml ps
+          EOF

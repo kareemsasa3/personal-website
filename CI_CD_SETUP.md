@@ -11,7 +11,7 @@ The CI/CD pipeline consists of two main workflows:
 
 ## Workflow Files
 
-### `.github/workflows/ci.yml`
+### `.github/workflows/workfolio-ci.yml`
 **Purpose**: Quality assurance and validation
 **Triggers**: Pull requests and pushes to main/master branches
 
@@ -20,7 +20,7 @@ The CI/CD pipeline consists of two main workflows:
 - **Build Images**: Builds Docker images for all services to verify they can be built
 - **Security Scan**: Runs Trivy vulnerability scanner on the codebase
 
-### `.github/workflows/cd.yml`
+### `.github/workflows/deploy.yml`
 **Purpose**: Automated deployment to production
 **Triggers**: Only pushes to main/master branches
 
@@ -52,10 +52,18 @@ You need to configure the following secrets in your GitHub repository:
 2. Add the following repository secrets:
 
 ```
-PROD_HOST          # Your production server IP/hostname
-PROD_USER          # SSH username for production server
-PROD_SSH_KEY       # Private SSH key for production server access
-PROD_PORT          # SSH port (usually 22)
+PROD_HOST                # Your production server IP/hostname
+PROD_USER                # SSH username for production server
+PROD_SSH_KEY             # Private SSH key for production server access
+PROD_PORT                # SSH port (usually 22)
+
+# Frontend build-time secrets
+VITE_TURNSTILE_SITE_KEY  # Cloudflare Turnstile site key for Workfolio build
+VITE_AI_BACKEND_URL      # API base URL for Workfolio (e.g. https://your-domain.com/api/ai)
+
+# Registry pull on production host (used during SSH deploy)
+GHCR_USERNAME            # GHCR username (usually your GitHub username)
+GHCR_TOKEN               # GHCR personal access token with read:packages
 ```
 
 #### Generating SSH Key for Production Server
@@ -85,7 +93,7 @@ Ensure your production server has the following structure:
 ```
 
 #### Docker Compose Configuration
-Update your production docker-compose files to use the GHCR images:
+Update your production docker-compose files to use the GHCR images (already configured in `infrastructure/prod/docker-compose.prod.yml`):
 
 **infrastructure/docker-compose.yml**:
 ```yaml
