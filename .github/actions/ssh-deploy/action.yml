@@ -42,11 +42,22 @@ runs:
     - name: Deploy over SSH
       shell: bash
       run: |
-        echo "Checking TCP connectivity to ${{ inputs.host }}:${{ inputs.port }}" 
+        HOST_RAW='${{ inputs.host }}'
+        USER_RAW='${{ inputs.user }}'
+        PORT_RAW='${{ inputs.port }}'
+        HOST=$(printf "%s" "$HOST_RAW" | tr -d ' \t\r\n')
+        USER=$(printf "%s" "$USER_RAW" | tr -d ' \t\r\n')
+        PORT=$(printf "%s" "$PORT_RAW" | tr -d ' \t\r\n')
+        if [ -z "$PORT" ]; then PORT=22; fi
+
+        echo "Resolving host: $HOST"
+        (getent hosts "$HOST" || nslookup -timeout=5 "$HOST" || dig +short "$HOST") 2>/dev/null || true
+
+        echo "Checking TCP connectivity to $HOST:$PORT"
         if command -v nc >/dev/null 2>&1; then
-          nc -zv -w 10 "${{ inputs.host }}" "${{ inputs.port }}" || true
+          nc -zv -w 10 "$HOST" "$PORT" || true
         else
-          (echo > "/dev/tcp/${{ inputs.host }}/${{ inputs.port }}") >/dev/null 2>&1 || true
+          (echo > "/dev/tcp/$HOST/$PORT") >/dev/null 2>&1 || true
         fi
 
         # Prepare remote script once, then stream it to SSH (allows retries)
@@ -101,7 +112,7 @@ runs:
         success=""
         for attempt in 1 2 3; do
           echo "SSH attempt $attempt..."
-          if ssh -T $SSH_OPTS -p "${{ inputs.port }}" "${{ inputs.user }}@${{ inputs.host }}" bash -s < /tmp/remote_deploy.sh; then
+          if ssh -T $SSH_OPTS -p "$PORT" "$USER@$HOST" bash -s < /tmp/remote_deploy.sh; then
             success="yes"; break
           fi
           echo "SSH attempt $attempt failed. Retrying in 5s..."
@@ -110,7 +121,7 @@ runs:
 
         if [ -z "$success" ]; then
           echo "Final SSH attempt with verbose logging (-vvv) for diagnostics:" >&2
-          ssh -vvv -T $SSH_OPTS -p "${{ inputs.port }}" "${{ inputs.user }}@${{ inputs.host }}" bash -s < /tmp/remote_deploy.sh || true
+          ssh -vvv -T $SSH_OPTS -p "$PORT" "$USER@$HOST" bash -s < /tmp/remote_deploy.sh || true
           exit 1
         fi
 
