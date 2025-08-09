@@ -12,6 +12,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
 
       # Skipping direct npm installs to avoid path/caching issues; Docker builds validate builds
 
@@ -22,11 +25,13 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./workfolio
+          file: ./workfolio/Dockerfile
           push: false
           load: true
           tags: workfolio:ci
           build-args: |
             VITE_TURNSTILE_SITE_KEY=${{ secrets.VITE_TURNSTILE_SITE_KEY }}
+            VITE_AI_BACKEND_URL=${{ secrets.VITE_AI_BACKEND_URL }}
 
       - name: Build ai-backend image
         uses: docker/build-push-action@v5
@@ -42,13 +47,19 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
       - name: Build local images for scan
         run: |
-          docker build -t workfolio:scan ./workfolio
+          docker build \
+            --build-arg VITE_TURNSTILE_SITE_KEY=${{ secrets.VITE_TURNSTILE_SITE_KEY }} \
+            --build-arg VITE_AI_BACKEND_URL=${{ secrets.VITE_AI_BACKEND_URL }} \
+            -t workfolio:scan ./workfolio
           docker build -t ai-backend:scan ./services/ai-backend
 
       - name: Scan images with Trivy
