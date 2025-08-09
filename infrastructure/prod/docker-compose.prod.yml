@@ -38,7 +38,7 @@ services:
     networks:
       - portfolio-network-prod
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://localhost:80/health || exit 1"]
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:80/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -64,15 +64,7 @@ services:
     networks:
       - portfolio-network-prod
     healthcheck:
-      test:
-        [
-          "CMD",
-          "wget",
-          "--no-verbose",
-          "--tries=1",
-          "--spider",
-          "http://localhost:80/health",
-        ]
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:80/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -118,7 +110,7 @@ services:
           "--no-verbose",
           "--tries=1",
           "--spider",
-          "http://localhost:3001/health",
+          "http://127.0.0.1:3001/health",
         ]
       interval: 30s
       timeout: 10s
@@ -170,7 +162,7 @@ services:
           "--no-verbose",
           "--tries=1",
           "--spider",
-          "http://localhost:8080/health",
+          "http://127.0.0.1:8080/health",
         ]
       interval: 30s
       timeout: 10s
