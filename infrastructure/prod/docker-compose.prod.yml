@@ -30,6 +30,7 @@ services:
       - ./nginx/certbot/www:/var/www/certbot:ro
       - ./logs/nginx:/var/log/nginx
       - ./nginx/conf.d/default.conf.template:/tmp/default.conf.template:ro
+      - /etc/nginx/conf.d
     depends_on:
       - workfolio
       - ai-backend
