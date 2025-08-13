@@ -3,7 +3,7 @@
 # SSL Certificate Setup Script for Portfolio Project
 # This script helps you set up SSL certificates for HTTPS
 
-set -e
+set -euo pipefail
 
 echo "🔐 SSL Certificate Setup for Portfolio Project"
 echo "=============================================="
@@ -200,10 +200,10 @@ update_domain() {
     
     print_info "Updating domain name to: $domain"
     
-    # Update nginx configuration
-    sed -i.bak "s/server_name localhost;/server_name $domain;/g" infrastructure/nginx/conf.d/default.conf
+    # Update nginx production template server_name
+    sed -i.bak "s/server_name _;/server_name $domain;/g" infrastructure/nginx/conf.d/default.conf.template
     
-    # Update production docker-compose
+    # Update production docker-compose domain placeholders
     sed -i.bak "s|https://your-domain.com|https://$domain|g" infrastructure/prod/docker-compose.prod.yml
     
     print_status "Domain name updated successfully!"

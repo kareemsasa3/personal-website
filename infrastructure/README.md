@@ -34,6 +34,15 @@ infrastructure/
 cd dev && ./dev.sh
 ```
 
+#### Dev Nginx (HTTP-only)
+- The development stack uses an HTTP-only Nginx site configuration at `nginx/conf.d/default.dev.conf`.
+- No local SSL certificates are required for dev.
+- Access the stack at: `http://localhost`.
+- Dev proxy routes:
+  - Frontend (Workfolio): `/` → `workfolio:80`
+  - AI Backend: `/api/ai/*` → `ai-backend:3001`
+  - Arachne: `/api/scrape/*` and `/api/arachne/*` → `arachne:8080`
+
 ### Production Environment
 ```bash
 # Deploy production stack
@@ -110,6 +119,8 @@ docker-compose -f docker-compose.yml -f prod/docker-compose.prod.yml up -d --sca
 ### Nginx Configuration
 - Main config: `nginx/nginx.conf`
 - Site configs: `nginx/conf.d/`
+  - Development: `default.dev.conf` (HTTP-only)
+  - Production: `default.conf.template` (templated HTTPS, rendered at container start)
 
 ### SSL Certificates
 For production, configure SSL certificates in the nginx configuration:

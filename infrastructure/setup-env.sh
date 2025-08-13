@@ -6,7 +6,7 @@
 # This script helps you set up your environment variables for the portfolio
 # Copy this script to your infrastructure directory and run it
 
-set -e
+set -euo pipefail
 
 # Colors for output
 RED='\033[0;31m'
@@ -42,19 +42,8 @@ fi
 
 print_header "PORTFOLIO ENVIRONMENT SETUP"
 
-# Ensure we have a .env to edit (create from template if missing)
-if [ ! -f ".env" ]; then
-    print_status "Creating .env file from template..."
-    cp env.example .env
-else
-    print_status "Using existing .env (update-in-place mode)"
-fi
-
-print_status "Now let's configure your environment variables (Update/Skip prompts):"
-echo
-
 # -----------------------------------------------------------------------------
-# Helpers for reading and writing .env values
+# Helpers for reading and writing .env values (defined early for use below)
 # -----------------------------------------------------------------------------
 get_env_value() {
   local var_name="$1"
@@ -131,6 +120,71 @@ generate_secret() {
   fi
 }
 
+# Ensure we have a .env to edit (create from template if missing)
+if [ ! -f ".env" ]; then
+    print_status "Creating .env file from template..."
+    cp env.example .env
+else
+    print_status "Using existing .env (update-in-place mode)"
+fi
+
+print_status "Now let's configure your environment variables (Update/Skip prompts):"
+echo
+
+# -----------------------------------------------------------------------------
+# Preflight: summarize missing required and recommended variables
+# -----------------------------------------------------------------------------
+print_header "PREFLIGHT CHECKS"
+
+# Define required and recommended variables
+required_vars=(
+  "DOMAIN_NAME"
+  "SSL_EMAIL"
+  "SESSION_TOKEN_SECRET"
+)
+
+recommended_vars=(
+  "GEMINI_API_KEY"
+  "AI_BACKEND_REDIS_URL"
+  "CORS_ALLOW_ORIGIN"
+  "RATE_LIMIT_WINDOW_MS"
+  "RATE_LIMIT_MAX_REQUESTS"
+  "AI_DAILY_LIMIT"
+  "ARACHNE_API_TOKEN"
+  "VITE_TURNSTILE_SITE_KEY"
+  "TURNSTILE_SECRET"
+)
+
+missing_required=()
+for var_name in "${required_vars[@]}"; do
+  val=$(get_env_value "$var_name")
+  if [ -z "$val" ]; then
+    missing_required+=("$var_name")
+  fi
+done
+
+missing_recommended=()
+for var_name in "${recommended_vars[@]}"; do
+  val=$(get_env_value "$var_name")
+  if [ -z "$val" ]; then
+    missing_recommended+=("$var_name")
+  fi
+done
+
+if [ ${#missing_required[@]} -eq 0 ]; then
+  print_status "All required variables are set."
+else
+  print_warning "Missing required variables: ${missing_required[*]}"
+fi
+
+if [ ${#missing_recommended[@]} -eq 0 ]; then
+  print_status "All recommended variables are set."
+else
+  print_status "Optional variables not set (you can configure them during prompts): ${missing_recommended[*]}"
+fi
+echo
+
+# -----------------------------------------------------------------------------
 # Domain configuration
 print_header "DOMAIN CONFIGURATION"
 prompt_update_var "DOMAIN_NAME" "Enter your domain name (e.g., yourdomain.com)" "yes"
@@ -193,6 +247,10 @@ fi
 print_header "REDIS (OPTIONAL)"
 prompt_update_var "AI_BACKEND_REDIS_URL" "Enter Redis URL for per-IP quotas (default: redis://redis:6379/0)" "no"
 
+# Arachne API protection (optional but recommended in production)
+print_header "ARACHNE SECURITY (OPTIONAL)"
+prompt_update_var "ARACHNE_API_TOKEN" "Enter API token to protect Arachne /api/scrape endpoints (recommended in prod)" "no"
+
 # Update VITE_AI_BACKEND_URL if domain was provided
 if [ -n "$domain_name" ]; then
     sed -i.bak "s|VITE_AI_BACKEND_URL=https://your-domain.com/api/ai|VITE_AI_BACKEND_URL=https://$domain_name/api/ai|" .env
@@ -228,9 +286,16 @@ rm -f .env.bak
 print_header "SETUP COMPLETE"
 print_status "Your .env file has been created with the following configuration:"
 echo
-echo "Domain: ${domain_name:-your-domain.com}"
-echo "Email: ${ssl_email:-your-email@example.com}"
-echo "Gemini API Key: ${gemini_key:+[SET]}${gemini_key:-[NOT SET]}"
+dn=$(get_env_value "DOMAIN_NAME")
+em=$(get_env_value "SSL_EMAIL")
+gk=$(get_env_value "GEMINI_API_KEY")
+echo "Domain: ${dn:-your-domain.com}"
+echo "Email: ${em:-your-email@example.com}"
+if [ -n "$gk" ]; then
+  echo "Gemini API Key: [SET]"
+else
+  echo "Gemini API Key: [NOT SET]"
+fi
 echo
 
 print_status "Next steps:"
@@ -239,9 +304,9 @@ echo "   nano .env"
 echo
 echo "2. Start the services:"
 echo "   # For development:"
-echo "   docker-compose -f dev/docker-compose.dev.yml up -d"
+echo "   docker compose -f docker-compose.yml -f dev/docker-compose.dev.yml up -d"
 echo "   # For production:"
-echo "   docker-compose -f prod/docker-compose.prod.yml up -d"
+echo "   docker compose -f docker-compose.yml -f prod/docker-compose.prod.yml up -d"
 echo
 echo "3. If you're deploying to production, set up SSL certificates:"
 echo "   docker-compose -f prod/docker-compose.prod.yml --profile ssl-setup up certbot"

@@ -38,10 +38,9 @@ server {
     http2 on;
     server_name _;
 
-    # SSL Configuration
-    # Certs are stored under ./nginx/ssl on host and mounted to /etc/nginx/ssl in the container
-    ssl_certificate /etc/nginx/ssl/live/kareemsasa.dev/fullchain.pem;
-    ssl_certificate_key /etc/nginx/ssl/live/kareemsasa.dev/privkey.pem;
+    # SSL Configuration (templated by entrypoint)
+    ssl_certificate /etc/nginx/ssl/live/__DOMAIN_NAME__/fullchain.pem;
+    ssl_certificate_key /etc/nginx/ssl/live/__DOMAIN_NAME__/privkey.pem;
     
     # SSL Security Settings
     ssl_protocols TLSv1.2 TLSv1.3;
@@ -150,15 +149,6 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 
-    # Redis Commander (optional management UI)
-    # location /redis/ {
-    #     proxy_pass http://redis-commander:8081/;
-    #     proxy_set_header Host $host;
-    #     proxy_set_header X-Real-IP $remote_addr;
-    #     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    #     proxy_set_header X-Forwarded-Proto $scheme;
-    # }
-
     # Health check endpoint
     location = /health {
         access_log off;
@@ -171,4 +161,6 @@ server {
     location = /50x.html {
         root /usr/share/nginx/html;
     }
-} 
+}
+
+

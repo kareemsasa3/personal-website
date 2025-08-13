@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 # Development script for the portfolio stack
 # This script starts the services in development mode with live reloading
@@ -18,13 +19,13 @@ fi
 # Stop any existing containers
 echo "🛑 Stopping any existing containers..."
 echo "   This ensures a clean start and prevents port conflicts"
-cd .. && docker-compose down
+cd .. && docker compose down
 
 # Start in development mode
 echo ""
 echo "🔧 Starting development stack with live reloading..."
 echo "   Building and starting all services (this may take a moment)..."
-docker-compose -f docker-compose.yml -f dev/docker-compose.dev.yml up --build || exit 1
+docker compose -f docker-compose.yml -f dev/docker-compose.dev.yml up --build || exit 1
 
 echo ""
 echo "✅ Development stack successfully started!"

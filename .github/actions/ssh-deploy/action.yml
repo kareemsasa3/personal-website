@@ -97,31 +97,17 @@ runs:
 
         echo "Disk usage before cleanup:" && df -h /
         echo "Docker disk usage before cleanup:" && docker system df || true
-        docker container prune -f || true
-        docker image prune -af || true
-        docker builder prune -af || true
-        docker network prune -f || true
-        docker volume prune -f || true
-        sudo find /var/lib/docker/containers -type f -name "*json.log" -size +100M -exec truncate -s 0 {} \; 2>/dev/null || true
-        sudo journalctl --vacuum-size=100M 2>/dev/null || true
 
         DOCKER_CONFIG_DIR="$(mktemp -d -t docker-config-XXXXXX 2>/dev/null || echo /tmp/docker-config)"
         export DOCKER_CONFIG="$DOCKER_CONFIG_DIR"
         echo "${{ inputs.ghcr_token }}" | docker login ghcr.io -u "${{ inputs.ghcr_username }}" --password-stdin
+        trap 'rm -rf "$DOCKER_CONFIG_DIR"' EXIT
 
         export WORKFOLIO_IMAGE=ghcr.io/${{ inputs.repository }}/workfolio:${{ inputs.sha }}
         export AI_BACKEND_IMAGE=ghcr.io/${{ inputs.repository }}/ai-backend:${{ inputs.sha }}
         export ARACHNE_IMAGE=ghcr.io/${{ inputs.repository }}/arachne:${{ inputs.sha }}
 
-        echo "Pre-pulling images to ensure availability..."
-        MISSING="0"
-        docker pull "$WORKFOLIO_IMAGE" || MISSING="1"
-        docker pull "$AI_BACKEND_IMAGE" || MISSING="1"
-        docker pull "$ARACHNE_IMAGE" || MISSING="1"
-        if [ "$MISSING" = "1" ]; then
-          echo "ERROR: One or more images are missing in GHCR for SHA ${{ inputs.sha }}. Ensure the CI build-and-push job completed successfully." >&2
-          exit 1
-        fi
+        # Note: rely on compose pull/up --pull always; no manual docker pull here
 
         if [ -f infrastructure/prod/.env ]; then
           echo "Loading environment from infrastructure/prod/.env"
@@ -131,7 +117,11 @@ runs:
         fi
 
         # If TLS certs are missing, obtain them via standalone certbot (binds to host :80)
-        DOMAIN_NAME_VALUE=${DOMAIN_NAME:-kareemsasa.dev}
+        if [ -z "${DOMAIN_NAME:-}" ]; then
+          echo "ERROR: DOMAIN_NAME is required in infrastructure/prod/.env" >&2
+          exit 1
+        fi
+        DOMAIN_NAME_VALUE="$DOMAIN_NAME"
         SSL_EMAIL_VALUE=${SSL_EMAIL:-${USER}@localhost}
         CERT_PATH_HOST="$(pwd)/infrastructure/nginx/ssl/live/${DOMAIN_NAME_VALUE}/fullchain.pem"
         if [ ! -f "$CERT_PATH_HOST" ]; then
@@ -200,6 +190,23 @@ runs:
         $COMPOSE_CMD -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml -f /tmp/compose.images.override.yml -f /tmp/compose.network.override.yml pull || true
         $COMPOSE_CMD -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml -f /tmp/compose.images.override.yml -f /tmp/compose.network.override.yml up -d --no-build --pull always
         $COMPOSE_CMD -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml -f /tmp/compose.images.override.yml -f /tmp/compose.network.override.yml ps
+
+        echo "Waiting for service health (domain: $DOMAIN_NAME_VALUE) ..."
+        for i in $(seq 1 60); do
+          ok=0
+          curl -fsS -m 5 "https://$DOMAIN_NAME_VALUE/health" >/dev/null 2>&1 && ok=$((ok+1)) || true
+          curl -fsS -m 5 "https://$DOMAIN_NAME_VALUE/api/ai/health" >/dev/null 2>&1 && ok=$((ok+1)) || true
+          curl -fsS -m 5 "https://$DOMAIN_NAME_VALUE/api/scrape/health" >/dev/null 2>&1 && ok=$((ok+1)) || true
+          if [ "$ok" -eq 3 ]; then
+            echo "All endpoints healthy."
+            break
+          fi
+          sleep 5
+        done
+        if [ "$ok" -ne 3 ]; then
+          echo "ERROR: One or more health checks failed at https://$DOMAIN_NAME_VALUE" >&2
+          exit 1
+        fi
 
         echo "Disk usage after cleanup:" && df -h /
         echo "Docker disk usage after cleanup:" && docker system df || true

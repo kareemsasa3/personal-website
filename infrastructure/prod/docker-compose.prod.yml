@@ -18,23 +18,22 @@ services:
   nginx:
     image: nginx:alpine
     container_name: portfolio-nginx-prod
+    environment:
+      - DOMAIN_NAME=${DOMAIN_NAME}
     ports:
       - "${NGINX_HTTP_PORT:-80}:80"
       - "${NGINX_HTTPS_PORT:-443}:443"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/conf.d:/etc/nginx/conf.d:ro
       - ./nginx/ssl:/etc/nginx/ssl:ro
       - ./nginx/ssl:/etc/letsencrypt:ro
       - ./nginx/certbot/www:/var/www/certbot:ro
       - ./logs/nginx:/var/log/nginx
+      - ./nginx/conf.d/default.conf.template:/etc/nginx/conf.d/default.conf.template:ro
     depends_on:
-      workfolio:
-        condition: service_healthy
-      ai-backend:
-        condition: service_healthy
-      arachne:
-        condition: service_healthy
+      - workfolio
+      - ai-backend
+      - arachne
     restart: unless-stopped
     networks:
       - portfolio-network-prod
@@ -44,6 +43,8 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    command: >
+      /bin/sh -c "sed 's/__DOMAIN_NAME__/'\"$DOMAIN_NAME\"'/g' /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"
     deploy:
       resources:
         limits:
@@ -59,6 +60,7 @@ services:
     image: ${WORKFOLIO_IMAGE:-ghcr.io/your-username/personal-website/workfolio:latest}
     container_name: portfolio-workfolio-prod
     environment:
+      - DOMAIN_NAME=${DOMAIN_NAME}
       - NODE_ENV=${WORKFOLIO_NODE_ENV:-production}
       - VITE_AI_BACKEND_URL=${VITE_AI_BACKEND_URL:-https://your-domain.com/api/ai}
     restart: unless-stopped
@@ -100,6 +102,9 @@ services:
       - SESSION_TOKEN_SECRET=${SESSION_TOKEN_SECRET}
       - REDIS_URL=${AI_BACKEND_REDIS_URL:-redis://redis:6379/0}
       - TURNSTILE_SECRET=${TURNSTILE_SECRET}
+      - CORS_ALLOW_ORIGIN=${CORS_ALLOW_ORIGIN:-https://${DOMAIN_NAME}}
+      - CORS_ALLOW_METHODS=${CORS_ALLOW_METHODS:-GET, POST, OPTIONS}
+      - CORS_ALLOW_HEADERS=${CORS_ALLOW_HEADERS:-DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization}
     restart: unless-stopped
     networks:
       - portfolio-network-prod
@@ -146,12 +151,14 @@ services:
       - SCRAPER_REQUEST_TIMEOUT=${ARACHNE_REQUEST_TIMEOUT:-120s}
       - SCRAPER_TOTAL_TIMEOUT=${ARACHNE_TOTAL_TIMEOUT:-180s}
       - SCRAPER_USE_HEADLESS=${ARACHNE_USE_HEADLESS:-true}
+      - SCRAPER_HEADLESS_IGNORE_CERT_ERRORS=${ARACHNE_HEADLESS_IGNORE_CERT_ERRORS:-false}
+      - SCRAPER_HEADLESS_NO_SANDBOX=${ARACHNE_HEADLESS_NO_SANDBOX:-false}
       - SCRAPER_USER_AGENT=${ARACHNE_USER_AGENT:-Mozilla/5.0 (compatible; PortfolioBot/1.0)}
       - SCRAPER_RATE_LIMIT=${ARACHNE_RATE_LIMIT:-2}
       - SCRAPER_RATE_LIMIT_WINDOW=${ARACHNE_RATE_LIMIT_WINDOW:-1s}
+      - SCRAPER_API_TOKEN=${ARACHNE_API_TOKEN}
     depends_on:
-      redis:
-        condition: service_healthy
+      - redis
     restart: unless-stopped
     networks:
       - portfolio-network-prod

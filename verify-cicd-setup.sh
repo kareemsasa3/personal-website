@@ -3,7 +3,7 @@
 # CI/CD Setup Verification Script
 # This script verifies that all CI/CD components are properly configured
 
-set -e
+set -euo pipefail
 
 echo "🔍 CI/CD Setup Verification"
 echo "============================"

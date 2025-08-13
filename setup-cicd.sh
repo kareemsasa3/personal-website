@@ -3,7 +3,7 @@
 # CI/CD Pipeline Setup Script
 # This script helps configure the CI/CD pipeline for the personal website project
 
-set -e
+set -euo pipefail
 
 echo "🚀 CI/CD Pipeline Setup Script"
 echo "=============================="

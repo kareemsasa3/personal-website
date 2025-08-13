@@ -6,6 +6,10 @@ on:
     types:
       - completed
 
+concurrency:
+  group: production-deploy
+  cancel-in-progress: true
+
 jobs:
   deploy:
     # This job only runs if the CI workflow was successful on the main/master branch
@@ -22,6 +26,14 @@ jobs:
 
       # The composite action now handles all SSH and deployment logic.
       # The old "Configure SSH" and "Set image tags env" steps are no longer needed.
+      - name: Export PROD_DOMAIN to environment
+        run: |
+          if [ -z "${{ secrets.PROD_DOMAIN }}" ]; then
+            echo "PROD_DOMAIN=" >> $GITHUB_ENV
+          else
+            echo "PROD_DOMAIN=${{ secrets.PROD_DOMAIN }}" >> $GITHUB_ENV
+          fi
+
       - name: SSH Deploy (composite)
         uses: ./.github/actions/ssh-deploy
         with:
@@ -34,3 +46,24 @@ jobs:
           repository: ${{ github.repository }}
           # We get the commit SHA from the triggering CI workflow run
           sha: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Verify production health
+        if: ${{ env.PROD_DOMAIN != '' }}
+        env:
+          DOMAIN: ${{ env.PROD_DOMAIN }}
+        run: |
+          set -e
+          echo "Waiting for services at https://$DOMAIN ..."
+          for i in {1..60}; do
+            ok=0
+            curl -fsS -m 5 "https://$DOMAIN/health" >/dev/null && ok=$((ok+1)) || true
+            curl -fsS -m 5 "https://$DOMAIN/api/ai/health" >/dev/null && ok=$((ok+1)) || true
+            curl -fsS -m 5 "https://$DOMAIN/api/scrape/health" >/dev/null && ok=$((ok+1)) || true
+            if [ "$ok" -eq 3 ]; then
+              echo "All endpoints healthy."
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "ERROR: One or more health checks failed at https://$DOMAIN" >&2
+          exit 1

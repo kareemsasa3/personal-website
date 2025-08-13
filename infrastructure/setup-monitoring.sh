@@ -3,7 +3,7 @@
 # Monitoring stack setup script for the portfolio
 # This script sets up Prometheus and Grafana monitoring
 
-set -e  # Exit on any error
+set -euo pipefail  # Exit on error, unset vars, and fail pipelines
 
 echo "📊 Setting up monitoring stack for portfolio..."
 echo "   This will configure Prometheus and Grafana for monitoring your services"
@@ -29,7 +29,7 @@ if ! command -v docker &> /dev/null; then
     exit 1
 fi
 
-if ! command -v docker-compose &> /dev/null; then
+if ! command -v docker compose &> /dev/null; then
     echo "❌ Error: Docker Compose is not installed or not in PATH"
     exit 1
 fi
@@ -40,10 +40,10 @@ mkdir -p monitoring/grafana/dashboards
 
 # Check if services are running
 echo "🔍 Checking if main services are running..."
-if ! docker-compose ps | grep -q "Up"; then
+if ! docker compose ps | grep -q "Up"; then
     echo "⚠️  Warning: Main services don't appear to be running"
     echo "   Starting main services first..."
-    docker-compose up -d
+    docker compose up -d
     echo "⏳ Waiting for services to start..."
     sleep 30
 fi
@@ -51,17 +51,34 @@ fi
 # Start monitoring stack
 echo ""
 echo "🚀 Starting monitoring stack..."
-docker-compose -f docker-compose.yml -f monitoring/docker-compose.monitoring.yml up -d
+docker compose -f docker-compose.yml -f monitoring/docker-compose.monitoring.yml up -d
 
 # Wait for monitoring services to be healthy
 echo ""
 echo "⏳ Waiting for monitoring services to become healthy..."
-sleep 20
+
+check_url() {
+  local url="$1"
+  local max_retries=${2:-30}
+  local delay=${3:-2}
+  for i in $(seq 1 "$max_retries"); do
+    if curl -s -o /dev/null -w "%{http_code}" "$url" | grep -q "200"; then
+      return 0
+    fi
+    sleep "$delay"
+  done
+  return 1
+}
+
+# Prometheus health endpoint
+check_url "http://localhost:9090/-/healthy" 60 2 || echo "⚠️  Prometheus not ready yet"
+# Grafana health endpoint
+check_url "http://localhost:3000/api/health" 60 2 || echo "⚠️  Grafana not ready yet"
 
 # Check monitoring service health
 echo ""
 echo "🔍 Checking monitoring service health..."
-docker-compose -f docker-compose.yml -f monitoring/docker-compose.monitoring.yml ps
+docker compose -f docker-compose.yml -f monitoring/docker-compose.monitoring.yml ps
 
 echo ""
 echo "✅ Monitoring stack successfully deployed!"
@@ -90,9 +107,9 @@ echo "      - Nginx Prometheus Exporter (ID: 12797)"
 echo "   4. Create custom dashboards for your application metrics"
 echo ""
 echo "📊 Management Commands:"
-echo "   • View monitoring logs: docker-compose -f docker-compose.yml -f monitoring/docker-compose.monitoring.yml logs -f"
-echo "   • Check monitoring status: docker-compose -f docker-compose.yml -f monitoring/docker-compose.monitoring.yml ps"
-echo "   • Stop monitoring: docker-compose -f docker-compose.yml -f monitoring/docker-compose.monitoring.yml down"
+echo "   • View monitoring logs: docker compose -f docker-compose.yml -f monitoring/docker-compose.monitoring.yml logs -f"
+echo "   • Check monitoring status: docker compose -f docker-compose.yml -f monitoring/docker-compose.monitoring.yml ps"
+echo "   • Stop monitoring: docker compose -f docker-compose.yml -f monitoring/docker-compose.monitoring.yml down"
 echo ""
 echo "🔍 Verify Metrics Collection:"
 echo "   • Check Prometheus targets: http://localhost:9090/targets"
