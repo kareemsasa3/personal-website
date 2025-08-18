@@ -13,6 +13,9 @@ RUN apk --no-cache add \
     bash \
     build-base
 
+# Enable automatic toolchain download (allows Air requiring newer Go)
+ENV GOTOOLCHAIN=auto
+
 # Install air for live reloading
 RUN go install github.com/air-verse/air@latest
 
