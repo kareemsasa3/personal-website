@@ -47,8 +47,8 @@ services:
       - SCRAPER_USE_HEADLESS=${ARACHNE_USE_HEADLESS:-true}
     volumes:
       - ../services/arachne:/app
-      - ../infrastructure/dev/arachne.air.toml:/app/.air.toml:ro
-    command: air
+      - ../infrastructure/dev/arachne.air.toml:/etc/air/air.toml:ro
+    command: air -c /etc/air/air.toml
     ports:
       - "${DEV_ARACHNE_PORT:-8080}:${DEV_ARACHNE_PORT:-8080}"
 
