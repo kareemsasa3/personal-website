@@ -26,7 +26,7 @@ services:
     volumes:
       - ../workfolio:/app
       - /app/node_modules
-    command: npm run dev -- --host
+    command: npm run dev -- --host --no-open
     ports:
       - "${DEV_WORKFOLIO_PORT:-3000}:${DEV_WORKFOLIO_PORT:-3000}"
 
@@ -34,7 +34,7 @@ services:
   arachne:
     build:
       context: ../services/arachne
-      dockerfile: Dockerfile
+      dockerfile: ../../infrastructure/dev/arachne.Dockerfile
     environment:
       - SCRAPER_REDIS_ADDR=${ARACHNE_REDIS_ADDR:-redis:6379}
       - SCRAPER_REDIS_DB=${ARACHNE_REDIS_DB:-0}
@@ -47,8 +47,14 @@ services:
       - SCRAPER_USE_HEADLESS=${ARACHNE_USE_HEADLESS:-true}
     volumes:
       - ../services/arachne:/app
+      - ../infrastructure/dev/arachne.air.toml:/app/.air.toml:ro
+    command: air
     ports:
       - "${DEV_ARACHNE_PORT:-8080}:${DEV_ARACHNE_PORT:-8080}"
+
+  # Disable redis-commander in dev by default (profile-only)
+  redis-commander:
+    profiles: ["monitoring"]
 
   # Nginx - Always running in development mode
   nginx:

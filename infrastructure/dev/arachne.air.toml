@@ -1,0 +1,17 @@
+# Air configuration for Arachne dev server
+root = "."
+tmp_dir = "tmp"
+
+[build]
+cmd = "go build -o ./tmp/arachne ./cmd/arachne/main.go"
+bin = "./tmp/arachne"
+full_bin = "${bin}"
+include_ext = ["go"]
+exclude_dir = ["vendor", "tmp", ".git"]
+delay = 100
+
+[log]
+color = true
+
+[misc]
+clean_on_exit = true

@@ -3,18 +3,24 @@ services:
   nginx:
     image: nginx:alpine
     container_name: portfolio-nginx
+    environment:
+      - DOMAIN_NAME=${DOMAIN_NAME}
     ports:
       - "${NGINX_HTTP_PORT:-80}:80"
       - "${NGINX_HTTPS_PORT:-443}:443"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/conf.d:/etc/nginx/conf.d:ro
-      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - ./nginx/ssl:/etc/letsencrypt:ro
+      - ./nginx/certbot/www:/var/www/certbot:ro
+      - ./logs/nginx:/var/log/nginx
+      - ./nginx/conf.d/default.conf.template:/tmp/default.conf.template:ro
     depends_on:
       - workfolio
       - ai-backend
       - arachne
     restart: unless-stopped
+    command: >
+      /bin/sh -c "sed 's/__DOMAIN_NAME__/'\"$DOMAIN_NAME\"'/g' /tmp/default.conf.template > /tmp/default.conf && nginx -g 'daemon off;'"
     networks:
       - ${DOCKER_NETWORK_NAME:-portfolio-network}
 
@@ -126,7 +132,7 @@ services:
       - ${DOCKER_NETWORK_NAME:-portfolio-network}
 
 networks:
-  ${DOCKER_NETWORK_NAME:-portfolio-network}:
+  portfolio-network:
     driver: bridge
 
 volumes:
