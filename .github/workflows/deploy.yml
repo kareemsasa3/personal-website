@@ -38,8 +38,15 @@ jobs:
         run: |
           mkdir -p ~/.ssh
           umask 077
-          printf "%s" '${{ secrets.PROD_SSH_KEY }}' > ~/.ssh/deploy_key
+          # Preserve line endings exactly as stored in the secret
+          cat > ~/.ssh/deploy_key << 'EOF'
+${{ secrets.PROD_SSH_KEY }}
+EOF
+          # Normalize potential CRLF newlines
+          sed -i 's/\r$//' ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
+          # Optional: validate key format
+          ssh-keygen -y -f ~/.ssh/deploy_key > /dev/null 2>&1 || { echo "Invalid SSH key format" >&2; exit 1; }
           ssh-keyscan -p ${{ secrets.PROD_PORT }} ${{ secrets.PROD_HOST }} >> ~/.ssh/known_hosts
 
       - name: Deploy via SSH (no .env sourcing; use compose --env-file)
