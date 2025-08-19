@@ -34,18 +34,39 @@ jobs:
             echo "PROD_DOMAIN=${{ secrets.PROD_DOMAIN }}" >> $GITHUB_ENV
           fi
 
-      - name: SSH Deploy (composite)
-        uses: ./.github/actions/ssh-deploy
+      - name: Setup SSH agent
+        uses: webfactory/ssh-agent@v0.9.0
         with:
-          host: ${{ secrets.PROD_HOST }}
-          user: ${{ secrets.PROD_USER }}
-          port: ${{ secrets.PROD_PORT }}
-          ssh_key: ${{ secrets.PROD_SSH_KEY }}
-          ghcr_username: ${{ secrets.GHCR_USERNAME }}
-          ghcr_token: ${{ secrets.GHCR_TOKEN }}
-          repository: ${{ github.repository }}
-          # We get the commit SHA from the triggering CI workflow run
-          sha: ${{ github.event.workflow_run.head_sha }}
+          ssh-private-key: ${{ secrets.PROD_SSH_KEY }}
+
+      - name: Add host to known_hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -p ${{ secrets.PROD_PORT }} ${{ secrets.PROD_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy via SSH (no .env sourcing; use compose --env-file)
+        env:
+          HOST: ${{ secrets.PROD_HOST }}
+          USER: ${{ secrets.PROD_USER }}
+          PORT: ${{ secrets.PROD_PORT }}
+          GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          ssh -p "$PORT" "$USER@$HOST" bash -se << 'EOSSH'
+          set -euo pipefail
+          cd /opt/personal-website
+          git pull --ff-only || true
+          cd infrastructure/prod
+          # Ensure prod uses root env file but do NOT source it
+          ln -sf ../.env .env
+          echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
+          export WORKFOLIO_IMAGE=ghcr.io/$REPO/workfolio:$SHA
+          export AI_BACKEND_IMAGE=ghcr.io/$REPO/ai-backend:$SHA
+          export ARACHNE_IMAGE=ghcr.io/$REPO/arachne:$SHA
+          docker compose --env-file ../.env -f docker-compose.prod.yml up -d --pull always nginx ai-backend arachne
+          EOSSH
 
       - name: Verify production health
         if: ${{ env.PROD_DOMAIN != '' }}
