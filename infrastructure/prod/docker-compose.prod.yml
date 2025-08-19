@@ -56,7 +56,6 @@ services:
 
   # Workfolio - Production build
   workfolio:
-    build: null
     image: ${WORKFOLIO_IMAGE:-ghcr.io/your-username/personal-website/workfolio:latest}
     container_name: portfolio-workfolio-prod
     environment:
@@ -88,7 +87,6 @@ services:
 
   # AI Backend - Production optimized
   ai-backend:
-    build: null
     image: ${AI_BACKEND_IMAGE:-ghcr.io/your-username/personal-website/ai-backend:latest}
     container_name: portfolio-ai-backend-prod
     environment:
@@ -141,7 +139,6 @@ services:
 
   # Arachne - Production optimized with enhanced settings
   arachne:
-    build: null
     image: ${ARACHNE_IMAGE:-ghcr.io/your-username/personal-website/arachne:latest}
     container_name: portfolio-arachne-prod
     environment:
