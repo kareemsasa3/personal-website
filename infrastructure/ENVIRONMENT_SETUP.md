@@ -136,7 +136,7 @@ nano .env
 | `AI_BACKEND_MEMORY_LIMIT` | AI backend memory limit | `1G` | No |
 | `AI_BACKEND_CPU_LIMIT` | AI backend CPU limit | `1.0` | No |
 | `ARACHNE_MEMORY_LIMIT` | Arachne memory limit | `2G` | No |
-| `ARACHNE_CPU_LIMIT` | Arachne CPU limit | `2.0` | No |
+| `ARACHNE_CPU_LIMIT` | Arachne CPU limit | `1.0` | No |
 | `REDIS_MEMORY_LIMIT` | Redis memory limit | `1G` | No |
 | `REDIS_CPU_LIMIT` | Redis CPU limit | `1.0` | No |
 

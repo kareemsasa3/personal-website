@@ -80,6 +80,7 @@ jobs:
           export WORKFOLIO_IMAGE=ghcr.io/\${REPO}/workfolio:\${SHA}
           export AI_BACKEND_IMAGE=ghcr.io/\${REPO}/ai-backend:\${SHA}
           export ARACHNE_IMAGE=ghcr.io/\${REPO}/arachne:\${SHA}
+          export ARACHNE_CPU_LIMIT=1.0
           # Cleanup any legacy containers by name (from previous compose files)
           docker ps -a --format '{{.Names}}' | awk '/portfolio-(workfolio|ai-backend|arachne|nginx|redis)(-prod)?$/ {print $0}' | xargs -r docker rm -f || true
           # Bring up services with fresh images, remove orphans, and force recreate
