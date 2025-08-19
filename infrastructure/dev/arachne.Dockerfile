@@ -22,9 +22,18 @@ RUN go install github.com/air-verse/air@latest
 ENV CHROME_BIN=/usr/bin/chromium-browser
 ENV CHROME_PATH=/usr/lib/chromium/
 
-# Create non-root user
+# Create non-root user and prepare writable Go caches/paths
 RUN addgroup -g 1001 -S appgroup && \
-    adduser -u 1001 -S appuser -G appgroup
+    adduser -u 1001 -S appuser -G appgroup && \
+    mkdir -p /home/appuser/go /home/appuser/.cache/go-build && \
+    chown -R appuser:appgroup /home/appuser && \
+    chown -R appuser:appgroup /go || true
+
+# Use per-user Go paths to avoid permission issues
+ENV GOPATH=/home/appuser/go
+ENV GOMODCACHE=/home/appuser/go/pkg/mod
+ENV GOCACHE=/home/appuser/.cache/go-build
+ENV XDG_CACHE_HOME=/home/appuser/.cache
 
 WORKDIR /app
 

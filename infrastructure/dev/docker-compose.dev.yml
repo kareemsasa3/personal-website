@@ -8,8 +8,12 @@ services:
       - NODE_ENV=${DEV_NODE_ENV:-development}
       - PORT=${DEV_AI_BACKEND_PORT:-3001}
       - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - ARACHNE_URL=${ARACHNE_URL:-http://arachne:8080}
+      - ARACHNE_API_TOKEN=${ARACHNE_API_TOKEN:-}
+      - PROFILE_CONTEXT_PATH=/app/profile/profile.md
     volumes:
       - ../services/ai-backend:/app
+      - ../profile/profile.md:/app/profile/profile.md:ro
       - /app/node_modules
     command: npm run dev
     ports:
@@ -22,7 +26,7 @@ services:
       dockerfile: Dockerfile.dev
     environment:
       - NODE_ENV=${DEV_NODE_ENV:-development}
-      - VITE_AI_BACKEND_URL=${VITE_AI_BACKEND_URL:-http://localhost:3001}
+      - VITE_AI_BACKEND_URL=/api/ai
     volumes:
       - ../workfolio:/app
       - /app/node_modules
@@ -42,13 +46,17 @@ services:
       - SCRAPER_ENABLE_LOGGING=${ARACHNE_ENABLE_LOGGING:-true}
       - SCRAPER_LOG_LEVEL=${ARACHNE_DEV_LOG_LEVEL:-debug}
       - SCRAPER_MAX_CONCURRENT=${ARACHNE_DEV_MAX_CONCURRENT:-3}
-      - SCRAPER_REQUEST_TIMEOUT=${ARACHNE_DEV_REQUEST_TIMEOUT:-60s}
-      - SCRAPER_TOTAL_TIMEOUT=${ARACHNE_DEV_TOTAL_TIMEOUT:-90s}
+      - SCRAPER_REQUEST_TIMEOUT=${ARACHNE_DEV_REQUEST_TIMEOUT:-40s}
+      - SCRAPER_TOTAL_TIMEOUT=${ARACHNE_DEV_TOTAL_TIMEOUT:-60s}
       - SCRAPER_USE_HEADLESS=${ARACHNE_USE_HEADLESS:-true}
+      - SCRAPER_MAX_CONTENT_BYTES=${ARACHNE_DEV_MAX_CONTENT_BYTES:-200000}
+      - SCRAPER_HEADLESS_NO_SANDBOX=${ARACHNE_DEV_HEADLESS_NO_SANDBOX:-true}
     volumes:
       - ../services/arachne:/app
       - ../infrastructure/dev/arachne.air.toml:/etc/air/air.toml:ro
     command: air -c /etc/air/air.toml
+    # Increase shared memory for Chromium when using --no-sandbox
+    shm_size: "1gb"
     ports:
       - "${DEV_ARACHNE_PORT:-8080}:${DEV_ARACHNE_PORT:-8080}"
 
@@ -68,3 +76,7 @@ services:
       - workfolio
       - ai-backend
       - arachne
+    command:
+      - /bin/sh
+      - -c
+      - ": > /tmp/default.conf && nginx -g 'daemon off;'"
