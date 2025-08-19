@@ -56,6 +56,7 @@ nano .env
 | `GEMINI_API_KEY` | Google Gemini API key for AI chat | - | Yes for AI features |
 | `SESSION_TOKEN_SECRET` | Secret for signing chat session tokens | - | Yes in production |
 | `TURNSTILE_SECRET` | Cloudflare Turnstile secret key | - | Yes if using Turnstile |
+| `TURNSTILE_REQUIRED` | Require Turnstile in production (set `false` to bypass) | `false` | No |
 | `AI_BACKEND_REDIS_URL` | Redis URL for per-IP daily quotas | `redis://redis:6379/0` | Recommended |
 | `AI_BACKEND_PORT` | Port for AI backend service | `3001` | No |
 | `AI_BACKEND_NODE_ENV` | Node.js environment | `production` | No |
