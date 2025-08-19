@@ -53,7 +53,7 @@ jobs:
             workfolio:ci
           build-args: |
             VITE_TURNSTILE_SITE_KEY=${{ secrets.VITE_TURNSTILE_SITE_KEY }}
-            VITE_AI_BACKEND_URL=${{ secrets.VITE_AI_BACKEND_URL }}
+            VITE_AI_BACKEND_URL=/api/ai
 
       - name: Build and push Workfolio image (GHCR, main/master only)
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
@@ -67,7 +67,7 @@ jobs:
             ghcr.io/${{ github.repository }}/workfolio:latest
           build-args: |
             VITE_TURNSTILE_SITE_KEY=${{ secrets.VITE_TURNSTILE_SITE_KEY }}
-            VITE_AI_BACKEND_URL=${{ secrets.VITE_AI_BACKEND_URL }}
+            VITE_AI_BACKEND_URL=/api/ai
 
       - name: Scan Workfolio image with Trivy (local)
         if: github.ref != 'refs/heads/main' && github.ref != 'refs/heads/master'
