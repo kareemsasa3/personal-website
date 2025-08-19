@@ -34,6 +34,19 @@ print_header() {
     echo -e "${BLUE}================================${NC}"
 }
 
+# -----------------------------------------------------------------------------
+# CLI flags
+# -----------------------------------------------------------------------------
+NONINTERACTIVE=0
+for arg in "$@"; do
+  case "$arg" in
+    --noninteractive|-y)
+      NONINTERACTIVE=1
+      shift
+      ;;
+  esac
+done
+
 # Check if we're in the right directory
 if [ ! -f "env.example" ]; then
     print_error "env.example file not found. Please run this script from the infrastructure directory."
@@ -126,6 +139,50 @@ if [ ! -f ".env" ]; then
     cp env.example .env
 else
     print_status "Using existing .env (update-in-place mode)"
+fi
+
+if [ "$NONINTERACTIVE" -eq 1 ] || [ "${SETUP_ENV_NONINTERACTIVE:-0}" = "1" ]; then
+  print_header "NON-INTERACTIVE MODE"
+  print_status "Applying environment variables to .env and exiting."
+
+  # Write any provided environment variables into .env (idempotent via set_env_value)
+  vars_to_apply=(
+    DOMAIN_NAME
+    SSL_EMAIL
+    GEMINI_API_KEY
+    AI_BACKEND_REDIS_URL
+    CORS_ALLOW_ORIGIN
+    RATE_LIMIT_WINDOW_MS
+    RATE_LIMIT_MAX_REQUESTS
+    AI_DAILY_LIMIT
+    ARACHNE_API_TOKEN
+    VITE_TURNSTILE_SITE_KEY
+    TURNSTILE_SECRET
+    SESSION_TOKEN_SECRET
+    VITE_AI_BACKEND_URL
+  )
+  for v in "${vars_to_apply[@]}"; do
+    val="${!v-}"
+    if [ -n "${val}" ]; then
+      set_env_value "$v" "$val"
+    fi
+  done
+
+  # Auto-generate SESSION_TOKEN_SECRET if still missing
+  sess_cur=$(get_env_value "SESSION_TOKEN_SECRET")
+  if [ -z "$sess_cur" ]; then
+    set_env_value "SESSION_TOKEN_SECRET" "$(generate_secret)"
+  fi
+
+  # If DOMAIN_NAME present and VITE_AI_BACKEND_URL missing, set a sensible default
+  dn_cur=$(get_env_value "DOMAIN_NAME")
+  vite_api_cur=$(get_env_value "VITE_AI_BACKEND_URL")
+  if [ -n "$dn_cur" ] && [ -z "$vite_api_cur" ]; then
+    set_env_value "VITE_AI_BACKEND_URL" "https://$dn_cur/api/ai"
+  fi
+
+  print_status ".env updated from environment variables."
+  exit 0
 fi
 
 print_status "Now let's configure your environment variables (Update/Skip prompts):"

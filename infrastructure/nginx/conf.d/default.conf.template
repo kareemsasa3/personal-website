@@ -113,32 +113,8 @@ server {
         }
     }
 
-    # Arachne scraping API
-    location /api/scrape/ {
-        limit_req zone=scraper burst=10 nodelay;
-        rewrite ^/api/scrape(/.*)$ $1 break;
-        proxy_pass http://arachne:8080;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        
-        # CORS headers (same-origin by default)
-        add_header Access-Control-Allow-Origin $scheme://$host always;
-        add_header Vary Origin always;
-        add_header Access-Control-Allow-Methods "GET, POST, OPTIONS" always;
-        add_header Access-Control-Allow-Headers "DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization" always;
-        
-        if ($request_method = 'OPTIONS') {
-            add_header Access-Control-Allow-Origin $scheme://$host;
-            add_header Access-Control-Allow-Methods "GET, POST, OPTIONS";
-            add_header Access-Control-Allow-Headers "DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization";
-            add_header Access-Control-Max-Age 1728000;
-            add_header Content-Type 'text/plain; charset=utf-8';
-            add_header Content-Length 0;
-            return 204;
-        }
-    }
+    # NOTE: Public Arachne scraping API has been intentionally removed in production.
+    # ai-backend communicates with Arachne over the internal Docker network.
 
     # Arachne health and metrics
     location /api/arachne/ {
