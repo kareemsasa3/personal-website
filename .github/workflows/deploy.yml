@@ -34,14 +34,12 @@ jobs:
             echo "PROD_DOMAIN=${{ secrets.PROD_DOMAIN }}" >> $GITHUB_ENV
           fi
 
-      - name: Setup SSH agent
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.PROD_SSH_KEY }}
-
-      - name: Add host to known_hosts
+      - name: Write SSH key and add host
         run: |
           mkdir -p ~/.ssh
+          umask 077
+          printf "%s" '${{ secrets.PROD_SSH_KEY }}' > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -p ${{ secrets.PROD_PORT }} ${{ secrets.PROD_HOST }} >> ~/.ssh/known_hosts
 
       - name: Deploy via SSH (no .env sourcing; use compose --env-file)
@@ -54,7 +52,7 @@ jobs:
           REPO: ${{ github.repository }}
           SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
-          ssh -p "$PORT" "$USER@$HOST" bash -se << 'EOSSH'
+          ssh -i ~/.ssh/deploy_key -p "$PORT" "$USER@$HOST" bash -se << 'EOSSH'
           set -euo pipefail
           cd /opt/personal-website
           git pull --ff-only || true
@@ -79,7 +77,7 @@ jobs:
             ok=0
             curl -fsS -m 5 "https://$DOMAIN/health" >/dev/null && ok=$((ok+1)) || true
             curl -fsS -m 5 "https://$DOMAIN/api/ai/health" >/dev/null && ok=$((ok+1)) || true
-            curl -fsS -m 5 "https://$DOMAIN/api/scrape/health" >/dev/null && ok=$((ok+1)) || true
+            curl -fsS -m 5 "https://$DOMAIN/api/arachne/health" >/dev/null && ok=$((ok+1)) || true
             if [ "$ok" -eq 3 ]; then
               echo "All endpoints healthy."
               exit 0
