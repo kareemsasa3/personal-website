@@ -3,9 +3,9 @@ services:
   certbot:
     image: certbot/certbot:latest
     volumes:
-      - ./nginx/ssl:/etc/letsencrypt
-      - ./nginx/certbot/www:/var/www/certbot
-      - ./logs/certbot:/var/log/letsencrypt
+      - ../nginx/ssl:/etc/letsencrypt
+      - ../nginx/certbot/www:/var/www/certbot
+      - ../logs/certbot:/var/log/letsencrypt
     command: certonly --webroot --webroot-path=/var/www/certbot --email ${SSL_EMAIL} --agree-tos --no-eff-email --force-renewal -d ${DOMAIN_NAME}
     profiles:
       - ssl-setup
@@ -22,12 +22,12 @@ services:
       - "${NGINX_HTTP_PORT:-80}:80"
       - "${NGINX_HTTPS_PORT:-443}:443"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/ssl:/etc/nginx/ssl:ro
-      - ./nginx/ssl:/etc/letsencrypt:ro
-      - ./nginx/certbot/www:/var/www/certbot:ro
-      - ./logs/nginx:/var/log/nginx
-      - ./nginx/conf.d/default.conf.template:/tmp/default.conf.template:ro
+      - ../nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ../nginx/ssl:/etc/nginx/ssl:ro
+      - ../nginx/ssl:/etc/letsencrypt:ro
+      - ../nginx/certbot/www:/var/www/certbot:ro
+      - ../logs/nginx:/var/log/nginx
+      - ../nginx/conf.d/default.conf.template:/tmp/default.conf.template:ro
     depends_on:
       - workfolio
       - ai-backend
@@ -191,7 +191,7 @@ services:
     image: redis:7-alpine
     volumes:
       - redis_data_prod:/data
-      - ./logs/redis:/var/log/redis
+      - ../logs/redis:/var/log/redis
     command: >
       redis-server 
       --appendonly yes 
