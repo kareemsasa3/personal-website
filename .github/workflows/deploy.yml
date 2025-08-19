@@ -18,6 +18,8 @@ jobs:
     permissions:
       contents: read # Required to checkout the repo and read the composite action
       packages: read # Required for GHCR login, though token handles auth
+    env:
+      PROD_DOMAIN: ${{ secrets.PROD_DOMAIN }}
 
     steps:
       - name: Checkout repository
@@ -26,22 +28,12 @@ jobs:
 
       # The composite action now handles all SSH and deployment logic.
       # The old "Configure SSH" and "Set image tags env" steps are no longer needed.
-      - name: Export PROD_DOMAIN to environment
-        run: |
-          if [ -z "${{ secrets.PROD_DOMAIN }}" ]; then
-            echo "PROD_DOMAIN=" >> $GITHUB_ENV
-          else
-            echo "PROD_DOMAIN=${{ secrets.PROD_DOMAIN }}" >> $GITHUB_ENV
-          fi
-
       - name: Write SSH key and add host
         run: |
           mkdir -p ~/.ssh
           umask 077
-          # Preserve line endings exactly as stored in the secret
-          cat > ~/.ssh/deploy_key << 'EOF'
-${{ secrets.PROD_SSH_KEY }}
-EOF
+          # Write key bytes exactly, no extra whitespace
+          printf '%s' "${{ secrets.PROD_SSH_KEY }}" > ~/.ssh/deploy_key
           # Normalize potential CRLF newlines
           sed -i 's/\r$//' ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
