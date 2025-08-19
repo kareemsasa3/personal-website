@@ -60,22 +60,26 @@ jobs:
           REPO: ${{ github.repository }}
           SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
-          ssh -i ~/.ssh/deploy_key -p "$PORT" "$USER@$HOST" bash -se << 'EOSSH'
+          ssh -i ~/.ssh/deploy_key -p "$PORT" "$USER@$HOST" bash -se << EOSSH
           set -euo pipefail
-          WORKDIR="$HOME/personal-website"
-          mkdir -p "$WORKDIR"
+          REPO="${REPO}"
+          SHA="${SHA}"
+          GHCR_USERNAME="${GHCR_USERNAME}"
+          GHCR_TOKEN="${GHCR_TOKEN}"
+          WORKDIR="\$HOME/personal-website"
+          mkdir -p "\$WORKDIR"
           # Fetch exact commit contents without needing git credentials
-          if ! curl -fsSL "https://codeload.github.com/$REPO/tar.gz/$SHA" | tar -xz -C "$WORKDIR" --strip-components=1; then
+          if ! curl -fsSL "https://codeload.github.com/\${REPO}/tar.gz/\${SHA}" | tar -xz -C "\$WORKDIR" --strip-components=1; then
             echo "Falling back to main branch archive"
-            curl -fsSL "https://codeload.github.com/$REPO/tar.gz/refs/heads/main" | tar -xz -C "$WORKDIR" --strip-components=1
+            curl -fsSL "https://codeload.github.com/\${REPO}/tar.gz/refs/heads/main" | tar -xz -C "\$WORKDIR" --strip-components=1
           fi
-          cd "$WORKDIR/infrastructure/prod"
+          cd "\$WORKDIR/infrastructure/prod"
           # Ensure prod uses root env file but do NOT source it
           ln -sf ../.env .env
-          echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
-          export WORKFOLIO_IMAGE=ghcr.io/$REPO/workfolio:$SHA
-          export AI_BACKEND_IMAGE=ghcr.io/$REPO/ai-backend:$SHA
-          export ARACHNE_IMAGE=ghcr.io/$REPO/arachne:$SHA
+          echo "\$GHCR_TOKEN" | docker login ghcr.io -u "\$GHCR_USERNAME" --password-stdin
+          export WORKFOLIO_IMAGE=ghcr.io/\${REPO}/workfolio:\${SHA}
+          export AI_BACKEND_IMAGE=ghcr.io/\${REPO}/ai-backend:\${SHA}
+          export ARACHNE_IMAGE=ghcr.io/\${REPO}/arachne:\${SHA}
           docker compose --env-file ../.env -f docker-compose.prod.yml up -d --pull always nginx ai-backend arachne
           EOSSH
 
