@@ -62,9 +62,14 @@ jobs:
         run: |
           ssh -i ~/.ssh/deploy_key -p "$PORT" "$USER@$HOST" bash -se << 'EOSSH'
           set -euo pipefail
-          cd /opt/personal-website
-          git pull --ff-only || true
-          cd infrastructure/prod
+          WORKDIR="$HOME/personal-website"
+          mkdir -p "$WORKDIR"
+          # Fetch exact commit contents without needing git credentials
+          if ! curl -fsSL "https://codeload.github.com/$REPO/tar.gz/$SHA" | tar -xz -C "$WORKDIR" --strip-components=1; then
+            echo "Falling back to main branch archive"
+            curl -fsSL "https://codeload.github.com/$REPO/tar.gz/refs/heads/main" | tar -xz -C "$WORKDIR" --strip-components=1
+          fi
+          cd "$WORKDIR/infrastructure/prod"
           # Ensure prod uses root env file but do NOT source it
           ln -sf ../.env .env
           echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
