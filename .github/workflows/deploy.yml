@@ -32,12 +32,21 @@ jobs:
         run: |
           mkdir -p ~/.ssh
           umask 077
-          # Write key bytes exactly, no extra whitespace
-          printf '%s' "${{ secrets.PROD_SSH_KEY }}" > ~/.ssh/deploy_key
-          # Normalize potential CRLF newlines
-          sed -i 's/\r$//' ~/.ssh/deploy_key
+          KEY_CONTENT="${{ secrets.PROD_SSH_KEY }}"
+          # First attempt: write as-is (supports proper multiline secrets)
+          printf '%s' "$KEY_CONTENT" | tr -d '\r' > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          # Optional: validate key format
+          if ! ssh-keygen -y -f ~/.ssh/deploy_key > /dev/null 2>&1; then
+            # Fallback 1: interpret escaped newlines (e.g. \n) found in some secret setups
+            printf '%b' "$KEY_CONTENT" | tr -d '\r' > ~/.ssh/deploy_key
+            chmod 600 ~/.ssh/deploy_key
+          fi
+          if ! ssh-keygen -y -f ~/.ssh/deploy_key > /dev/null 2>&1; then
+            # Fallback 2: treat secret as base64 encoded key
+            echo "$KEY_CONTENT" | base64 -d > ~/.ssh/deploy_key 2>/dev/null || true
+            chmod 600 ~/.ssh/deploy_key
+          fi
+          # Final validation
           ssh-keygen -y -f ~/.ssh/deploy_key > /dev/null 2>&1 || { echo "Invalid SSH key format" >&2; exit 1; }
           ssh-keyscan -p ${{ secrets.PROD_PORT }} ${{ secrets.PROD_HOST }} >> ~/.ssh/known_hosts
 
