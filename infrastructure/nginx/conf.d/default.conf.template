@@ -1,6 +1,6 @@
 # HTTP server for ACME challenges and redirects
 server {
-    listen 80;
+    listen 80 default_server;
     server_name _;
     
     # ACME Challenge for Let's Encrypt
@@ -35,7 +35,7 @@ server {
 
 # Main portfolio application with HTTPS
 server {
-    listen 443 ssl;
+    listen 443 ssl default_server;
     http2 on;
     server_name _;
 
