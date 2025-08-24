@@ -140,10 +140,16 @@ server {
         proxy_set_header X-Forwarded-Host $http_host;
         proxy_set_header X-Forwarded-Prefix /monitoring/grafana;
         proxy_set_header X-Script-Name /monitoring/grafana;
+        # WebSocket support for Grafana Live
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_read_timeout 3600s;
+        proxy_send_timeout 3600s;
+        proxy_buffering off;
         proxy_pass http://grafana:3000;
 
         # Relax CSP for Grafana only to avoid blocked assets
-        add_header Content-Security-Policy "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https: http:; img-src 'self' data: blob: https: http:; style-src 'self' 'unsafe-inline' https: http:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https: http:" always;
+        add_header Content-Security-Policy "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https: http:; img-src 'self' data: blob: https: http:; style-src 'self' 'unsafe-inline' https: http:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https: http:; connect-src 'self' wss: https: http:" always;
     }
 
     # Health check endpoint
