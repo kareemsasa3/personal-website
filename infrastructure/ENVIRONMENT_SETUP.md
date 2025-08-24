@@ -31,6 +31,12 @@ This script will:
 
 ### 2. Manual Setup
 
+To fetch Grafana dashboards locally:
+```bash
+cd infrastructure
+./fetch-grafana-dashboards.sh
+```
+
 If you prefer manual setup:
 
 ```bash

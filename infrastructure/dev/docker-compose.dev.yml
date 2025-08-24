@@ -1,6 +1,7 @@
 services:
   # AI Backend - Development mode with live reloading
   ai-backend:
+    container_name: portfolio-ai-backend-dev
     build:
       context: ../services/ai-backend
       dockerfile: Dockerfile.dev
@@ -21,6 +22,7 @@ services:
 
   # Workfolio - Development mode with live reloading
   workfolio:
+    container_name: portfolio-workfolio-dev
     build:
       context: ../workfolio
       dockerfile: Dockerfile.dev
@@ -36,6 +38,7 @@ services:
 
   # Arachne - Development mode with live reloading
   arachne:
+    container_name: portfolio-arachne-dev
     build:
       context: ../services/arachne
       dockerfile: ../../infrastructure/dev/arachne.Dockerfile
@@ -66,6 +69,7 @@ services:
 
   # Nginx - Always running in development mode
   nginx:
+    container_name: portfolio-nginx-dev
     image: nginx:alpine
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro

@@ -1,0 +1,130 @@
+{
+    "uid": "ai-backend-dashboard",
+    "title": "AI Backend Overview",
+    "tags": [
+        "ai-backend",
+        "prometheus"
+    ],
+    "timezone": "browser",
+    "version": 1,
+    "schemaVersion": 38,
+    "editable": true,
+    "refresh": "10s",
+    "panels": [
+        {
+            "type": "stat",
+            "title": "HTTP Requests (rate)",
+            "gridPos": {
+                "x": 0,
+                "y": 0,
+                "w": 8,
+                "h": 4
+            },
+            "targets": [
+                {
+                    "expr": "sum(rate(http_requests_total[5m]))",
+                    "legendFormat": "all"
+                },
+                {
+                    "expr": "sum(rate(http_requests_total{status_code=~\"2..\"}[5m]))",
+                    "legendFormat": "2xx"
+                },
+                {
+                    "expr": "sum(rate(http_requests_total{status_code=~\"4..\"}[5m]))",
+                    "legendFormat": "4xx"
+                },
+                {
+                    "expr": "sum(rate(http_requests_total{status_code=~\"5..\"}[5m]))",
+                    "legendFormat": "5xx"
+                }
+            ],
+            "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+            }
+        },
+        {
+            "type": "graph",
+            "title": "Request Duration (p50/p90/p99)",
+            "gridPos": {
+                "x": 8,
+                "y": 0,
+                "w": 16,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "histogram_quantile(0.5, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))",
+                    "legendFormat": "p50"
+                },
+                {
+                    "expr": "histogram_quantile(0.9, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))",
+                    "legendFormat": "p90"
+                },
+                {
+                    "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))",
+                    "legendFormat": "p99"
+                }
+            ],
+            "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+            }
+        },
+        {
+            "type": "graph",
+            "title": "AI Chat Requests by Status (rate)",
+            "gridPos": {
+                "x": 0,
+                "y": 4,
+                "w": 12,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "sum by (status) (rate(ai_chat_requests_total[5m]))",
+                    "legendFormat": "{{status}}"
+                }
+            ],
+            "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+            }
+        },
+        {
+            "type": "graph",
+            "title": "AI Chat Response Time (avg)",
+            "gridPos": {
+                "x": 12,
+                "y": 8,
+                "w": 12,
+                "h": 8
+            },
+            "targets": [
+                {
+                    "expr": "sum(rate(ai_chat_response_time_seconds_sum[5m])) / sum(rate(ai_chat_response_time_seconds_count[5m]))",
+                    "legendFormat": "avg"
+                }
+            ],
+            "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+            }
+        }
+    ],
+    "templating": {
+        "list": [
+            {
+                "type": "query",
+                "name": "route",
+                "datasource": {
+                    "type": "prometheus",
+                    "uid": "prometheus"
+                },
+                "query": "label_values(http_requests_total, route)",
+                "includeAll": true,
+                "multi": true
+            }
+        ]
+    }
+}

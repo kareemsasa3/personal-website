@@ -151,6 +151,18 @@ Create custom dashboards for:
 - Arachne scraping metrics
 - Application-specific business metrics
 
+### Local Provisioning
+
+- Place JSON files in `infrastructure/monitoring/grafana/dashboards/` (Grafana auto-loads)
+- Custom stubs included:
+  - `custom/ai-backend.json`
+  - `custom/arachne.json`
+- Fetch recommended dashboards:
+  ```bash
+  cd infrastructure
+  ./fetch-grafana-dashboards.sh
+  ```
+
 ## 🔧 Configuration
 
 ### Prometheus Configuration

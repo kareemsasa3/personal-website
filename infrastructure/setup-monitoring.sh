@@ -37,21 +37,15 @@ fi
 # Create necessary directories
 echo "📁 Creating monitoring directories..."
 mkdir -p monitoring/grafana/dashboards
+mkdir -p monitoring/grafana/dashboards/custom
 
-# Check if services are running
-echo "🔍 Checking if main services are running..."
-if ! docker compose ps | grep -q "Up"; then
-    echo "⚠️  Warning: Main services don't appear to be running"
-    echo "   Starting main services first..."
-    docker compose up -d
-    echo "⏳ Waiting for services to start..."
-    sleep 30
-fi
+# Ensure full stack (app + monitoring) is up in a single invocation to avoid name conflicts
+echo "🔍 Ensuring app + monitoring stack is up..."
+docker compose -f docker-compose.yml -f monitoring/docker-compose.monitoring.yml up -d --no-recreate
 
-# Start monitoring stack
+# Start health checks
 echo ""
-echo "🚀 Starting monitoring stack..."
-docker compose -f docker-compose.yml -f monitoring/docker-compose.monitoring.yml up -d
+echo "🚀 Starting monitoring health checks..."
 
 # Wait for monitoring services to be healthy
 echo ""
@@ -106,6 +100,8 @@ echo "      - Redis Dashboard (ID: 11835)"
 echo "      - Nginx Prometheus Exporter (ID: 12797)"
 echo "   4. Create custom dashboards for your application metrics"
 echo ""
+echo "📥 Optional: Fetch recommended dashboards automatically"
+echo "   Run: ./fetch-grafana-dashboards.sh"
 echo "📊 Management Commands:"
 echo "   • View monitoring logs: docker compose -f docker-compose.yml -f monitoring/docker-compose.monitoring.yml logs -f"
 echo "   • Check monitoring status: docker compose -f docker-compose.yml -f monitoring/docker-compose.monitoring.yml ps"
