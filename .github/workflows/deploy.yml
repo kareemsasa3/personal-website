@@ -98,6 +98,7 @@ jobs:
           docker network create portfolio-network-prod >/dev/null 2>&1 || true
           # Bring up services with fresh images, remove orphans, and force recreate (app + monitoring)
           docker compose --env-file ../.env -f docker-compose.prod.yml -f docker-compose.monitoring.prod.yml up -d --pull always --remove-orphans --force-recreate nginx workfolio ai-backend arachne prometheus grafana node-exporter nginx-exporter redis-exporter
+          EOSSH
 
       - name: Verify monitoring health (via SSH)
         env:
@@ -106,7 +107,6 @@ jobs:
           PORT: ${{ secrets.PROD_PORT }}
         run: |
           ssh -i ~/.ssh/deploy_key -p "$PORT" "$USER@$HOST" "bash -se -c 'set -euo pipefail; echo Waiting for Prometheus and Grafana to become healthy...; for i in \$(seq 1 60); do ok=0; curl -fsS -m 5 http://localhost:9090/-/healthy >/dev/null && ok=\$((ok+1)) || true; curl -fsS -m 5 http://localhost:3000/api/health >/dev/null && ok=\$((ok+1)) || true; if [ \"\$ok\" -eq 2 ]; then echo Monitoring healthy.; exit 0; fi; sleep 5; done; echo ERROR: Monitoring health checks failed >&2; exit 1'"
-          EOSSH
 
       - name: Verify production health
         if: ${{ env.PROD_DOMAIN != '' }}
