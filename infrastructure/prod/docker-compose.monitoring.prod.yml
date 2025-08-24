@@ -64,6 +64,8 @@ services:
       - GF_SERVER_DOMAIN=${DOMAIN_NAME:-localhost}
       - GF_SERVER_ROOT_URL=https://${DOMAIN_NAME:-localhost}/monitoring/grafana/
       - GF_SERVER_SERVE_FROM_SUB_PATH=true
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
     ports:
       - "3000:3000"
     networks:
