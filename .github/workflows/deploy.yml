@@ -105,22 +105,7 @@ jobs:
           USER: ${{ secrets.PROD_USER }}
           PORT: ${{ secrets.PROD_PORT }}
         run: |
-          ssh -i ~/.ssh/deploy_key -p "$PORT" "$USER@$HOST" bash -se << 'EOSSH'
-          set -euo pipefail
-          echo "Waiting for Prometheus and Grafana to become healthy..."
-          for i in $(seq 1 60); do
-            ok=0
-            curl -fsS -m 5 http://localhost:9090/-/healthy >/dev/null && ok=$((ok+1)) || true
-            curl -fsS -m 5 http://localhost:3000/api/health >/dev/null && ok=$((ok+1)) || true
-            if [ "$ok" -eq 2 ]; then
-              echo "Monitoring healthy."
-              exit 0
-            fi
-            sleep 5
-          done
-          echo "ERROR: Monitoring health checks failed" >&2
-          exit 1
-          EOSSH
+          ssh -i ~/.ssh/deploy_key -p "$PORT" "$USER@$HOST" "bash -se -c 'set -euo pipefail; echo Waiting for Prometheus and Grafana to become healthy...; for i in \$(seq 1 60); do ok=0; curl -fsS -m 5 http://localhost:9090/-/healthy >/dev/null && ok=\$((ok+1)) || true; curl -fsS -m 5 http://localhost:3000/api/health >/dev/null && ok=\$((ok+1)) || true; if [ \"\$ok\" -eq 2 ]; then echo Monitoring healthy.; exit 0; fi; sleep 5; done; echo ERROR: Monitoring health checks failed >&2; exit 1'"
           EOSSH
 
       - name: Verify production health
