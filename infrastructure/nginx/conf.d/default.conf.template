@@ -27,9 +27,9 @@ server {
         add_header Content-Type text/plain;
     }
 
-    # Redirect all other HTTP traffic to HTTPS
+    # Redirect all other HTTP traffic to HTTPS using the original Host header
     location / {
-        return 301 https://$server_name$request_uri;
+        return 301 https://$host$request_uri;
     }
 }
 
