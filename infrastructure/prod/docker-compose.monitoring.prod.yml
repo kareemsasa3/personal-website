@@ -102,6 +102,55 @@ services:
         max-size: "10m"
         max-file: "3"
 
+  grafana-admin:
+    image: grafana/grafana:9.2.0
+    container_name: portfolio-grafana-admin-prod
+    volumes:
+      - grafana_admin_data_prod:/var/lib/grafana
+      - ../monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ../monitoring/grafana/dashboards:/etc/grafana/dashboards:ro
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource
+      - GF_SERVER_DOMAIN=${DOMAIN_NAME:-localhost}
+      - GF_SERVER_ROOT_URL=https://${DOMAIN_NAME:-localhost}/monitoring/grafana-admin/
+      - GF_SERVER_SERVE_FROM_SUB_PATH=true
+      - GF_AUTH_ANONYMOUS_ENABLED=false
+      - GF_AUTH_DISABLE_LOGIN_FORM=false
+    networks:
+      - portfolio-network-prod
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:3000/api/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: "0.5"
+        reservations:
+          memory: 128M
+          cpus: "0.25"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
   node-exporter:
     image: prom/node-exporter:v1.3.1
     container_name: portfolio-node-exporter-prod
@@ -233,4 +282,6 @@ volumes:
   prometheus_data_prod:
     driver: local
   grafana_data_prod:
+    driver: local
+  grafana_admin_data_prod:
     driver: local

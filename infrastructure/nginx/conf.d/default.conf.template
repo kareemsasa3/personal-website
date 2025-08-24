@@ -131,6 +131,31 @@ server {
         return 301 /monitoring/grafana/;
     }
 
+    # Grafana Admin (login required) at /monitoring/grafana-admin/
+    location = /monitoring/grafana-admin {
+        return 301 /monitoring/grafana-admin/;
+    }
+
+    location ^~ /monitoring/grafana-admin/ {
+        proxy_http_version 1.1;
+        proxy_set_header Host $http_host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $http_host;
+        proxy_set_header X-Forwarded-Prefix /monitoring/grafana-admin;
+        proxy_set_header X-Script-Name /monitoring/grafana-admin;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_read_timeout 3600s;
+        proxy_send_timeout 3600s;
+        proxy_buffering off;
+        proxy_pass http://grafana-admin:3000;
+
+        add_header Content-Security-Policy "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https: http:; img-src 'self' data: blob: https: http:; style-src 'self' 'unsafe-inline' https: http:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https: http:; connect-src 'self' wss: https: http: data:" always;
+        add_header Permissions-Policy "" always;
+    }
+
     location ^~ /monitoring/grafana/ {
         proxy_http_version 1.1;
         proxy_set_header Host $http_host;

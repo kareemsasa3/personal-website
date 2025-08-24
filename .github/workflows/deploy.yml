@@ -97,7 +97,7 @@ jobs:
           # Ensure external prod network exists (again) right before up
           docker network create portfolio-network-prod >/dev/null 2>&1 || true
           # Bring up services with fresh images, remove orphans, and force recreate (app + monitoring)
-          docker compose --env-file ../.env -f docker-compose.prod.yml -f docker-compose.monitoring.prod.yml up -d --pull always --remove-orphans --force-recreate nginx workfolio ai-backend arachne prometheus grafana node-exporter nginx-exporter redis-exporter
+          docker compose --env-file ../.env -f docker-compose.prod.yml -f docker-compose.monitoring.prod.yml up -d --pull always --remove-orphans --force-recreate nginx workfolio ai-backend arachne prometheus grafana grafana-admin node-exporter nginx-exporter redis-exporter
           EOSSH
 
       - name: Verify monitoring health (via SSH)

@@ -74,6 +74,28 @@ services:
       retries: 3
       start_period: 40s
 
+  grafana-admin:
+    image: grafana/grafana:9.2.0
+    container_name: portfolio-grafana-admin
+    volumes:
+      - grafana_admin_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/etc/grafana/dashboards:ro
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource
+      - GF_SERVER_DOMAIN=${DOMAIN_NAME:-localhost}
+      - GF_SERVER_ROOT_URL=%(protocol)s://%(domain)s/monitoring/grafana-admin/
+      - GF_SERVER_SERVE_FROM_SUB_PATH=true
+      - GF_AUTH_ANONYMOUS_ENABLED=false
+      - GF_AUTH_DISABLE_LOGIN_FORM=false
+    networks:
+      - portfolio-network
+    restart: unless-stopped
+    depends_on:
+      - prometheus
   node-exporter:
     image: prom/node-exporter:v1.3.1
     container_name: portfolio-node-exporter
@@ -171,4 +193,6 @@ volumes:
   prometheus_data:
     driver: local
   grafana_data:
+    driver: local
+  grafana_admin_data:
     driver: local
