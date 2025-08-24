@@ -138,7 +138,9 @@ server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_set_header X-Forwarded-Prefix /monitoring/grafana;
-        proxy_pass http://grafana:3000/;
+        proxy_set_header X-Script-Name /monitoring/grafana;
+        rewrite ^/monitoring/grafana/(.*)$ /$1 break;
+        proxy_pass http://grafana:3000;
 
         # Relax CSP for Grafana only to avoid blocked assets
         add_header Content-Security-Policy "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https: http:; img-src 'self' data: blob: https: http:; style-src 'self' 'unsafe-inline' https: http:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https: http:" always;
