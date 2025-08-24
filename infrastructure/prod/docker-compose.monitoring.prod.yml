@@ -147,7 +147,7 @@ services:
     image: nginx/nginx-prometheus-exporter:0.10.0
     container_name: portfolio-nginx-exporter-prod
     command:
-      - -nginx.scrape-uri=http://127.0.0.1:80/stub_status
+      - -nginx.scrape-uri=http://nginx:80/stub_status
       - -nginx.ssl-verify=false
     ports:
       - "9113:9113"
