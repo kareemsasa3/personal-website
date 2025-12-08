@@ -7,3 +7,6 @@
 [submodule "services/ai-backend"]
 	path = services/ai-backend
 	url = https://github.com/kareemsasa3/ai-backend.git
+[submodule "arachne-ui"]
+	path = arachne-ui
+	url = https://github.com/kareemsasa3/scrapee.git
