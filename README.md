@@ -7,11 +7,11 @@ A unified Docker Compose setup for running the complete portfolio ecosystem with
 ### Folder Structure
 ```
 personal/
-├── workfolio/                    # Main portfolio (React)
 ├── services/                     # Backend services showcased by Workfolio
 │   ├── ai-backend/              # AI microservice
 │   ├── arachne/                 # Web scraping service
 │   └── arachne-ui/              # Next.js scraper console
+│   └── workfolio/               # Main portfolio (React)
 ├── infrastructure/              # Deployment & infrastructure
 │   ├── nginx/                   # Reverse proxy configuration
 │   ├── docker-compose.yml       # Production setup
