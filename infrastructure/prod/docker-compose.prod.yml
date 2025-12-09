@@ -32,6 +32,7 @@ services:
       - workfolio
       - ai-backend
       - arachne
+      - arachne-ui
     restart: unless-stopped
     networks:
       - portfolio-network-prod
@@ -81,6 +82,22 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+
+  # Arachne UI - Scraper console
+  arachne-ui:
+    image: ${ARACHNE_UI_IMAGE:-ghcr.io/your-username/personal-website/arachne-ui:latest}
+    environment:
+      - NODE_ENV=${ARACHNE_UI_NODE_ENV:-production}
+      - PORT=${ARACHNE_UI_PORT:-3000}
+      - AI_BACKEND_URL=${AI_BACKEND_URL:-http://ai-backend:3001}
+      - ARACHNE_API_URL=${ARACHNE_API_URL:-http://arachne:8080}
+      - NEXT_PUBLIC_ARACHNE_API_URL=${NEXT_PUBLIC_ARACHNE_API_URL:-http://arachne:8080}
+    depends_on:
+      - ai-backend
+      - arachne
+    restart: unless-stopped
+    networks:
+      - portfolio-network-prod
 
   # AI Backend - Production optimized
   ai-backend:

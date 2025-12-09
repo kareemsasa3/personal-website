@@ -18,6 +18,7 @@ services:
       - workfolio
       - ai-backend
       - arachne
+      - arachne-ui
     restart: unless-stopped
     command: >
       /bin/sh -c "sed 's/__DOMAIN_NAME__/'\"$DOMAIN_NAME\"'/g' /tmp/default.conf.template > /tmp/default.conf && nginx -g 'daemon off;'"
@@ -31,6 +32,23 @@ services:
     environment:
       - NODE_ENV=${WORKFOLIO_NODE_ENV:-production}
       - VITE_AI_BACKEND_URL=${VITE_AI_BACKEND_URL:-/api/ai}
+    restart: unless-stopped
+    networks:
+      - ${DOCKER_NETWORK_NAME:-portfolio-network}
+
+  # Arachne UI - Scraper console
+  arachne-ui:
+    image: ${ARACHNE_UI_IMAGE:-ghcr.io/your-username/personal-website/arachne-ui:latest}
+    container_name: portfolio-arachne-ui
+    environment:
+      - NODE_ENV=${ARACHNE_UI_NODE_ENV:-production}
+      - PORT=${ARACHNE_UI_PORT:-3000}
+      - AI_BACKEND_URL=${AI_BACKEND_URL:-http://ai-backend:3001}
+      - ARACHNE_API_URL=${ARACHNE_API_URL:-http://arachne:8080}
+      - NEXT_PUBLIC_ARACHNE_API_URL=${NEXT_PUBLIC_ARACHNE_API_URL:-http://arachne:8080}
+    depends_on:
+      - ai-backend
+      - arachne
     restart: unless-stopped
     networks:
       - ${DOCKER_NETWORK_NAME:-portfolio-network}

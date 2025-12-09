@@ -63,6 +63,29 @@ services:
     ports:
       - "${DEV_ARACHNE_PORT:-8080}:${DEV_ARACHNE_PORT:-8080}"
 
+  # Arachne UI - Development server for the scraper dashboard
+  arachne-ui:
+    container_name: portfolio-arachne-ui-dev
+    build:
+      context: ../services/arachne-ui
+      dockerfile: Dockerfile.dev
+    environment:
+      - NODE_ENV=${DEV_NODE_ENV:-development}
+      - PORT=${DEV_ARACHNE_UI_PORT:-3002}
+      - AI_BACKEND_URL=${AI_BACKEND_URL:-http://ai-backend:3001}
+      - ARACHNE_API_URL=${ARACHNE_API_URL:-http://arachne:8080}
+      - NEXT_PUBLIC_ARACHNE_API_URL=${NEXT_PUBLIC_ARACHNE_API_URL:-http://arachne:8080}
+    volumes:
+      - ../services/arachne-ui:/app
+      - /app/node_modules
+    command: npm run dev -- --hostname 0.0.0.0 --port ${DEV_ARACHNE_UI_PORT:-3002}
+    depends_on:
+      - ai-backend
+      - arachne
+    restart: unless-stopped
+    ports:
+      - "${DEV_ARACHNE_UI_PORT:-3002}:${DEV_ARACHNE_UI_PORT:-3002}"
+
   # Disable redis-commander in dev by default (profile-only)
   redis-commander:
     profiles: ["monitoring"]
@@ -80,6 +103,7 @@ services:
       - workfolio
       - ai-backend
       - arachne
+      - arachne-ui
     command:
       - /bin/sh
       - -c
