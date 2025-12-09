@@ -89,15 +89,36 @@ services:
     environment:
       - NODE_ENV=${ARACHNE_UI_NODE_ENV:-production}
       - PORT=${ARACHNE_UI_PORT:-3000}
+      # Server-side URLs (can access Docker internal network)
       - AI_BACKEND_URL=${AI_BACKEND_URL:-http://ai-backend:3001}
       - ARACHNE_API_URL=${ARACHNE_API_URL:-http://arachne:8080}
-      - NEXT_PUBLIC_ARACHNE_API_URL=${NEXT_PUBLIC_ARACHNE_API_URL:-http://arachne:8080}
+      # Client-side URL (browser must go through nginx proxy)
+      - NEXT_PUBLIC_ARACHNE_API_URL=/api/arachne
     depends_on:
       - ai-backend
       - arachne
     restart: unless-stopped
     networks:
       - portfolio-network-prod
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://127.0.0.1:3000/arachne/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          memory: ${ARACHNE_UI_MEMORY_LIMIT:-512M}
+          cpus: "${ARACHNE_UI_CPU_LIMIT:-1.0}"
+        reservations:
+          memory: 256M
+          cpus: "0.5"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   # AI Backend - Production optimized
   ai-backend:

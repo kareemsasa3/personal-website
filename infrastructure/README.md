@@ -58,8 +58,44 @@ cd prod && ./prod.sh
 - **Live Reloading**: Code changes trigger automatic rebuilds
 - **Debug Logging**: Verbose logging for troubleshooting
 - **Development Ports**: Direct access to service ports
-- **Volume Mounts**: Source code mounted for hot reloading
-- **Development Dockerfiles**: Optimized for development workflow
+- **Volume Mounts**: Source code mounted for hot reloading (including `node_modules`)
+- **Development Dockerfiles**: Simple root-user containers for reliability
+
+#### ⚠️ First-Time Setup for Development
+
+Before starting the dev stack, install dependencies on the host for each JS service:
+
+```bash
+# From the project root
+cd services/ai-backend && npm install
+cd ../workfolio && npm install
+cd ../arachne-ui && npm install
+```
+
+This writes `node_modules` directly to your host filesystem. The containers bind-mount
+these directories, so both your editor and the dev server see the same tree.
+
+#### Starting Development
+
+```bash
+# From infrastructure/
+docker compose -f docker-compose.yml -f dev/docker-compose.dev.yml down -v
+docker compose -f docker-compose.yml -f dev/docker-compose.dev.yml up --build
+```
+
+Or use the wrapper script:
+
+```bash
+./dev.sh
+```
+
+#### Why This Pattern?
+
+The dev Dockerfiles run as root and don't install dependencies at build time.
+This eliminates EACCES permission errors and keeps the setup simple:
+- **No hidden volumes**: No anonymous `node_modules` volumes masking your code
+- **No permission chowning**: Root user means no ownership conflicts
+- **Editor parity**: Your IDE sees exactly what the container sees
 
 ### Production (`prod/`)
 - **Resource Limits**: CPU and memory constraints
@@ -83,31 +119,48 @@ cd prod && ./prod.sh
 
 ## 🛠️ Management Commands
 
-### Development
+### Using the Makefile (Recommended)
+
 ```bash
-# View logs
-docker-compose -f docker-compose.yml -f dev/docker-compose.dev.yml logs -f
+cd infrastructure
 
-# Check status
-docker-compose -f docker-compose.yml -f dev/docker-compose.dev.yml ps
-
-# Stop services
-docker-compose -f docker-compose.yml -f dev/docker-compose.dev.yml down
+make help       # Show all commands
+make install    # Install npm deps on host (one-time)
+make dev        # Start dev stack
+make dev-build  # Rebuild and start dev stack
+make dev-logs   # Follow logs
+make dev-down   # Stop dev stack
+make clean      # Stop and remove volumes
+make nuke       # Full reset (prune everything)
 ```
 
-### Production
+### Manual Commands
+
+#### Development
 ```bash
 # View logs
-docker-compose -f docker-compose.yml -f prod/docker-compose.prod.yml logs -f
+docker compose -f docker-compose.yml -f dev/docker-compose.dev.yml logs -f
 
 # Check status
-docker-compose -f docker-compose.yml -f prod/docker-compose.prod.yml ps
+docker compose -f docker-compose.yml -f dev/docker-compose.dev.yml ps
 
 # Stop services
-docker-compose -f docker-compose.yml -f prod/docker-compose.prod.yml down
+docker compose -f docker-compose.yml -f dev/docker-compose.dev.yml down
+```
+
+#### Production
+```bash
+# View logs
+docker compose -f docker-compose.yml -f prod/docker-compose.prod.yml logs -f
+
+# Check status
+docker compose -f docker-compose.yml -f prod/docker-compose.prod.yml ps
+
+# Stop services
+docker compose -f docker-compose.yml -f prod/docker-compose.prod.yml down
 
 # Scale services
-docker-compose -f docker-compose.yml -f prod/docker-compose.prod.yml up -d --scale ai-backend=2
+docker compose -f docker-compose.yml -f prod/docker-compose.prod.yml up -d --scale ai-backend=2
 ```
 
 ## ⚙️ Configuration

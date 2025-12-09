@@ -41,9 +41,11 @@ services:
     environment:
       - NODE_ENV=${ARACHNE_UI_NODE_ENV:-production}
       - PORT=${ARACHNE_UI_PORT:-3000}
+      # Server-side URLs (internal Docker network)
       - AI_BACKEND_URL=${AI_BACKEND_URL:-http://ai-backend:3001}
       - ARACHNE_API_URL=${ARACHNE_API_URL:-http://arachne:8080}
-      - NEXT_PUBLIC_ARACHNE_API_URL=${NEXT_PUBLIC_ARACHNE_API_URL:-http://arachne:8080}
+      # Client-side URL (browser goes through nginx proxy)
+      - NEXT_PUBLIC_ARACHNE_API_URL=/api/arachne
     depends_on:
       - ai-backend
       - arachne
@@ -81,6 +83,8 @@ services:
       context: ../services/arachne
       dockerfile: Dockerfile
     container_name: portfolio-arachne
+    # Chrome requires adequate shared memory for rendering
+    shm_size: '2gb'
     environment:
       - SCRAPER_REDIS_ADDR=${ARACHNE_REDIS_ADDR:-redis:6379}
       - SCRAPER_REDIS_DB=${ARACHNE_REDIS_DB:-0}
@@ -99,7 +103,8 @@ services:
       - SCRAPER_RATE_LIMIT_WINDOW=${ARACHNE_RATE_LIMIT_WINDOW:-1s}
       - SCRAPER_API_TOKEN=${ARACHNE_API_TOKEN:-}
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
     restart: unless-stopped
     networks:
       - portfolio-network
