@@ -10,7 +10,8 @@ personal/
 ├── workfolio/                    # Main portfolio (React)
 ├── services/                     # Backend services showcased by Workfolio
 │   ├── ai-backend/              # AI microservice
-│   └── arachne/                 # Web scraping service
+│   ├── arachne/                 # Web scraping service
+│   └── arachne-ui/              # Next.js scraper console
 ├── infrastructure/              # Deployment & infrastructure
 │   ├── nginx/                   # Reverse proxy configuration
 │   ├── docker-compose.yml       # Production setup
@@ -25,6 +26,7 @@ This setup orchestrates the following services:
 - **Nginx** - Reverse proxy and load balancer
 - **Workfolio** - Main portfolio application (React)
 - **AI Backend** - AI microservice (Node.js)
+- **Arachne UI** - Next.js scraper console covering jobs, history, and live chat
 - **Arachne** - Web scraping service (Go)
 - **Redis** - Job storage for Arachne
 - **Redis Commander** - Optional Redis management UI
@@ -46,6 +48,7 @@ This setup orchestrates the following services:
 
 2. **Access the applications:**
    - **Main Portfolio**: http://localhost
+   - **Arachne UI**: http://localhost/arachne/
    - **AI Backend API**: http://localhost/api/ai/
    - **Arachne API**: http://localhost/api/scrape/
    - **Redis Commander**: http://localhost/redis/
@@ -145,11 +148,28 @@ npm install
 npm run dev
 ```
 
+### Arachne UI
+```bash
+cd services/arachne-ui
+npm install
+npm run dev
+```
+
 ### Arachne
 ```bash
 cd services/arachne
 docker-compose up --build
 ```
+
+## 🔗 Submodules
+
+All of the services (`workfolio`, `ai-backend`, `arachne`, `arachne-ui`) live in git submodules under `services/`. If you clone the repository without `--recurse-submodules`, run:
+
+```bash
+git submodule update --init --recursive
+```
+
+This fetches the `arachne-ui` submodule along with the existing services. When switching branches that touch submodules, rerun the command or checkout with `git submodule sync --recursive`.
 
 ## 📊 Monitoring
 
@@ -168,6 +188,7 @@ docker-compose logs workfolio
 docker-compose logs ai-backend
 docker-compose logs arachne
 docker-compose logs nginx
+docker-compose logs arachne-ui
 ```
 
 ### Redis Monitoring
