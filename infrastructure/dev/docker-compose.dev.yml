@@ -24,13 +24,13 @@ services:
   workfolio:
     container_name: portfolio-workfolio-dev
     build:
-      context: ../workfolio
+      context: ../services/workfolio
       dockerfile: Dockerfile.dev
     environment:
       - NODE_ENV=${DEV_NODE_ENV:-development}
       - VITE_AI_BACKEND_URL=/api/ai
     volumes:
-      - ../workfolio:/app
+      - ../services/workfolio:/app
       - /app/node_modules
     command: npm run dev -- --host --no-open
     ports:

@@ -24,8 +24,8 @@ jobs:
       - name: Build workfolio image
         uses: docker/build-push-action@v5
         with:
-          context: ./workfolio
-          file: ./workfolio/Dockerfile
+          context: ./services/workfolio
+          file: ./services/workfolio/Dockerfile
           push: false
           load: true
           tags: workfolio:ci
@@ -59,7 +59,7 @@ jobs:
           docker build \
             --build-arg VITE_TURNSTILE_SITE_KEY=${{ secrets.VITE_TURNSTILE_SITE_KEY }} \
             --build-arg VITE_AI_BACKEND_URL=${{ secrets.VITE_AI_BACKEND_URL }} \
-            -t workfolio:scan ./workfolio
+            -t workfolio:scan ./services/workfolio
           docker build -t ai-backend:scan ./services/ai-backend
 
       - name: Scan images with Trivy

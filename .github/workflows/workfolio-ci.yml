@@ -28,8 +28,8 @@ jobs:
           git submodule sync --recursive
           git submodule update --init --recursive
           ls -la
-          ls -la workfolio
-          test -f workfolio/Dockerfile && echo "Found workfolio/Dockerfile" || (echo "Missing workfolio/Dockerfile" && exit 1)
+          ls -la services/workfolio
+          test -f services/workfolio/Dockerfile && echo "Found services/workfolio/Dockerfile" || (echo "Missing services/workfolio/Dockerfile" && exit 1)
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -46,7 +46,7 @@ jobs:
         if: github.ref != 'refs/heads/main' && github.ref != 'refs/heads/master'
         uses: docker/build-push-action@v5
         with:
-          context: ./workfolio
+          context: ./services/workfolio
           load: true
           push: false
           tags: |
@@ -59,7 +59,7 @@ jobs:
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
         uses: docker/build-push-action@v5
         with:
-          context: ./workfolio
+          context: ./services/workfolio
           push: true
           tags: |
             ghcr.io/${{ github.repository }}/workfolio:${{ github.sha }}
@@ -90,11 +90,11 @@ jobs:
           exit-code: 1
 
       # Alternative: build from within the submodule directory
-      # - name: Build (working-directory: workfolio)
+      # - name: Build (working-directory: services/workfolio)
       #   uses: docker/build-push-action@v5
       #   with:
-      #     context: ./workfolio
-      #     file: ./workfolio/Dockerfile
+      #     context: ./services/workfolio
+      #     file: ./services/workfolio/Dockerfile
       #     load: true
       #     tags: workfolio:ci
       #     build-args: |

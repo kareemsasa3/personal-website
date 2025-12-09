@@ -22,7 +22,7 @@ services:
   # Workfolio - Main portfolio application
   workfolio:
     build:
-      context: ../workfolio
+      context: ../services/workfolio
       dockerfile: Dockerfile
     container_name: portfolio-workfolio
     environment:
