@@ -4,7 +4,7 @@
 
 FROM golang:1.23-alpine
 
-# Install dependencies for headless Chromium and build tools
+# Install dependencies for headless Chromium, SQLite FTS5 (via CGO), and build tools
 RUN apk --no-cache add \
     ca-certificates \
     chromium \
@@ -14,10 +14,14 @@ RUN apk --no-cache add \
     ttf-freefont \
     git \
     bash \
-    build-base
+    build-base \
+    sqlite-dev \
+    sqlite-libs
 
 # Enable automatic toolchain download (allows Air requiring newer Go)
 ENV GOTOOLCHAIN=auto
+# Enable CGO for sqlite_fts5
+ENV CGO_ENABLED=1
 
 # Install air for live reloading
 RUN go install github.com/air-verse/air@latest
