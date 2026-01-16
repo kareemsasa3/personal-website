@@ -11,7 +11,7 @@ The monitoring stack provides real-time insights into the health, performance, a
 - **Node Exporter** - Host system metrics
 - **Nginx Exporter** - Web server metrics
 - **Redis Exporter** - Database metrics
-- **Custom Metrics** - Application-specific metrics from AI Backend and Arachne
+- **Custom Metrics** - Application-specific metrics from Workfolio (if exposed)
 
 ## 🏗️ Architecture
 
@@ -35,8 +35,8 @@ The monitoring stack provides real-time insights into the health, performance, a
           ▼
 ┌──────────────────┐
 │    Your App      │
-│ (Arachne, AI, etc)├─────────────────►│    Prometheus    │  <── Scrapes /metrics
-│ (Arachne, AI, etc)├─────────────────►│    (Metrics DB)  │      endpoints
+│ (Workfolio, etc) ├─────────────────►│    Prometheus    │  <── Scrapes /metrics
+│ (Workfolio, etc) ├─────────────────►│    (Metrics DB)  │      endpoints
 └──────────────────┘
         ▲                                       ▲
         │                                       │
@@ -95,18 +95,9 @@ infrastructure/
 
 ### Application Metrics
 
-#### AI Backend (Node.js)
-- HTTP request duration and count
-- AI chat request success/failure rates
-- AI response time histograms
-- Default Node.js metrics (CPU, memory, etc.)
-
-#### Arachne (Go)
-- Scraping request success/failure rates
-- Domain-specific response times
-- Circuit breaker states
-- Retry attempt counts
-- Bytes scraped per domain
+#### Workfolio (Frontend)
+- Request/response latency and error rates (if metrics are exposed)
+- Application-specific business metrics
 
 ### Infrastructure Metrics
 
@@ -146,17 +137,11 @@ infrastructure/
 
 ### Custom Dashboards
 
-Create custom dashboards for:
-- AI Backend performance
-- Arachne scraping metrics
-- Application-specific business metrics
+Create custom dashboards for application-specific metrics as needed.
 
 ### Local Provisioning
 
 - Place JSON files in `infrastructure/monitoring/grafana/dashboards/` (Grafana auto-loads)
-- Custom stubs included:
-  - `custom/ai-backend.json`
-  - `custom/arachne.json`
 - Fetch recommended dashboards:
   ```bash
   cd infrastructure
@@ -237,8 +222,6 @@ docker-compose -f docker-compose.yml -f prod/docker-compose.prod.yml -f prod/doc
    - All targets should show "UP" status
 
 2. **Check metrics endpoints:**
-   - AI Backend: http://localhost:3001/metrics
-   - Arachne: http://localhost:8080/prometheus
    - Node Exporter: http://localhost:9100/metrics
 
 3. **Check service health:**

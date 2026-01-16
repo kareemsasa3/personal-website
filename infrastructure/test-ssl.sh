@@ -90,19 +90,6 @@ test_endpoints() {
         print_warning "Main application: Failed (may be starting up)"
     fi
 
-    # Test AI backend
-    if $curl_cmd "$BASE_URL/api/ai/health" | grep -q "200"; then
-        print_status "AI Backend: OK"
-    else
-        print_warning "AI Backend: Failed (may be starting up)"
-    fi
-
-    # Test Arachne scraper
-    if $curl_cmd "$BASE_URL/api/scrape/health" | grep -q "200"; then
-        print_status "Arachne Scraper: OK"
-    else
-        print_warning "Arachne Scraper: Failed (may be starting up)"
-    fi
 }
 
 # Test SSL certificate
@@ -157,13 +144,9 @@ main() {
     if [ "$ENVIRONMENT" = "prod" ]; then
         print_info "Your services are now accessible via HTTPS:"
         echo "   • Main Application:     https://localhost"
-        echo "   • AI Backend API:       https://localhost/api/ai/health"
-        echo "   • Arachne Scraper API:  https://localhost/api/scrape/health"
     else
         print_info "Your services are now accessible via HTTP:"
         echo "   • Main Application:     http://localhost"
-        echo "   • AI Backend API:       http://localhost/api/ai/health"
-        echo "   • Arachne Scraper API:  http://localhost/api/scrape/health"
     fi
     echo ""
     print_warning "Note: Self-signed certificates will show security warnings in browsers"

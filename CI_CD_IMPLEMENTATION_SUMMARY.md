@@ -25,10 +25,8 @@ We've successfully implemented a complete **enterprise-grade CI/CD pipeline** fo
 **Triggers**: Pull requests and pushes to main/master
 **Purpose**: Quality assurance and validation
 
-1. **Lint & Test**: Runs in parallel for all services
+1. **Lint & Test**: Runs for Workfolio
    - **workfolio**: Node.js linting and testing
-   - **ai-backend**: Node.js linting and testing  
-   - **arachne**: Go vet and testing
 
 2. **Build Images**: Verifies all Docker images can be built successfully
 
@@ -39,7 +37,7 @@ We've successfully implemented a complete **enterprise-grade CI/CD pipeline** fo
 **Purpose**: Automated production deployment
 
 1. **Build & Push**: 
-   - Builds Docker images for all services
+   - Builds Docker image for Workfolio
    - Tags with commit SHA for traceability
    - Pushes to GitHub Container Registry (GHCR)
 
@@ -126,14 +124,10 @@ Ensure your production server has:
 ### Environment Variables
 The CI/CD pipeline uses these environment variables for image selection:
 - `WORKFOLIO_IMAGE` - Workfolio service image
-- `AI_BACKEND_IMAGE` - AI backend service image
-- `ARACHNE_IMAGE` - Arachne service image
 
 ### Service Health Checks
 All services include health checks to ensure they're running correctly:
 - **workfolio**: HTTP health check on port 3000
-- **ai-backend**: HTTP health check on port 3001
-- **arachne**: HTTP health check on port 8080
 - **nginx**: HTTP health check on port 80
 - **redis**: Redis ping command
 

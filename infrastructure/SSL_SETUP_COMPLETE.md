@@ -72,8 +72,6 @@ cd infrastructure/prod
 
 ### Access URLs
 - **Main Application**: https://localhost
-- **AI Backend API**: https://localhost/api/ai/health
-- **Arachne Scraper API**: https://localhost/api/scrape/health
 - **Health Check**: https://localhost/health
 
 ## 🔧 Available Commands

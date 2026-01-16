@@ -16,8 +16,8 @@ The CI/CD pipeline consists of two main workflows:
 **Triggers**: Pull requests and pushes to main/master branches
 
 **Jobs**:
-- **Lint & Test**: Runs linting and tests for all services (workfolio, ai-backend, arachne)
-- **Build Images**: Builds Docker images for all services to verify they can be built
+- **Lint & Test**: Runs linting and tests for Workfolio
+- **Build Images**: Builds Docker images to verify Workfolio can be built
 - **Security Scan**: Runs Trivy vulnerability scanner on the codebase
 
 ### `.github/workflows/deploy.yml`
@@ -59,7 +59,6 @@ PROD_PORT                # SSH port (usually 22)
 
 # Frontend build-time secrets
 VITE_TURNSTILE_SITE_KEY  # Cloudflare Turnstile site key for Workfolio build
-VITE_AI_BACKEND_URL      # API base URL for Workfolio (e.g. https://your-domain.com/api/ai)
 
 # Registry pull on production host (used during SSH deploy)
 GHCR_USERNAME            # GHCR username (usually your GitHub username)
@@ -103,19 +102,13 @@ services:
     image: ${WORKFOLIO_IMAGE:-ghcr.io/your-username/personal-website/workfolio:latest}
     # ... other configuration
 
-  ai-backend:
-    image: ${AI_BACKEND_IMAGE:-ghcr.io/your-username/personal-website/ai-backend:latest}
-    # ... other configuration
-
-  arachne:
-    image: ${ARACHNE_IMAGE:-ghcr.io/your-username/personal-website/arachne:latest}
-    # ... other configuration
+  # Additional services omitted
 ```
 
 ### 4. Service-Specific Setup
 
-#### Node.js Services (workfolio, ai-backend)
-Ensure these services have the following scripts in their `package.json`:
+#### Node.js Services (workfolio)
+Ensure this service has the following scripts in its `package.json`:
 
 ```json
 {
@@ -126,27 +119,22 @@ Ensure these services have the following scripts in their `package.json`:
 }
 ```
 
-#### Go Service (arachne)
-The Go service uses standard Go tooling:
-- `go vet ./...` for linting
-- `go test ./...` for testing
-
 ## How It Works
 
 ### CI Workflow Process
 1. **Trigger**: Pull request or push to main/master
-2. **Lint & Test**: Parallel execution for each service
+2. **Lint & Test**: Runs for Workfolio
    - Install dependencies
    - Run linters
    - Run tests
-3. **Build Images**: Verify all Docker images can be built
+3. **Build Images**: Verify the Docker image can be built
 4. **Security Scan**: Run vulnerability scanner
 5. **Result**: Pass/fail status for the PR
 
 ### CD Workflow Process
 1. **Trigger**: Push to main/master (after CI passes)
-2. **Build & Push**: 
-   - Build Docker images
+2. **Build & Push**:
+   - Build Docker image
    - Tag with commit SHA
    - Push to GHCR
 3. **Deploy**:

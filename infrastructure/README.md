@@ -40,8 +40,6 @@ cd dev && ./dev.sh
 - Access the stack at: `http://localhost`.
 - Dev proxy routes:
   - Frontend (Workfolio): `/` → `workfolio:80`
-  - AI Backend: `/api/ai/*` → `ai-backend:3001`
-  - Arachne: `/api/scrape/*` and `/api/arachne/*` → `arachne:8080`
 
 ### Production Environment
 ```bash
@@ -73,9 +71,7 @@ cd prod && ./prod.sh
 
 ### Core Services
 - **Workfolio**: React frontend application
-- **AI Backend**: Node.js AI microservice
-- **Arachne**: Go web scraping service
-- **Redis**: Data storage for Arachne
+- **Redis**: Data storage for optional services
 - **Nginx**: Reverse proxy and load balancer
 
 ### Optional Services
@@ -107,7 +103,7 @@ docker-compose -f docker-compose.yml -f prod/docker-compose.prod.yml ps
 docker-compose -f docker-compose.yml -f prod/docker-compose.prod.yml down
 
 # Scale services
-docker-compose -f docker-compose.yml -f prod/docker-compose.prod.yml up -d --scale ai-backend=2
+docker-compose -f docker-compose.yml -f prod/docker-compose.prod.yml up -d
 ```
 
 ## ⚙️ Configuration
@@ -143,8 +139,6 @@ All services include health checks that monitor:
 - **Format**: JSON structured logging
 
 ### Metrics
-- **Arachne**: Built-in metrics endpoint at `/metrics`
-- **AI Backend**: Configurable metrics collection
 - **Redis**: Performance monitoring via Redis Commander
 
 ## 🚨 Troubleshooting
@@ -154,7 +148,7 @@ All services include health checks that monitor:
 1. **Port Conflicts**
    ```bash
    # Check what's using the ports
-   lsof -i :80 -i :443 -i :3000 -i :3001 -i :8080
+   lsof -i :80 -i :443 -i :3000
    ```
 
 2. **Permission Issues**

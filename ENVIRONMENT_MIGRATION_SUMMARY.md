@@ -12,8 +12,7 @@ This document summarizes the implementation of a comprehensive centralized envir
 
 A comprehensive environment variables template containing:
 - **Domain Configuration**: Domain name and SSL email settings
-- **AI Backend Configuration**: Gemini API key and service settings
-- **Arachne Scraper Configuration**: Redis settings, scraping parameters, rate limits
+- **Workfolio Configuration**: Frontend settings and build-time variables
 - **Redis Configuration**: Server settings, memory limits, management UI
 - **Workfolio Frontend Configuration**: Environment and API URL settings
 - **Nginx Configuration**: Ports and SSL certificate paths
@@ -29,8 +28,6 @@ A comprehensive environment variables template containing:
 - `infrastructure/dev/docker-compose.dev.yml` - Development configuration
 
 #### Individual Service Files Updated:
-- `services/ai-backend/docker-compose.yml` - AI backend service
-- `services/arachne/docker-compose.yml` - Arachne scraper service
 
 #### Key Changes Made:
 - **Replaced hardcoded values** with environment variable references

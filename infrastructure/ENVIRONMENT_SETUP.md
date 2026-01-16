@@ -7,7 +7,7 @@ This document explains how to set up and manage environment variables for the po
 The portfolio uses a centralized environment variable system to manage configuration across all services. This includes:
 
 - **Domain configuration** for SSL certificates and routing
-- **API keys** for external services (Google Gemini AI)
+- **API keys** for external services (e.g., Cloudflare Turnstile)
 - **Service configuration** for ports, memory limits, and other settings
 - **Development vs Production** environment overrides
 
@@ -25,7 +25,6 @@ cd infrastructure
 This script will:
 - Create a `.env` file from the template
 - Prompt for your domain name and email
-- Ask for your Gemini API key
 - Allow customization of resource limits
 - Provide next steps for deployment
 
@@ -55,47 +54,13 @@ nano .env
 | `DOMAIN_NAME` | Your primary domain name | `your-domain.com` | Yes |
 | `SSL_EMAIL` | Email for SSL certificate notifications | `your-email@example.com` | Yes |
 
-### AI Backend Configuration
+### Session & Turnstile Configuration
 
 | Variable | Description | Default | Required |
 |----------|-------------|---------|----------|
-| `GEMINI_API_KEY` | Google Gemini API key for AI chat | - | Yes for AI features |
-| `SESSION_TOKEN_SECRET` | Secret for signing chat session tokens | - | Yes in production |
+| `SESSION_TOKEN_SECRET` | Secret for signing session tokens | - | Yes in production |
 | `TURNSTILE_SECRET` | Cloudflare Turnstile secret key | - | Yes if using Turnstile |
 | `TURNSTILE_REQUIRED` | Require Turnstile in production (set `false` to bypass) | `false` | No |
-| `AI_BACKEND_REDIS_URL` | Redis URL for per-IP daily quotas | `redis://redis:6379/0` | Recommended |
-| `AI_BACKEND_PORT` | Port for AI backend service | `3001` | No |
-| `AI_BACKEND_NODE_ENV` | Node.js environment | `production` | No |
-| `AI_BACKEND_LOG_LEVEL` | Logging level | `info` | No |
-| `AI_BACKEND_ENABLE_METRICS` | Enable metrics collection | `true` | No |
-| `AI_BACKEND_RATE_LIMIT_WINDOW_MS` | Rate limit window in milliseconds | `900000` | No |
-| `AI_BACKEND_RATE_LIMIT_MAX_REQUESTS` | Maximum requests per window | `100` | No |
-
-### Arachne Scraper Configuration
-
-| Variable | Description | Default | Required |
-|----------|-------------|---------|----------|
-| `ARACHNE_REDIS_ADDR` | Redis server address | `redis:6379` | No |
-| `ARACHNE_REDIS_DB` | Redis database number | `0` | No |
-| `ARACHNE_ENABLE_METRICS` | Enable metrics collection | `true` | No |
-| `ARACHNE_ENABLE_LOGGING` | Enable logging | `true` | No |
-| `ARACHNE_LOG_LEVEL` | Logging level | `info` | No |
-| `ARACHNE_MAX_CONCURRENT` | Maximum concurrent scraping jobs | `10` | No |
-| `ARACHNE_REQUEST_TIMEOUT` | Request timeout | `120s` | No |
-| `ARACHNE_TOTAL_TIMEOUT` | Total timeout for scraping | `180s` | No |
-| `ARACHNE_USE_HEADLESS` | Use headless browser | `true` | No |
-| `ARACHNE_USER_AGENT` | User agent string | `Mozilla/5.0...` | No |
-| `ARACHNE_RATE_LIMIT` | Rate limit per window | `2` | No |
-| `ARACHNE_RATE_LIMIT_WINDOW` | Rate limit window | `1s` | No |
-
-### Development Overrides
-
-| Variable | Description | Default | Required |
-|----------|-------------|---------|----------|
-| `ARACHNE_DEV_LOG_LEVEL` | Development log level | `debug` | No |
-| `ARACHNE_DEV_MAX_CONCURRENT` | Development concurrent jobs | `3` | No |
-| `ARACHNE_DEV_REQUEST_TIMEOUT` | Development request timeout | `60s` | No |
-| `ARACHNE_DEV_TOTAL_TIMEOUT` | Development total timeout | `90s` | No |
 
 ### Redis Configuration
 
@@ -113,7 +78,6 @@ nano .env
 |----------|-------------|---------|----------|
 | `WORKFOLIO_NODE_ENV` | Node.js environment | `production` | No |
 | `WORKFOLIO_PORT` | Frontend port | `3000` | No |
-| `VITE_AI_BACKEND_URL` | AI backend URL for frontend | `https://your-domain.com/api/ai` | No |
 | `VITE_TURNSTILE_SITE_KEY` | Cloudflare Turnstile site key (public) | - | Yes if using Turnstile |
 
 ### Nginx Configuration
@@ -140,10 +104,6 @@ nano .env
 | `NGINX_CPU_LIMIT` | Nginx CPU limit | `0.5` | No |
 | `WORKFOLIO_MEMORY_LIMIT` | Workfolio memory limit | `512M` | No |
 | `WORKFOLIO_CPU_LIMIT` | Workfolio CPU limit | `1.0` | No |
-| `AI_BACKEND_MEMORY_LIMIT` | AI backend memory limit | `1G` | No |
-| `AI_BACKEND_CPU_LIMIT` | AI backend CPU limit | `1.0` | No |
-| `ARACHNE_MEMORY_LIMIT` | Arachne memory limit | `2G` | No |
-| `ARACHNE_CPU_LIMIT` | Arachne CPU limit | `1.0` | No |
 | `REDIS_MEMORY_LIMIT` | Redis memory limit | `1G` | No |
 | `REDIS_CPU_LIMIT` | Redis CPU limit | `1.0` | No |
 
@@ -152,9 +112,7 @@ nano .env
 | Variable | Description | Default | Required |
 |----------|-------------|---------|----------|
 | `DEV_NODE_ENV` | Development Node.js environment | `development` | No |
-| `DEV_AI_BACKEND_PORT` | Development AI backend port | `3001` | No |
 | `DEV_WORKFOLIO_PORT` | Development frontend port | `3000` | No |
-| `DEV_ARACHNE_PORT` | Development Arachne port | `8080` | No |
 
 ### Logging Configuration
 
@@ -190,8 +148,7 @@ For production, ensure you have:
 
 1. **Valid domain name** in `DOMAIN_NAME`
 2. **Valid email** in `SSL_EMAIL`
-3. **Gemini API key** in `GEMINI_API_KEY`
-4. **Appropriate resource limits** for your server
+3. **Appropriate resource limits** for your server
 
 ## Usage Examples
 
@@ -240,10 +197,9 @@ docker-compose -f prod/docker-compose.prod.yml config nginx
 
 ### Common Issues
 
-1. **Missing API Key**: AI chat won't work without `GEMINI_API_KEY`
-2. **Invalid Domain**: SSL certificates won't work with invalid domain
-3. **Port Conflicts**: Change port variables if services conflict
-4. **Memory Issues**: Adjust resource limits based on your server capacity
+1. **Invalid Domain**: SSL certificates won't work with invalid domain
+2. **Port Conflicts**: Change port variables if services conflict
+3. **Memory Issues**: Adjust resource limits based on your server capacity
 
 ### Validation Commands
 

@@ -149,17 +149,10 @@ if [ "$NONINTERACTIVE" -eq 1 ] || [ "${SETUP_ENV_NONINTERACTIVE:-0}" = "1" ]; th
   vars_to_apply=(
     DOMAIN_NAME
     SSL_EMAIL
-    GEMINI_API_KEY
-    AI_BACKEND_REDIS_URL
     CORS_ALLOW_ORIGIN
-    RATE_LIMIT_WINDOW_MS
-    RATE_LIMIT_MAX_REQUESTS
-    AI_DAILY_LIMIT
-    ARACHNE_API_TOKEN
     VITE_TURNSTILE_SITE_KEY
     TURNSTILE_SECRET
     SESSION_TOKEN_SECRET
-    VITE_AI_BACKEND_URL
   )
   for v in "${vars_to_apply[@]}"; do
     val="${!v-}"
@@ -172,13 +165,6 @@ if [ "$NONINTERACTIVE" -eq 1 ] || [ "${SETUP_ENV_NONINTERACTIVE:-0}" = "1" ]; th
   sess_cur=$(get_env_value "SESSION_TOKEN_SECRET")
   if [ -z "$sess_cur" ]; then
     set_env_value "SESSION_TOKEN_SECRET" "$(generate_secret)"
-  fi
-
-  # If DOMAIN_NAME present and VITE_AI_BACKEND_URL missing, set a sensible default
-  dn_cur=$(get_env_value "DOMAIN_NAME")
-  vite_api_cur=$(get_env_value "VITE_AI_BACKEND_URL")
-  if [ -n "$dn_cur" ] && [ -z "$vite_api_cur" ]; then
-    set_env_value "VITE_AI_BACKEND_URL" "https://$dn_cur/api/ai"
   fi
 
   print_status ".env updated from environment variables."
@@ -201,13 +187,7 @@ required_vars=(
 )
 
 recommended_vars=(
-  "GEMINI_API_KEY"
-  "AI_BACKEND_REDIS_URL"
   "CORS_ALLOW_ORIGIN"
-  "RATE_LIMIT_WINDOW_MS"
-  "RATE_LIMIT_MAX_REQUESTS"
-  "AI_DAILY_LIMIT"
-  "ARACHNE_API_TOKEN"
   "VITE_TURNSTILE_SITE_KEY"
   "TURNSTILE_SECRET"
 )
@@ -247,31 +227,7 @@ print_header "DOMAIN CONFIGURATION"
 prompt_update_var "DOMAIN_NAME" "Enter your domain name (e.g., yourdomain.com)" "yes"
 prompt_update_var "SSL_EMAIL" "Enter your email for SSL certificate notifications" "yes"
 
-# Optionally set VITE_AI_BACKEND_URL based on DOMAIN_NAME
 domain_name=$(get_env_value "DOMAIN_NAME")
-if [ -n "$domain_name" ]; then
-  desired_api_url="https://$domain_name/api/ai"
-  current_api_url=$(get_env_value "VITE_AI_BACKEND_URL")
-  echo
-  print_header "VITE_AI_BACKEND_URL"
-  print_status "Suggested value based on domain: $desired_api_url"
-  if [ -n "$current_api_url" ]; then
-    print_status "Current value: $current_api_url"
-  fi
-  echo "Do you want to update VITE_AI_BACKEND_URL? (u) Update / (s) Skip [s]:"
-  read -r upd
-  if [[ "$upd" =~ ^[Uu]$ ]]; then
-    echo "Enter value for VITE_AI_BACKEND_URL (leave empty to use suggested):"
-    read -r new_api
-    if [ -z "$new_api" ]; then new_api="$desired_api_url"; fi
-    set_env_value "VITE_AI_BACKEND_URL" "$new_api"
-    print_status "Updated VITE_AI_BACKEND_URL."
-  fi
-fi
-
-# AI Backend configuration
-print_header "AI BACKEND CONFIGURATION"
-prompt_update_var "GEMINI_API_KEY" "Enter your Google Gemini API key" "no"
 
 print_header "TURNSTILE (OPTIONAL)"
 prompt_update_var "VITE_TURNSTILE_SITE_KEY" "Enter your Cloudflare Turnstile SITE KEY for the frontend" "no"
@@ -301,18 +257,6 @@ else
   print_status "Set SESSION_TOKEN_SECRET."
 fi
 
-print_header "REDIS (OPTIONAL)"
-prompt_update_var "AI_BACKEND_REDIS_URL" "Enter Redis URL for per-IP quotas (default: redis://redis:6379/0)" "no"
-
-# Arachne API protection (optional but recommended in production)
-print_header "ARACHNE SECURITY (OPTIONAL)"
-prompt_update_var "ARACHNE_API_TOKEN" "Enter API token to protect Arachne /api/scrape endpoints (recommended in prod)" "no"
-
-# Update VITE_AI_BACKEND_URL if domain was provided
-if [ -n "$domain_name" ]; then
-    sed -i.bak "s|VITE_AI_BACKEND_URL=https://your-domain.com/api/ai|VITE_AI_BACKEND_URL=https://$domain_name/api/ai|" .env
-fi
-
 # Optional customizations
 print_header "OPTIONAL CUSTOMIZATIONS"
 echo "Do you want to customize resource limits? (y/N)"
@@ -330,11 +274,7 @@ if [[ "$customize_resources" =~ ^[Yy]$ ]]; then
         sed -i.bak "s/WORKFOLIO_MEMORY_LIMIT=512M/WORKFOLIO_MEMORY_LIMIT=$workfolio_memory/" .env
     fi
     
-    echo "Enter memory limit for AI Backend (default: 1G):"
-    read -r ai_memory
-    if [ -n "$ai_memory" ]; then
-        sed -i.bak "s/AI_BACKEND_MEMORY_LIMIT=1G/AI_BACKEND_MEMORY_LIMIT=$ai_memory/" .env
-    fi
+    :
 fi
 
 # Clean up backup files
@@ -345,14 +285,8 @@ print_status "Your .env file has been created with the following configuration:"
 echo
 dn=$(get_env_value "DOMAIN_NAME")
 em=$(get_env_value "SSL_EMAIL")
-gk=$(get_env_value "GEMINI_API_KEY")
 echo "Domain: ${dn:-your-domain.com}"
 echo "Email: ${em:-your-email@example.com}"
-if [ -n "$gk" ]; then
-  echo "Gemini API Key: [SET]"
-else
-  echo "Gemini API Key: [NOT SET]"
-fi
 echo
 
 print_status "Next steps:"

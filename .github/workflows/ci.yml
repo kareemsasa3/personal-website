@@ -31,15 +31,6 @@ jobs:
           tags: workfolio:ci
           build-args: |
             VITE_TURNSTILE_SITE_KEY=${{ secrets.VITE_TURNSTILE_SITE_KEY }}
-            VITE_AI_BACKEND_URL=${{ secrets.VITE_AI_BACKEND_URL }}
-
-      - name: Build ai-backend image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./services/ai-backend
-          push: false
-          load: true
-          tags: ai-backend:ci
 
   docker-scan:
     runs-on: ubuntu-latest
@@ -58,9 +49,7 @@ jobs:
         run: |
           docker build \
             --build-arg VITE_TURNSTILE_SITE_KEY=${{ secrets.VITE_TURNSTILE_SITE_KEY }} \
-            --build-arg VITE_AI_BACKEND_URL=${{ secrets.VITE_AI_BACKEND_URL }} \
             -t workfolio:scan ./workfolio
-          docker build -t ai-backend:scan ./services/ai-backend
 
       - name: Scan images with Trivy
         uses: aquasecurity/trivy-action@0.24.0
@@ -70,10 +59,3 @@ jobs:
           exit-code: "0"
           ignore-unfixed: true
 
-      - name: Scan ai-backend with Trivy
-        uses: aquasecurity/trivy-action@0.24.0
-        with:
-          image-ref: "ai-backend:scan"
-          format: "table"
-          exit-code: "0"
-          ignore-unfixed: true

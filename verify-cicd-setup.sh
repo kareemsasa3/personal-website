@@ -54,10 +54,10 @@ if [ -d ".github/workflows" ]; then
         print_error "CI workflow (ci.yml) not found"
     fi
     
-    if [ -f ".github/workflows/cd.yml" ]; then
-        print_success "CD workflow (cd.yml) found"
+    if [ -f ".github/workflows/deploy.yml" ]; then
+        print_success "CD workflow (deploy.yml) found"
     else
-        print_error "CD workflow (cd.yml) not found"
+        print_error "CD workflow (deploy.yml) not found"
     fi
 else
     print_error "GitHub Actions workflows directory not found"
@@ -123,41 +123,6 @@ else
     print_warning "Workfolio service directory not found"
 fi
 
-if [ -d "services/ai-backend" ]; then
-    print_success "AI Backend service directory found"
-    
-    if [ -f "services/ai-backend/package.json" ]; then
-        print_success "AI Backend package.json found"
-    else
-        print_warning "AI Backend package.json not found"
-    fi
-    
-    if [ -f "services/ai-backend/Dockerfile" ]; then
-        print_success "AI Backend Dockerfile found"
-    else
-        print_warning "AI Backend Dockerfile not found"
-    fi
-else
-    print_warning "AI Backend service directory not found"
-fi
-
-if [ -d "services/arachne" ]; then
-    print_success "Arachne service directory found"
-    
-    if [ -f "services/arachne/go.mod" ]; then
-        print_success "Arachne go.mod found"
-    else
-        print_warning "Arachne go.mod not found"
-    fi
-    
-    if [ -f "services/arachne/Dockerfile" ]; then
-        print_success "Arachne Dockerfile found"
-    else
-        print_warning "Arachne Dockerfile not found"
-    fi
-else
-    print_warning "Arachne service directory not found"
-fi
 
 # Check for required scripts in package.json files
 echo ""
@@ -183,7 +148,6 @@ check_package_scripts() {
 }
 
 check_package_scripts "workfolio" "Workfolio"
-check_package_scripts "services/ai-backend" "AI Backend"
 
 # Check Docker build capability
 echo ""

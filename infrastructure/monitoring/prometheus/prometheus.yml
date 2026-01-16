@@ -13,20 +13,6 @@ scrape_configs:
     static_configs:
       - targets: ['localhost:9090']
 
-  # Arachne - Web scraping service
-  - job_name: 'arachne'
-    static_configs:
-      - targets: ['arachne:8080']
-    metrics_path: '/prometheus'
-    scrape_interval: 10s
-
-  # AI Backend - Node.js service
-  - job_name: 'ai-backend'
-    static_configs:
-      - targets: ['ai-backend:3001']
-    metrics_path: '/metrics'
-    scrape_interval: 10s
-
   # Nginx Exporter
   - job_name: 'nginx-exporter'
     static_configs:
