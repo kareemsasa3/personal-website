@@ -35,7 +35,7 @@ cd dev && ./dev.sh
 ```
 
 #### Dev Nginx (HTTP-only)
-- The development stack uses an HTTP-only Nginx site configuration at `nginx/conf.d/default.dev.conf`.
+- The development stack uses an HTTP-only Nginx site configuration at `nginx/conf.d/default.local.conf`.
 - No local SSL certificates are required for dev.
 - Access the stack at: `http://localhost`.
 - Dev proxy routes:
@@ -115,8 +115,8 @@ docker-compose -f docker-compose.yml -f prod/docker-compose.prod.yml up -d
 ### Nginx Configuration
 - Main config: `nginx/nginx.conf`
 - Site configs: `nginx/conf.d/`
-  - Development: `default.dev.conf` (HTTP-only)
-  - Production: `default.conf.template` (templated HTTPS, rendered at container start)
+  - Development: `default.local.conf` (HTTP-only, mounted by dev docker-compose)
+  - Production: `default.conf` (HTTPS with SSL, used by prod docker-compose)
 
 ### SSL Certificates
 For production, configure SSL certificates in the nginx configuration:
