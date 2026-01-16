@@ -42,3 +42,15 @@ node_modules/
 # Build outputs
 dist/
 build/ 
+.npm/
+.env
+.env.local
+.env.production
+.env.development
+.env.test
+.env.test.local
+.env.test.production
+.env.test.development
+.env.test.local
+.env.test.production
+.env.test.development
