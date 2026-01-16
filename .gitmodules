@@ -1,9 +1,3 @@
 [submodule "workfolio"]
 	path = workfolio
 	url = git@github.com:kareemsasa3/workfolio.git
-[submodule "services/arachne"]
-	path = services/arachne
-	url = git@github.com:kareemsasa3/arachne.git
-[submodule "services/ai-backend"]
-	path = services/ai-backend
-	url = git@github.com:kareemsasa3/ai-backend.git
