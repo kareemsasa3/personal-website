@@ -2,10 +2,11 @@ services:
   # Certbot service for automatic SSL certificate management
   certbot:
     image: certbot/certbot:latest
+    container_name: portfolio-certbot
     volumes:
-      - ../nginx/ssl:/etc/letsencrypt
-      - ../nginx/certbot/www:/var/www/certbot
-      - ../logs/certbot:/var/log/letsencrypt
+      - ./nginx/ssl:/etc/letsencrypt
+      - ./nginx/certbot/www:/var/www/certbot
+      - ./logs/certbot:/var/log/letsencrypt
     command: certonly --webroot --webroot-path=/var/www/certbot --email ${SSL_EMAIL} --agree-tos --no-eff-email --force-renewal -d ${DOMAIN_NAME}
     profiles:
       - ssl-setup
@@ -16,33 +17,32 @@ services:
   # Nginx reverse proxy - Production optimized
   nginx:
     image: nginx:alpine
-    environment:
-      - DOMAIN_NAME=${DOMAIN_NAME}
+    container_name: portfolio-nginx-prod
     ports:
       - "${NGINX_HTTP_PORT:-80}:80"
       - "${NGINX_HTTPS_PORT:-443}:443"
     volumes:
       - ../nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ../nginx/conf.d:/etc/nginx/conf.d:ro
       - ../nginx/ssl:/etc/nginx/ssl:ro
-      - ../nginx/ssl:/etc/letsencrypt:ro
       - ../nginx/certbot/www:/var/www/certbot:ro
-      - ../logs/nginx:/var/log/nginx
-      - ../nginx/conf.d/default.conf.template:/tmp/default.conf.template:ro
+      - ./logs/nginx:/var/log/nginx
     depends_on:
-      - workfolio
-      - ai-backend
-      - arachne
+      workfolio:
+        condition: service_healthy
+      ai-backend:
+        condition: service_healthy
+      arachne:
+        condition: service_healthy
     restart: unless-stopped
     networks:
       - portfolio-network-prod
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:80/health || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-    command: >
-      /bin/sh -c "sed 's/__DOMAIN_NAME__/'\"$DOMAIN_NAME\"'/g' /tmp/default.conf.template > /tmp/default.conf && nginx -g 'daemon off;'"
+      test: ["CMD-SHELL", "wget -q --spider -T 3 http://127.0.0.1/health || exit 1"]
+        interval: 30s
+        timeout: 10s
+        retries: 3
+        start_period: 40s
     deploy:
       resources:
         limits:
@@ -54,16 +54,16 @@ services:
 
   # Workfolio - Production build
   workfolio:
-    image: ${WORKFOLIO_IMAGE:-ghcr.io/your-username/personal-website/workfolio:latest}
+    image: ${WORKFOLIO_IMAGE:-ghcr.io/kareemsasa3/personal-website/workfolio:latest}
+    container_name: portfolio-workfolio-prod
     environment:
-      - DOMAIN_NAME=${DOMAIN_NAME}
       - NODE_ENV=${WORKFOLIO_NODE_ENV:-production}
       - VITE_AI_BACKEND_URL=${VITE_AI_BACKEND_URL:-https://your-domain.com/api/ai}
     restart: unless-stopped
     networks:
       - portfolio-network-prod
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:80/health || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:80/ >/dev/null 2>&1 || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -84,7 +84,8 @@ services:
 
   # AI Backend - Production optimized
   ai-backend:
-    image: ${AI_BACKEND_IMAGE:-ghcr.io/your-username/personal-website/ai-backend:latest}
+    image: ${AI_BACKEND_IMAGE:-ghcr.io/kareemsasa3/personal-website/ai-backend:latest}
+    container_name: portfolio-ai-backend-prod
     environment:
       - NODE_ENV=${AI_BACKEND_NODE_ENV:-production}
       - PORT=${AI_BACKEND_PORT:-3001}
@@ -93,16 +94,6 @@ services:
       - ENABLE_METRICS=${AI_BACKEND_ENABLE_METRICS:-true}
       - RATE_LIMIT_WINDOW_MS=${AI_BACKEND_RATE_LIMIT_WINDOW_MS:-900000}
       - RATE_LIMIT_MAX_REQUESTS=${AI_BACKEND_RATE_LIMIT_MAX_REQUESTS:-100}
-      - SESSION_TOKEN_SECRET=${SESSION_TOKEN_SECRET}
-      - REDIS_URL=${AI_BACKEND_REDIS_URL:-redis://redis:6379/0}
-      - TURNSTILE_SECRET=${TURNSTILE_SECRET}
-      - TURNSTILE_REQUIRED=${TURNSTILE_REQUIRED:-false}
-      - ARACHNE_URL=${ARACHNE_URL:-http://arachne:8080}
-      - ARACHNE_API_TOKEN=${ARACHNE_API_TOKEN}
-      - CORS_ALLOW_ORIGIN=${CORS_ALLOW_ORIGIN:-https://${DOMAIN_NAME}}
-      - CORS_ALLOW_METHODS=${CORS_ALLOW_METHODS:-GET, POST, OPTIONS}
-      - CORS_ALLOW_HEADERS=${CORS_ALLOW_HEADERS:-DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization}
-      - PROFILE_CONTEXT_PATH=/app/profile/profile.md
     restart: unless-stopped
     networks:
       - portfolio-network-prod
@@ -114,7 +105,7 @@ services:
           "--no-verbose",
           "--tries=1",
           "--spider",
-          "http://127.0.0.1:3001/health",
+          "http://localhost:3001/health",
         ]
       interval: 30s
       timeout: 10s
@@ -136,7 +127,8 @@ services:
 
   # Arachne - Production optimized with enhanced settings
   arachne:
-    image: ${ARACHNE_IMAGE:-ghcr.io/your-username/personal-website/arachne:latest}
+    image: ${ARACHNE_IMAGE:-ghcr.io/kareemsasa3/personal-website/arachne:latest}
+    container_name: portfolio-arachne-prod
     environment:
       - SCRAPER_REDIS_ADDR=${ARACHNE_REDIS_ADDR:-redis:6379}
       - SCRAPER_REDIS_DB=${ARACHNE_REDIS_DB:-0}
@@ -147,15 +139,12 @@ services:
       - SCRAPER_REQUEST_TIMEOUT=${ARACHNE_REQUEST_TIMEOUT:-120s}
       - SCRAPER_TOTAL_TIMEOUT=${ARACHNE_TOTAL_TIMEOUT:-180s}
       - SCRAPER_USE_HEADLESS=${ARACHNE_USE_HEADLESS:-true}
-      - SCRAPER_HEADLESS_IGNORE_CERT_ERRORS=${ARACHNE_HEADLESS_IGNORE_CERT_ERRORS:-false}
-      - SCRAPER_HEADLESS_NO_SANDBOX=${ARACHNE_HEADLESS_NO_SANDBOX:-false}
-      - SCRAPER_MAX_CONTENT_BYTES=${ARACHNE_MAX_CONTENT_BYTES:-400000}
       - SCRAPER_USER_AGENT=${ARACHNE_USER_AGENT:-Mozilla/5.0 (compatible; PortfolioBot/1.0)}
       - SCRAPER_RATE_LIMIT=${ARACHNE_RATE_LIMIT:-2}
       - SCRAPER_RATE_LIMIT_WINDOW=${ARACHNE_RATE_LIMIT_WINDOW:-1s}
-      - SCRAPER_API_TOKEN=${ARACHNE_API_TOKEN}
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
     restart: unless-stopped
     networks:
       - portfolio-network-prod
@@ -167,7 +156,7 @@ services:
           "--no-verbose",
           "--tries=1",
           "--spider",
-          "http://127.0.0.1:8080/health",
+          "http://localhost:8080/health",
         ]
       interval: 30s
       timeout: 10s
@@ -190,9 +179,10 @@ services:
   # Redis - Production optimized
   redis:
     image: redis:7-alpine
+    container_name: portfolio-redis-prod
     volumes:
       - redis_data_prod:/data
-      - ../logs/redis:/var/log/redis
+      - ./logs/redis:/var/log/redis
     command: >
       redis-server 
       --appendonly yes 
@@ -226,13 +216,14 @@ services:
   # Redis Commander - Optional, can be disabled in production
   redis-commander:
     image: rediscommander/redis-commander:latest
+    container_name: portfolio-redis-commander-prod
     environment:
       - REDIS_HOSTS=local:redis:${REDIS_PORT:-6379}
     depends_on:
       - redis
     restart: unless-stopped
     networks:
-      - ${DOCKER_NETWORK_NAME:-portfolio-network}-prod
+      - portfolio-network-prod
     profiles:
       - monitoring
     deploy:
