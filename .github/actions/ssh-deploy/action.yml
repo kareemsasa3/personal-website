@@ -179,7 +179,11 @@ runs:
             name: portfolio-network-prod
         OVR
 
-        if command -v docker-compose >/dev/null 2>&1; then COMPOSE_CMD="docker-compose"; else COMPOSE_CMD="docker compose"; fi
+        if command -v docker-compose >/dev/null 2>&1; then
+          COMPOSE_CMD="docker-compose --project-directory $HOME/personal-website"
+        else
+          COMPOSE_CMD="docker compose --project-directory $HOME/personal-website"
+        fi
         # Bring stack down with same overrides to prevent name conflicts and stale containers
         $COMPOSE_CMD -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml -f infrastructure/prod/docker-compose.monitoring.prod.yml -f /tmp/compose.images.override.yml -f /tmp/compose.network.override.yml down --remove-orphans || true
         # Extra safety: remove any lingering conflicting containers by explicit names
