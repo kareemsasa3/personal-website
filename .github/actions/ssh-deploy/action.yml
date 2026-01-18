@@ -215,10 +215,10 @@ runs:
         echo "Post-up: nginx config test"
         docker exec portfolio-nginx-prod nginx -t
 
-        echo "Waiting for service health (domain: $DOMAIN_NAME_VALUE) ..."
+        echo "Waiting for service health (local nginx) ..."
         for i in $(seq 1 60); do
           ok=0
-          curl -fsS -m 5 "https://$DOMAIN_NAME_VALUE/health" >/dev/null 2>&1 && ok=$((ok+1)) || true
+          curl -fsS -m 5 "http://localhost/health" >/dev/null 2>&1 && ok=$((ok+1)) || true
           if [ "$ok" -eq 1 ]; then
             echo "Main site endpoint healthy."
             break
@@ -226,7 +226,7 @@ runs:
           sleep 5
         done
         if [ "$ok" -ne 1 ]; then
-          echo "ERROR: Main site health check failed at https://$DOMAIN_NAME_VALUE" >&2
+          echo "ERROR: Main site health check failed at http://localhost/health" >&2
           exit 1
         fi
 
@@ -248,7 +248,7 @@ runs:
 
         echo "Waiting for Grafana to be reachable through Nginx..."
         for i in $(seq 1 60); do
-          curl -fsS -m 5 "https://$DOMAIN_NAME_VALUE/monitoring/grafana/api/health" >/dev/null 2>&1 && ok=1 || ok=0
+          curl -fsS -m 5 "http://localhost/monitoring/grafana/api/health" >/dev/null 2>&1 && ok=1 || ok=0
           if [ "$ok" -eq 1 ]; then
             echo "Grafana reachable through Nginx."
             break
@@ -256,7 +256,7 @@ runs:
           sleep 5
         done
         if [ "$ok" -ne 1 ]; then
-          echo "ERROR: Grafana proxy health check failed at https://$DOMAIN_NAME_VALUE/monitoring/grafana/api/health" >&2
+          echo "ERROR: Grafana proxy health check failed at http://localhost/monitoring/grafana/api/health" >&2
           exit 1
         fi
 
