@@ -42,14 +42,21 @@ jobs:
         if: ${{ env.PROD_DOMAIN != '' }}
         env:
           DOMAIN: ${{ env.PROD_DOMAIN }}
+          ORIGIN_IP: ${{ secrets.PROD_ORIGIN_IP }}
         run: |
           set -e
           echo "Waiting for services at https://$DOMAIN ..."
           for i in {1..60}; do
             ok=0
-            curl -fsS -m 5 "https://$DOMAIN/health" >/dev/null && ok=$((ok+1)) || true
-            # Grafana proxied under subpath
-            curl -fsS -m 5 "https://$DOMAIN/monitoring/grafana/api/health" >/dev/null && ok=$((ok+1)) || true
+            if [ -n "$ORIGIN_IP" ]; then
+              curl -fsS -m 10 --resolve "$DOMAIN:443:$ORIGIN_IP" "https://$DOMAIN/health" >/dev/null && ok=$((ok+1)) || true
+              # Grafana proxied under subpath
+              curl -fsS -m 10 --resolve "$DOMAIN:443:$ORIGIN_IP" "https://$DOMAIN/monitoring/grafana/api/health" >/dev/null && ok=$((ok+1)) || true
+            else
+              curl -fsS -m 5 "https://$DOMAIN/health" >/dev/null && ok=$((ok+1)) || true
+              # Grafana proxied under subpath
+              curl -fsS -m 5 "https://$DOMAIN/monitoring/grafana/api/health" >/dev/null && ok=$((ok+1)) || true
+            fi
             if [ "$ok" -eq 2 ]; then
               echo "All endpoints healthy."
               exit 0
