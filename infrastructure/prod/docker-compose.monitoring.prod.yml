@@ -207,8 +207,6 @@ services:
     networks:
       - portfolio-network-prod
     restart: unless-stopped
-    depends_on:
-      - nginx
     healthcheck:
       disable: true
     deploy:
@@ -236,8 +234,6 @@ services:
     networks:
       - portfolio-network-prod
     restart: unless-stopped
-    depends_on:
-      - redis
     healthcheck:
       disable: true
     deploy:
