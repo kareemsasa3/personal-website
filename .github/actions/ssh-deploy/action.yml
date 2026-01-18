@@ -66,8 +66,8 @@ runs:
         PORT=$(printf "%s" "$PORT_RAW" | tr -d ' \t\r\n')
         if [ -z "$PORT" ]; then PORT=22; fi
         SSH_OPTS="-4 -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=60 -o ConnectionAttempts=3 -o ServerAliveInterval=15 -o ServerAliveCountMax=4 -o PreferredAuthentications=publickey -o PubkeyAuthentication=yes -o IPQoS=none"
-        echo "Syncing infrastructure/, monitoring/, nginx/ to server..."
-        tar -czf - infrastructure monitoring nginx | \
+        echo "Syncing infrastructure/ to server..."
+        tar -czf - infrastructure | \
           ssh $SSH_OPTS -p "$PORT" "$USER@$HOST" \
           "mkdir -p ~/personal-website && tar -xzf - -C ~/personal-website"
 
@@ -158,6 +158,10 @@ runs:
         else
           echo "Found existing TLS certificate at $CERT_PATH_HOST"
         fi
+
+        echo "Preflight: required config files"
+        test -f infrastructure/nginx/nginx.conf
+        test -f infrastructure/monitoring/prometheus/prometheus.yml
 
         docker network create portfolio-network-prod >/dev/null 2>&1 || true
         # Override to force images (and null-out any build) so server never builds locally
