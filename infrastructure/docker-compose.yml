@@ -18,6 +18,7 @@ services:
 
   # Workfolio - Main portfolio application
   workfolio:
+    image: ${WORKFOLIO_IMAGE:-workfolio:local}
     build:
       context: ../workfolio
       dockerfile: Dockerfile

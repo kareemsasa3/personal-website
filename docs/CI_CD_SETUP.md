@@ -86,8 +86,11 @@ Ensure your production server has the following structure:
 /opt/personal-website/
 ├── infrastructure/
 │   ├── docker-compose.yml
+│   ├── monitoring/
+│   │   └── docker-compose.monitoring.yml
 │   └── prod/
-│       └── docker-compose.prod.yml
+│       ├── docker-compose.prod.yml
+│       └── docker-compose.monitoring.prod.yml
 └── .env (production environment variables)
 ```
 
@@ -179,10 +182,18 @@ ssh user@your-production-server
 
 # Check service status
 cd /opt/personal-website
-docker-compose -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml ps
+docker compose --env-file infrastructure/.env \
+  -f infrastructure/docker-compose.yml \
+  -f infrastructure/prod/docker-compose.prod.yml \
+  -f infrastructure/prod/docker-compose.monitoring.prod.yml \
+  ps
 
 # View logs
-docker-compose -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml logs
+docker compose --env-file infrastructure/.env \
+  -f infrastructure/docker-compose.yml \
+  -f infrastructure/prod/docker-compose.prod.yml \
+  -f infrastructure/prod/docker-compose.monitoring.prod.yml \
+  logs
 
 # Check image tags
 docker images | grep ghcr.io
@@ -203,8 +214,12 @@ To rollback to a previous version:
 3. Pull and deploy the specific image tag:
 ```bash
 docker pull ghcr.io/username/repo/service:previous-commit-sha
-export SERVICE_IMAGE=ghcr.io/username/repo/service:previous-commit-sha
-docker-compose -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml up -d
+export WORKFOLIO_IMAGE=ghcr.io/username/repo/service:previous-commit-sha
+docker compose --env-file infrastructure/.env \
+  -f infrastructure/docker-compose.yml \
+  -f infrastructure/prod/docker-compose.prod.yml \
+  -f infrastructure/prod/docker-compose.monitoring.prod.yml \
+  up -d --no-build --pull always
 ```
 
 ## Future Enhancements

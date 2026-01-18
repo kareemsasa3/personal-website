@@ -9,11 +9,20 @@ echo "🚀 Starting portfolio stack in PRODUCTION mode..."
 echo "   This will deploy all services with production-optimized settings"
 echo ""
 
-# Check if docker-compose.prod.yml exists
-if [ ! -f "docker-compose.prod.yml" ]; then
+# Resolve paths
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+ENV_FILE="$REPO_ROOT/infrastructure/.env"
+COMPOSE_FILES=(
+    -f "$REPO_ROOT/infrastructure/docker-compose.yml"
+    -f "$REPO_ROOT/infrastructure/prod/docker-compose.prod.yml"
+    -f "$REPO_ROOT/infrastructure/prod/docker-compose.monitoring.prod.yml"
+)
+
+# Check if required compose files exist
+if [ ! -f "$REPO_ROOT/infrastructure/prod/docker-compose.prod.yml" ]; then
     echo "❌ Error: docker-compose.prod.yml not found!"
-    echo "   Please ensure you're running this script from the prod directory"
-    echo "   and that the production configuration file exists."
+    echo "   Expected at: $REPO_ROOT/infrastructure/prod/docker-compose.prod.yml"
     exit 1
 fi
 
@@ -44,38 +53,27 @@ docker network create portfolio-network-prod >/dev/null 2>&1 || true
 
 # Create logs directory if it doesn't exist
 echo "📁 Creating logs directory..."
-mkdir -p ../logs/nginx ../logs/redis
+mkdir -p "$REPO_ROOT/infrastructure/prod/logs/nginx" \
+  "$REPO_ROOT/infrastructure/prod/logs/redis"
 
 # Stop any existing containers
 echo "🛑 Stopping any existing containers..."
-cd .. && docker compose down --remove-orphans
+docker compose --env-file "$ENV_FILE" \
+  "${COMPOSE_FILES[@]}" down --remove-orphans
 
 # Clean up any dangling images (optional)
 echo "🧹 Cleaning up unused Docker resources..."
 docker system prune -f
 
-# Build and start in production mode
+# Pull and start in production mode
 echo ""
-echo "🔧 Building and starting production stack..."
-echo "   This may take several minutes for the initial build..."
-echo "   Building optimized production images..."
-
-# Build images first
-docker compose -f docker-compose.yml -f prod/docker-compose.prod.yml build --no-cache
+echo "📦 Pulling and starting production stack..."
+echo "   Using prebuilt images (no local build)..."
 
 echo ""
 echo "🚀 Starting production services..."
-docker compose -f docker-compose.yml -f prod/docker-compose.prod.yml up -d
-
-# Start monitoring stack if requested
-if [ "$1" = "--with-monitoring" ] || [ "$1" = "-m" ]; then
-    echo ""
-    echo "📊 Starting monitoring stack..."
-    docker compose -f docker-compose.yml -f prod/docker-compose.prod.yml -f prod/docker-compose.monitoring.prod.yml up -d
-    echo "✅ Monitoring stack started!"
-    echo "   • Prometheus: http://localhost:9090"
-    echo "   • Grafana: http://localhost:3000 (admin/admin)"
-fi
+docker compose --env-file "$ENV_FILE" \
+  "${COMPOSE_FILES[@]}" up -d --no-build --pull always
 
 # Wait for services to be healthy using readiness loop
 echo ""
@@ -101,7 +99,8 @@ check_url "http://localhost/health" 60 2 || echo "⚠️  nginx health not ready
 
 echo ""
 echo "🔍 Docker Compose service status:"
-docker compose -f docker-compose.yml -f prod/docker-compose.prod.yml ps
+docker compose --env-file "$ENV_FILE" \
+  "${COMPOSE_FILES[@]}" ps
 
 echo ""
 echo "✅ Production stack successfully deployed!"
@@ -117,11 +116,10 @@ echo "   • Automatic restart policies enabled"
 echo "   • Production-optimized Redis configuration"
 echo ""
 echo "📊 Monitoring & Management:"
-echo "   • View logs: docker compose -f docker-compose.yml -f prod/docker-compose.prod.yml logs -f"
-echo "   • Check status: docker compose -f docker-compose.yml -f prod/docker-compose.prod.yml ps"
-echo "   • Scale services: docker compose -f docker-compose.yml -f prod/docker-compose.prod.yml up -d --scale [service]=[count]"
-echo "   • Redis Commander (optional): docker compose -f docker-compose.yml -f prod/docker-compose.prod.yml --profile monitoring up -d"
-echo "   • Start with monitoring: ./prod.sh --with-monitoring"
+echo "   • View logs: docker compose --env-file infrastructure/.env -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml -f infrastructure/prod/docker-compose.monitoring.prod.yml logs -f"
+echo "   • Check status: docker compose --env-file infrastructure/.env -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml -f infrastructure/prod/docker-compose.monitoring.prod.yml ps"
+echo "   • Scale services: docker compose --env-file infrastructure/.env -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml -f infrastructure/prod/docker-compose.monitoring.prod.yml up -d --scale [service]=[count]"
+echo "   • Redis Commander (optional): docker compose --env-file infrastructure/.env -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml --profile monitoring up -d"
 echo ""
 echo "⚠️  Important Production Notes:"
 echo "   • Update VITE_API_BASE_URL in prod/docker-compose.prod.yml with your actual domain"
@@ -131,8 +129,7 @@ echo "   • Monitor resource usage and adjust limits as needed"
 echo "   • Consider setting up monitoring and alerting"
 echo ""
 echo "⏹️  To stop the production stack:"
-echo "   docker compose -f docker-compose.yml -f prod/docker-compose.prod.yml down"
+echo "   docker compose --env-file infrastructure/.env -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml -f infrastructure/prod/docker-compose.monitoring.prod.yml down"
 echo ""
 echo "🔄 To update services:"
-echo "   ./prod/prod.sh  # This will rebuild and restart all services"
-echo "   ./prod/prod.sh --with-monitoring  # This will also start the monitoring stack" 
+echo "   ./prod/prod.sh  # This will pull and restart all services"

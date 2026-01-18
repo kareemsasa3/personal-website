@@ -10,9 +10,11 @@ We've successfully implemented a complete **enterprise-grade CI/CD pipeline** fo
 - **`.github/workflows/ci.yml`** - Continuous Integration pipeline
 - **`.github/workflows/cd.yml`** - Continuous Deployment pipeline
 
-### Docker Compose Files for CI/CD
-- **`infrastructure/docker-compose.cicd.yml`** - Base CI/CD configuration
-- **`infrastructure/prod/docker-compose.cicd.yml`** - Production CI/CD configuration
+### Docker Compose Files Used by CI/CD
+- **`infrastructure/docker-compose.yml`** - Base services (build + image)
+- **`infrastructure/prod/docker-compose.prod.yml`** - Production overrides
+- **`infrastructure/monitoring/docker-compose.monitoring.yml`** - Monitoring base
+- **`infrastructure/prod/docker-compose.monitoring.prod.yml`** - Monitoring prod overrides
 
 ### Documentation & Setup
 - **`CI_CD_SETUP.md`** - Comprehensive setup and configuration guide
@@ -103,9 +105,12 @@ Ensure your production server has:
 ```
 /opt/personal-website/
 ├── infrastructure/
-│   ├── docker-compose.cicd.yml
+│   ├── docker-compose.yml
+│   ├── monitoring/
+│   │   └── docker-compose.monitoring.yml
 │   └── prod/
-│       └── docker-compose.cicd.yml
+│       ├── docker-compose.prod.yml
+│       └── docker-compose.monitoring.prod.yml
 └── .env (production environment variables)
 ```
 
@@ -148,10 +153,10 @@ ssh user@your-production-server
 
 # Check service status
 cd /opt/personal-website
-docker-compose -f infrastructure/docker-compose.cicd.yml -f infrastructure/prod/docker-compose.cicd.yml ps
+docker compose --env-file infrastructure/.env -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml -f infrastructure/prod/docker-compose.monitoring.prod.yml ps
 
 # View logs
-docker-compose -f infrastructure/docker-compose.cicd.yml -f infrastructure/prod/docker-compose.cicd.yml logs
+docker compose --env-file infrastructure/.env -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml -f infrastructure/prod/docker-compose.monitoring.prod.yml logs
 ```
 
 ## 🎯 What This Achieves

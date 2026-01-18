@@ -156,32 +156,43 @@ For production, ensure you have:
 
 **Development:**
 ```bash
-cd infrastructure
-docker-compose -f dev/docker-compose.dev.yml up -d
+docker compose --env-file infrastructure/.env \
+  -f infrastructure/docker-compose.yml \
+  -f infrastructure/dev/docker-compose.dev.yml \
+  up --build
 ```
 
 **Production:**
 ```bash
-cd infrastructure
-docker-compose -f prod/docker-compose.prod.yml up -d
+docker compose --env-file infrastructure/.env \
+  -f infrastructure/docker-compose.yml \
+  -f infrastructure/prod/docker-compose.prod.yml \
+  -f infrastructure/prod/docker-compose.monitoring.prod.yml \
+  up -d --no-build --pull always
 ```
 
 ### SSL Certificate Setup
 
 ```bash
-cd infrastructure
-docker-compose -f prod/docker-compose.prod.yml --profile ssl-setup up certbot
+docker compose --env-file infrastructure/.env \
+  -f infrastructure/docker-compose.yml \
+  -f infrastructure/prod/docker-compose.prod.yml \
+  --profile ssl-setup up certbot
 ```
 
 ### Checking Configuration
 
 ```bash
 # Validate environment variables
-cd infrastructure
-docker-compose -f docker-compose.yml config
+docker compose --env-file infrastructure/.env \
+  -f infrastructure/docker-compose.yml \
+  config
 
 # Check specific service configuration
-docker-compose -f prod/docker-compose.prod.yml config nginx
+docker compose --env-file infrastructure/.env \
+  -f infrastructure/docker-compose.yml \
+  -f infrastructure/prod/docker-compose.prod.yml \
+  config nginx
 ```
 
 ## Security Best Practices
@@ -208,12 +219,14 @@ docker-compose -f prod/docker-compose.prod.yml config nginx
 ls -la infrastructure/.env
 
 # Validate docker-compose configuration
-cd infrastructure
-docker-compose -f docker-compose.yml config
+docker compose --env-file infrastructure/.env \
+  -f infrastructure/docker-compose.yml \
+  config
 
 # Test environment variable substitution
-cd infrastructure
-docker-compose -f docker-compose.yml config | grep -E "\$\{.*\}"
+docker compose --env-file infrastructure/.env \
+  -f infrastructure/docker-compose.yml \
+  config | grep -E "\$\{.*\}"
 ```
 
 ## Migration from Hardcoded Values

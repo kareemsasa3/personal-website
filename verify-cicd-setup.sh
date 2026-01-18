@@ -67,16 +67,28 @@ fi
 echo ""
 print_info "Checking Docker Compose files..."
 
-if [ -f "infrastructure/docker-compose.cicd.yml" ]; then
-    print_success "Base CI/CD docker-compose file found"
+if [ -f "infrastructure/docker-compose.yml" ]; then
+    print_success "Base docker-compose file found"
 else
-    print_error "Base CI/CD docker-compose file not found"
+    print_error "Base docker-compose file not found"
 fi
 
-if [ -f "infrastructure/prod/docker-compose.cicd.yml" ]; then
-    print_success "Production CI/CD docker-compose file found"
+if [ -f "infrastructure/prod/docker-compose.prod.yml" ]; then
+    print_success "Production docker-compose override found"
 else
-    print_error "Production CI/CD docker-compose file not found"
+    print_error "Production docker-compose override not found"
+fi
+
+if [ -f "infrastructure/monitoring/docker-compose.monitoring.yml" ]; then
+    print_success "Monitoring docker-compose base found"
+else
+    print_error "Monitoring docker-compose base not found"
+fi
+
+if [ -f "infrastructure/prod/docker-compose.monitoring.prod.yml" ]; then
+    print_success "Monitoring production override found"
+else
+    print_error "Monitoring production override not found"
 fi
 
 # Check documentation files

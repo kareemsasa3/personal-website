@@ -148,6 +148,8 @@ See: infrastructure/MONITORING_SETUP.md
 
 ## 🚀 Production Deployment
 
+Run these commands from the repository root.
+
 1. Configure environment:
 
 ```bash
@@ -158,13 +160,20 @@ cd infrastructure
 2. (First time only) obtain TLS certificates:
 
 ```bash
-docker-compose -f prod/docker-compose.prod.yml --profile ssl-setup up certbot
+docker compose --env-file infrastructure/.env \
+  -f infrastructure/docker-compose.yml \
+  -f infrastructure/prod/docker-compose.prod.yml \
+  --profile ssl-setup up certbot
 ```
 
 3. Start production stack:
 
 ```bash
-docker-compose -f prod/docker-compose.prod.yml up -d
+docker compose --env-file infrastructure/.env \
+  -f infrastructure/docker-compose.yml \
+  -f infrastructure/prod/docker-compose.prod.yml \
+  -f infrastructure/prod/docker-compose.monitoring.prod.yml \
+  up -d --no-build --pull always
 ```
 
 4. Verify:
