@@ -34,7 +34,7 @@ scrape_configs:
   # Workfolio - Frontend application (if it exposes metrics)
   - job_name: 'workfolio'
     static_configs:
-      - targets: ['workfolio:3000']
+      - targets: ['workfolio:80']
     metrics_path: '/metrics'
     scrape_interval: 30s
     scrape_timeout: 10s 
