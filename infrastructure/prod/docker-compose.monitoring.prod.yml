@@ -209,7 +209,8 @@ services:
     restart: unless-stopped
     depends_on:
       - nginx
-    healthcheck: null
+    healthcheck:
+      disable: true
     deploy:
       resources:
         limits:
@@ -237,7 +238,8 @@ services:
     restart: unless-stopped
     depends_on:
       - redis
-    healthcheck: null
+    healthcheck:
+      disable: true
     deploy:
       resources:
         limits:
