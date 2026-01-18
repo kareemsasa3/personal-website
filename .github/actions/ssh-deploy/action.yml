@@ -117,7 +117,13 @@ runs:
 
         if [ -f infrastructure/prod/.env ]; then
           echo "Loading environment from infrastructure/prod/.env"
-          set -a; . infrastructure/prod/.env; set +a
+          set -a
+          while IFS= read -r line || [ -n "$line" ]; do
+            case "$line" in ''|\#*) continue ;; esac
+            printf '%s' "$line" | grep -Eq '^[A-Za-z_][A-Za-z0-9_]*=' || continue
+            export "$line"
+          done < infrastructure/prod/.env
+          set +a
         else
           echo "WARNING: infrastructure/prod/.env not found; continuing without extra env" >&2
         fi
