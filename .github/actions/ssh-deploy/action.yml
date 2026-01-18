@@ -184,6 +184,22 @@ runs:
         else
           COMPOSE_CMD="docker compose --project-directory $HOME/personal-website"
         fi
+
+        echo "Preflight: render compose and verify key mount sources"
+        $COMPOSE_CMD -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml -f infrastructure/prod/docker-compose.monitoring.prod.yml -f /tmp/compose.images.override.yml -f /tmp/compose.network.override.yml config > /tmp/compose.rendered.yml
+        if grep -n "infrastructure/infrastructure" /tmp/compose.rendered.yml >/dev/null 2>&1; then
+          echo "ERROR: compose render contains doubled infrastructure path:" >&2
+          grep -n "infrastructure/infrastructure" /tmp/compose.rendered.yml | head -n 20 >&2
+          exit 1
+        fi
+        grep -n "prometheus.yml\|nginx.conf\|conf.d" /tmp/compose.rendered.yml | head -n 50 || true
+
+        echo "Preflight: nginx config test"
+        docker run --rm \
+          -v "$(pwd)/infrastructure/nginx/nginx.conf:/etc/nginx/nginx.conf:ro" \
+          -v "$(pwd)/infrastructure/nginx/conf.d:/etc/nginx/conf.d:ro" \
+          -v "$(pwd)/infrastructure/nginx/ssl:/etc/nginx/ssl:ro" \
+          nginx:alpine nginx -t
         # Bring stack down with same overrides to prevent name conflicts and stale containers
         $COMPOSE_CMD -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml -f infrastructure/prod/docker-compose.monitoring.prod.yml -f /tmp/compose.images.override.yml -f /tmp/compose.network.override.yml down --remove-orphans || true
         # Extra safety: remove any lingering conflicting containers by explicit names
@@ -231,6 +247,20 @@ runs:
           exit 1
         fi
 
+        echo "Waiting for Grafana to be reachable through Nginx..."
+        for i in $(seq 1 60); do
+          curl -fsS -m 5 "https://$DOMAIN_NAME_VALUE/monitoring/grafana/api/health" >/dev/null 2>&1 && ok=1 || ok=0
+          if [ "$ok" -eq 1 ]; then
+            echo "Grafana reachable through Nginx."
+            break
+          fi
+          sleep 5
+        done
+        if [ "$ok" -ne 1 ]; then
+          echo "ERROR: Grafana proxy health check failed at https://$DOMAIN_NAME_VALUE/monitoring/grafana/api/health" >&2
+          exit 1
+        fi
+
         echo "Disk usage after cleanup:" && df -h /
         echo "Docker disk usage after cleanup:" && docker system df || true
 
@@ -275,3 +305,26 @@ runs:
             bash -s < /tmp/remote_deploy.sh || true
           exit 1
         fi
+
+    - name: Fetch rendered compose config (on failure)
+      if: failure()
+      shell: bash
+      run: |
+        HOST_RAW='${{ inputs.host }}'
+        USER_RAW='${{ inputs.user }}'
+        PORT_RAW='${{ inputs.port }}'
+        HOST=$(printf "%s" "$HOST_RAW" | tr -d ' \t\r\n')
+        USER=$(printf "%s" "$USER_RAW" | tr -d ' \t\r\n')
+        PORT=$(printf "%s" "$PORT_RAW" | tr -d ' \t\r\n')
+        if [ -z "$PORT" ]; then PORT=22; fi
+        SSH_OPTS="-i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=30 -o ConnectionAttempts=2 -o PreferredAuthentications=publickey -o PubkeyAuthentication=yes"
+        mkdir -p /tmp/compose-artifacts
+        scp $SSH_OPTS -P "$PORT" "$USER@$HOST":/tmp/compose.rendered.yml /tmp/compose-artifacts/compose.rendered.yml || true
+
+    - name: Upload rendered compose config (on failure)
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: compose-rendered
+        path: /tmp/compose-artifacts/compose.rendered.yml
+        if-no-files-found: warn

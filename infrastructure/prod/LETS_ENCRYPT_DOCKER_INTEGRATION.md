@@ -79,8 +79,8 @@ infrastructure/
 certbot:
   image: certbot/certbot:latest
   volumes:
-    - ./infrastructure/nginx/ssl:/etc/letsencrypt          # Certificate storage
-    - ./infrastructure/nginx/certbot/www:/var/www/certbot  # ACME challenge files
+    - ../nginx/ssl:/etc/letsencrypt          # Certificate storage
+    - ../nginx/certbot/www:/var/www/certbot  # ACME challenge files
     - ./logs/certbot:/var/log/letsencrypt   # Logs
   command: certonly --webroot --webroot-path=/var/www/certbot --email your-email@example.com --agree-tos --no-eff-email --force-renewal -d your-domain.com
   profiles:
@@ -94,8 +94,8 @@ certbot:
 ```yaml
 nginx:
   volumes:
-    - ./infrastructure/nginx/ssl:/etc/nginx/ssl:ro         # SSL certificates
-    - ./infrastructure/nginx/certbot/www:/var/www/certbot:ro # ACME challenge files
+    - ../nginx/ssl:/etc/nginx/ssl:ro         # SSL certificates
+    - ../nginx/certbot/www:/var/www/certbot:ro # ACME challenge files
   # ... other configuration
 ```
 

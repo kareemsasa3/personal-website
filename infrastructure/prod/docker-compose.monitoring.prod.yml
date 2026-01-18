@@ -6,7 +6,7 @@ services:
     image: prom/prometheus:v2.37.0
     container_name: portfolio-prometheus-prod
     volumes:
-      - ./infrastructure/monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ../monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus_data_prod:/prometheus
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
@@ -54,8 +54,8 @@ services:
     container_name: portfolio-grafana-prod
     volumes:
       - grafana_data_prod:/var/lib/grafana
-      - ./infrastructure/monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
-      - ./infrastructure/monitoring/grafana/dashboards:/etc/grafana/dashboards:ro
+      - ../monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ../monitoring/grafana/dashboards:/etc/grafana/dashboards:ro
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
@@ -107,8 +107,8 @@ services:
     container_name: portfolio-grafana-admin-prod
     volumes:
       - grafana_admin_data_prod:/var/lib/grafana
-      - ./infrastructure/monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
-      - ./infrastructure/monitoring/grafana/dashboards:/etc/grafana/dashboards:ro
+      - ../monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ../monitoring/grafana/dashboards:/etc/grafana/dashboards:ro
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
