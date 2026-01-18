@@ -3,12 +3,12 @@ services:
   workfolio:
     container_name: portfolio-workfolio-dev
     build:
-      context: ../workfolio
+      context: ./workfolio
       dockerfile: Dockerfile.dev
     environment:
       - NODE_ENV=${DEV_NODE_ENV:-development}
     volumes:
-      - ../workfolio:/app
+      - ./workfolio:/app
       - /app/node_modules
     command: npm run dev -- --host --no-open
     ports:
@@ -23,13 +23,9 @@ services:
     container_name: portfolio-nginx-dev
     image: nginx:alpine
     volumes:
-      - ../nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ../nginx/conf.d/default.local.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./infrastructure/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./infrastructure/nginx/conf.d.dev:/etc/nginx/conf.d:ro
     ports:
       - "${NGINX_HTTP_PORT:-80}:80"
     depends_on:
       - workfolio
-    command:
-      - /bin/sh
-      - -c
-      - ": > /tmp/default.conf && nginx -g 'daemon off;'"
