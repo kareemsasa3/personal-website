@@ -70,7 +70,7 @@ services:
     ports:
       - "3000:3000"
     networks:
-      - ${DOCKER_NETWORK_NAME:-portfolio-network}-prod
+      - portfolio-network-prod
     restart: unless-stopped
     depends_on:
       - prometheus
@@ -261,3 +261,8 @@ volumes:
     driver: local
   grafana_admin_data_prod:
     driver: local
+
+networks:
+  portfolio-network-prod:
+    external: true
+    name: ${DOCKER_NETWORK_NAME:-portfolio-network}-prod
