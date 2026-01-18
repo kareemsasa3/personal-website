@@ -209,20 +209,7 @@ services:
     restart: unless-stopped
     depends_on:
       - nginx
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "wget",
-          "--no-verbose",
-          "--tries=1",
-          "--spider",
-          "http://localhost:9113/metrics",
-        ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
+    healthcheck: null
     deploy:
       resources:
         limits:
@@ -250,20 +237,7 @@ services:
     restart: unless-stopped
     depends_on:
       - redis
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "wget",
-          "--no-verbose",
-          "--tries=1",
-          "--spider",
-          "http://localhost:9121/metrics",
-        ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
+    healthcheck: null
     deploy:
       resources:
         limits:
