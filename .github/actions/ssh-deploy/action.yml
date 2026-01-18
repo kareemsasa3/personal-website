@@ -186,6 +186,7 @@ runs:
         fi
 
         echo "Preflight: render compose and verify key mount sources"
+        cd "$HOME/personal-website"
         $COMPOSE_CMD -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml -f infrastructure/prod/docker-compose.monitoring.prod.yml -f /tmp/compose.images.override.yml -f /tmp/compose.network.override.yml config > /tmp/compose.rendered.yml
         if grep -n "infrastructure/infrastructure" /tmp/compose.rendered.yml >/dev/null 2>&1; then
           echo "ERROR: compose render contains doubled infrastructure path:" >&2
@@ -194,12 +195,7 @@ runs:
         fi
         grep -n "prometheus.yml\|nginx.conf\|conf.d" /tmp/compose.rendered.yml | head -n 50 || true
 
-        echo "Preflight: nginx config test"
-        docker run --rm \
-          -v "$(pwd)/infrastructure/nginx/nginx.conf:/etc/nginx/nginx.conf:ro" \
-          -v "$(pwd)/infrastructure/nginx/conf.d:/etc/nginx/conf.d:ro" \
-          -v "$(pwd)/infrastructure/nginx/ssl:/etc/nginx/ssl:ro" \
-          nginx:alpine nginx -t
+        # Note: nginx -t runs after up to ensure upstream hostnames resolve.
         # Bring stack down with same overrides to prevent name conflicts and stale containers
         $COMPOSE_CMD -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml -f infrastructure/prod/docker-compose.monitoring.prod.yml -f /tmp/compose.images.override.yml -f /tmp/compose.network.override.yml down --remove-orphans || true
         # Extra safety: remove any lingering conflicting containers by explicit names
@@ -215,6 +211,9 @@ runs:
         $COMPOSE_CMD -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml -f infrastructure/prod/docker-compose.monitoring.prod.yml -f /tmp/compose.images.override.yml -f /tmp/compose.network.override.yml pull || true
         $COMPOSE_CMD -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml -f infrastructure/prod/docker-compose.monitoring.prod.yml -f /tmp/compose.images.override.yml -f /tmp/compose.network.override.yml up -d --no-build --pull always
         $COMPOSE_CMD -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml -f infrastructure/prod/docker-compose.monitoring.prod.yml -f /tmp/compose.images.override.yml -f /tmp/compose.network.override.yml ps
+
+        echo "Post-up: nginx config test"
+        docker exec portfolio-nginx-prod nginx -t
 
         echo "Waiting for service health (domain: $DOMAIN_NAME_VALUE) ..."
         for i in $(seq 1 60); do
