@@ -128,6 +128,32 @@ This runs the frontend directly without Docker.
 
 ---
 
+## 📱 Testing on phone via Tailscale
+
+1. Connect your laptop/desktop and phone to the same Tailscale network.
+2. Ensure the dev server binds to `0.0.0.0` (default). Override if needed:
+
+```bash
+cd workfolio
+# Use the port your dev server prints (commonly 5173 for Vite)
+DEV_HOST=0.0.0.0 DEV_PORT=5173 npm run dev
+```
+
+3. Allow the dev port only on the Tailscale interface:
+
+```bash
+sudo ufw allow in on tailscale0 to any port <PORT> proto tcp
+```
+
+4. Browse to `http://<tailscale-ip>:<PORT>` on your phone.
+
+Common pitfalls:
+• CORS errors if APIs are bound to localhost-only
+• Absolute URLs pointing to `localhost`
+• WebSocket/HMR origin mismatches (ensure dev server binds to `0.0.0.0`)
+
+---
+
 ## 📊 Monitoring (Optional)
 
 Prometheus and Grafana can be enabled via the monitoring compose files.
