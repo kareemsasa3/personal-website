@@ -12,19 +12,17 @@ concurrency:
 
 jobs:
   deploy:
-    # This job only runs if the CI workflow was successful on the main/master branch
     if: ${{ github.event.workflow_run.conclusion == 'success' && (github.event.workflow_run.head_branch == 'main' || github.event.workflow_run.head_branch == 'master') }}
     runs-on: ubuntu-latest
     permissions:
-      contents: read # Required to checkout the repo and read the composite action
-      packages: read # Required for GHCR login, though token handles auth
+      contents: read
+      packages: read
     env:
       PROD_DOMAIN: ${{ secrets.PROD_DOMAIN }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        # No fetch-depth needed as we get the SHA from the workflow_run event
 
       - name: Deploy via composite action
         uses: ./.github/actions/ssh-deploy
@@ -33,8 +31,8 @@ jobs:
           user: ${{ secrets.PROD_USER }}
           port: ${{ secrets.PROD_PORT }}
           ssh_key: ${{ secrets.PROD_SSH_KEY }}
-          ghcr_username: ${{ secrets.GHCR_USERNAME }}
-          ghcr_token: ${{ secrets.GHCR_TOKEN }}
+          ghcr_username: ${{ github.actor }}
+          ghcr_token: ${{ github.token }}
           repository: ${{ github.repository }}
           sha: ${{ github.event.workflow_run.head_sha }}
 
@@ -54,7 +52,6 @@ jobs:
               curl -fsS -m 10 --resolve "$DOMAIN:443:$ORIGIN_IP" "https://$DOMAIN/monitoring/grafana/api/health" >/dev/null && ok=$((ok+1)) || true
             else
               curl -fsS -m 5 "https://$DOMAIN/health" >/dev/null && ok=$((ok+1)) || true
-              # Grafana proxied under subpath
               curl -fsS -m 5 "https://$DOMAIN/monitoring/grafana/api/health" >/dev/null && ok=$((ok+1)) || true
             fi
             if [ "$ok" -eq 2 ]; then

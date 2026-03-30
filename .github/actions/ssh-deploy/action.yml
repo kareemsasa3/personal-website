@@ -109,8 +109,11 @@ runs:
 
         DOCKER_CONFIG_DIR="$(mktemp -d -t docker-config-XXXXXX 2>/dev/null || echo /tmp/docker-config)"
         export DOCKER_CONFIG="$DOCKER_CONFIG_DIR"
-        # Use environment variables passed from SSH command
-        echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
+
+        echo "Using GHCR workflow identity: $GHCR_USERNAME"
+        echo "Deploying image: ghcr.io/$REPO/workfolio:$SHA"
+
+        echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin        
         trap 'rm -rf "$DOCKER_CONFIG_DIR"' EXIT
 
         export WORKFOLIO_IMAGE=ghcr.io/$REPO/workfolio:$SHA
