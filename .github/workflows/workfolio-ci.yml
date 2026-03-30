@@ -77,7 +77,7 @@ jobs:
 
       - name: Scan Workfolio image with Trivy (local)
         if: github.ref != 'refs/heads/main' && github.ref != 'refs/heads/master'
-        uses: aquasecurity/trivy-action@0.24.0
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # v0.35.0
         with:
           scan-type: image
           image-ref: workfolio:ci
@@ -87,7 +87,7 @@ jobs:
 
       - name: Scan Workfolio image with Trivy (remote)
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-        uses: aquasecurity/trivy-action@0.24.0
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # v0.35.0
         with:
           scan-type: image
           image-ref: ghcr.io/${{ github.repository }}/workfolio:${{ github.sha }}
