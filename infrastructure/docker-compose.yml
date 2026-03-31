@@ -1,8 +1,8 @@
+name: personal-website
 services:
   # Nginx reverse proxy
   nginx:
     image: nginx:alpine
-    container_name: portfolio-nginx
     ports:
       - "${NGINX_HTTP_PORT:-80}:80"
       - "${NGINX_HTTPS_PORT:-443}:443"
@@ -22,7 +22,6 @@ services:
     build:
       context: ../workfolio
       dockerfile: Dockerfile
-    container_name: portfolio-workfolio
     environment:
       - NODE_ENV=${WORKFOLIO_NODE_ENV:-production}
     restart: unless-stopped
@@ -32,7 +31,6 @@ services:
   # Redis - Optional shared cache
   redis:
     image: redis:7-alpine
-    container_name: portfolio-redis
     volumes:
       - redis_data:/data
     command: redis-server --appendonly yes --maxmemory ${REDIS_MAX_MEMORY:-512mb} --maxmemory-policy ${REDIS_MAX_MEMORY_POLICY:-allkeys-lru}
@@ -49,7 +47,6 @@ services:
   redis-commander:
     image: rediscommander/redis-commander:latest
     platform: linux/amd64
-    container_name: portfolio-redis-commander
     environment:
       - REDIS_HOSTS=local:redis:${REDIS_PORT:-6379}
     depends_on:
