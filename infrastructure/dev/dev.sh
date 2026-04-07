@@ -9,6 +9,7 @@ echo "   This will start all services with live reloading enabled"
 echo ""
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
 # Check if docker-compose.dev.yml exists
 if [ ! -f "$SCRIPT_DIR/docker-compose.dev.yml" ]; then
@@ -18,11 +19,13 @@ if [ ! -f "$SCRIPT_DIR/docker-compose.dev.yml" ]; then
     exit 1
 fi
 
+cd "$REPO_ROOT"
+
 # Stop any existing containers
 echo "🛑 Stopping any existing containers..."
 echo "   This ensures a clean start and prevents port conflicts"
-cd "$SCRIPT_DIR/../.." && docker compose \
-  --project-directory . \
+docker compose \
+  --project-directory "$REPO_ROOT" \
   --env-file infrastructure/.env \
   -f infrastructure/docker-compose.yml \
   -f infrastructure/dev/docker-compose.dev.yml \
@@ -33,7 +36,7 @@ echo ""
 echo "🔧 Starting development stack with live reloading..."
 echo "   Building and starting all services (this may take a moment)..."
 docker compose \
-  --project-directory . \
+  --project-directory "$REPO_ROOT" \
   --env-file infrastructure/.env \
   -f infrastructure/docker-compose.yml \
   -f infrastructure/dev/docker-compose.dev.yml \
