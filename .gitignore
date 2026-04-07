@@ -54,3 +54,5 @@ build/
 .env.test.local
 .env.test.production
 .env.test.development
+
+.codex
