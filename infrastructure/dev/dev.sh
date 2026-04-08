@@ -10,6 +10,7 @@ echo ""
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+COMPOSE_UP_ARGS=(up)
 
 # Check if docker-compose.dev.yml exists
 if [ ! -f "$SCRIPT_DIR/docker-compose.dev.yml" ]; then
@@ -21,26 +22,33 @@ fi
 
 cd "$REPO_ROOT"
 
-# Stop any existing containers
-echo "🛑 Stopping any existing containers..."
-echo "   This ensures a clean start and prevents port conflicts"
-docker compose \
-  --project-directory "$REPO_ROOT" \
-  --env-file infrastructure/.env \
-  -f infrastructure/docker-compose.yml \
-  -f infrastructure/dev/docker-compose.dev.yml \
-  down
+for arg in "$@"; do
+    case "$arg" in
+        --build)
+            COMPOSE_UP_ARGS+=(--build)
+            ;;
+        *)
+            echo "❌ Error: Unknown option '$arg'"
+            echo "   Usage: ./dev.sh [--build]"
+            exit 1
+            ;;
+    esac
+done
 
 # Start in development mode
 echo ""
 echo "🔧 Starting development stack with live reloading..."
-echo "   Building and starting all services (this may take a moment)..."
+if [[ " ${COMPOSE_UP_ARGS[*]} " == *" --build "* ]]; then
+    echo "   Rebuilding images and starting all services (this may take a moment)..."
+else
+    echo "   Reusing existing images and containers when possible for a faster startup..."
+fi
 docker compose \
   --project-directory "$REPO_ROOT" \
   --env-file infrastructure/.env \
   -f infrastructure/docker-compose.yml \
   -f infrastructure/dev/docker-compose.dev.yml \
-  up --build || exit 1
+  "${COMPOSE_UP_ARGS[@]}" || exit 1
 
 echo ""
 echo "✅ Development stack successfully started!"
