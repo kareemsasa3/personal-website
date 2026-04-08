@@ -7,7 +7,6 @@ services:
       dockerfile: Dockerfile.dev
     environment:
       - NODE_ENV=${DEV_NODE_ENV:-development}
-      - VITE_HMR_CLIENT_PORT=${VITE_HMR_CLIENT_PORT:-8080}
       - HMR_HOST=${HMR_HOST:-}
     volumes:
       - ./workfolio:/app
