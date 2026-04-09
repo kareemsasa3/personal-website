@@ -2,13 +2,13 @@
 
 This repository contains the source for the personal website and the supporting infrastructure used to build, serve, and deploy it.
 
-The site itself lives in `workfolio/` and is a frontend-only React, Vite, and TypeScript application. The surrounding `infrastructure/` directory contains Docker, nginx, and deployment support for running that app in production. User preferences are stored in browser local storage. No backend application services are part of the production stack.
+The site itself lives in `web/` and is a frontend-only React, Vite, and TypeScript application. The surrounding `infrastructure/` directory contains Docker, nginx, and deployment support for running that app in production. User preferences are stored in browser local storage. No backend application services are part of the production stack.
 
 ## Repository Structure
 
 ```text
 .
-├── workfolio/      # Website application (React / Vite / TypeScript)
+├── web/            # Website application (React / Vite / TypeScript)
 ├── infrastructure/ # Docker, nginx, deployment, and monitoring support (see infrastructure/README.md)
 ├── docs/           # Supporting project and infrastructure documentation
 └── README.md
@@ -21,7 +21,7 @@ The site itself lives in `workfolio/` and is a frontend-only React, Vite, and Ty
 Use this for normal UI development.
 
 ```bash
-cd workfolio
+cd web
 npm install
 npm run dev
 ```
@@ -77,6 +77,6 @@ At a high level:
 
 ## Notes
 
-- `workfolio/` is now part of this repository directly; it is no longer managed as a separate submodule.
+- `web/` contains the website source. It previously lived at `workfolio/` before this repository was consolidated and simplified.
 - The production site is frontend-only. There are no deployed API, session, queue, or database services in the active stack.
 - CI/CD is configured to lint and typecheck the app, build the production image, and support deployment without requiring a separate application repository.

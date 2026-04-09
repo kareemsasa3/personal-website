@@ -20,7 +20,7 @@ services:
   workfolio:
     image: ${WORKFOLIO_IMAGE:-workfolio:local}
     build:
-      context: ./workfolio
+      context: ./web
       dockerfile: Dockerfile
     environment:
       - NODE_ENV=${WORKFOLIO_NODE_ENV:-production}

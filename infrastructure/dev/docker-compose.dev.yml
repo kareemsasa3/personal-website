@@ -3,13 +3,13 @@ services:
   workfolio:
     container_name: portfolio-workfolio-dev
     build:
-      context: ./workfolio
+      context: ./web
       dockerfile: Dockerfile.dev
     environment:
       - NODE_ENV=${DEV_NODE_ENV:-development}
       - HMR_HOST=${HMR_HOST:-}
     volumes:
-      - ./workfolio:/app
+      - ./web:/app
       - /app/node_modules
     command: npm run dev -- --host --no-open
 

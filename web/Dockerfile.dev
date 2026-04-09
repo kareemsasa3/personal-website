@@ -1,4 +1,4 @@
-# services/workfolio/Dockerfile.dev
+# web/Dockerfile.dev
 # Dev: install deps in-image; code bind-mounted; node_modules kept in container volume.
 
 FROM node:20

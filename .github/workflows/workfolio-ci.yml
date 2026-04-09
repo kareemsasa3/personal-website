@@ -18,11 +18,11 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Verify workfolio directory
+      - name: Verify web directory
         run: |
           ls -la
-          ls -la workfolio
-          test -f workfolio/Dockerfile && echo "Found workfolio/Dockerfile" || (echo "Missing workfolio/Dockerfile" && exit 1)
+          ls -la web
+          test -f web/Dockerfile && echo "Found web/Dockerfile" || (echo "Missing web/Dockerfile" && exit 1)
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -39,7 +39,7 @@ jobs:
         if: github.ref != 'refs/heads/main'
         uses: docker/build-push-action@v6
         with:
-          context: ./workfolio
+          context: ./web
           load: true
           push: false
           tags: |
@@ -51,7 +51,7 @@ jobs:
         if: github.ref == 'refs/heads/main'
         uses: docker/build-push-action@v6
         with:
-          context: ./workfolio
+          context: ./web
           push: true
           tags: |
             ghcr.io/${{ github.repository }}/workfolio:${{ github.sha }}
@@ -80,12 +80,12 @@ jobs:
           severity: CRITICAL
           exit-code: 1
 
-      # Alternative: build from within the workfolio directory
-      # - name: Build (working-directory: workfolio)
+      # Alternative: build from within the web directory
+      # - name: Build (working-directory: web)
       #   uses: docker/build-push-action@v6
       #   with:
-      #     context: ./workfolio
-      #     file: ./workfolio/Dockerfile
+      #     context: ./web
+      #     file: ./web/Dockerfile
       #     load: true
       #     tags: workfolio:ci
       #     build-args: |

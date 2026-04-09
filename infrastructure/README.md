@@ -7,7 +7,7 @@ It is a support layer for the website, not a separate product. The production ar
 ## Components / Services
 
 Core runtime:
-- `workfolio`: the frontend website application, built from the `workfolio/` directory and run as a container image
+- `workfolio`: the frontend website application, built from the `web/` directory and run as a container image
 - `nginx`: reverse proxy and edge web server for routing, TLS termination, headers, and health checks
 - `certbot`: optional certificate setup and renewal support used by the production compose configuration
 
@@ -51,7 +51,7 @@ For local development with the development overrides, use the scripts in this di
 ./dev.sh
 ```
 
-Use the root README for normal frontend-only development in `workfolio/`.
+Use the root README for normal frontend-only development in `web/`.
 
 ## Environment Configuration
 

@@ -56,5 +56,5 @@ Required constraints:
 Expected workflow:
 
 1. Start the stack without rebuilding for normal code edits.
-2. Edit source files under `workfolio/`.
+2. Edit source files under `web/`.
 3. Let Vite HMR push updates through nginx and Tailscale to the browser.

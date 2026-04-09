@@ -101,7 +101,7 @@ See the Vite docs: https://vitejs.dev/guide/
   - Nginx: HTTP-only `infrastructure/nginx/conf.d/default.dev.conf`
   - Proxies:
     - `/` → `workfolio:80`
-  - Frontend local dev: `npm run dev` in `workfolio/` also works
+  - Frontend local dev: `npm run dev` in `web/` also works
 
 - Production (Docker Compose):
   - Command: `docker compose -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml up -d`
