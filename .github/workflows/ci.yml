@@ -14,24 +14,13 @@ jobs:
   lint-and-typecheck:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout (PRs)
-        if: github.ref != 'refs/heads/main' && github.ref != 'refs/heads/master'
-        uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
-          submodules: recursive
-
-      - name: Checkout (main/master)
-        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          submodules: recursive
-          ssh-key: ${{ secrets.SUBMODULE_SSH_KEY || '' }}
-          ssh-strict: true
 
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 20
           cache: npm
@@ -54,9 +43,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
+      - uses: actions/checkout@v5
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
@@ -71,5 +58,4 @@ jobs:
           context: ./workfolio
           push: true
           tags: ghcr.io/${{ github.repository }}/workfolio:${{ github.sha }}
-
 

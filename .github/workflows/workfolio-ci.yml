@@ -13,28 +13,13 @@ jobs:
       contents: read
       packages: write
     steps:
-      - name: Checkout repository (PRs, no SSH)
-        if: github.ref != 'refs/heads/main' && github.ref != 'refs/heads/master'
-        uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v5
         with:
-          submodules: recursive
           fetch-depth: 0
 
-      - name: Checkout repository (main/master with SSH)
-        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
-          fetch-depth: 0
-          # Use SSH for submodules
-          ssh-key: ${{ secrets.SUBMODULE_SSH_KEY }}
-          ssh-strict: true
-
-      - name: Verify submodule checkout
+      - name: Verify workfolio directory
         run: |
-          git submodule status || true
-          git submodule sync --recursive
-          git submodule update --init --recursive
           ls -la
           ls -la workfolio
           test -f workfolio/Dockerfile && echo "Found workfolio/Dockerfile" || (echo "Missing workfolio/Dockerfile" && exit 1)
@@ -106,4 +91,3 @@ jobs:
       #     build-args: |
       #       VITE_TURNSTILE_SITE_KEY=${{ secrets.VITE_TURNSTILE_SITE_KEY }}
       #       VITE_AI_BACKEND_URL=${{ secrets.VITE_AI_BACKEND_URL }}
-
