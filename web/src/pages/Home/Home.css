@@ -49,6 +49,10 @@ TABLE OF CONTENTS
   margin-top: clamp(16px, 4vw, 48px);
 }
 
+.home-container>#contact {
+  margin-top: clamp(8px, 2vw, 24px);
+}
+
 /* Override default page margin for a full-bleed home page */
 .page-content.home-page {
   min-height: 100vh;
@@ -424,7 +428,7 @@ TABLE OF CONTENTS
 /* --- Capabilities Section --- */
 .capabilities-content {
   width: 100%;
-  max-width: 1080px;
+  max-width: 1320px;
   margin: 0 auto;
   padding: 0 1rem;
 }
@@ -631,7 +635,7 @@ TABLE OF CONTENTS
   }
 
   .capabilities-grid {
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 2rem;
   }
 }

@@ -412,13 +412,6 @@ export const useTerminal = (
         } else if (
           result &&
           typeof result === "object" &&
-          "_effect" in result
-        ) {
-          // TypewriterEffect - handle differently
-          console.log("Typewriter effect result:", result);
-        } else if (
-          result &&
-          typeof result === "object" &&
           "history" in result
         ) {
           // PipeResult - use the history

@@ -14,11 +14,6 @@ const workSections: PageSection[] = workExperienceData.map((exp) => ({
 }));
 
 const Work = () => {
-  console.log(
-    "Work component rendering, data length:",
-    workExperienceData?.length
-  );
-
   // Get the current location to create a key for TypeWriterText
   const location = useLocation();
 
