@@ -14,7 +14,9 @@
 .dock-container {
     position: fixed;
     bottom: 20px;
-    right: 20px;
+    left: 50%;
+    right: auto;
+    translate: -50% 0;
     max-width: 90vw;
 
     display: flex;
@@ -40,7 +42,7 @@
     font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
 
     /* Ensure dock stays within viewport bounds */
-    transform-origin: bottom right;
+    transform-origin: bottom center;
 
     /* Allow icons to overflow for magnification effect */
     overflow: visible;
@@ -206,7 +208,6 @@
 @media (max-width: 768px) {
     .dock-container {
         bottom: max(10px, env(safe-area-inset-bottom));
-        right: 10px;
         gap: 6px;
         padding: 4px 6px;
         /* Maintain fixed height on mobile */

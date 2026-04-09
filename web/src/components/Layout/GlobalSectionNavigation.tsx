@@ -117,10 +117,8 @@ const GlobalSectionNavigation = ({
 
   const settingsOffset = useMemo(() => {
     if (!isSettingsOpen) return 0;
-    // Settings panel is 400px wide on desktop. Add extra gutter so dots fully clear it.
-    const PANEL_WIDTH = 400;
-    if (windowWidth > 1200) return PANEL_WIDTH;
-    if (windowWidth > 768) return Math.round(PANEL_WIDTH * 0.85);
+    const SIDEBAR_WIDTH = 360;
+    if (windowWidth > 768) return SIDEBAR_WIDTH;
     return 0;
   }, [isSettingsOpen, windowWidth]);
 

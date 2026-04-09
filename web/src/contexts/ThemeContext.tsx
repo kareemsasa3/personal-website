@@ -13,14 +13,7 @@ const resolveInitialTheme = (): Theme => {
       return savedTheme;
     }
   } catch {
-    // Ignore localStorage failures and continue to other fallbacks.
-  }
-
-  if (
-    window.matchMedia &&
-    window.matchMedia("(prefers-color-scheme: light)").matches
-  ) {
-    return "light";
+    // Ignore localStorage failures and continue to the product default.
   }
 
   return "dark";

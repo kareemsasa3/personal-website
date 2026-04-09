@@ -28,22 +28,25 @@
     <script>
       (function () {
         var STORAGE_KEY = "theme";
+        var NAV_MODE_STORAGE_KEY = "workfolio-nav-mode";
         var root = document.documentElement;
+
+        function resolveNavMode() {
+          try {
+            var saved = localStorage.getItem(NAV_MODE_STORAGE_KEY);
+            if (saved === "dock" || saved === "header") {
+              return saved;
+            }
+          } catch (_) {}
+
+          return "header";
+        }
 
         function resolveTheme() {
           try {
             var saved = localStorage.getItem(STORAGE_KEY);
             if (saved === "light" || saved === "dark") {
               return saved;
-            }
-          } catch (_) {}
-
-          try {
-            if (
-              window.matchMedia &&
-              window.matchMedia("(prefers-color-scheme: light)").matches
-            ) {
-              return "light";
             }
           } catch (_) {}
 
@@ -117,6 +120,7 @@
         }
 
         applyTheme(resolveTheme());
+        root.dataset.navMode = resolveNavMode();
       })();
     </script>
     <style>

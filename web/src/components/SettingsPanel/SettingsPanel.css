@@ -1,20 +1,37 @@
-/* Settings Panel - Mac Style */
-.settings-panel {
+.settings-sidebar {
     position: fixed;
     top: 0;
     right: 0;
-    width: 400px;
+    bottom: 0;
+    display: flex;
+    justify-content: flex-end;
+    min-height: 0;
+    width: calc(var(--settings-sidebar-width, 360px) + (var(--settings-sidebar-gap, 1rem) * 2));
     height: 100svh;
+    padding: var(--settings-sidebar-gap, 1rem);
+    z-index: 10000;
+    pointer-events: none;
+}
+
+/* Settings Panel - Mac Style */
+.settings-panel {
+    position: relative;
+    width: min(100%, var(--settings-sidebar-width, 360px));
+    height: calc(100svh - (var(--settings-sidebar-gap, 1rem) * 2));
+    max-height: calc(100svh - (var(--settings-sidebar-gap, 1rem) * 2));
     background: var(--app-overlay);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    z-index: 10000;
     display: flex;
     flex-direction: column;
     transform: translateZ(0);
     will-change: transform;
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
+    overflow: hidden;
+    pointer-events: auto;
+    border: 1px solid var(--app-border);
+    border-radius: 18px;
 }
 
 /* Settings Header */
@@ -77,6 +94,22 @@
     transform: translateZ(0);
 }
 
+.settings-section {
+    margin-bottom: 1.25rem;
+}
+
+.settings-section-title {
+    margin: 0 0 0.6rem;
+    padding-left: 0.2rem;
+    color: var(--brand-primary);
+    font-family: var(--font-family-mono);
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0;
+    line-height: 1;
+    text-transform: uppercase;
+}
+
 .setting-group {
     margin-bottom: 1rem;
     padding: 1rem;
@@ -87,6 +120,10 @@
     -webkit-backdrop-filter: blur(10px);
     transition: all 0.3s ease;
     position: relative;
+}
+
+.setting-group--compact {
+    padding: 0.85rem;
 }
 
 .setting-group:hover {
@@ -287,6 +324,10 @@
     border-left: 2px solid var(--primary-color);
 }
 
+.setting-description--standalone {
+    margin: 0;
+}
+
 
 
 /* Animation Toggle Button */
@@ -411,9 +452,26 @@
 
 /* Mobile Responsive */
 @media (max-width: 768px) {
-    .settings-panel {
+    .settings-sidebar {
+        position: fixed;
+        top: 0;
+        right: 0;
         width: 100%;
         height: 100svh;
+        min-height: 0;
+        padding: 0;
+        pointer-events: auto;
+    }
+
+    .settings-panel {
+        position: relative;
+        top: auto;
+        width: 100%;
+        height: 100%;
+        max-height: none;
+        border-radius: 0;
+        border: none;
+        border-left: none;
     }
 
     .settings-content {

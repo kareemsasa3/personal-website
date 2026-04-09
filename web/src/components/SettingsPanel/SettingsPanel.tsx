@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { ReactNode, useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faTimes,
@@ -10,6 +10,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { motion, AnimatePresence } from "framer-motion";
 import ThemeToggle from "../ThemeToggle";
+import NavigationModeToggle from "../Navigation/NavigationModeToggle";
 import {
   DOCK_SIZE_CONFIG,
   DOCK_STIFFNESS_CONFIG,
@@ -24,6 +25,7 @@ import {
   DEFAULT_SETTINGS,
 } from "../../utils/settings";
 import { useTheme } from "../../contexts/ThemeContext";
+import { useNavigationMode } from "../../contexts/NavigationModeContext";
 import { Modal, useToast } from "../common";
 import "./SettingsPanel.css";
 
@@ -42,6 +44,118 @@ interface SettingsPanelProps {
   onMatrixSpeedChange?: (speed: number) => void;
 }
 
+interface SettingsSectionProps {
+  title: string;
+  children: ReactNode;
+}
+
+interface DockNavigationSettingsProps {
+  currentDockSize: number;
+  currentDockStiffness: number;
+  currentMagnification: number;
+  onDockSizeChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onDockStiffnessChange: (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => void;
+  onMagnificationChange: (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => void;
+}
+
+const SettingsSection = ({ title, children }: SettingsSectionProps) => (
+  <section className="settings-section" aria-label={`${title} settings`}>
+    <h4 className="settings-section-title">{title}</h4>
+    {children}
+  </section>
+);
+
+const HeaderNavigationSettings = () => (
+  <div className="setting-group setting-group--compact">
+    <label className="setting-label">Header Controls</label>
+    <div className="setting-description setting-description--standalone">
+      Header navigation follows the primary site map. Advanced header controls
+      are not available yet.
+    </div>
+  </div>
+);
+
+const DockNavigationSettings = ({
+  currentDockSize,
+  currentDockStiffness,
+  currentMagnification,
+  onDockSizeChange,
+  onDockStiffnessChange,
+  onMagnificationChange,
+}: DockNavigationSettingsProps) => (
+  <>
+    <div className="setting-group">
+      <label htmlFor="dock-size" className="setting-label">
+        Dock Size
+      </label>
+      <div className="setting-control">
+        <input
+          type="range"
+          id="dock-size"
+          min={DOCK_SIZE_CONFIG.min}
+          max={DOCK_SIZE_CONFIG.max}
+          step={DOCK_SIZE_CONFIG.step}
+          value={currentDockSize}
+          onChange={onDockSizeChange}
+          className="dock-size-slider"
+        />
+        <div className="dock-size-value">{currentDockSize}px</div>
+      </div>
+      <div className="setting-description">
+        Adjust the base size of the icons in the dock.
+      </div>
+    </div>
+
+    <div className="setting-group">
+      <label htmlFor="dock-stiffness" className="setting-label">
+        Dock Stiffness
+      </label>
+      <div className="setting-control">
+        <input
+          type="range"
+          id="dock-stiffness"
+          min={DOCK_STIFFNESS_CONFIG.min}
+          max={DOCK_STIFFNESS_CONFIG.max}
+          step={DOCK_STIFFNESS_CONFIG.step}
+          value={currentDockStiffness}
+          onChange={onDockStiffnessChange}
+          className="dock-stiffness-slider"
+        />
+        <div className="dock-stiffness-value">{currentDockStiffness}</div>
+      </div>
+      <div className="setting-description">
+        Controls how snappy the dock animations feel.
+      </div>
+    </div>
+
+    <div className="setting-group">
+      <label htmlFor="magnification" className="setting-label">
+        Magnification
+      </label>
+      <div className="setting-control">
+        <input
+          type="range"
+          id="magnification"
+          min={MAGNIFICATION_CONFIG.min}
+          max={MAGNIFICATION_CONFIG.max}
+          step={MAGNIFICATION_CONFIG.step}
+          value={currentMagnification}
+          onChange={onMagnificationChange}
+          className="magnification-slider"
+        />
+        <div className="magnification-value">{currentMagnification}%</div>
+      </div>
+      <div className="setting-description">
+        Controls how large icons become on hover.
+      </div>
+    </div>
+  </>
+);
+
 const SettingsPanel: React.FC<SettingsPanelProps> = ({
   onDockSizeChange,
   currentDockSize,
@@ -58,7 +172,26 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
 }) => {
   const { showSuccess, showError } = useToast();
   const { theme, setTheme } = useTheme();
+  const { navMode, setNavMode } = useNavigationMode();
   const [showResetModal, setShowResetModal] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        if (showResetModal) {
+          setShowResetModal(false);
+          return;
+        }
+
+        onClose();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose, showResetModal]);
 
   const handleDockSizeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     onDockSizeChange(Number(event.target.value));
@@ -95,6 +228,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
       onMagnificationChange(DEFAULT_SETTINGS.magnification);
       onAnimationToggle(DEFAULT_SETTINGS.isAnimationPaused);
       onMatrixSpeedChange?.(DEFAULT_SETTINGS.matrixSpeed ?? 1);
+      setNavMode(DEFAULT_SETTINGS.navMode);
       setTheme("dark");
 
       showSuccess(
@@ -201,36 +335,74 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
         {isOpen && (
           <>
             {/* Settings Panel */}
-            <motion.div
-              className="settings-panel"
+            <motion.aside
+              className="settings-sidebar"
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 220 }}
               role="dialog"
-              aria-modal="true"
+              aria-modal="false"
               aria-labelledby="settings-title"
             >
-              <div className="settings-header">
-                <h3 id="settings-title">Settings</h3>
-                <motion.button
-                  className="settings-close"
-                  onClick={onClose}
-                  aria-label="Close settings"
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <FontAwesomeIcon icon={faTimes} />
-                </motion.button>
-              </div>
+              <div className="settings-panel">
+                <div className="settings-header">
+                  <h3 id="settings-title">Settings</h3>
+                  <motion.button
+                    className="settings-close"
+                    onClick={onClose}
+                    aria-label="Close settings"
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <FontAwesomeIcon icon={faTimes} />
+                  </motion.button>
+                </div>
 
-              <motion.div
-                className="settings-content"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.1, duration: 0.2 }}
-              >
-                <div className="settings-row">
+                <motion.div
+                  className="settings-content"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.1, duration: 0.2 }}
+                >
+                <SettingsSection title="Appearance">
+                  <div className="setting-group">
+                    <label className="setting-label">Color Theme</label>
+                    <div className="setting-control">
+                      <ThemeToggle />
+                    </div>
+                    <div className="setting-description">
+                      Switch between light and dark themes.
+                    </div>
+                  </div>
+                </SettingsSection>
+
+                <SettingsSection title="Navigation">
+                  <div className="setting-group">
+                    <label className="setting-label">Navigation Style</label>
+                    <div className="setting-control">
+                      <NavigationModeToggle />
+                    </div>
+                    <div className="setting-description">
+                      Choose the dock menu or a traditional top header.
+                    </div>
+                  </div>
+
+                  {navMode === "dock" ? (
+                    <DockNavigationSettings
+                      currentDockSize={currentDockSize}
+                      currentDockStiffness={currentDockStiffness}
+                      currentMagnification={currentMagnification}
+                      onDockSizeChange={handleDockSizeChange}
+                      onDockStiffnessChange={handleDockStiffnessChange}
+                      onMagnificationChange={handleMagnificationChange}
+                    />
+                  ) : (
+                    <HeaderNavigationSettings />
+                  )}
+                </SettingsSection>
+
+                <SettingsSection title="Background">
                   <div className="setting-group">
                     <label className="setting-label">
                       Background Animation
@@ -263,176 +435,105 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                   </div>
 
                   <div className="setting-group">
-                    <label className="setting-label">Theme</label>
+                    <label htmlFor="matrix-speed" className="setting-label">
+                      Background Motion
+                    </label>
                     <div className="setting-control">
-                      <ThemeToggle />
+                      <input
+                        type="range"
+                        id="matrix-speed"
+                        min={MATRIX_SPEED_CONFIG.min}
+                        max={MATRIX_SPEED_CONFIG.max}
+                        step={MATRIX_SPEED_CONFIG.step}
+                        value={
+                          typeof matrixSpeed === "number" ? matrixSpeed : 1
+                        }
+                        onChange={(e) =>
+                          onMatrixSpeedChange?.(parseFloat(e.target.value))
+                        }
+                        className="magnification-slider"
+                      />
+                      <div className="magnification-value">
+                        {typeof matrixSpeed === "number"
+                          ? matrixSpeed.toFixed(1)
+                          : "1.0"}
+                        ×
+                      </div>
                     </div>
                     <div className="setting-description">
-                      Switch between light and dark themes.
+                      Adjust the motion speed of the active background.
                     </div>
                   </div>
-                </div>
+                </SettingsSection>
 
-                <div className="setting-group">
-                  <label htmlFor="matrix-speed" className="setting-label">
-                    Background Motion
-                  </label>
-                  <div className="setting-control">
-                    <input
-                      type="range"
-                      id="matrix-speed"
-                      min={MATRIX_SPEED_CONFIG.min}
-                      max={MATRIX_SPEED_CONFIG.max}
-                      step={MATRIX_SPEED_CONFIG.step}
-                      value={typeof matrixSpeed === "number" ? matrixSpeed : 1}
-                      onChange={(e) =>
-                        onMatrixSpeedChange?.(parseFloat(e.target.value))
-                      }
-                      className="magnification-slider"
-                    />
-                    <div className="magnification-value">
-                      {typeof matrixSpeed === "number"
-                        ? matrixSpeed.toFixed(1)
-                        : "1.0"}
-                      ×
+                <SettingsSection title="Backup & Restore">
+                  <div className="setting-group">
+                    <label className="setting-label">Backup & Restore</label>
+                    <div className="setting-control">
+                      <motion.button
+                        className="export-button"
+                        onClick={handleExportSettings}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        aria-label="Export settings"
+                      >
+                        <FontAwesomeIcon icon={faDownload} />
+                        <span>Export Settings</span>
+                      </motion.button>
+                      <motion.button
+                        className="import-button"
+                        onClick={handleImportSettings}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        aria-label="Import settings"
+                      >
+                        <FontAwesomeIcon icon={faUpload} />
+                        <span>Import Settings</span>
+                      </motion.button>
+                    </div>
+                    <div className="setting-description">
+                      Export your current settings to a file or import
+                      previously saved settings.
                     </div>
                   </div>
-                  <div className="setting-description">
-                    Adjust the motion speed of the active background.
-                  </div>
-                </div>
+                </SettingsSection>
 
-                <div className="setting-group">
-                  <label htmlFor="dock-size" className="setting-label">
-                    Dock Size
-                  </label>
-                  <div className="setting-control">
-                    <input
-                      type="range"
-                      id="dock-size"
-                      min={DOCK_SIZE_CONFIG.min}
-                      max={DOCK_SIZE_CONFIG.max}
-                      step={DOCK_SIZE_CONFIG.step}
-                      value={currentDockSize}
-                      onChange={handleDockSizeChange}
-                      className="dock-size-slider"
-                    />
-                    <div className="dock-size-value">{currentDockSize}px</div>
-                  </div>
-                  <div className="setting-description">
-                    Adjust the base size of the icons in the dock.
-                  </div>
-                </div>
-
-                <div className="setting-group">
-                  <label htmlFor="dock-stiffness" className="setting-label">
-                    Dock Stiffness
-                  </label>
-                  <div className="setting-control">
-                    <input
-                      type="range"
-                      id="dock-stiffness"
-                      min={DOCK_STIFFNESS_CONFIG.min}
-                      max={DOCK_STIFFNESS_CONFIG.max}
-                      step={DOCK_STIFFNESS_CONFIG.step}
-                      value={currentDockStiffness}
-                      onChange={handleDockStiffnessChange}
-                      className="dock-stiffness-slider"
-                    />
-                    <div className="dock-stiffness-value">
-                      {currentDockStiffness}
+                <SettingsSection title="About">
+                  <div className="setting-group">
+                    <div className="setting-description">
+                      <strong>Workfolio v1.0</strong>
+                      <br />
+                      A Mac-inspired portfolio with interactive dock
+                      navigation.
+                      <br />
+                      Built with React, TypeScript, and Framer Motion.
                     </div>
                   </div>
-                  <div className="setting-description">
-                    Controls how snappy the dock animations feel.
-                  </div>
-                </div>
+                </SettingsSection>
 
-                <div className="setting-group">
-                  <label htmlFor="magnification" className="setting-label">
-                    Magnification
-                  </label>
-                  <div className="setting-control">
-                    <input
-                      type="range"
-                      id="magnification"
-                      min={MAGNIFICATION_CONFIG.min}
-                      max={MAGNIFICATION_CONFIG.max}
-                      step={MAGNIFICATION_CONFIG.step}
-                      value={currentMagnification}
-                      onChange={handleMagnificationChange}
-                      className="magnification-slider"
-                    />
-                    <div className="magnification-value">
-                      {currentMagnification}%
+                <SettingsSection title="Reset">
+                  <div className="setting-group">
+                    <label className="setting-label">Reset Settings</label>
+                    <div className="setting-control">
+                      <motion.button
+                        className="reset-button"
+                        onClick={handleResetToDefaults}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        aria-label="Reset all settings to defaults"
+                      >
+                        <FontAwesomeIcon icon={faUndo} />
+                        <span>Reset to Defaults</span>
+                      </motion.button>
+                    </div>
+                    <div className="setting-description">
+                      Reset all settings to their default values.
                     </div>
                   </div>
-                  <div className="setting-description">
-                    Controls how large icons become on hover.
-                  </div>
-                </div>
-
-                <div className="setting-group">
-                  <label className="setting-label">Backup & Restore</label>
-                  <div className="setting-control">
-                    <motion.button
-                      className="export-button"
-                      onClick={handleExportSettings}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      aria-label="Export settings"
-                    >
-                      <FontAwesomeIcon icon={faDownload} />
-                      <span>Export Settings</span>
-                    </motion.button>
-                    <motion.button
-                      className="import-button"
-                      onClick={handleImportSettings}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      aria-label="Import settings"
-                    >
-                      <FontAwesomeIcon icon={faUpload} />
-                      <span>Import Settings</span>
-                    </motion.button>
-                  </div>
-                  <div className="setting-description">
-                    Export your current settings to a file or import previously
-                    saved settings.
-                  </div>
-                </div>
-
-                <div className="setting-group">
-                  <label className="setting-label">About</label>
-                  <div className="setting-description">
-                    <strong>Workfolio v1.0</strong>
-                    <br />
-                    A Mac-inspired portfolio with interactive dock navigation.
-                    <br />
-                    Built with React, TypeScript, and Framer Motion.
-                  </div>
-                </div>
-
-                <div className="setting-group">
-                  <label className="setting-label">Reset Settings</label>
-                  <div className="setting-control">
-                    <motion.button
-                      className="reset-button"
-                      onClick={handleResetToDefaults}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      aria-label="Reset all settings to defaults"
-                    >
-                      <FontAwesomeIcon icon={faUndo} />
-                      <span>Reset to Defaults</span>
-                    </motion.button>
-                  </div>
-                  <div className="setting-description">
-                    Reset all settings to their default values.
-                  </div>
-                </div>
-              </motion.div>
-            </motion.div>
+                </SettingsSection>
+                </motion.div>
+              </div>
+            </motion.aside>
           </>
         )}
       </AnimatePresence>

@@ -7,8 +7,15 @@ import {
   faTerminal,
   faBookOpen,
 } from "@fortawesome/free-solid-svg-icons";
+import { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 
-const baseNavItems = [
+export interface SiteNavItem {
+  path: string;
+  label: string;
+  icon: IconDefinition;
+}
+
+const baseNavItems: SiteNavItem[] = [
   { path: "/", label: "Home", icon: faHome },
   { path: "/projects", label: "Projects", icon: faFolderOpen },
   { path: "/case-studies", label: "Case Studies", icon: faBookOpen },

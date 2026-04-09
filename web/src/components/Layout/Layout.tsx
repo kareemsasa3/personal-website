@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Suspense, useMemo, useState, useEffect, useRef } from "react";
 import MatrixBackground from "../MatrixBackground/MatrixBackground";
 import StaticBackground from "../StaticBackground/StaticBackground";
-import Dock from "../Dock/Dock";
+import SiteNavigation from "../Navigation/SiteNavigation";
 import GlobalSectionNavigation from "./GlobalSectionNavigation";
 import GlobalScrollProgress from "./GlobalScrollProgress";
 import { PageLoader } from "../common";
@@ -11,6 +11,7 @@ import ErrorBoundary from "../common/ErrorBoundary";
 import { useLayoutContext } from "../../contexts/LayoutContext";
 import { useSettings } from "../../contexts/SettingsContext";
 import { useTheme } from "../../contexts/ThemeContext";
+import { useNavigationMode } from "../../contexts/NavigationModeContext";
 import { caseStudiesData } from "../../data/caseStudies";
 import "./Layout.css";
 
@@ -50,6 +51,7 @@ const Layout = () => {
   const { mainContentAreaRef } = useLayoutContext();
   const { isSettingsOpen } = useSettings();
   const { theme } = useTheme();
+  const { navMode } = useNavigationMode();
   const [isLoading, setIsLoading] = useState(true);
   const hasMarkedAppReady = useRef(false);
   const isInitialLoad = useRef(true);
@@ -189,9 +191,9 @@ const Layout = () => {
       {theme === "dark" ? <MatrixBackground /> : <StaticBackground />}
 
       {/* This is now the top-level container for all INTERACTIVE content */}
-      <div className="layout-foreground">
+      <div className={`layout-foreground nav-mode-${navMode}`}>
         <GlobalScrollProgress />
-        <Dock />
+        <SiteNavigation />
         <GlobalSectionNavigation isSettingsOpen={isSettingsOpen} />
 
         <main

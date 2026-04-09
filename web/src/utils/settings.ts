@@ -12,6 +12,7 @@ export interface UserSettings {
 
   // UI settings
   isSettingsOpen: boolean;
+  navMode: "dock" | "header";
 
   // Theme can be included in exported settings, but runtime ownership
   // lives in ThemeContext rather than this persistence utility.
@@ -25,6 +26,7 @@ export const DEFAULT_SETTINGS: UserSettings = {
   magnification: 40,
   isAnimationPaused: false,
   isSettingsOpen: false,
+  navMode: "header",
   matrixSpeed: 1,
 };
 
@@ -34,6 +36,7 @@ const STORAGE_KEYS = {
   ANIMATION_PAUSED: "workfolio-animation-paused",
   SETTINGS_OPEN: "workfolio-settings-open",
   MATRIX_SPEED: "workfolio-matrix-speed",
+  NAV_MODE: "workfolio-nav-mode",
 } as const;
 
 // Settings validation schema
@@ -154,6 +157,15 @@ export const getAllSettings = (
     ...getDockSettings(),
     isAnimationPaused: getAnimationPaused(),
     isSettingsOpen: getSettingsOpen(),
+    navMode: (() => {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEYS.NAV_MODE);
+        if (saved === "dock" || saved === "header") return saved;
+      } catch {
+        // ignore localStorage read failures
+      }
+      return DEFAULT_SETTINGS.navMode;
+    })(),
     ...(theme ? { theme } : {}),
     matrixSpeed: (() => {
       try {

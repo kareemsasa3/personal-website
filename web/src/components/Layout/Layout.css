@@ -2,30 +2,56 @@
 
 /* This is the new container for all interactive content */
 .layout-foreground {
+    --settings-sidebar-width: 360px;
+    --settings-sidebar-gap: clamp(0.75rem, 1.4vw, 1.25rem);
+    --app-shell-header-height: 5.5rem;
     position: relative;
     /* This is fine, it establishes a context for its children */
     z-index: 1;
     /* This is CRITICAL. It lifts the entire foreground above the background. */
     min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
     /* This container should be transparent so the background behind it is visible */
     background-color: transparent;
 }
 
 /* This class remains as the main content area inside the foreground */
 .app-content {
+    grid-column: 1;
+    grid-row: 1 / -1;
     position: relative;
     /* This is fine */
     width: 100%;
-    flex-grow: 1;
+    min-width: 0;
     /* This is still the correct way to fill space */
     /* We still need padding for the dock, as the dock is inside .layout-foreground */
     padding-bottom: var(--dock-height);
 }
 
+.nav-mode-header .app-content {
+    grid-row: 2;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
 @media (max-width: 768px) {
+    .layout-foreground {
+	        display: flex;
+	        flex-direction: column;
+	        --settings-sidebar-gap: 0;
+	    }
+
     .app-content {
+        grid-column: auto;
+        grid-row: auto;
+        flex-grow: 1;
         padding-bottom: var(--dock-height-mobile);
+    }
+
+    .nav-mode-header .app-content {
+        padding-top: var(--site-header-content-offset-mobile, 8.5rem);
+        padding-bottom: 0;
     }
 }

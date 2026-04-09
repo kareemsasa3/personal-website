@@ -139,3 +139,5 @@ export const useDock = () => {
     handleMagnificationChange,
   };
 };
+
+export type DockControls = ReturnType<typeof useDock>;

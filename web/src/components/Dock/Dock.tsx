@@ -1,65 +1,45 @@
-import { motion } from "framer-motion";
-import { useEffect, useMemo, useState } from "react";
+import { motion, type Variants } from "framer-motion";
+import { useMemo } from "react";
 import { useLocation } from "react-router-dom";
 import { navItems } from "../../data/navigation";
 import DockIcon from "./DockIcon";
 import DockSettingsButton from "./DockSettingsButton";
-import SettingsPanel from "../SettingsPanel";
-import { useDock } from "./useDock";
-import { useLayoutContext } from "../../contexts/LayoutContext";
+import { DockControls } from "./useDock";
 import { useSettings } from "../../contexts/SettingsContext";
 import { useWindowSize } from "../../hooks";
 import "./Dock.css";
 
-const Dock = () => {
+interface DockProps {
+  dockControls: DockControls;
+  reduceNavModeTransition?: boolean;
+}
+
+const dockNavVariants: Variants = {
+  initial: { opacity: 0, y: 12, scale: 0.99, filter: "blur(3px)" },
+  animate: { opacity: 1, y: 0, scale: 1, filter: "blur(0px)" },
+  exit: { opacity: 0, y: 8, scale: 0.99, filter: "blur(2px)" },
+};
+
+const reducedMotionDockVariants: Variants = {
+  initial: { opacity: 0 },
+  animate: { opacity: 1 },
+  exit: { opacity: 0 },
+};
+
+const Dock = ({ dockControls, reduceNavModeTransition = false }: DockProps) => {
   const location = useLocation();
   const {
     // State
     dockSize,
     dockStiffness,
     magnification,
-    shiftAmount: dockShiftAmount,
     mouseX,
+  } = dockControls;
 
-    // Actions
-    handleDockSizeChange,
-    handleDockStiffnessChange,
-    handleMagnificationChange,
-  } = useDock();
-
-  const { isSettingsOpen, toggleSettings, closeSettings } = useSettings();
-  const {
-    isAnimationPaused,
-    setIsAnimationPaused,
-    matrixSpeed,
-    setMatrixSpeed,
-  } = useLayoutContext();
+  const { isSettingsOpen, toggleSettings } = useSettings();
   const { width: windowWidth } = useWindowSize();
   const isMobile = windowWidth <= 768;
   const isGameRoute = location.pathname.includes("/games/");
-
-  // State for settings panel shift animation
-  const [settingsShiftAmount, setSettingsShiftAmount] = useState(0);
-
-  // Handle responsive shift amount for settings panel
-  useEffect(() => {
-    const calculateShift = () => {
-      if (!isSettingsOpen) return 0;
-      const PANEL_WIDTH = 400;
-      const GUTTER = 20; // px, match dots gutter
-      const RIGHT_OFFSET = windowWidth > 768 ? 20 : 10; // matches .dock-container right
-      if (windowWidth > 1200) return -(PANEL_WIDTH + GUTTER + RIGHT_OFFSET); // full panel + gutter + offset
-      if (windowWidth > 768)
-        return -(Math.round(PANEL_WIDTH * 0.85) + GUTTER + RIGHT_OFFSET);
-      return 0;
-    };
-
-    const newShiftAmount = calculateShift();
-    setSettingsShiftAmount(newShiftAmount);
-  }, [isSettingsOpen, windowWidth]);
-
-  // Combine dock shift and settings shift
-  const totalShiftAmount = dockShiftAmount + settingsShiftAmount;
 
   // Mobile-specific presentation adjustments
   const effectiveMagnification = isMobile ? 0 : magnification;
@@ -70,62 +50,43 @@ const Dock = () => {
   }, [isGameRoute]);
 
   return (
-    <>
-      <motion.div
-        id="dock-container"
-        className={`dock-container ${isSettingsOpen ? "settings-open" : ""}`}
-        role="toolbar"
-        aria-label="Application Dock"
-        onMouseMove={(e) => mouseX.set(e.clientX)}
-        onMouseLeave={() => mouseX.set(null)}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{
-          opacity: 1,
-          y: 0,
-          x: totalShiftAmount,
-        }}
-        transition={{
-          type: "spring",
-          damping: 25,
-          stiffness: 200,
-          // Use a different transition for x for a smoother slide
-          x: { type: "spring", damping: 30, stiffness: 220 },
-        }}
-      >
-        {dockItems.map((item) => (
-          <DockIcon
-            key={item.path}
-            {...item}
-            mouseX={mouseX}
-            stiffness={dockStiffness}
-            magnification={effectiveMagnification}
-            baseSize={effectiveDockSize} // Pass down the base size
-          />
-        ))}
-        <div className="dock-icon-container">
-          <DockSettingsButton
-            isOpen={isSettingsOpen}
-            onClick={toggleSettings}
-            baseSize={effectiveDockSize} // Pass down the base size
-          />
-        </div>
-      </motion.div>
-
-      <SettingsPanel
-        onDockSizeChange={handleDockSizeChange}
-        currentDockSize={dockSize}
-        onDockStiffnessChange={handleDockStiffnessChange}
-        currentDockStiffness={dockStiffness}
-        onMagnificationChange={handleMagnificationChange}
-        currentMagnification={magnification}
-        isAnimationPaused={isAnimationPaused}
-        onAnimationToggle={setIsAnimationPaused}
-        isOpen={isSettingsOpen}
-        onClose={closeSettings}
-        matrixSpeed={matrixSpeed}
-        onMatrixSpeedChange={setMatrixSpeed}
-      />
-    </>
+    <motion.div
+      id="dock-container"
+      className="dock-container"
+      role="toolbar"
+      aria-label="Application Dock"
+      onMouseMove={(e) => mouseX.set(e.clientX)}
+      onMouseLeave={() => mouseX.set(null)}
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      variants={
+        reduceNavModeTransition ? reducedMotionDockVariants : dockNavVariants
+      }
+      transition={
+        reduceNavModeTransition
+          ? { duration: 0.01 }
+          : { duration: 0.24, ease: "easeOut" }
+      }
+    >
+      {dockItems.map((item) => (
+        <DockIcon
+          key={item.path}
+          {...item}
+          mouseX={mouseX}
+          stiffness={dockStiffness}
+          magnification={effectiveMagnification}
+          baseSize={effectiveDockSize} // Pass down the base size
+        />
+      ))}
+      <div className="dock-icon-container">
+        <DockSettingsButton
+          isOpen={isSettingsOpen}
+          onClick={toggleSettings}
+          baseSize={effectiveDockSize} // Pass down the base size
+        />
+      </div>
+    </motion.div>
   );
 };
 

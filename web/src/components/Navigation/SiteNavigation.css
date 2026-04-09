@@ -1,0 +1,191 @@
+.site-navigation-shell {
+    display: contents;
+}
+
+.site-nav-presentation {
+    pointer-events: auto;
+}
+
+.site-nav-presentation--header {
+    grid-column: 1;
+    grid-row: 1;
+    display: grid;
+    place-items: start center;
+    min-width: 0;
+    width: 100%;
+    z-index: 10001;
+    will-change: opacity, transform, filter;
+}
+
+.site-header {
+    position: sticky;
+    top: 0;
+    justify-self: center;
+    z-index: 10001;
+    width: min(1180px, calc(100% - 2rem));
+    max-width: calc(100% - 2rem);
+    min-width: 0;
+    box-sizing: border-box;
+    min-height: 4rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.55rem 0.7rem;
+    border: 1px solid color-mix(in srgb, var(--app-border) 76%, transparent);
+    border-radius: 8px;
+    background: var(--app-overlay);
+    color: var(--app-text);
+    box-shadow: 0 10px 32px var(--app-shadow);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    margin: max(0.75rem, env(safe-area-inset-top)) 1rem 0.75rem;
+}
+
+.site-header__brand {
+    display: inline-flex;
+    align-items: center;
+    flex: 0 0 auto;
+    gap: 0.6rem;
+    min-width: max-content;
+    color: var(--app-text);
+    text-decoration: none;
+}
+
+.site-header__brand-mark {
+    display: grid;
+    place-items: center;
+    width: 2.4rem;
+    aspect-ratio: 1;
+    border: 1px solid color-mix(in srgb, var(--brand-primary) 68%, transparent);
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.2);
+    color: var(--brand-primary);
+    font-family: var(--font-family-mono);
+    font-size: 0.85rem;
+    font-weight: 800;
+}
+
+.site-header__brand-name {
+    font-size: 0.95rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.site-header__nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1 1 auto;
+    gap: 0.15rem;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.site-header__nav::-webkit-scrollbar {
+    display: none;
+}
+
+.site-header__link {
+    display: inline-flex;
+    align-items: center;
+    flex: 0 0 auto;
+    gap: 0.45rem;
+    padding: 0.65rem 0.7rem;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    color: var(--app-text-secondary);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 650;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.site-header__link:hover,
+.site-header__link.active {
+    background: color-mix(in srgb, var(--brand-primary-soft) 14%, transparent);
+    border-color: color-mix(in srgb, var(--brand-primary) 58%, transparent);
+    color: var(--brand-primary);
+}
+
+.site-header__link-icon {
+    font-size: 0.9rem;
+}
+
+.site-header__actions {
+    display: inline-flex;
+    align-items: center;
+    flex: 0 0 auto;
+    gap: 0.5rem;
+}
+
+.site-header__settings-button {
+    display: grid;
+    place-items: center;
+    width: 2.4rem;
+    aspect-ratio: 1;
+    border: 1px solid color-mix(in srgb, var(--app-border) 80%, transparent);
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.2);
+    color: var(--app-text);
+    cursor: pointer;
+}
+
+.site-header__settings-button:hover,
+.site-header__settings-button.active {
+    border-color: var(--brand-primary);
+    color: var(--brand-primary);
+}
+
+@media (max-width: 960px) {
+    .site-header {
+        align-items: stretch;
+        flex-wrap: wrap;
+    }
+
+    .site-header__nav {
+        order: 3;
+        flex-basis: 100%;
+        justify-content: flex-start;
+    }
+
+    .site-header__actions {
+        margin-left: auto;
+    }
+}
+
+@media (max-width: 768px) {
+    .site-nav-presentation--header {
+        display: contents;
+    }
+
+    .site-header {
+        position: fixed;
+        top: max(0.5rem, env(safe-area-inset-top));
+        left: 50%;
+        transform: translateX(-50%);
+        width: min(100vw - 1rem, 1180px);
+        margin: 0;
+    }
+}
+
+@media (max-width: 640px) {
+    .site-header {
+        gap: 0.6rem;
+        padding: 0.5rem;
+    }
+
+    .site-header__brand-name {
+        display: none;
+    }
+
+    .site-header__link {
+        padding: 0.6rem 0.65rem;
+        font-size: 0.82rem;
+    }
+
+    .site-header__link-icon {
+        display: none;
+    }
+}
