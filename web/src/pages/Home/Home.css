@@ -163,7 +163,9 @@ TABLE OF CONTENTS
 }
 
 [data-theme="dark"] .featured-projects-section .tech-tag {
-  color: var(--app-bg);
+  background: var(--primary-color-dark);
+  border-color: var(--primary-color);
+  color: var(--app-text);
 }
 
 /* --- Buttons --- */
