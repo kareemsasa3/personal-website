@@ -1,47 +1,24 @@
-# Portfolio Infrastructure
+# Personal Website Source Repository
 
-A Docker-based deployment setup for serving the Workfolio React/Vite frontend behind nginx.
+This repository contains the source for the personal website and the supporting infrastructure used to build, serve, and deploy it.
 
-This repository contains the infrastructure, configuration, and deployment tooling for the portfolio site. The live application is a frontend-only app. User preferences are persisted in the browser via local storage. No backend application services are deployed in this stack.
+The site itself lives in `workfolio/` and is a frontend-only React, Vite, and TypeScript application. The surrounding `infrastructure/` directory contains Docker, nginx, and deployment support for running that app in production. User preferences are stored in browser local storage. No backend application services are part of the production stack.
 
-## Architecture
-
-### Folder Structure
+## Repository Structure
 
 ```text
-personal-website/
-├── workfolio/      # Portfolio application (React / Vite)
-├── infrastructure/ # Docker, nginx, deployment, monitoring
+.
+├── workfolio/      # Website application (React / Vite / TypeScript)
+├── infrastructure/ # Docker, nginx, deployment, and monitoring support (see infrastructure/README.md)
+├── docs/           # Supporting project and infrastructure documentation
 └── README.md
 ```
 
-### Active Services
-
-- `workfolio`: frontend build served from nginx inside the container
-- `nginx`: reverse proxy, TLS termination, security headers, health endpoint
-
-Optional monitoring services are documented under `infrastructure/monitoring/`.
-
-## Quick Start
-
-### Local Docker stack
-
-```bash
-cd infrastructure
-docker compose up --build
-```
-
-Access:
-- Portfolio: `http://localhost`
-- Health check: `http://localhost/health`
-
-Stop:
-
-```bash
-docker compose down
-```
+## Running Locally
 
 ### Frontend only
+
+Use this for normal UI development.
 
 ```bash
 cd workfolio
@@ -49,73 +26,57 @@ npm install
 npm run dev
 ```
 
-## Configuration
+### Full Docker stack
 
-Environment variables are managed centrally:
+Use this when you want the site behind nginx with the local container setup.
 
 ```bash
 cd infrastructure
-./setup-env.sh
+docker compose up --build
 ```
 
-Required variables:
-- `DOMAIN_NAME`
-- `SSL_EMAIL`
+Local endpoints:
+- Website: `http://localhost`
+- Health check: `http://localhost/health`
 
-Manual setup:
+Stop the stack with:
+
+```bash
+cd infrastructure
+docker compose down
+```
+
+## Configuration
+
+Environment setup for Docker and deployment lives under `infrastructure/`.
 
 ```bash
 cd infrastructure
 cp env.example .env
-```
-
-See [docs/infrastructure/ENVIRONMENT_SETUP.md](/home/kareem/code/personal/website/docs/infrastructure/ENVIRONMENT_SETUP.md).
-
-## Monitoring
-
-Prometheus and Grafana can be enabled via the monitoring compose files.
-
-- Nginx exporter is included
-- Node exporter is included
-- Workfolio metrics are only relevant if the app exposes `/metrics`
-
-See [docs/infrastructure/MONITORING_SETUP.md](/home/kareem/code/personal/website/docs/infrastructure/MONITORING_SETUP.md).
-
-## Production Deployment
-
-1. Configure environment:
-
-```bash
-cd infrastructure
 ./setup-env.sh
 ```
 
-2. Obtain TLS certificates:
+Useful references:
+- [Environment setup](docs/infrastructure/ENVIRONMENT_SETUP.md)
+- [SSL setup guide](docs/infrastructure/SSL_SETUP_GUIDE.md)
 
-```bash
-docker compose --env-file infrastructure/.env \
-  -f infrastructure/docker-compose.yml \
-  -f infrastructure/prod/docker-compose.prod.yml \
-  --profile ssl-setup up certbot
-```
+## Monitoring
 
-3. Start the production stack:
+Optional monitoring is available through the infrastructure layer with Prometheus and Grafana. It is intended for host and nginx visibility around the deployed frontend stack.
 
-```bash
-docker compose --env-file infrastructure/.env \
-  -f infrastructure/docker-compose.yml \
-  -f infrastructure/prod/docker-compose.prod.yml \
-  -f infrastructure/prod/docker-compose.monitoring.prod.yml \
-  up -d --no-build --pull always
-```
+See [Monitoring setup](docs/infrastructure/MONITORING_SETUP.md).
 
-4. Verify:
+## Production Deployment
 
-```bash
-curl https://your-domain/health
-```
+Production serves the built frontend behind nginx using Docker-based deployment tooling from `infrastructure/`.
+
+At a high level:
+1. Configure environment variables in `infrastructure/.env`
+2. Build and publish the Workfolio image through GitHub Actions
+3. Deploy the production stack with the compose files under `infrastructure/prod/`
 
 ## Notes
 
-- The current stack does not deploy backend APIs, sessions, or Redis-backed features.
-- Future backend or multi-user ideas belong in roadmap docs under `workfolio/docs/`.
+- `workfolio/` is now part of this repository directly; it is no longer managed as a separate submodule.
+- The production site is frontend-only. There are no deployed API, session, queue, or database services in the active stack.
+- CI/CD is configured to lint and typecheck the app, build the production image, and support deployment without requiring a separate application repository.
