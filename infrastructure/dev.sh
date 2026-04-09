@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -euo pipefail
 
 # Development wrapper script
@@ -8,5 +8,6 @@ echo "🔧 Development Environment Wrapper"
 echo "   Redirecting to dev/dev.sh..."
 echo ""
 
-# Change to the dev directory and run the development script
-cd "$(dirname "$0")/dev" && ./dev.sh
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+exec "$SCRIPT_DIR/dev/dev.sh" "$@"

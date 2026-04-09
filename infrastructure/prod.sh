@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -euo pipefail
 
 # Production wrapper script
@@ -8,5 +8,6 @@ echo "🚀 Production Environment Wrapper"
 echo "   Redirecting to prod/prod.sh..."
 echo ""
 
-# Change to the prod directory and run the production script
-cd "$(dirname "$0")/prod" && ./prod.sh
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+exec "$SCRIPT_DIR/prod/prod.sh" "$@"
