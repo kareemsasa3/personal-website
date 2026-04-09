@@ -1,5 +1,5 @@
 import { motion, type Variants } from "framer-motion";
-import { useMemo } from "react";
+import { forwardRef, useMemo, type ForwardedRef } from "react";
 import { useLocation } from "react-router-dom";
 import { navItems } from "../../data/navigation";
 import DockIcon from "./DockIcon";
@@ -26,7 +26,12 @@ const reducedMotionDockVariants: Variants = {
   exit: { opacity: 0 },
 };
 
-const Dock = ({ dockControls, reduceNavModeTransition = false }: DockProps) => {
+const Dock = forwardRef<HTMLDivElement, DockProps>(DockContent);
+
+function DockContent(
+  { dockControls, reduceNavModeTransition = false }: DockProps,
+  ref: ForwardedRef<HTMLDivElement>
+) {
   const location = useLocation();
   const {
     // State
@@ -51,6 +56,7 @@ const Dock = ({ dockControls, reduceNavModeTransition = false }: DockProps) => {
 
   return (
     <motion.div
+      ref={ref}
       id="dock-container"
       className="dock-container"
       role="toolbar"
@@ -88,6 +94,6 @@ const Dock = ({ dockControls, reduceNavModeTransition = false }: DockProps) => {
       </div>
     </motion.div>
   );
-};
+}
 
 export default Dock;
