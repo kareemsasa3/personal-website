@@ -95,7 +95,7 @@ const MatrixRain3DBackground = ({
 
       const backgroundFill = theme === "dark" ? "#060806" : "#f5f5f5";
       const glyphRgb = theme === "dark" ? "102, 255, 136" : "44, 44, 44";
-      const leadRgb = theme === "dark" ? "225, 255, 235" : "255, 255, 255";
+      const leadRgb = theme === "dark" ? "232, 255, 238" : "255, 255, 255";
       const trailAlpha = animate ? 0.18 : 1;
       const centerX = viewport.width / 2;
       const centerY = viewport.height / 2;
@@ -130,6 +130,7 @@ const MatrixRain3DBackground = ({
         const screenX = centerX + stream.x * perspective;
         const headY = centerY + stream.y * perspective;
         const fontSize = Math.max(8, Math.min(22, 12 + perspective * 10));
+        const proximityBoost = Math.min(1, Math.max(0, (perspective - 0.16) / 0.72));
 
         context.font = `${fontSize}px 'Courier New', monospace`;
 
@@ -139,12 +140,31 @@ const MatrixRain3DBackground = ({
 
           const fade = Math.max(0, 1 - index / stream.length);
           const alpha = fade * stream.opacity * Math.max(0.28, perspective);
-          context.fillStyle =
-            index === 0
-              ? `rgba(${leadRgb}, ${Math.min(0.95, alpha + 0.15)})`
-              : `rgba(${glyphRgb}, ${alpha})`;
+          if (index === 0) {
+            const headAlpha = Math.min(0.98, alpha + 0.24 + proximityBoost * 0.08);
+            context.shadowBlur = 6 + proximityBoost * 10;
+            context.shadowColor =
+              theme === "dark"
+                ? `rgba(142, 255, 172, ${Math.min(0.42, headAlpha * 0.45)})`
+                : `rgba(255, 255, 255, ${Math.min(0.3, headAlpha * 0.35)})`;
+            context.fillStyle = `rgba(${leadRgb}, ${headAlpha})`;
+          } else {
+            const depthTint = 0.7 + proximityBoost * 0.3;
+            const greenAlpha = alpha * (0.78 + fade * 0.18);
+            const [red, green, blue] = glyphRgb
+              .split(",")
+              .map((value) => Number.parseInt(value.trim(), 10));
+            context.shadowBlur = 0;
+            context.shadowColor = "transparent";
+            context.fillStyle = `rgba(${Math.round(red * depthTint)}, ${Math.round(
+              green * depthTint
+            )}, ${Math.round(blue * (0.76 + proximityBoost * 0.24))}, ${greenAlpha})`;
+          }
           context.fillText(stream.glyphs[index], screenX, glyphY);
         }
+
+        context.shadowBlur = 0;
+        context.shadowColor = "transparent";
       }
     },
     [motionSpeed, theme]
