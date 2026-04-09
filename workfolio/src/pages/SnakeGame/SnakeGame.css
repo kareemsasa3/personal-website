@@ -1,0 +1,8 @@
+.snake-page {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10; /* above matrix background, below dock */
+  }

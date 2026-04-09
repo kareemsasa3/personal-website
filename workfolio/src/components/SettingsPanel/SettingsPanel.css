@@ -1,0 +1,465 @@
+/* Settings Panel - Mac Style */
+.settings-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 400px;
+    height: 100svh;
+    background: var(--app-overlay);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    transform: translateZ(0);
+    will-change: transform;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+/* Settings Header */
+.settings-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid var(--app-border);
+    background: color-mix(in srgb, var(--app-surface) 85%, transparent);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    flex-shrink: 0;
+}
+
+.settings-header h3 {
+    margin: 0;
+    color: var(--text-color);
+    font-size: 1.2rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.settings-header h3::before {
+    content: "⚙️";
+    font-size: 1.2rem;
+}
+
+.settings-close {
+    background: color-mix(in srgb, var(--app-surface) 75%, transparent);
+    border: 1px solid var(--app-border);
+    color: var(--text-color, #ffffff);
+    font-size: 1.1rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: none;
+    outline: none;
+}
+
+.settings-close:hover {
+    background: color-mix(in srgb, var(--app-surface) 92%, transparent);
+    border-color: var(--brand-primary);
+    transform: scale(1.05);
+}
+
+/* Settings Content */
+.settings-content {
+    flex: 1;
+    padding: 1rem;
+    overflow-y: auto;
+    min-height: 0;
+    position: relative;
+    opacity: 1;
+    transform: translateZ(0);
+}
+
+.setting-group {
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background: color-mix(in srgb, var(--app-surface) 75%, transparent);
+    border-radius: 8px;
+    border: 1px solid var(--app-border);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.setting-group:hover {
+    background: color-mix(in srgb, var(--app-surface) 92%, transparent);
+    border-color: var(--brand-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.setting-label {
+    display: block;
+    color: var(--text-color, #ffffff);
+    font-weight: 600;
+    font-size: 1rem;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.setting-label::before {
+    content: "🎛️";
+    font-size: 1rem;
+}
+
+.setting-control {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+    padding: 0.75rem;
+    background: color-mix(in srgb, var(--app-bg) 85%, transparent);
+    border-radius: 6px;
+    border: 1px solid var(--app-border);
+}
+
+.settings-row {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.settings-row .setting-group {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+.dock-size-value,
+.dock-stiffness-value,
+.magnification-value {
+    background: var(--background-color-tertiary);
+    color: var(--primary-color);
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    min-width: 50px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--primary-color);
+    flex-shrink: 0;
+}
+
+/* Dock Size Slider - Mac Style */
+.dock-size-slider,
+.dock-stiffness-slider,
+.magnification-slider {
+    width: 100%;
+    height: 8px;
+    border-radius: 4px;
+    background: color-mix(in srgb, var(--app-surface-elevated) 78%, transparent);
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+    border: 1px solid color-mix(in srgb, var(--app-border) 82%, transparent);
+    transition: all 0.3s ease;
+}
+
+.dock-size-slider:focus,
+.dock-stiffness-slider:focus,
+.magnification-slider:focus {
+    background: color-mix(in srgb, var(--app-surface-elevated) 92%, transparent);
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-primary) 18%, transparent);
+}
+
+.dock-size-slider::-webkit-slider-thumb,
+.dock-stiffness-slider::-webkit-slider-thumb,
+.magnification-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color-dark) 100%);
+    cursor: pointer;
+    border: 2px solid rgba(255, 255, 255, 0.95);
+    box-shadow:
+        0 4px 12px rgba(0, 0, 0, 0.3),
+        0 0 0 1px rgba(255, 255, 255, 0.2) inset;
+    transition: all 0.3s ease;
+}
+
+.dock-size-slider::-webkit-slider-thumb:hover,
+.dock-stiffness-slider::-webkit-slider-thumb:hover,
+.magnification-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+    box-shadow:
+        0 6px 20px rgba(0, 0, 0, 0.4),
+        0 0 0 1px rgba(255, 255, 255, 0.3) inset;
+}
+
+.dock-size-slider::-webkit-slider-thumb:active,
+.dock-stiffness-slider::-webkit-slider-thumb:active,
+.magnification-slider::-webkit-slider-thumb:active {
+    transform: scale(1.1);
+}
+
+.dock-size-slider::-moz-range-thumb,
+.dock-stiffness-slider::-moz-range-thumb,
+.magnification-slider::-moz-range-thumb {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color-dark) 100%);
+    cursor: pointer;
+    border: 2px solid rgba(255, 255, 255, 0.95);
+    box-shadow:
+        0 4px 12px rgba(0, 0, 0, 0.3),
+        0 0 0 1px rgba(255, 255, 255, 0.2) inset;
+    transition: all 0.3s ease;
+}
+
+.dock-size-slider::-moz-range-thumb:hover,
+.dock-stiffness-slider::-moz-range-thumb:hover,
+.magnification-slider::-moz-range-thumb:hover {
+    transform: scale(1.2);
+    box-shadow:
+        0 6px 20px rgba(0, 0, 0, 0.4),
+        0 0 0 1px rgba(255, 255, 255, 0.3) inset;
+}
+
+.dock-size-slider::-moz-range-thumb:active,
+.dock-stiffness-slider::-moz-range-thumb:active,
+.magnification-slider::-moz-range-thumb:active {
+    transform: scale(1.1);
+}
+
+/* Track styling for Firefox */
+.dock-size-slider::-moz-range-track,
+.dock-stiffness-slider::-moz-range-track,
+.magnification-slider::-moz-range-track {
+    height: 8px;
+    border-radius: 4px;
+    background: color-mix(in srgb, var(--app-surface-elevated) 78%, transparent);
+    border: 1px solid color-mix(in srgb, var(--app-border) 82%, transparent);
+}
+
+[data-theme="light"] .dock-size-slider,
+[data-theme="light"] .dock-stiffness-slider,
+[data-theme="light"] .magnification-slider {
+    background: color-mix(in srgb, var(--app-border) 34%, var(--app-surface) 66%);
+    border-color: color-mix(in srgb, var(--app-border) 82%, transparent);
+}
+
+[data-theme="light"] .dock-size-slider:focus,
+[data-theme="light"] .dock-stiffness-slider:focus,
+[data-theme="light"] .magnification-slider:focus {
+    background: color-mix(in srgb, var(--app-border) 42%, var(--app-surface) 58%);
+}
+
+[data-theme="light"] .dock-size-slider::-moz-range-track,
+[data-theme="light"] .dock-stiffness-slider::-moz-range-track,
+[data-theme="light"] .magnification-slider::-moz-range-track {
+    background: color-mix(in srgb, var(--app-border) 34%, var(--app-surface) 66%);
+    border-color: color-mix(in srgb, var(--app-border) 82%, transparent);
+}
+
+[data-theme="light"] .dock-size-slider::-webkit-slider-thumb,
+[data-theme="light"] .dock-stiffness-slider::-webkit-slider-thumb,
+[data-theme="light"] .magnification-slider::-webkit-slider-thumb,
+[data-theme="light"] .dock-size-slider::-moz-range-thumb,
+[data-theme="light"] .dock-stiffness-slider::-moz-range-thumb,
+[data-theme="light"] .magnification-slider::-moz-range-thumb {
+    border-color: rgba(255, 255, 255, 1);
+    box-shadow:
+        0 4px 12px rgba(0, 0, 0, 0.16),
+        0 0 0 1px rgba(255, 255, 255, 0.45) inset;
+}
+
+.setting-description {
+    color: var(--text-color-secondary, #adb5bd);
+    font-size: 0.85rem;
+    line-height: 1.4;
+    padding: 0.4rem;
+    background: var(--background-color-secondary);
+    border-radius: 4px;
+    border-left: 2px solid var(--primary-color);
+}
+
+
+
+/* Animation Toggle Button */
+.animation-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--background-color);
+    color: var(--text-color);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
+}
+
+.animation-toggle:hover {
+    border-color: var(--primary-color);
+    background: rgba(0, 255, 0, 0.05);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.animation-toggle.playing {
+    border-color: var(--primary-color);
+    background: rgba(0, 255, 0, 0.1);
+    color: var(--primary-color);
+}
+
+.animation-toggle.paused {
+    border-color: var(--text-color-secondary);
+    background: var(--background-color);
+    color: var(--text-color-secondary);
+}
+
+.animation-toggle.playing:hover {
+    background: rgba(0, 255, 0, 0.15);
+    box-shadow: 0 4px 12px rgba(0, 255, 0, 0.2);
+}
+
+.animation-toggle.paused:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    background: rgba(0, 255, 0, 0.05);
+}
+
+/* Export and Import Buttons */
+.export-button,
+.import-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--background-color);
+    color: var(--text-color);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
+    flex: 1;
+    justify-content: center;
+}
+
+.export-button:hover {
+    border-color: #4ecdc4;
+    background: rgba(78, 205, 196, 0.1);
+    color: #4ecdc4;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(78, 205, 196, 0.2);
+}
+
+.import-button:hover {
+    border-color: #45b7d1;
+    background: rgba(69, 183, 209, 0.1);
+    color: #45b7d1;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(69, 183, 209, 0.2);
+}
+
+.export-button:active,
+.import-button:active {
+    transform: translateY(0);
+}
+
+/* Reset Button */
+.reset-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--background-color);
+    color: var(--text-color);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
+    width: 100%;
+    justify-content: center;
+}
+
+.reset-button:hover {
+    border-color: #ff6b6b;
+    background: rgba(255, 107, 107, 0.1);
+    color: #ff6b6b;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.2);
+}
+
+.reset-button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .settings-panel {
+        width: 100%;
+        height: 100svh;
+    }
+
+    .settings-content {
+        padding: calc(0.75rem + env(safe-area-inset-top)) 0.75rem calc(0.75rem + env(safe-area-inset-bottom)) 0.75rem;
+    }
+
+    .settings-header {
+        padding: 0.75rem;
+    }
+
+    .setting-group {
+        padding: 0.75rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .setting-control {
+        padding: 0.5rem;
+    }
+
+    .settings-row {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .settings-row .setting-group {
+        flex: none;
+        margin-bottom: 0.75rem;
+    }
+}
+
+/* Scrollbar styling for settings content */
+.settings-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.settings-content::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+}
+
+.settings-content::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.settings-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+}

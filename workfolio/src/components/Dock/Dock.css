@@ -1,0 +1,238 @@
+:root {
+    --dock-icon-size: 40px;
+    /* Default size variable */
+
+    /* Terminal-inspired theme variables */
+    --dock-primary: var(--brand-primary);
+    --dock-background: var(--app-overlay);
+    --dock-border: var(--brand-primary);
+    --dock-text: var(--app-text);
+    --dock-text-muted: var(--app-text-muted);
+    --dock-shadow: var(--app-shadow);
+}
+
+.dock-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    max-width: 90vw;
+
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    /* This makes icons sit on the "floor" */
+    gap: 12px;
+    padding: 8px 12px;
+    /* Width determined by flexbox content for optimal performance */
+
+    background: var(--dock-background);
+    border-radius: 16px;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 8px 32px var(--dock-shadow);
+
+    will-change: transform;
+    /* Performance optimization */
+    z-index: 10001;
+    /* Higher than settings overlay (9999) and panel (10000) */
+
+    /* Terminal-inspired styling */
+    font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
+
+    /* Ensure dock stays within viewport bounds */
+    transform-origin: bottom right;
+
+    /* Allow icons to overflow for magnification effect */
+    overflow: visible;
+
+    /* Prevent container from growing when icons magnify */
+    min-height: calc(var(--dock-icon-size) + 16px);
+    /* Base icon size + padding */
+    max-height: calc(var(--dock-icon-size) + 16px);
+}
+
+/* Dock Tooltip Styles */
+.dock-tooltip {
+    position: fixed;
+    background: var(--background-color);
+    color: var(--text-color);
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    white-space: nowrap;
+    z-index: 10002;
+    /* Higher than dock container */
+    pointer-events: none;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transform: translateX(-50%);
+    font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
+}
+
+.dock-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: var(--background-color);
+}
+
+/* Ensure tooltip doesn't interfere with dock interactions */
+.dock-icon-container {
+    position: relative;
+    /* Allow individual icons to overflow their containers */
+    overflow: visible;
+    /* Center the icon within its container */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* Set a fixed height to prevent container growth */
+    height: var(--dock-icon-size);
+}
+
+.dock-nav-link {
+    display: block;
+    color: var(--dock-text);
+    transition: color 0.2s ease-in-out;
+    text-decoration: none;
+    pointer-events: auto;
+    /* Allow the link to overflow for magnification */
+    overflow: visible;
+}
+
+.dock-nav-link.active {
+    color: var(--dock-primary);
+}
+
+.dock-icon {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* Font size handled by Framer Motion */
+    background-color: rgba(0, 0, 0, 0.2);
+    border: 1px solid transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    will-change: width, height;
+    /* Performance optimization */
+    /* REMOVE the simple transition property, as framer-motion now handles it */
+    user-select: none;
+    transition: border-color 0.2s ease-in-out;
+    /* Let Framer Motion handle width and height */
+    /* Ensure icons can overflow their containers for magnification */
+    position: relative;
+    z-index: 1;
+}
+
+.dock-icon:hover,
+.dock-icon.hovered {
+    background-color: rgba(0, 0, 0, 0.3);
+    border-color: var(--dock-primary);
+}
+
+/* Add a little dot under the active icon like the real dock */
+.dock-nav-link.active::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background-color: var(--dock-primary);
+}
+
+/* Dock Settings Button */
+.dock-settings-button {
+    background: none;
+    border: none;
+    color: var(--dock-text);
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    /* Allow settings button to overflow for consistency */
+    overflow: visible;
+    /* Set a fixed height to prevent container growth */
+    height: var(--dock-icon-size);
+}
+
+.dock-settings-button .dock-icon {
+    width: var(--dock-icon-size);
+    /* Use the variable */
+    height: var(--dock-icon-size);
+    /* Use the variable */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: calc(var(--dock-icon-size) * 0.6);
+    background-color: rgba(0, 0, 0, 0.2);
+    border: 1px solid transparent;
+    border-radius: 6px;
+    transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+    /* Ensure settings icon can overflow for consistency */
+    position: relative;
+    z-index: 1;
+}
+
+.dock-settings-button:hover .dock-icon {
+    background-color: rgba(0, 0, 0, 0.3);
+    border-color: var(--dock-primary);
+}
+
+.dock-settings-button.active .dock-icon {
+    color: var(--dock-primary);
+    border-color: var(--dock-primary);
+}
+
+.dock-active-indicator {
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background-color: var(--dock-primary);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .dock-container {
+        bottom: max(10px, env(safe-area-inset-bottom));
+        right: 10px;
+        gap: 6px;
+        padding: 4px 6px;
+        /* Maintain fixed height on mobile */
+        min-height: calc(var(--dock-icon-size) + 12px);
+        max-height: calc(var(--dock-icon-size) + 12px);
+    }
+
+    /* Reduce backdrop intensity for readability */
+    .dock-container {
+        background: var(--dock-background);
+        box-shadow: 0 6px 20px var(--dock-shadow);
+    }
+
+    /* Hide tooltips on touch devices */
+    .dock-tooltip {
+        display: none;
+    }
+}
+
+/* Handle dock positioning when settings are open on smaller screens */
+/* Note: Transform is now handled entirely by Framer Motion via shiftAmount state */
+/* CSS transform overrides have been removed to prevent conflicts with JavaScript animations */
+/* 
+ * Final refinements implemented:
+ * - useWindowSize hook for declarative window size tracking
+ * - Removed redundant onHoverEnd event (onMouseLeave is sufficient)
+ * - Optimized width calculation using flexbox instead of fit-content
+ * - Cleaner dependency management in useEffect
+ */

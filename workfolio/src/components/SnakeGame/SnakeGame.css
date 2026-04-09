@@ -1,0 +1,171 @@
+/* SnakeGame Component - Immersive fullscreen */
+
+.snake-game-container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Floating scores - top right corner */
+.game-scores {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  display: flex;
+  gap: 1.5rem;
+  z-index: 20;
+  font-family: 'Courier New', Monaco, monospace;
+}
+
+.game-score,
+.game-high-score {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: bold;
+}
+
+.game-score {
+  color: var(--terminal-primary, #4CAF50);
+  text-shadow: 0 0 8px var(--terminal-primary, #4CAF50);
+}
+
+.game-high-score {
+  color: var(--accent-color, #FFD700);
+  text-shadow: 0 0 8px var(--accent-color, #FFD700);
+}
+
+/* Game board - anchored to top-left, sized dynamically */
+.game-board {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: transparent;
+  overflow: hidden;
+}
+
+/* Snake segments */
+.snake-segment {
+  position: absolute;
+  background-color: var(--terminal-primary, #4CAF50);
+  box-shadow: 0 0 6px var(--terminal-primary, #4CAF50);
+  transition: transform 0.08s linear;
+}
+
+/* Food pellet */
+.food {
+  position: absolute;
+  background-color: var(--accent-color, #FFD700);
+  border-radius: 50%;
+  box-shadow: 0 0 10px var(--accent-color, #FFD700);
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.2); opacity: 1; }
+}
+
+/* Game over overlay */
+.game-over-overlay,
+.game-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(4px);
+  z-index: 30;
+}
+
+.game-over-content {
+  text-align: center;
+  font-family: 'Courier New', Monaco, monospace;
+}
+
+.game-over-content h2 {
+  color: var(--terminal-primary, #4CAF50);
+  font-size: 2.5rem;
+  margin: 0 0 1rem 0;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-shadow: 0 0 20px var(--terminal-primary, #4CAF50);
+}
+
+.game-over-content p {
+  color: #fff;
+  font-size: 1.25rem;
+  margin: 0 0 2rem 0;
+}
+
+.play-again-button {
+  background: var(--terminal-primary, #4CAF50);
+  color: #000;
+  border: none;
+  padding: 0.75rem 2rem;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.play-again-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 20px var(--terminal-primary, #4CAF50);
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .food { animation: none; }
+  .play-again-button { transition: none; }
+}
+
+/* Mobile touch controls */
+.touch-controls {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  z-index: 50;
+  opacity: 0.7;
+}
+
+.touch-controls:active {
+  opacity: 1;
+}
+
+.touch-middle-row {
+  display: flex;
+  gap: 3.5rem;
+}
+
+.touch-btn {
+  width: 3.5rem;
+  height: 3.5rem;
+  border: 2px solid var(--terminal-primary, #4CAF50);
+  background: rgba(0, 0, 0, 0.6);
+  color: var(--terminal-primary, #4CAF50);
+  font-size: 1.5rem;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.touch-btn:active {
+  background: var(--terminal-primary, #4CAF50);
+  color: #000;
+  box-shadow: 0 0 15px var(--terminal-primary, #4CAF50);
+}

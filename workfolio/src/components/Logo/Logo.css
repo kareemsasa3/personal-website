@@ -1,0 +1,33 @@
+@media (prefers-reduced-motion: no-preference) {
+    .logo {
+        animation: App-logo-spin infinite 20s linear;
+    }
+}
+
+@keyframes App-logo-spin {
+    from {
+        transform: rotate(0turn);
+    }
+
+    to {
+        transform: rotate(1turn);
+    }
+}
+
+.logo {
+    height: 15vmin;
+    position: absolute;
+    right: 0;
+    top: 0;
+    padding: var(--spacing-xl);
+}
+
+.logo-small {
+    height: 40px;
+    width: auto;
+    position: static;
+    padding: 0;
+    margin-right: var(--spacing-md);
+    display: inline-block;
+    vertical-align: middle;
+}

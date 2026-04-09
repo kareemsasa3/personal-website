@@ -1,0 +1,6 @@
+/* Desktop adjustments for header navigation */
+@media (min-width: 769px) {
+  .page-content {
+    margin-top: 100px;
+  }
+}

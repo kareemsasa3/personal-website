@@ -1,0 +1,78 @@
+.matrix-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.8;
+  transition: opacity 0.3s ease;
+}
+
+.matrix-background.animation-paused {
+  opacity: 0.3;
+}
+
+/* Ensure the background doesn't interfere with content */
+.matrix-background::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: inherit;
+  pointer-events: none;
+}
+
+/* Add subtle animation for the canvas itself */
+.matrix-background {
+  animation: subtle-float 20s ease-in-out infinite;
+}
+
+@keyframes subtle-float {
+  0%, 100% {
+    transform: translateZ(0) scale(1);
+  }
+
+  50% {
+    transform: translateZ(0) scale(1.001);
+  }
+}
+
+/* Add spacey glow effect - now theme-aware */
+.matrix-background::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  /* Theme-aware glow effect */
+  background: radial-gradient(circle at 20% 80%, var(--bg-glow-color) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, var(--bg-glow-color) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: -1;
+  animation: spaceGlow 15s ease-in-out infinite;
+  opacity: 0.1;
+  /* Much more subtle */
+}
+
+@keyframes spaceGlow {
+  0%, 100% {
+    opacity: 0.05;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.15;
+    transform: scale(1.1);
+  }
+}
+
+/* Ensure smooth rendering */
+.matrix-background {
+  image-rendering: pixelated;
+  /* Simplified to just the essential property */
+}

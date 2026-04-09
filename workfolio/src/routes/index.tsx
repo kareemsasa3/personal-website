@@ -1,0 +1,75 @@
+import React from "react";
+import { Terminal } from "../components/Terminal";
+import { lazyWithMinTime } from "../utils/lazyWithMinTime";
+
+// Helper for route object typing
+interface AppRoute {
+  path: string;
+  element: React.ReactElement;
+  index?: boolean;
+}
+
+// Lazy load all page components with a minimum display time for the loader
+const Home = lazyWithMinTime(() => import("../pages/Home"));
+const Projects = lazyWithMinTime(() => import("../pages/Projects"));
+const CaseStudies = lazyWithMinTime(() => import("../pages/CaseStudies"));
+const CaseStudyAether = lazyWithMinTime(
+  () => import("../pages/CaseStudyAether")
+);
+const CaseStudyErebus = lazyWithMinTime(
+  () => import("../pages/CaseStudyErebus")
+);
+const CaseStudyArachne = lazyWithMinTime(
+  () => import("../pages/CaseStudyArachne")
+);
+const Games = lazyWithMinTime(() => import("../pages/Games"));
+const SnakeGame = lazyWithMinTime(() => import("../pages/SnakeGame"));
+const SpiderSolitaire = lazyWithMinTime(() => import("../pages/SpiderSolitaire"));
+const Work = lazyWithMinTime(() => import("../pages/Work"));
+const Journey = lazyWithMinTime(() => import("../pages/Journey"));
+
+const NotFound = lazyWithMinTime(() => import("../pages/NotFound"));
+
+// Main routes that use the Layout component
+const routes: AppRoute[] = [
+  { path: "projects", element: React.createElement(Projects) },
+  { path: "case-studies", element: React.createElement(CaseStudies) },
+  {
+    path: "case-studies/aether",
+    element: React.createElement(CaseStudyAether),
+  },
+  {
+    path: "case-studies/erebus",
+    element: React.createElement(CaseStudyErebus),
+  },
+  {
+    path: "case-studies/arachne",
+    element: React.createElement(CaseStudyArachne),
+  },
+  { path: "games", element: React.createElement(Games) },
+  { path: "games/snake", element: React.createElement(SnakeGame) },
+  { path: "games/spider", element: React.createElement(SpiderSolitaire) },
+  { path: "work", element: React.createElement(Work) },
+  { path: "journey", element: React.createElement(Journey) },
+
+  {
+    path: "terminal",
+    element: React.createElement(Terminal, { isIntro: false }),
+  },
+];
+
+export const mainRoutes: AppRoute[] = routes;
+
+// Top-level routes that don't use the main Layout
+export const topLevelRoutes: AppRoute[] = [];
+
+// Default and catch-all routes
+export const defaultRoute: AppRoute = {
+  path: "/",
+  element: React.createElement(Home),
+  index: true,
+};
+export const notFoundRoute: AppRoute = {
+  path: "*",
+  element: React.createElement(NotFound),
+};

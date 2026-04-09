@@ -1,0 +1,388 @@
+/* CSS Reset for better cross-browser consistency */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* 
+  Default state for the entire app:
+  Use modern scrollbar-gutter to prevent layout shifts.
+*/
+html {
+  line-height: 1.15;
+  -webkit-text-size-adjust: 100%;
+  overflow-x: hidden;
+  /* Prevent horizontal scrollbars */
+  scroll-behavior: smooth;
+}
+
+/* Single scrolling container - the body element */
+body {
+  margin: 0;
+  font-family: var(--font-family-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--app-bg);
+  color: var(--app-text);
+  transition: background-color 0.4s ease, color 0.4s ease, filter 0.2s ease;
+  /* CORRECT: Let body scroll */
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-gutter: stable;
+  /* Ensure minimum height to prevent layout shifts */
+  min-height: 100vh;
+}
+
+/* Root container - no overflow rules to avoid nested scrolling */
+#root,
+#portal-root {
+  isolation: isolate;
+  visibility: hidden;
+  /* This is a modern CSS property that is a good practice for root elements.
+                         It creates a new stacking context without needing position/z-index,
+                         preventing any weird bleed-through from external browser extensions.
+                         This is the one exception to the "no stacking context" rule for the root. */
+}
+
+.app-ready #root,
+.app-ready #portal-root {
+  visibility: visible;
+}
+
+/* App layout - no overflow rules to avoid nested scrolling */
+.app-layout {
+  /* Remove overflow rules - let body handle scrolling */
+}
+
+/* Page content - let it grow naturally */
+.page-content {
+  /* Remove overflow-x: hidden - html element handles this globally */
+}
+
+main {
+  display: block;
+}
+
+h1 {
+  font-size: 2em;
+  margin: 0.67em 0;
+}
+
+hr {
+  box-sizing: content-box;
+  height: 0;
+  overflow: visible;
+}
+
+pre {
+  font-family: var(--font-family-mono);
+  font-size: 1em;
+}
+
+a {
+  background-color: transparent;
+}
+
+abbr[title] {
+  border-bottom: none;
+  text-decoration: underline dotted;
+}
+
+b,
+strong {
+  font-weight: bolder;
+}
+
+code,
+kbd,
+samp {
+  font-family: var(--font-family-mono);
+  font-size: 1em;
+}
+
+small {
+  font-size: 80%;
+}
+
+sub,
+sup {
+  font-size: 75%;
+  line-height: 0;
+  position: relative;
+  vertical-align: baseline;
+}
+
+sub {
+  bottom: -0.25em;
+}
+
+sup {
+  top: -0.5em;
+}
+
+img {
+  border-style: none;
+}
+
+button,
+input,
+optgroup,
+select,
+textarea {
+  font-family: inherit;
+  font-size: 100%;
+  line-height: 1.15;
+  margin: 0;
+}
+
+button,
+input {
+  overflow: visible;
+}
+
+button,
+select {
+  text-transform: none;
+}
+
+button,
+[type="button"],
+[type="reset"],
+[type="submit"] {
+  -webkit-appearance: button;
+}
+
+button::-moz-focus-inner,
+[type="button"]::-moz-focus-inner,
+[type="reset"]::-moz-focus-inner,
+[type="submit"]::-moz-focus-inner {
+  border-style: none;
+  padding: 0;
+}
+
+button:-moz-focusring,
+[type="button"]:-moz-focusring,
+[type="reset"]:-moz-focusring,
+[type="submit"]:-moz-focusring {
+  outline: 1px dotted ButtonText;
+}
+
+fieldset {
+  padding: 0.35em 0.75em 0.625em;
+}
+
+legend {
+  box-sizing: border-box;
+  color: inherit;
+  display: table;
+  max-width: 100%;
+  padding: 0;
+  white-space: normal;
+}
+
+progress {
+  vertical-align: baseline;
+}
+
+textarea {
+  overflow: auto;
+}
+
+[type="checkbox"],
+[type="radio"] {
+  box-sizing: border-box;
+  padding: 0;
+}
+
+[type="number"]::-webkit-inner-spin-button,
+[type="number"]::-webkit-outer-spin-button {
+  height: auto;
+}
+
+[type="search"] {
+  -webkit-appearance: textfield;
+  outline-offset: -2px;
+}
+
+[type="search"]::-webkit-search-decoration {
+  -webkit-appearance: none;
+}
+
+::-webkit-file-upload-button {
+  -webkit-appearance: button;
+  font: inherit;
+}
+
+details {
+  display: block;
+}
+
+summary {
+  display: list-item;
+}
+
+template {
+  display: none;
+}
+
+[hidden] {
+  display: none;
+}
+
+/* Custom Properties */
+:root {
+  --app-bg: #1a1a1a;
+  --app-bg-secondary: #2d2d2d;
+  --app-surface: #2d2d2d;
+  --app-surface-elevated: #404040;
+  --app-overlay: rgba(26, 26, 26, 0.88);
+  --app-text: #f8f9fa;
+  --app-text-secondary: #adb5bd;
+  --app-text-muted: #6c757d;
+  --app-border: #495057;
+  --app-shadow: rgba(0, 0, 0, 0.3);
+  --brand-primary: #4CAF50;
+  --brand-primary-soft: #81C784;
+  --brand-primary-medium: #66BB6A;
+  --brand-primary-dark: #388E3C;
+  --bg-canvas-fill: #0f0f0f;
+  --bg-canvas-glyph: 0, 255, 0;
+  --bg-glow-color: rgba(108, 117, 125, 0.10);
+  --bg-grid-major: rgba(129, 199, 132, 0.08);
+  --bg-grid-minor: rgba(129, 199, 132, 0.03);
+  --bg-topology: rgba(129, 199, 132, 0.12);
+  --bg-signal: rgba(129, 199, 132, 0.16);
+  --bg-center-lift: rgba(255, 255, 255, 0.03);
+  --bg-vignette: rgba(0, 0, 0, 0.18);
+
+  /* Color Palette */
+  --primary-color: var(--brand-primary);
+  --primary-color-light: var(--brand-primary-soft);
+  --primary-color-medium: var(--brand-primary-medium);
+  --overlay-color-light: rgba(0, 0, 0, 0.8);
+  --overlay-color-medium: rgba(0, 0, 0, 0.9);
+  --primary-color-dark: var(--brand-primary-dark);
+  --accent-color: #FFD700;
+
+  /* Theme colors - kept as aliases for compatibility */
+  --background-color: var(--app-bg);
+  --background-color-secondary: var(--app-bg-secondary);
+  --background-color-tertiary: var(--app-surface-elevated);
+  --background-color-transparent: rgba(26, 26, 26, 0.7);
+  --background-color-overlay: rgba(26, 26, 26, 0.95);
+  --card-background: var(--app-surface);
+  --panel-bg-color: var(--app-surface);
+  --text-color: var(--app-text);
+  --text-color-secondary: var(--app-text-secondary);
+  --text-secondary: var(--text-color-secondary);
+  --text-color-muted: var(--app-text-muted);
+  --text-muted-color: var(--app-text-muted);
+  --border-color: var(--app-border);
+  --shadow-color: var(--app-shadow);
+
+  /* Typography - Updated to use system UI fonts for better performance and readability */
+  --font-family-primary: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
+  --font-family-mono: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+
+  /* Spacing */
+  --spacing-xs: 0.5rem;
+  --spacing-sm: 1rem;
+  --spacing-md: 1.5rem;
+  --spacing-lg: 2rem;
+  --spacing-xl: 3rem;
+
+  /* Border Radius */
+  --border-radius-sm: 4px;
+  --border-radius-md: 8px;
+  --border-radius-lg: 15px;
+
+  /* Transitions */
+  --transition-fast: 0.1s ease-in-out;
+  --transition-normal: 0.3s ease;
+  --transition-slow: 0.5s ease-out;
+  --interaction-transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+
+  /* Z-index layers */
+  --z-index-background: -1;
+  --z-index-content: 1;
+  --z-index-navigation: 1001;
+  --z-index-overlay: 1000;
+
+  /* Layout dimensions */
+  --header-height: 100px;
+  --footer-height: 50px;
+
+  /* Dock Settings - Single source of truth for dimensions */
+  --dock-height: 80px;
+  --dock-height-mobile: 60px;
+  --dock-icon-size: 60px;
+  --dock-spacing: 4px;
+  --dock-padding: 8px 16px;
+  --dock-border-radius: 20px;
+
+  /* Page Layout */
+  --page-padding: var(--spacing-lg);
+  --page-margin-top: 120px;
+  --page-margin-top-mobile: 150px;
+  --header-padding-top: 75px;
+  --header-padding-left: 100px;
+  --subheader-padding-top: 120px;
+  --subheader-padding-left: 100px;
+  --mobile-header-padding-top: 60px;
+  --mobile-subheader-padding-top: 100px;
+  --mobile-padding-left: var(--spacing-lg);
+}
+
+code {
+  font-family: var(--font-family-mono);
+}
+
+/* Apply transitions only to interactive elements for better performance */
+a,
+button,
+input,
+textarea,
+select {
+  transition: var(--interaction-transition);
+}
+
+/* Focus states for accessibility - scoped to interactive elements for better performance */
+:where(a, button, input, textarea, select, [tabindex]):focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+/* Respect user's reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  html:focus-within {
+    scroll-behavior: auto;
+  }
+
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* CORRECT: .page-content is now purely a padding/content container */
+.page-content {
+  padding: var(--page-padding);
+  width: 100%;
+  box-sizing: border-box;
+  /* NO height, min-height, or margin rules here! It inherits its size. */
+}
+
+.page-content.game-page {
+  margin-top: 60px;
+  /* Remove hardcoded height - let layout handle this */
+}
+
+@media (max-width: 768px) {
+  .page-content {
+    padding: var(--spacing-sm);
+    /* NO height or min-height rules here! */
+  }
+}

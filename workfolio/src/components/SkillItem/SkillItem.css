@@ -1,0 +1,125 @@
+.skill-item {
+    background: var(--card-background);
+    border: 2px solid var(--primary-color);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-md);
+    text-align: center;
+    font-weight: 600;
+    color: var(--text-color);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-xs);
+    min-height: 70px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 2px 8px var(--shadow-color);
+
+    /* Animation State */
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease-out, transform 0.5s ease-out, box-shadow 0.3s ease, border-color 0.3s ease, background-color 0.3s ease;
+    transition-delay: 0s;
+    /* Will be overridden by inline style */
+}
+
+.skill-item.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.skill-item.is-visible:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px var(--shadow-color), 0 0 20px rgba(0, 255, 0, 0.3);
+    will-change: transform;
+    background: transparent;
+    border-color: var(--primary-color-dark);
+}
+
+.skill-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(0, 255, 0, 0.1), transparent);
+    transition: left 0.5s ease;
+    z-index: -1;
+}
+
+.skill-item:hover::before {
+    left: 100%;
+}
+
+.skill-icon {
+    font-size: 1.5rem;
+    margin-bottom: var(--spacing-xs);
+    opacity: 0.9;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    color: var(--primary-color);
+    text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+}
+
+.skill-item:hover .skill-icon {
+    transform: scale(1.2);
+    opacity: 1;
+    text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+}
+
+/* Loading animation for skills */
+.skill-item.loading {
+    animation: skeleton-loading 1.5s ease-in-out infinite;
+    background: linear-gradient(90deg,
+            var(--primary-color-light) 25%,
+            var(--primary-color-medium) 50%,
+            var(--primary-color-light) 75%);
+    background-size: 200% 100%;
+}
+
+@keyframes skeleton-loading {
+    0% {
+        background-position: 200% 0;
+    }
+
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .skill-item {
+        min-height: 60px;
+        padding: var(--spacing-sm);
+    }
+
+    .skill-icon {
+        font-size: 1.25rem;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .skill-item {
+        border: 2px solid var(--primary-color);
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+
+    .skill-item,
+    .skill-icon {
+        transition: none;
+    }
+
+    .skill-item.is-visible:hover {
+        transform: none;
+    }
+
+    .skill-item {
+        opacity: 1;
+        transform: none;
+    }
+}

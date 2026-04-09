@@ -1,0 +1,74 @@
+.typewriter-text {
+    display: inline-block;
+    position: relative;
+    transition: opacity 0.3s ease;
+}
+
+.typewriter-text::after {
+    content: '|';
+    animation: blink 1s infinite;
+    color: var(--primary-color, #007bff);
+    font-weight: bold;
+    margin-left: 2px;
+}
+
+.typewriter-text.error {
+    opacity: 0.8;
+    color: #ff6b6b;
+}
+
+.typewriter-text.error::after {
+    display: none;
+}
+
+.cursor {
+    animation: blink 1s infinite;
+    color: var(--primary-color);
+    font-weight: bold;
+    margin-left: 2px;
+}
+
+@keyframes blink {
+    0%, 50% {
+        opacity: 1;
+    }
+
+    51%, 100% {
+        opacity: 0;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .typewriter-text::after {
+        animation: none;
+        opacity: 0.5;
+    }
+
+    .cursor {
+        animation: none;
+        opacity: 0.5;
+    }
+
+    .typewriter-text {
+        transition: none;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .typewriter-text::after {
+        color: var(--accent-color);
+        font-weight: 900;
+    }
+
+    .cursor {
+        color: var(--accent-color);
+        font-weight: 900;
+    }
+
+    .typewriter-text.error {
+        color: #ff4444;
+        font-weight: bold;
+    }
+}

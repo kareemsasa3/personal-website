@@ -1,0 +1,194 @@
+/* TerminalView.css - Styles for the terminal content component */
+
+.terminal-body {
+    background: var(--terminal-window-bg);
+    color: var(--terminal-text-primary);
+    padding: 16px;
+    height: calc(100% - 40px);
+    /* Subtract header height */
+    overflow-y: auto;
+    overflow-x: hidden;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+/* Scrollbar styles for terminal body */
+.terminal-body::-webkit-scrollbar {
+    width: 8px;
+}
+
+.terminal-body::-webkit-scrollbar-track {
+    background: var(--terminal-header-bg);
+    border-radius: 4px;
+}
+
+.terminal-body::-webkit-scrollbar-thumb {
+    background: var(--terminal-text-primary);
+    border-radius: 4px;
+    transition: background 0.3s ease;
+}
+
+.terminal-body::-webkit-scrollbar-thumb:hover {
+    background: var(--terminal-text-muted);
+}
+
+.terminal-message {
+    margin-bottom: 16px;
+    color: var(--terminal-text-primary);
+}
+
+.command-history {
+    margin-bottom: 8px;
+}
+
+.history-line {
+    margin-bottom: 4px;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.history-line.error {
+    color: var(--terminal-text-error);
+}
+
+.history-line.success {
+    color: var(--terminal-text-success);
+}
+
+.history-line.info {
+    color: var(--terminal-text-info);
+}
+
+.grep-highlight {
+    background-color: var(--terminal-text-error);
+    color: var(--terminal-text-primary);
+    padding: 1px 2px;
+    border-radius: 2px;
+}
+
+.command-prompt {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.prompt-symbol {
+    color: var(--terminal-text-primary);
+    white-space: nowrap;
+}
+
+.command-input {
+    background: transparent;
+    border: none !important;
+    color: var(--terminal-text-primary);
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    outline: none;
+    flex: 1;
+    min-width: 200px;
+}
+
+.command-input::placeholder {
+    color: var(--terminal-text-muted);
+}
+
+.cursor {
+    color: var(--terminal-text-primary);
+    animation: blink 1s infinite;
+}
+
+@keyframes blink {
+    0%, 50% {
+        opacity: 1;
+    }
+
+    51%, 100% {
+        opacity: 0;
+    }
+}
+
+/* Reverse search styles */
+.reverse-search-prompt {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+    width: 100%;
+}
+
+.reverse-search-indicator {
+    color: var(--terminal-text-primary);
+    white-space: nowrap;
+}
+
+.reverse-search-command {
+    color: var(--terminal-text-primary);
+    background: var(--terminal-selection-bg);
+    padding: 1px 4px;
+    border-radius: 2px;
+    white-space: nowrap;
+}
+
+.reverse-search-input {
+    background: transparent;
+    border: none;
+    color: var(--terminal-text-primary);
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    outline: none;
+    flex: 1;
+    min-width: 150px;
+}
+
+.reverse-search-info {
+    color: var(--terminal-text-muted);
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+/* Autocomplete suggestions styles */
+.autocomplete-suggestions {
+    margin-top: 8px;
+    border: 1px solid var(--terminal-text-muted);
+    border-radius: 4px;
+    background: var(--terminal-window-bg);
+    max-width: 100%;
+}
+
+.suggestions-header {
+    background: var(--terminal-header-bg);
+    color: var(--terminal-text-primary);
+    padding: 4px 8px;
+    font-size: 12px;
+    border-bottom: 1px solid var(--terminal-text-muted);
+    font-weight: bold;
+}
+
+.suggestions-list {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.suggestion-item {
+    padding: 4px 8px;
+    color: var(--terminal-text-primary);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.suggestion-item:last-child {
+    border-bottom: none;
+}
+
+.suggestion-item:hover {
+    background: var(--terminal-selection-bg);
+}
+
+.suggestion-item.selected {
+    background: var(--terminal-selection-bg);
+    color: var(--terminal-text-primary);
+    font-weight: bold;
+}

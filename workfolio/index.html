@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+
+    <title>Kareem Sasa — Systems Engineer</title>
+    <meta name="description" content="Systems engineer and consultant building production software across backend, infrastructure, and product experience." />
+
+    <link rel="icon" type="image/svg+xml" href="/src/assets/logo.svg" />
+    <link rel="canonical" href="https://kareemsasa.dev/" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://kareemsasa.dev/" />
+    <meta property="og:title" content="Kareem Sasa — Systems Engineer" />
+    <meta property="og:description" content="Systems engineer and consultant building production software across backend, infrastructure, and product experience." />
+    <meta property="og:image" content="https://kareemsasa.dev/src/assets/logo.svg" />
+    <meta property="og:image:alt" content="Kareem Sasa logo" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Kareem Sasa — Systems Engineer" />
+    <meta name="twitter:description" content="Systems engineer and consultant building production software across backend, infrastructure, and product experience." />
+    <meta name="twitter:image" content="https://kareemsasa.dev/src/assets/logo.svg" />
+    <meta name="twitter:image:alt" content="Kareem Sasa logo" />
+    <script>
+      (function () {
+        var STORAGE_KEY = "theme";
+        var root = document.documentElement;
+
+        function resolveTheme() {
+          try {
+            var saved = localStorage.getItem(STORAGE_KEY);
+            if (saved === "light" || saved === "dark") {
+              return saved;
+            }
+          } catch (_) {}
+
+          try {
+            if (
+              window.matchMedia &&
+              window.matchMedia("(prefers-color-scheme: light)").matches
+            ) {
+              return "light";
+            }
+          } catch (_) {}
+
+          return "dark";
+        }
+
+        function applyTheme(theme) {
+          var isLight = theme === "light";
+
+          root.dataset.theme = theme;
+          root.style.colorScheme = theme;
+          root.style.setProperty("--app-bg", isLight ? "#f5f5f5" : "#1a1a1a");
+          root.style.setProperty(
+            "--app-bg-secondary",
+            isLight ? "#fafafa" : "#2d2d2d"
+          );
+          root.style.setProperty(
+            "--app-surface",
+            isLight ? "#ffffff" : "#2d2d2d"
+          );
+          root.style.setProperty(
+            "--app-overlay",
+            isLight ? "rgba(245, 245, 245, 0.88)" : "rgba(26, 26, 26, 0.88)"
+          );
+          root.style.setProperty("--app-text", isLight ? "#2c2c2c" : "#f8f9fa");
+          root.style.setProperty(
+            "--app-text-muted",
+            isLight ? "#6a6a6a" : "#6c757d"
+          );
+          root.style.setProperty(
+            "--app-border",
+            isLight ? "#d0d0d0" : "#495057"
+          );
+          root.style.setProperty(
+            "--brand-primary",
+            isLight ? "#007a00" : "#4CAF50"
+          );
+          root.style.setProperty(
+            "--brand-primary-soft",
+            isLight ? "#e6f3e6" : "#81C784"
+          );
+          root.style.setProperty(
+            "--bg-canvas-fill",
+            isLight ? "#f5f5f5" : "#0f0f0f"
+          );
+          root.style.setProperty(
+            "--bg-canvas-glyph",
+            isLight ? "44, 44, 44" : "0, 255, 0"
+          );
+          root.style.setProperty(
+            "--bg-glow-color",
+            isLight ? "rgba(106, 106, 106, 0.10)" : "rgba(108, 117, 125, 0.10)"
+          );
+
+          root.style.setProperty("--background-color", "var(--app-bg)");
+          root.style.setProperty(
+            "--background-color-secondary",
+            "var(--app-bg-secondary)"
+          );
+          root.style.setProperty("--card-background", "var(--app-surface)");
+          root.style.setProperty("--panel-bg-color", "var(--app-surface)");
+          root.style.setProperty("--text-color", "var(--app-text)");
+          root.style.setProperty("--text-color-muted", "var(--app-text-muted)");
+          root.style.setProperty("--text-muted-color", "var(--app-text-muted)");
+          root.style.setProperty("--border-color", "var(--app-border)");
+          root.style.setProperty("--primary-color", "var(--brand-primary)");
+          root.style.setProperty(
+            "--primary-color-light",
+            "var(--brand-primary-soft)"
+          );
+        }
+
+        applyTheme(resolveTheme());
+      })();
+    </script>
+    <style>
+      .route-fallback,
+      .homepage-fallback,
+      .homepage-fallback__splash {
+        box-sizing: border-box;
+      }
+
+      .route-fallback,
+      .homepage-fallback {
+        position: fixed;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        padding: 2rem;
+        overflow: hidden;
+        isolation: isolate;
+        color: var(--app-text, #f8f9fa);
+        background:
+          radial-gradient(circle at top, color-mix(in srgb, var(--brand-primary-soft, #81c784) 14%, transparent), transparent 42%),
+          linear-gradient(180deg, var(--app-bg-secondary, #2d2d2d) 0%, var(--app-bg, #111111) 100%);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      }
+
+      .homepage-fallback::before,
+      .homepage-fallback::after {
+        content: "";
+        position: absolute;
+        inset: -12%;
+        pointer-events: none;
+      }
+
+      .homepage-fallback::before {
+        z-index: 0;
+        background:
+          radial-gradient(circle at 18% 20%, color-mix(in srgb, var(--brand-primary-soft, #81c784) 18%, transparent), transparent 30%),
+          radial-gradient(circle at 82% 28%, color-mix(in srgb, var(--brand-primary, #4caf50) 12%, transparent), transparent 26%),
+          radial-gradient(circle at 50% 82%, color-mix(in srgb, var(--brand-primary-soft, #81c784) 10%, transparent), transparent 24%);
+        opacity: 0.75;
+        animation: fallback-glow-drift 16s ease-in-out infinite alternate;
+        transform: translate3d(0, 0, 0);
+      }
+
+      .homepage-fallback::after {
+        z-index: 1;
+        inset: 0;
+        background:
+          repeating-linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.02) 0,
+            rgba(255, 255, 255, 0.02) 1px,
+            transparent 1px,
+            transparent 8px
+          ),
+          linear-gradient(
+            90deg,
+            transparent 0%,
+            color-mix(in srgb, var(--brand-primary-soft, #81c784) 5%, transparent) 50%,
+            transparent 100%
+          );
+        opacity: 0.22;
+        animation: fallback-scan-shift 18s linear infinite;
+      }
+
+      .homepage-fallback__splash {
+        position: relative;
+        z-index: 2;
+        width: min(100%, 28rem);
+        min-height: 12rem;
+        padding: 2rem 1.75rem;
+        border: 1px solid color-mix(in srgb, var(--app-border, #495057) 70%, transparent);
+        border-radius: 20px;
+        background: color-mix(in srgb, var(--app-surface, #2d2d2d) 84%, transparent);
+        box-shadow: 0 18px 60px rgba(0, 0, 0, 0.18);
+        text-align: center;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+      }
+
+      .homepage-fallback__eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        margin: 0 0 0.85rem;
+        font-size: 0.75rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        font-weight: 600;
+        color: var(--brand-primary, #4caf50);
+        opacity: 0.9;
+      }
+
+      .homepage-fallback__eyebrow::before {
+        content: ">";
+        color: var(--brand-primary, #4caf50);
+        opacity: 0.85;
+      }
+
+      .homepage-fallback__title {
+        margin: 0;
+        font-size: clamp(2.25rem, 6vw, 3.75rem);
+        line-height: 1.02;
+        letter-spacing: -0.02em;
+        font-weight: 700;
+      }
+
+      .homepage-fallback__divider {
+        width: 72px;
+        height: 2px;
+        margin: 0.9rem auto 0;
+        background: linear-gradient(
+          to right,
+          var(--brand-primary, #4caf50),
+          transparent
+        );
+      }
+
+      [data-theme="light"] .homepage-fallback::before {
+        opacity: 0.28;
+        animation: none;
+      }
+
+      [data-theme="light"] .homepage-fallback::after {
+        opacity: 0.08;
+        animation: none;
+        background:
+          repeating-linear-gradient(
+            180deg,
+            rgba(0, 0, 0, 0.015) 0,
+            rgba(0, 0, 0, 0.015) 1px,
+            transparent 1px,
+            transparent 10px
+          );
+      }
+
+      @keyframes fallback-glow-drift {
+        0% {
+          transform: translate3d(-1%, -1%, 0) scale(1);
+        }
+
+        50% {
+          transform: translate3d(1.5%, 1%, 0) scale(1.04);
+        }
+
+        100% {
+          transform: translate3d(-0.5%, 2%, 0) scale(1.02);
+        }
+      }
+
+      @keyframes fallback-scan-shift {
+        0% {
+          background-position: 0 0, 0 0;
+        }
+
+        100% {
+          background-position: 0 24px, 24px 0;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .homepage-fallback::before,
+        .homepage-fallback::after {
+          animation: none;
+        }
+      }
+
+      .app-ready .route-fallback,
+      .app-ready .homepage-fallback {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="route-fallback homepage-fallback" aria-label="Loading site">
+      <div class="homepage-fallback__splash">
+        <p class="homepage-fallback__eyebrow">Systems Engineer</p>
+        <h1 class="homepage-fallback__title">Kareem Sasa</h1>
+        <div class="homepage-fallback__divider" aria-hidden="true"></div>
+      </div>
+    </main>
+    <div id="root"></div>
+    <div id="portal-root"></div>
+    <script type="module" src="/src/index.tsx"></script>
+  </body>
+</html> 
