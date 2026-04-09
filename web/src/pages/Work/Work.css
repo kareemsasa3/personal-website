@@ -45,6 +45,15 @@
     animation: titleUnderline 2s ease-in-out infinite alternate;
 }
 
+.work-subtitle {
+    max-width: 620px;
+    margin: 1.5rem auto 0;
+    color: var(--text-secondary);
+    font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
+    font-size: 1rem;
+    line-height: 1.7;
+}
+
 @keyframes titleUnderline {
     0% {
         width: 60px;
@@ -173,6 +182,10 @@
     .work-header {
         padding: 1.5rem 0;
         margin: 0 0 2rem 0;
+    }
+
+    .work-subtitle {
+        font-size: 0.95rem;
     }
 
     .work-timeline-container {

@@ -49,6 +49,7 @@ const routes: AppRoute[] = [
   { path: "games", element: React.createElement(Games) },
   { path: "games/snake", element: React.createElement(SnakeGame) },
   { path: "games/spider", element: React.createElement(SpiderSolitaire) },
+  { path: "experience", element: React.createElement(Work) },
   { path: "work", element: React.createElement(Work) },
   { path: "journey", element: React.createElement(Journey) },
 

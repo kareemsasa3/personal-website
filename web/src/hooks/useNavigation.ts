@@ -15,8 +15,15 @@ export const useNavigation = () => {
     () => navigateTo("/projects"),
     [navigateTo]
   );
+
+  const navigateToExperience = useCallback(
+    () => navigateTo("/experience"),
+    [navigateTo]
+  );
+
   return {
     navigateTo,
     navigateToProjects,
+    navigateToExperience,
   };
 };

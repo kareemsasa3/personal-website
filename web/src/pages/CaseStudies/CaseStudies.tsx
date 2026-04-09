@@ -23,15 +23,14 @@ const CaseStudies = () => {
     <div className="page-content case-studies-page">
       <div className="case-study-container">
         <header id="case-studies-overview" className="case-studies-header">
-          <p className="case-study-eyebrow">Engineering Narrative</p>
+          <p className="case-study-eyebrow">System Case Studies</p>
           <h1>
             <TypeWriterText text="Case Studies" speed={60} />
           </h1>
           <p>
-            These pages document system shape, operating constraints, and the
-            design decisions behind the strongest projects in the portfolio.
-            They are meant to explain how the software works, not just list the
-            stack.
+            These studies are the narrative layer for the flagship systems,
+            covering the problem, constraints, architecture, key decisions, and
+            trade-offs behind each one.
           </p>
         </header>
 

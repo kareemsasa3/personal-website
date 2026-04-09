@@ -57,7 +57,7 @@ const Journey = () => {
         </h1>
         <p className="journey-subtitle">
           <TypeWriterText
-            text="Context behind the work: a timeline of the experiences, decisions, and turning points that shaped how I build software."
+            text="A narrative of how my work evolved and what I focused on over time."
             speed={50}
             delay={1000}
           />

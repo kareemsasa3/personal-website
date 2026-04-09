@@ -13,7 +13,8 @@ import {
 } from "./sections";
 
 const Home = () => {
-  const { navigateTo, navigateToProjects } = useNavigation();
+  const { navigateTo, navigateToProjects, navigateToExperience } =
+    useNavigation();
   const { setSections } = useLayoutContext();
 
   // Define the sections for this page
@@ -79,7 +80,7 @@ const Home = () => {
 
   const handleNavigateToWork = () => {
     setLoadingStates((prev) => ({ ...prev, work: true }));
-    navigateTo("/work");
+    navigateToExperience();
   };
 
   const handleNavigateToCaseStudies = () => {
@@ -119,6 +120,7 @@ const Home = () => {
         >
           <FeaturedProjectsSection
             onNavigateToCaseStudies={handleNavigateToCaseStudies}
+            onNavigateToProjects={handleNavigateToProjects}
             isNavigating={loadingStates.caseStudies}
           />
         </motion.div>

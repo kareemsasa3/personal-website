@@ -283,6 +283,13 @@ export const caseStudyBySlug = caseStudiesData.reduce<
   return accumulator;
 }, {});
 
+export const caseStudyByProjectId = caseStudiesData.reduce<
+  Record<string, CaseStudy>
+>((accumulator, caseStudy) => {
+  accumulator[caseStudy.projectId] = caseStudy;
+  return accumulator;
+}, {});
+
 export const caseStudyCards: CaseStudyCard[] = caseStudiesData.flatMap(
   (caseStudy) => {
   const project = projectsData.find(

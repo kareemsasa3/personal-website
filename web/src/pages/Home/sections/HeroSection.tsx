@@ -103,7 +103,7 @@ export const HeroSection = forwardRef(
               disabled={isNavigatingToWork}
               aria-label="View my professional work experience"
             >
-              {isNavigatingToWork ? "Loading..." : "View Work"}
+              {isNavigatingToWork ? "Loading..." : "View Experience"}
             </button>
           </motion.div>
         </div>

@@ -1,38 +1,18 @@
 /*
 ========================================
-PROJECTS PAGE: TERMINAL MATRIX THEME
+PROJECTS PAGE: PORTFOLIO-FIRST LAYOUT
 ----------------------------------------
-A theme for the projects page, styled to
-resemble a modern terminal interface.
+Projects route styling that keeps the
+terminal brand as an accent, not the
+primary comprehension layer.
 ========================================
-
-TABLE OF CONTENTS
-----------------------------------------
-1.  THEME & GLOBAL VARIABLES
-2.  GLOBAL HELPERS & BASE STYLES
-3.  CORE LAYOUT & HEADER
-4.  PAGE COMPONENTS
-    - Controls Section
-    - Statistics Section
-    - Projects Content Area
-    - Tech Stack Modal
-5.  TERMINAL-SPECIFIC ELEMENTS
-6.  KEYFRAMES & ANIMATIONS
-7.  RESPONSIVE DESIGN (MEDIA QUERIES)
-
 */
-
-
-/* ========================================
-   1. THEME & GLOBAL VARIABLES
-   ======================================== */
 
 :root {
     --terminal-primary: #4CAF50;
     --terminal-font: 'Courier New', 'Monaco', 'Menlo', monospace;
 }
 
-/* Light theme overrides */
 [data-theme="light"] {
     --terminal-primary: #007a00;
     --terminal-text-light: #2c2c2c;
@@ -42,12 +22,6 @@ TABLE OF CONTENTS
     --terminal-header-bg: #f5f5f5;
 }
 
-
-/* ========================================
-     2. GLOBAL HELPERS & BASE STYLES
-     ======================================== */
-
-/* Visually hidden but accessible to screen readers */
 .visually-hidden {
     position: absolute;
     width: 1px;
@@ -59,11 +33,6 @@ TABLE OF CONTENTS
     clip: rect(0 0 0 0);
 }
 
-
-/* ========================================
-     3. CORE LAYOUT & HEADER
-     ======================================== */
-
 .projects-container {
     width: 100%;
     max-width: 1400px;
@@ -71,22 +40,30 @@ TABLE OF CONTENTS
     font-family: var(--terminal-font);
 }
 
-.projects-header {
-    margin: 0 0 3rem 0;
-    padding: 2rem 0;
+.projects-hero {
+    max-width: 920px;
+    margin: 0 auto 4rem;
+    padding: 2rem 0 1rem;
     text-align: center;
+}
+
+.projects-eyebrow {
+    margin: 0 0 0.9rem;
+    color: var(--terminal-primary, #4CAF50);
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
 }
 
 .projects-title {
     position: relative;
     margin: 0;
-    padding-left: 1rem;
-    /* For cursor alignment */
     color: var(--text-color);
     font-family: var(--terminal-font);
-    font-size: 2.5rem;
+    font-size: clamp(2.25rem, 5vw, 3.75rem);
     font-weight: 700;
-    white-space: nowrap;
+    line-height: 1.15;
     text-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
 }
 
@@ -103,19 +80,241 @@ TABLE OF CONTENTS
     animation: titleUnderline 2s ease-in-out infinite alternate;
 }
 
+.projects-subtitle {
+    max-width: 760px;
+    margin: 1.5rem auto 0;
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    line-height: 1.7;
+}
 
-/* ========================================
-     4. PAGE COMPONENTS
-     ======================================== */
+.projects-hero-actions {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 2rem;
+}
 
-/* --- Controls Section --- */
+.projects-cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    padding: 0.85rem 1.5rem;
+    border-radius: 10px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+}
+
+.projects-cta:hover {
+    transform: translateY(-2px);
+}
+
+.projects-cta-primary {
+    background: var(--primary-color-dark);
+    color: #fff;
+    box-shadow: 0 8px 24px rgba(175, 42, 42, 0.28);
+}
+
+.projects-cta-secondary {
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    background: color-mix(in srgb, var(--app-surface) 88%, transparent);
+}
+
+.projects-cta-secondary:hover {
+    border-color: var(--terminal-primary, #4CAF50);
+    box-shadow: 0 0 18px rgba(0, 255, 0, 0.18);
+}
+
+.flagship-section,
+.browse-section {
+    margin-bottom: 4rem;
+}
+
+.projects-section-heading {
+    max-width: 760px;
+    margin: 0 auto 2rem;
+    text-align: center;
+}
+
+.projects-section-title {
+    margin: 0;
+    color: var(--text-color);
+    font-size: clamp(1.8rem, 3vw, 2.5rem);
+    font-weight: 700;
+    text-shadow: 0 0 18px rgba(0, 255, 0, 0.2);
+}
+
+.projects-section-subtitle {
+    margin: 0.9rem auto 0;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    font-size: 1rem;
+}
+
+.flagship-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.flagship-card {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1.75rem;
+    background: color-mix(in srgb, var(--card-background) 92%, transparent);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    box-shadow: 0 10px 28px var(--shadow-color);
+    transition: transform 0.28s ease, border-color 0.28s ease, box-shadow 0.28s ease, background 0.28s ease;
+}
+
+.flagship-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--terminal-primary, #4CAF50);
+    box-shadow: 0 18px 38px var(--shadow-color), 0 0 22px rgba(0, 255, 0, 0.16);
+}
+
+.flagship-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.flagship-kicker {
+    margin: 0 0 0.5rem;
+    color: var(--terminal-primary, #4CAF50);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.flagship-title {
+    margin: 0;
+    color: var(--text-color);
+    font-size: 1.45rem;
+    line-height: 1.25;
+}
+
+.flagship-badges {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+.flagship-summary {
+    margin: 0;
+    color: var(--text-secondary);
+    line-height: 1.65;
+}
+
+.flagship-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.flagship-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: auto;
+}
+
+.flagship-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+    padding: 0.7rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    color: var(--text-color);
+    font-weight: 700;
+    text-decoration: none;
+    transition: background 0.25s ease, border-color 0.25s ease, transform 0.25s ease, color 0.25s ease;
+}
+
+.flagship-link:hover {
+    transform: translateY(-1px);
+    border-color: var(--terminal-primary, #4CAF50);
+    color: var(--terminal-primary, #4CAF50);
+}
+
+.flagship-link-primary {
+    background: color-mix(in srgb, var(--terminal-primary, #4CAF50) 16%, transparent);
+    border-color: color-mix(in srgb, var(--terminal-primary, #4CAF50) 58%, transparent);
+    color: var(--terminal-primary, #4CAF50);
+}
+
+.complexity-badge,
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: white;
+}
+
+.complexity-badge.expert {
+    background: #ff6b6b;
+}
+
+.complexity-badge.advanced {
+    background: #4ecdc4;
+}
+
+.complexity-badge.intermediate {
+    background: #45b7d1;
+}
+
+.complexity-badge.beginner {
+    background: #96ceb4;
+}
+
+.status-badge.live {
+    background: #51cf66;
+}
+
+.status-badge.development {
+    background: #ffd43b;
+    color: #333;
+}
+
+.status-badge.completed {
+    background: #74c0fc;
+}
+
+.tech-tag {
+    padding: 0.25rem 0.75rem;
+    background: var(--primary-color-light);
+    border: 1px solid color-mix(in srgb, var(--terminal-primary, #4CAF50) 55%, transparent);
+    border-radius: 15px;
+    color: var(--terminal-primary, #4CAF50);
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
 .projects-controls {
     display: flex;
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
+    gap: 1.5rem;
     margin-bottom: 2rem;
     padding: 1.5rem;
+    border: 1px solid color-mix(in srgb, var(--border-color) 80%, transparent);
+    border-radius: 14px;
+    background: color-mix(in srgb, var(--card-background) 90%, transparent);
 }
 
 .filters-section {
@@ -138,7 +337,6 @@ TABLE OF CONTENTS
     gap: 0.5rem;
 }
 
-/* --- Statistics Section --- */
 .projects-stats {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -147,13 +345,11 @@ TABLE OF CONTENTS
 }
 
 .stat-card {
-    /* Layout & Box Model */
     position: relative;
     padding: 1.5rem;
     border: 2px solid var(--border-color);
-    border-radius: 8px;
+    border-radius: 12px;
     overflow: hidden;
-    /* Typography & Appearance */
     background: var(--card-background);
     box-shadow: 0 2px 8px var(--shadow-color);
     color: inherit;
@@ -161,7 +357,6 @@ TABLE OF CONTENTS
     font-size: inherit;
     text-align: center;
     outline: none;
-    /* Animation & Interaction */
     transition: transform 0.3s ease, border-color 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
     cursor: pointer;
 }
@@ -173,15 +368,14 @@ TABLE OF CONTENTS
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(0, 255, 0, 0.1), transparent);
+    background: linear-gradient(90deg, transparent, rgba(0, 255, 0, 0.08), transparent);
     transition: left 0.5s ease;
 }
 
 .stat-card:hover {
-    background: var(--primary-color-light);
+    background: color-mix(in srgb, var(--primary-color-light) 70%, transparent);
     border-color: var(--terminal-primary, #4CAF50);
-    border-radius: 12px;
-    box-shadow: 0 8px 25px var(--shadow-color), 0 0 20px rgba(0, 255, 0, 0.3);
+    box-shadow: 0 8px 25px var(--shadow-color), 0 0 16px rgba(0, 255, 0, 0.2);
     transform: translateY(-2px);
 }
 
@@ -190,15 +384,14 @@ TABLE OF CONTENTS
 }
 
 .stat-card:active {
-    box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
+    box-shadow: 0 0 15px rgba(0, 255, 0, 0.2);
     transform: translateY(0);
 }
 
 .stat-card[aria-pressed="true"] {
-    background: var(--primary-color-light);
+    background: color-mix(in srgb, var(--primary-color-light) 75%, transparent);
     border-color: var(--terminal-primary, #4CAF50);
-    border-radius: 12px;
-    box-shadow: 0 0 30px rgba(0, 255, 0, 0.5), 0 8px 25px var(--shadow-color);
+    box-shadow: 0 0 18px rgba(0, 255, 0, 0.28), 0 8px 25px var(--shadow-color);
     transform: translateY(-1px);
 }
 
@@ -224,15 +417,12 @@ TABLE OF CONTENTS
 }
 
 .stat-label {
-    color: var(--terminal-text-light, #ffffff);
+    color: var(--text-color);
     font-size: 0.9rem;
     font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    transition: color 0.3s ease;
+    letter-spacing: 0.02em;
 }
 
-/* --- Projects Content Area --- */
 .projects-content {
     min-height: 400px;
 }
@@ -240,28 +430,24 @@ TABLE OF CONTENTS
 .no-projects {
     padding: 4rem 2rem;
     background: var(--card-background);
-    border: 2px solid var(--terminal-primary, #4CAF50);
-    border-radius: 8px;
+    border: 2px solid color-mix(in srgb, var(--terminal-primary, #4CAF50) 60%, transparent);
+    border-radius: 12px;
     box-shadow: 0 2px 8px var(--shadow-color);
     text-align: center;
 }
 
 .no-projects h3 {
     margin: 0 0 1rem 0;
-    color: var(--terminal-primary, #4CAF50);
+    color: var(--text-color);
     font-size: 1.5rem;
-    text-shadow: 0 0 10px var(--terminal-primary, #4CAF50);
 }
 
 .no-projects p {
     margin: 0;
-    color: var(--terminal-text-light, #ffffff);
+    color: var(--text-secondary);
     font-size: 1rem;
-    transition: color 0.3s ease;
 }
 
-
-/* --- Tech Stack Modal --- */
 .tech-stack-modal {
     display: flex;
     justify-content: center;
@@ -285,8 +471,8 @@ TABLE OF CONTENTS
     max-height: 80vh;
     background: var(--card-background);
     border: 2px solid var(--terminal-primary, #4CAF50);
-    border-radius: 8px;
-    box-shadow: 0 0 30px rgba(0, 255, 0, 0.5), 0 8px 25px var(--shadow-color);
+    border-radius: 12px;
+    box-shadow: 0 0 22px rgba(0, 255, 0, 0.22), 0 8px 25px var(--shadow-color);
     overflow: hidden;
     transition: background 0.3s ease, border-color 0.3s ease;
     cursor: default;
@@ -300,40 +486,32 @@ TABLE OF CONTENTS
     padding: 1rem 1.5rem;
     background: var(--terminal-header-bg, #2a2a2a);
     border-bottom: 1px solid var(--terminal-primary, #4CAF50);
-    transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .tech-stack-header h3 {
     margin: 0;
-    color: var(--terminal-primary, #4CAF50);
+    color: var(--text-color);
     font-size: 1.2rem;
-    text-shadow: 0 0 10px var(--terminal-primary, #4CAF50);
 }
 
 .close-tech-stack {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
+    justify-content: center;
     padding: 0.5rem 1rem;
     background: var(--card-background);
-    border: 2px solid var(--terminal-primary, #4CAF50);
-    border-radius: 6px;
+    border: 1px solid color-mix(in srgb, var(--terminal-primary, #4CAF50) 70%, transparent);
+    border-radius: 8px;
     box-shadow: 0 2px 4px var(--shadow-color);
-    color: var(--terminal-primary, #4CAF50);
+    color: var(--text-color);
     font-size: 0.9rem;
     transition: transform 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
     cursor: pointer;
 }
 
-.close-tech-stack::after {
-    content: '✕';
-    font-size: 1rem;
-    font-weight: bold;
-}
-
 .close-tech-stack:hover {
     background: var(--primary-color-light);
-    box-shadow: 0 0 15px rgba(0, 255, 0, 0.4), 0 4px 12px var(--shadow-color);
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.24), 0 4px 12px var(--shadow-color);
     transform: translateY(-1px);
 }
 
@@ -363,10 +541,11 @@ TABLE OF CONTENTS
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 1rem;
     padding: 0.75rem;
     background: var(--card-background);
-    border: 2px solid var(--border-color);
-    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
     box-shadow: 0 2px 4px var(--shadow-color);
     transition: all 0.3s ease;
 }
@@ -374,7 +553,7 @@ TABLE OF CONTENTS
 .tech-item:hover {
     background: var(--primary-color-light);
     border-color: var(--terminal-primary, #4CAF50);
-    box-shadow: 0 0 15px rgba(0, 255, 0, 0.3), 0 4px 12px var(--shadow-color);
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.2), 0 4px 12px var(--shadow-color);
     transform: translateY(-1px);
 }
 
@@ -382,66 +561,13 @@ TABLE OF CONTENTS
     color: var(--terminal-primary, #4CAF50);
     font-size: 0.95rem;
     font-weight: 600;
-    text-shadow: 0 0 5px var(--terminal-primary, #4CAF50);
 }
 
 .tech-count {
     color: var(--terminal-text-muted, #666);
     font-size: 0.8rem;
-    font-style: italic;
-    transition: color 0.3s ease;
 }
 
-
-/* ========================================
-     5. TERMINAL-SPECIFIC ELEMENTS
-     ======================================== */
-
-.terminal-prompt {
-    margin-right: 0.5rem;
-    color: var(--terminal-primary, #4CAF50);
-    font-weight: bold;
-}
-
-.terminal-comment {
-    margin-right: 0.5rem;
-    color: var(--terminal-text-muted, #666);
-    font-style: italic;
-}
-
-.terminal-error {
-    color: var(--terminal-error, #ff6b6b);
-    font-weight: bold;
-    text-shadow: 0 0 10px var(--terminal-error, #ff6b6b);
-}
-
-.terminal-output {
-    margin-top: 1rem;
-    padding: 1rem;
-    background: transparent;
-    border: none;
-}
-
-.terminal-line {
-    margin-bottom: 1rem;
-    padding: 0.5rem;
-    background: rgba(0, 255, 0, 0.05);
-    border-radius: 4px;
-    color: var(--terminal-text-light, #ffffff);
-    transition: color 0.3s ease, background 0.3s ease;
-}
-
-.terminal-cursor {
-    animation: terminal-blink 1s infinite;
-}
-
-
-/* ========================================
-     6. KEYFRAMES & ANIMATIONS
-     ======================================== */
-
-/* Note: Animating `width` can cause layout reflows. 
-     Animating `transform: scaleX()` is often more performant. */
 @keyframes titleUnderline {
     from {
         width: 60px;
@@ -454,52 +580,29 @@ TABLE OF CONTENTS
     }
 }
 
-@keyframes terminal-blink {
-    0%, 50% {
-        opacity: 1;
-    }
-
-    51%, 100% {
-        opacity: 0;
-    }
-}
-
-
-/* ========================================
-     7. RESPONSIVE DESIGN (MEDIA QUERIES)
-     ======================================== */
-
-/* --- Tablet & Smaller Desktops --- */
 @media (max-width: 1024px) {
     .projects-container {
         max-width: 1100px;
     }
-
-    .projects-title {
-        font-size: 2.5rem;
-    }
 }
 
-/* --- Mobile & Large Tablets --- */
 @media (max-width: 768px) {
     .projects-container {
         padding: 0 1rem;
     }
 
-    .projects-header {
-        margin-bottom: 2rem;
-        padding: 1.5rem 0;
+    .projects-hero {
+        margin-bottom: 3rem;
+        padding-top: 1rem;
     }
 
     .projects-title {
-        margin-bottom: 2rem;
         font-size: 2rem;
     }
 
     .projects-controls {
         flex-direction: column;
         align-items: stretch;
-        gap: 1.5rem;
     }
 
     .filters-section {
@@ -507,12 +610,12 @@ TABLE OF CONTENTS
         gap: 1rem;
     }
 
-    .filter-group {
-        min-width: 120px;
+    .sort-section {
+        align-items: stretch;
     }
 
-    .sort-section {
-        align-items: center;
+    .flagship-card-header {
+        flex-direction: column;
     }
 
     .projects-stats {
@@ -533,14 +636,6 @@ TABLE OF CONTENTS
         max-height: 90vh;
     }
 
-    .tech-stack-header {
-        padding: 0.75rem 1rem;
-    }
-
-    .tech-stack-header h3 {
-        font-size: 1rem;
-    }
-
     .tech-stack-grid {
         grid-template-columns: 1fr;
         gap: 0.75rem;
@@ -549,22 +644,22 @@ TABLE OF CONTENTS
 
     .tech-item {
         flex-direction: column;
-        gap: 0.25rem;
-        padding: 0.5rem;
         text-align: center;
     }
 }
 
-/* --- Small Mobile Phones --- */
 @media (max-width: 480px) {
-    .projects-header {
-        margin-bottom: 2rem;
-        padding: 1rem 0;
+    .projects-title {
+        font-size: 1.75rem;
     }
 
-    .projects-title {
-        margin-bottom: 1.5rem;
-        font-size: 1.8rem;
+    .projects-subtitle {
+        font-size: 1rem;
+    }
+
+    .projects-hero-actions,
+    .flagship-actions {
+        flex-direction: column;
     }
 
     .projects-controls {

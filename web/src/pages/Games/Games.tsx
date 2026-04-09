@@ -9,7 +9,8 @@ const Games = () => {
         <div className="games-header">
           <h1 className="games-title">Games & Experiments</h1>
           <p className="games-subtitle">
-            A lighter side area for interactive experiments, gameplay ideas, and frontend exploration outside the main portfolio proof path.
+            Small interactive experiments and technical play outside the main
+            portfolio proof path.
           </p>
         </div>
         

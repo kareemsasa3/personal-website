@@ -108,12 +108,12 @@ export const fileSystem: FileSystemItem[] = [
     ],
   },
   {
-    name: "work",
+    name: "experience",
     type: "directory",
     permissions: "drwxr-xr-x",
     size: "4096",
     date: "Dec 15 10:30",
-    route: "/work",
+    route: "/experience",
     children: [
       {
         name: "resolute consulting group",

@@ -1,14 +1,39 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import "./ProjectDetails.css";
 import { Project } from "../../data/projects";
+import { caseStudyByProjectId } from "../../data/caseStudies";
 
 interface ProjectDetailsProps {
   project: Project;
 }
 
+const MAX_PREVIEW_WORDS = 14;
+const MAX_KEY_POINTS = 4;
+
+const normalizePreviewText = (description: string) => {
+  const firstSentence = description.split(".")[0]?.trim() || description.trim();
+  const normalized = firstSentence.replace(/\s+/g, " ").trim();
+  const words = normalized.split(" ");
+
+  if (words.length <= MAX_PREVIEW_WORDS) {
+    return normalized;
+  }
+
+  return `${words.slice(0, MAX_PREVIEW_WORDS).join(" ")}...`;
+};
+
+const normalizeKeyPoint = (value: string) =>
+  value.replace(/\s+/g, " ").replace(/[.]+$/, "").trim();
+
 const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const detailsId = `project-details-${project.id}`;
+  const caseStudy = caseStudyByProjectId[project.id];
+  const previewText = normalizePreviewText(project.description);
+  const keyPoints = [...project.highlights, ...project.features]
+    .map(normalizeKeyPoint)
+    .slice(0, MAX_KEY_POINTS);
 
   const getComplexityColor = (complexity: string) => {
     switch (complexity) {
@@ -38,16 +63,16 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project }) => {
     }
   };
 
-  const getStatusIcon = (status: string) => {
+  const getStatusLabel = (status: string) => {
     switch (status) {
       case "Live":
-        return "🟢";
+        return "Live";
       case "Development":
-        return "🟡";
+        return "In Progress";
       case "Completed":
-        return "🔵";
+        return "Completed";
       default:
-        return "⚪";
+        return status;
     }
   };
 
@@ -63,7 +88,8 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project }) => {
         <div className="project-main-info">
           <div className="project-category">{project.category}</div>
           <h3 className="project-title">{project.title}</h3>
-          <div className="project-date">{project.date}</div>
+          <div className="project-meta">{project.date}</div>
+          <p className="project-summary">{previewText}</p>
         </div>
 
         <div className="project-status">
@@ -71,7 +97,8 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project }) => {
             className="status-badge"
             style={{ backgroundColor: getStatusColor(project.status) }}
           >
-            {getStatusIcon(project.status)} {project.status}
+            <span className="status-dot" aria-hidden="true" />
+            {getStatusLabel(project.status)}
           </span>
           <span
             className="complexity-badge"
@@ -80,15 +107,34 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project }) => {
             {project.complexity}
           </span>
           <span className="expand-btn" aria-hidden="true">
-            {isExpanded ? "−" : "+"}
+            <span className="expand-btn-label">
+              {isExpanded ? "Hide details" : "Details"}
+            </span>
+            <span className="expand-btn-icon">{isExpanded ? "−" : "+"}</span>
           </span>
         </div>
       </button>
 
+      <div className="project-preview-links">
+        {caseStudy && (
+          <Link to={`/case-studies/${caseStudy.slug}`} className="project-link">
+            Read Case Study
+          </Link>
+        )}
+        {project.githubUrl && (
+          <a
+            href={project.githubUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="project-link github-link"
+          >
+            View Code
+          </a>
+        )}
+      </div>
+
       {isExpanded && (
         <div id={detailsId} className="project-details">
-          <p className="project-description">{project.description}</p>
-
           <div className="project-tech-stack">
             <h4>Tech Stack</h4>
             <div className="tech-tags">
@@ -100,39 +146,18 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project }) => {
             </div>
           </div>
 
-          <div className="project-features">
-            <h4>Key Features</h4>
-            <ul className="features-list">
-              {project.features.map((feature, index) => (
-                <li key={index} className="feature-item">
-                  • {feature}
+          <div className="project-key-points">
+            <h4>Key Points</h4>
+            <ul className="key-points-list">
+              {keyPoints.map((point, index) => (
+                <li key={`${project.id}-point-${index}`} className="key-point-item">
+                  {point}
                 </li>
               ))}
             </ul>
           </div>
 
-          <div className="project-highlights">
-            <h4>Highlights</h4>
-            <div className="highlights-grid">
-              {project.highlights.map((highlight, index) => (
-                <span key={index} className="highlight-tag">
-                  ✨ {highlight}
-                </span>
-              ))}
-            </div>
-          </div>
-
           <div className="project-links">
-            {project.githubUrl && (
-              <a
-                href={project.githubUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="project-link github-link"
-              >
-                📁 View Code
-              </a>
-            )}
             {project.liveUrl && (
               <a
                 href={project.liveUrl}
@@ -140,7 +165,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project }) => {
                 rel="noopener noreferrer"
                 className="project-link live-link"
               >
-                🌐 Live Demo
+                Live Demo
               </a>
             )}
             {project.url &&
@@ -152,7 +177,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project }) => {
                   rel="noopener noreferrer"
                   className="project-link primary-link"
                 >
-                  🔗 View Project
+                  View Project
                 </a>
               )}
           </div>

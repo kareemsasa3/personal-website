@@ -12,6 +12,8 @@ interface TerminalDropdownProps {
   label?: string;
   disabled?: boolean;
   className?: string;
+  showPrompt?: boolean;
+  showMenuChrome?: boolean;
 }
 
 // Helper functions to work with both option types
@@ -38,6 +40,8 @@ const TerminalDropdown: React.FC<TerminalDropdownProps> = ({
   label,
   disabled = false,
   className = "",
+  showPrompt = true,
+  showMenuChrome = true,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
@@ -120,7 +124,7 @@ const TerminalDropdown: React.FC<TerminalDropdownProps> = ({
     <div className={`terminal-dropdown ${className}`} ref={dropdownRef}>
       {label && (
         <label className="terminal-dropdown-label">
-          <span className="terminal-prompt">$</span> {label}
+          {showPrompt && <span className="terminal-prompt">$</span>} {label}
         </label>
       )}
       <div className="terminal-dropdown-container">
@@ -135,7 +139,9 @@ const TerminalDropdown: React.FC<TerminalDropdownProps> = ({
           aria-expanded={isOpen}
         >
           <span className="terminal-dropdown-value">
-            <span className="terminal-prompt">{isOpen ? "∨" : ">"}</span>{" "}
+            {showPrompt && (
+              <span className="terminal-prompt">{isOpen ? "∨" : ">"}</span>
+            )}{" "}
             {displayValue}
           </span>
           <span className="terminal-dropdown-arrow">{isOpen ? "▲" : "▼"}</span>
@@ -143,9 +149,11 @@ const TerminalDropdown: React.FC<TerminalDropdownProps> = ({
 
         {isOpen && (
           <div className="terminal-dropdown-menu">
-            <div className="terminal-dropdown-header">
-              <span className="terminal-prompt">$</span> cat options.txt
-            </div>
+            {showMenuChrome && (
+              <div className="terminal-dropdown-header">
+                <span className="terminal-prompt">$</span> cat options.txt
+              </div>
+            )}
             <div className="terminal-dropdown-options">
               {options.map((option, index) => (
                 <button
@@ -166,11 +174,13 @@ const TerminalDropdown: React.FC<TerminalDropdownProps> = ({
                 </button>
               ))}
             </div>
-            <div className="terminal-dropdown-footer">
-              <span className="terminal-comment">
-                # Use ↑↓ to navigate, Enter to select, Esc to close
-              </span>
-            </div>
+            {showMenuChrome && (
+              <div className="terminal-dropdown-footer">
+                <span className="terminal-comment">
+                  # Use ↑↓ to navigate, Enter to select, Esc to close
+                </span>
+              </div>
+            )}
           </div>
         )}
       </div>

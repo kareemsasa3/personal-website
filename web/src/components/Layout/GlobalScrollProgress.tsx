@@ -12,6 +12,7 @@ const GlobalScrollProgress = () => {
   const shouldShow =
     location.pathname === "/" ||
     location.pathname === "/projects" ||
+    location.pathname === "/experience" ||
     location.pathname === "/work" ||
     location.pathname === "/journey";
 

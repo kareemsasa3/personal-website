@@ -110,11 +110,17 @@ const Layout = () => {
           "Engineering case studies documenting system architecture, constraints, and implementation decisions across flagship projects.",
         canonicalPath: "/case-studies",
       },
-      "/work": {
-        title: "Work — Kareem Sasa",
+      "/experience": {
+        title: "Experience — Kareem Sasa",
         description:
-          "Professional work across consulting, platform modernization, frontend stabilization, and backend architecture for business-critical software.",
-        canonicalPath: "/work",
+          "Professional experience across consulting, platform modernization, frontend stabilization, and backend architecture for business-critical software.",
+        canonicalPath: "/experience",
+      },
+      "/work": {
+        title: "Experience — Kareem Sasa",
+        description:
+          "Professional experience across consulting, platform modernization, frontend stabilization, and backend architecture for business-critical software.",
+        canonicalPath: "/experience",
       },
       "/journey": {
         title: "Background & Journey — Kareem Sasa",

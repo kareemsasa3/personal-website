@@ -55,6 +55,32 @@
   justify-content: center;
 }
 
+.terminal-route-intro {
+  position: absolute;
+  top: 2rem;
+  left: 50%;
+  width: min(720px, calc(100% - 2rem));
+  transform: translateX(-50%);
+  text-align: center;
+  pointer-events: none;
+}
+
+.terminal-route-title {
+  margin: 0;
+  color: var(--terminal-text-primary);
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.terminal-route-description {
+  margin: 0.75rem 0 0;
+  color: var(--terminal-text-muted);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
 .terminal-screen.route-mode .terminal-container {
   /* Position is now handled by inline styles */
 }
@@ -172,6 +198,11 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
+  .terminal-route-intro {
+    top: 1.25rem;
+    width: min(640px, calc(100% - 1.5rem));
+  }
+
   .terminal-container {
     width: 95%;
     height: 80vh;

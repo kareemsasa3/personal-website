@@ -53,11 +53,15 @@ const Work = () => {
         <h1 className="work-title">
           <TypeWriterText
             key={`work-title-${location.pathname}`}
-            text="Work Experience"
+            text="Experience"
             speed={400}
             delay={600}
           />
         </h1>
+        <p className="work-subtitle">
+          Professional experience across consulting, delivery, and platform
+          engineering work.
+        </p>
       </header>
       <div className="work-timeline-container">
         {workExperienceData.map((exp, index) => (

@@ -191,6 +191,16 @@ const Terminal: React.FC<TerminalProps> = ({ isIntro }) => {
       <div
         className={`terminal-screen ${isIntro ? "intro-mode" : "route-mode"}`}
       >
+        {!isIntro && (
+          <div className="terminal-route-intro">
+            <h1 className="terminal-route-title">Terminal</h1>
+            <p className="terminal-route-description">
+              Interactive interface for exploring parts of the site and
+              projects.
+            </p>
+          </div>
+        )}
+
         {/* The sidecar for minimized state - NOW a BUTTON */}
         {isStateLoaded && windowManagement.showSidecar && (
           <button
