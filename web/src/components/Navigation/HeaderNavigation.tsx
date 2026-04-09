@@ -1,14 +1,18 @@
+import { forwardRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCog } from "@fortawesome/free-solid-svg-icons";
 import { NavLink } from "react-router-dom";
 import { navItems } from "../../data/navigation";
 import { useSettings } from "../../contexts/SettingsContext";
 
-const HeaderNavigation = () => {
+const HeaderNavigation = forwardRef<HTMLElement>(function HeaderNavigation(
+  _props,
+  ref
+) {
   const { isSettingsOpen, toggleSettings } = useSettings();
 
   return (
-    <header className="site-header">
+    <header ref={ref} className="site-header">
       <NavLink className="site-header__brand" to="/" aria-label="Kareem Sasa home">
         <span className="site-header__brand-mark" aria-hidden="true">
           KS
@@ -27,7 +31,7 @@ const HeaderNavigation = () => {
             }
           >
             <FontAwesomeIcon className="site-header__link-icon" icon={item.icon} />
-            <span>{item.label}</span>
+            <span className="site-header__link-label">{item.label}</span>
           </NavLink>
         ))}
       </nav>
@@ -47,6 +51,6 @@ const HeaderNavigation = () => {
       </div>
     </header>
   );
-};
+});
 
 export default HeaderNavigation;

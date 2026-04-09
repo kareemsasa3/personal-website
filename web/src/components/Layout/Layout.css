@@ -32,7 +32,7 @@
 
 .nav-mode-header .app-content {
     grid-row: 1 / -1;
-    padding-top: var(--app-shell-header-height);
+    padding-top: var(--site-header-measured-offset, var(--app-shell-header-height));
     padding-bottom: 0;
 }
 
@@ -51,7 +51,7 @@
     }
 
     .nav-mode-header .app-content {
-        padding-top: var(--site-header-content-offset-mobile, 8.5rem);
+        padding-top: var(--site-header-measured-offset, var(--app-shell-header-height));
         padding-bottom: 0;
     }
 }

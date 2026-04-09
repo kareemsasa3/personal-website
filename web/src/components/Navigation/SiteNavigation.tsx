@@ -2,10 +2,17 @@ import {
   AnimatePresence,
   motion,
   useReducedMotion,
+  useIsPresent,
   type Transition,
   type Variants,
 } from "framer-motion";
-import type { ReactNode } from "react";
+import {
+  useCallback,
+  useLayoutEffect,
+  useRef,
+  type Ref,
+  type ReactNode,
+} from "react";
 import Dock from "../Dock/Dock";
 import SettingsPanel from "../SettingsPanel";
 import { useDock, type DockControls } from "../Dock";
@@ -35,6 +42,7 @@ type SiteNavigationModeConfig = {
   renderNavigation: (args: {
     dockControls: DockControls;
     shouldReduceMotion: boolean;
+    headerRef: Ref<HTMLElement>;
   }) => ReactNode;
 };
 
@@ -53,7 +61,7 @@ const siteNavigationModeConfig: Record<NavigationMode, SiteNavigationModeConfig>
     className: "site-nav-presentation site-nav-presentation--header",
     getVariants: (shouldReduceMotion) =>
       shouldReduceMotion ? reducedMotionNavVariants : headerNavVariants,
-    renderNavigation: () => <HeaderNavigation />,
+    renderNavigation: ({ headerRef }) => <HeaderNavigation ref={headerRef} />,
   },
 };
 
@@ -67,19 +75,61 @@ const SiteNavigation = () => {
     matrixSpeed,
     setMatrixSpeed,
   } = useLayoutContext();
+  const shellRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLElement>(null);
+  const isPresent = useIsPresent();
   const shouldReduceMotion = useReducedMotion() ?? false;
   const transition: Transition = shouldReduceMotion
     ? { duration: 0.01 }
     : { duration: 0.24, ease: "easeOut" };
+  const setMeasuredHeaderOffset = useCallback((value: string) => {
+    const layoutShell = shellRef.current?.parentElement;
+    if (!layoutShell) return;
+
+    layoutShell.style.setProperty("--site-header-measured-offset", value);
+  }, []);
+
+  useLayoutEffect(() => {
+    if (navMode !== "header" || !isPresent) return;
+
+    const headerElement = headerRef.current;
+    if (!headerElement) return;
+
+    const measureHeaderOffset = () => {
+      const rect = headerElement.getBoundingClientRect();
+      const { marginBottom } = window.getComputedStyle(headerElement);
+      const occupiedOffset = rect.bottom + parseFloat(marginBottom || "0");
+
+      setMeasuredHeaderOffset(`${Math.max(0, occupiedOffset)}px`);
+    };
+
+    measureHeaderOffset();
+
+    const resizeObserver = new ResizeObserver(() => {
+      measureHeaderOffset();
+    });
+
+    resizeObserver.observe(headerElement);
+    window.addEventListener("resize", measureHeaderOffset);
+    window.visualViewport?.addEventListener("resize", measureHeaderOffset);
+
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener("resize", measureHeaderOffset);
+      window.visualViewport?.removeEventListener("resize", measureHeaderOffset);
+    };
+  }, [isPresent, navMode, setMeasuredHeaderOffset]);
+
   const activeNavigationMode = siteNavigationModeConfig[navMode];
   const activeNavigation = activeNavigationMode.renderNavigation({
     dockControls,
     shouldReduceMotion,
+    headerRef,
   });
   const activeVariants = activeNavigationMode.getVariants?.(shouldReduceMotion);
 
   return (
-    <div className="site-navigation-shell">
+    <div ref={shellRef} className="site-navigation-shell">
       <AnimatePresence initial={false} mode="popLayout">
         {activeVariants ? (
           <motion.div
