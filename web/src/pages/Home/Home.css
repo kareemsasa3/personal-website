@@ -162,6 +162,10 @@ TABLE OF CONTENTS
   transform: translateY(-2px);
 }
 
+[data-theme="dark"] .featured-projects-section .tech-tag {
+  color: var(--app-bg);
+}
+
 /* --- Buttons --- */
 .btn {
   display: inline-flex;
@@ -365,7 +369,7 @@ TABLE OF CONTENTS
   grid-template-columns: 1fr;
   gap: 2rem;
   width: 100%;
-  max-width: 1200px;
+  max-width: 1320px;
   margin: 2rem 0;
   padding: 0 2rem;
 }
