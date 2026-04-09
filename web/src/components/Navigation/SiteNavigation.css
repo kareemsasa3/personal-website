@@ -7,19 +7,19 @@
 }
 
 .site-nav-presentation--header {
-    grid-column: 1;
-    grid-row: 1;
+    position: fixed;
+    top: 0;
+    left: 0;
     display: grid;
     place-items: start center;
     min-width: 0;
     width: 100%;
-    z-index: 10001;
+    z-index: 9998;
     will-change: opacity, transform, filter;
 }
 
 .site-header {
-    position: sticky;
-    top: 0;
+    position: relative;
     justify-self: center;
     z-index: 10001;
     width: min(1180px, calc(100% - 2rem));
