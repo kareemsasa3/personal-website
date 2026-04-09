@@ -102,7 +102,7 @@ prompt_update_var() {
   read -r action
   if [[ ! "$action" =~ ^[Uu]$ ]]; then
     # If required and empty, keep prompting until provided
-    if [ "$required" = "yes" ] && [ -z "$current_value" ] && [ "$var_name" != "SESSION_TOKEN_SECRET" ]; then
+    if [ "$required" = "yes" ] && [ -z "$current_value" ]; then
       print_warning "$var_name is required and missing. Please provide a value."
       echo "Enter value for $var_name:"
       read -r new_value
@@ -125,14 +125,6 @@ prompt_update_var() {
   fi
 }
 
-generate_secret() {
-  if command -v openssl >/dev/null 2>&1; then
-    openssl rand -hex 32
-  else
-    date +%s%N | md5
-  fi
-}
-
 # Ensure we have a .env to edit (create from template if missing)
 if [ ! -f ".env" ]; then
     print_status "Creating .env file from template..."
@@ -149,10 +141,6 @@ if [ "$NONINTERACTIVE" -eq 1 ] || [ "${SETUP_ENV_NONINTERACTIVE:-0}" = "1" ]; th
   vars_to_apply=(
     DOMAIN_NAME
     SSL_EMAIL
-    CORS_ALLOW_ORIGIN
-    VITE_TURNSTILE_SITE_KEY
-    TURNSTILE_SECRET
-    SESSION_TOKEN_SECRET
   )
   for v in "${vars_to_apply[@]}"; do
     val="${!v-}"
@@ -160,12 +148,6 @@ if [ "$NONINTERACTIVE" -eq 1 ] || [ "${SETUP_ENV_NONINTERACTIVE:-0}" = "1" ]; th
       set_env_value "$v" "$val"
     fi
   done
-
-  # Auto-generate SESSION_TOKEN_SECRET if still missing
-  sess_cur=$(get_env_value "SESSION_TOKEN_SECRET")
-  if [ -z "$sess_cur" ]; then
-    set_env_value "SESSION_TOKEN_SECRET" "$(generate_secret)"
-  fi
 
   print_status ".env updated from environment variables."
   exit 0
@@ -183,14 +165,9 @@ print_header "PREFLIGHT CHECKS"
 required_vars=(
   "DOMAIN_NAME"
   "SSL_EMAIL"
-  "SESSION_TOKEN_SECRET"
 )
 
-recommended_vars=(
-  "CORS_ALLOW_ORIGIN"
-  "VITE_TURNSTILE_SITE_KEY"
-  "TURNSTILE_SECRET"
-)
+recommended_vars=()
 
 missing_required=()
 for var_name in "${required_vars[@]}"; do
@@ -226,36 +203,6 @@ echo
 print_header "DOMAIN CONFIGURATION"
 prompt_update_var "DOMAIN_NAME" "Enter your domain name (e.g., yourdomain.com)" "yes"
 prompt_update_var "SSL_EMAIL" "Enter your email for SSL certificate notifications" "yes"
-
-domain_name=$(get_env_value "DOMAIN_NAME")
-
-print_header "TURNSTILE (OPTIONAL)"
-prompt_update_var "VITE_TURNSTILE_SITE_KEY" "Enter your Cloudflare Turnstile SITE KEY for the frontend" "no"
-prompt_update_var "TURNSTILE_SECRET" "Enter your Cloudflare Turnstile SECRET for the backend" "no"
-
-# SESSION_TOKEN_SECRET handling (required in prod). Auto-generate if missing and user skips.
-echo
-print_header "SESSION_TOKEN_SECRET"
-current_sess=$(get_env_value "SESSION_TOKEN_SECRET")
-if [ -n "$current_sess" ]; then
-  print_status "Current value present."
-  echo "Do you want to update SESSION_TOKEN_SECRET? (u) Update / (s) Skip [s]:"
-  read -r sess_action
-  if [[ "$sess_action" =~ ^[Uu]$ ]]; then
-    echo "Enter new SESSION_TOKEN_SECRET (leave empty to auto-generate):"
-    read -r new_sess
-    if [ -z "$new_sess" ]; then new_sess=$(generate_secret); fi
-    set_env_value "SESSION_TOKEN_SECRET" "$new_sess"
-    print_status "Updated SESSION_TOKEN_SECRET."
-  fi
-else
-  print_warning "No SESSION_TOKEN_SECRET set. This is required in production."
-  echo "Enter a value or press Enter to auto-generate:"
-  read -r new_sess
-  if [ -z "$new_sess" ]; then new_sess=$(generate_secret); fi
-  set_env_value "SESSION_TOKEN_SECRET" "$new_sess"
-  print_status "Set SESSION_TOKEN_SECRET."
-fi
 
 # Optional customizations
 print_header "OPTIONAL CUSTOMIZATIONS"

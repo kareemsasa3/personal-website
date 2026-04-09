@@ -17,11 +17,7 @@ download() {
 # Node Exporter Full (ID 1860)
 download 1860 "$DASH_DIR/node-exporter-full.json"
 
-# Redis Dashboard (ID 11835)
-download 11835 "$DASH_DIR/redis-exporter.json"
-
 # Nginx Prometheus Exporter (ID 12797)
 download 12797 "$DASH_DIR/nginx-exporter.json"
 
 echo "Dashboards downloaded to $DASH_DIR"
-

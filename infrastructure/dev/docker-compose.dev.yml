@@ -13,10 +13,6 @@ services:
       - /app/node_modules
     command: npm run dev -- --host --no-open
 
-  # Disable redis-commander in dev by default (profile-only)
-  redis-commander:
-    profiles: ["monitoring"]
-
   # Nginx - Always running in development mode (HTTP-only, no SSL)
   nginx:
     container_name: portfolio-nginx-dev

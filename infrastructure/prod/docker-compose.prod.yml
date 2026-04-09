@@ -77,70 +77,7 @@ services:
         max-size: "10m"
         max-file: "3"
 
-  # Redis - Production optimized
-  redis:
-    image: redis:7-alpine
-    container_name: portfolio-redis-prod
-    volumes:
-      - redis_data_prod:/data
-      - ./logs/redis:/var/log/redis
-    command: >
-      redis-server 
-      --appendonly yes 
-      --maxmemory ${REDIS_MAX_MEMORY:-512mb} 
-      --maxmemory-policy ${REDIS_MAX_MEMORY_POLICY:-allkeys-lru}
-      --save 900 1
-      --save 300 10
-      --save 60 10000
-    restart: unless-stopped
-    networks:
-      - portfolio-network-prod
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    deploy:
-      resources:
-        limits:
-          memory: ${REDIS_MEMORY_LIMIT:-1G}
-          cpus: "${REDIS_CPU_LIMIT:-1.0}"
-        reservations:
-          memory: 512M
-          cpus: "0.5"
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
-
-  # Redis Commander - Optional, can be disabled in production
-  redis-commander:
-    image: rediscommander/redis-commander:latest
-    container_name: portfolio-redis-commander-prod
-    environment:
-      - REDIS_HOSTS=local:redis:${REDIS_PORT:-6379}
-    depends_on:
-      - redis
-    restart: unless-stopped
-    networks:
-      - portfolio-network-prod
-    profiles:
-      - monitoring
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-          cpus: "0.5"
-        reservations:
-          memory: 128M
-          cpus: "0.25"
-
 networks:
   portfolio-network-prod:
     external: true
     name: portfolio-network-prod
-
-volumes:
-  redis_data_prod:
-    driver: local

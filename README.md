@@ -1,122 +1,47 @@
 # Portfolio Infrastructure
 
-A Docker-based deployment setup for running the Workfolio portfolio application behind nginx, with optional Redis support.
+A Docker-based deployment setup for serving the Workfolio React/Vite frontend behind nginx.
 
-This repository contains the infrastructure, configuration, and deployment tooling for the portfolio site. All application logic lives in Workfolio.
+This repository contains the infrastructure, configuration, and deployment tooling for the portfolio site. The live application is a frontend-only app. User preferences are persisted in the browser via local storage. No backend application services are deployed in this stack.
 
-## 🏗️ Architecture
+## Architecture
 
 ### Folder Structure
 
+```text
 personal-website/
-├── workfolio/ # Portfolio application (React / Vite)
-├── infrastructure/ # Docker, nginx, deployment & ops
-│ ├── nginx/ # Reverse proxy configuration
-│ ├── docker-compose.yml # Local / base compose
-│ ├── docker-compose.dev.yml # Local development
-│ ├── prod/ # Production compose & scripts
-│ └── monitoring/ # Prometheus / Grafana (optional)
+├── workfolio/      # Portfolio application (React / Vite)
+├── infrastructure/ # Docker, nginx, deployment, monitoring
 └── README.md
+```
 
-### Services
+### Active Services
 
-The active stack consists of:
-• Nginx
-Reverse proxy, TLS termination, security headers, health endpoint.
-• Workfolio
-The portfolio frontend (React).
-Includes the interactive terminal, virtual filesystem, and project views.
-• Redis (optional)
-Infrastructure dependency reserved for future features and observability.
+- `workfolio`: frontend build served from nginx inside the container
+- `nginx`: reverse proxy, TLS termination, security headers, health endpoint
 
-No backend application services are deployed in this stack.
+Optional monitoring services are documented under `infrastructure/monitoring/`.
 
----
+## Quick Start
 
-## 🚀 Quick Start (Local)
-
-### Prerequisites
-• Docker
-• Docker Compose
-
-### Start the stack
+### Local Docker stack
 
 ```bash
 cd infrastructure
-docker-compose up --build
+docker compose up --build
 ```
 
-### Access
-• Portfolio: http://localhost
-• Health check: http://localhost/health
+Access:
+- Portfolio: `http://localhost`
+- Health check: `http://localhost/health`
 
-### Stop
+Stop:
 
 ```bash
-docker-compose down
+docker compose down
 ```
 
----
-
-## 📁 Service Details
-
-### Workfolio
-• Public URL: http://localhost
-• Internal URL: http://workfolio:80
-• Description: Personal portfolio frontend with terminal-style navigation and project explorer.
-
-### Nginx
-• Handles:
-• HTTP → HTTPS redirects (prod)
-• Security headers
-• Health endpoint
-• Config location:
-• infrastructure/nginx/nginx.conf
-• infrastructure/nginx/conf.d/default.conf
-
----
-
-## 🔧 Configuration
-
-### Environment Setup
-
-Environment variables are managed centrally.
-
-#### Interactive setup
-
-```bash
-cd infrastructure
-./setup-env.sh
-```
-
-This configures:
-• Domain name
-• SSL email
-• Resource limits
-• Environment mode (dev / prod)
-
-#### Manual setup
-
-```bash
-cd infrastructure
-cp env.example .env
-nano .env
-```
-
-#### Required variables
-
-| Variable | Description |
-|----------|-------------|
-| `DOMAIN_NAME` | Public domain |
-| `SSL_EMAIL` | Email for TLS certificates |
-
-See: infrastructure/ENVIRONMENT_SETUP.md
-
----
-
-## 🐳 Development
-
-### Workfolio only
+### Frontend only
 
 ```bash
 cd workfolio
@@ -124,57 +49,39 @@ npm install
 npm run dev
 ```
 
-This runs the frontend directly without Docker.
+## Configuration
 
----
-
-## 📱 Testing on phone via Tailscale
-
-1. Connect your laptop/desktop and phone to the same Tailscale network.
-2. Ensure the dev server binds to `0.0.0.0` (default). Override if needed:
+Environment variables are managed centrally:
 
 ```bash
-cd workfolio
-# Use the port your dev server prints (commonly 5173 for Vite)
-DEV_HOST=0.0.0.0 DEV_PORT=5173 npm run dev
+cd infrastructure
+./setup-env.sh
 ```
 
-3. Allow the dev port only on the Tailscale interface:
+Required variables:
+- `DOMAIN_NAME`
+- `SSL_EMAIL`
+
+Manual setup:
 
 ```bash
-sudo ufw allow in on tailscale0 to any port <PORT> proto tcp
+cd infrastructure
+cp env.example .env
 ```
 
-4. Browse to `http://<tailscale-ip>:<PORT>` on your phone.
+See [docs/infrastructure/ENVIRONMENT_SETUP.md](/home/kareem/code/personal/website/docs/infrastructure/ENVIRONMENT_SETUP.md).
 
-Common pitfalls:
-• CORS errors if APIs are bound to localhost-only
-• Absolute URLs pointing to `localhost`
-• WebSocket/HMR origin mismatches (ensure dev server binds to `0.0.0.0`)
-
----
-
-## 📊 Monitoring (Optional)
+## Monitoring
 
 Prometheus and Grafana can be enabled via the monitoring compose files.
-• No application-specific exporters are required.
-• Redis and nginx exporters are supported.
 
-See: infrastructure/MONITORING_SETUP.md
+- Nginx exporter is included
+- Node exporter is included
+- Workfolio metrics are only relevant if the app exposes `/metrics`
 
----
+See [docs/infrastructure/MONITORING_SETUP.md](/home/kareem/code/personal/website/docs/infrastructure/MONITORING_SETUP.md).
 
-## 🔒 Security
-• Containers run as non-root
-• Nginx enforces security headers
-• Rate limiting is applied at the edge
-• No public backend APIs exposed
-
----
-
-## 🚀 Production Deployment
-
-Run these commands from the repository root.
+## Production Deployment
 
 1. Configure environment:
 
@@ -183,7 +90,7 @@ cd infrastructure
 ./setup-env.sh
 ```
 
-2. (First time only) obtain TLS certificates:
+2. Obtain TLS certificates:
 
 ```bash
 docker compose --env-file infrastructure/.env \
@@ -192,7 +99,7 @@ docker compose --env-file infrastructure/.env \
   --profile ssl-setup up certbot
 ```
 
-3. Start production stack:
+3. Start the production stack:
 
 ```bash
 docker compose --env-file infrastructure/.env \
@@ -208,29 +115,7 @@ docker compose --env-file infrastructure/.env \
 curl https://your-domain/health
 ```
 
----
+## Notes
 
-## 📝 Troubleshooting
-
-### Useful commands
-
-```bash
-docker-compose ps
-docker-compose logs nginx
-docker-compose logs workfolio
-```
-
-### Common issues
-• Ports 80/443 already in use
-• Missing .env
-• DNS not pointing at host
-• Stale containers after config changes
-
----
-
-## 🤝 Contributing
-
-This repository focuses on infrastructure and deployment.
-
-Application development happens in workfolio/.
-See that directory for frontend contribution guidelines.
+- The current stack does not deploy backend APIs, sessions, or Redis-backed features.
+- Future backend or multi-user ideas belong in roadmap docs under `workfolio/docs/`.

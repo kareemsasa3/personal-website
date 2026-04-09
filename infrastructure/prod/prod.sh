@@ -53,8 +53,7 @@ docker network create portfolio-network-prod >/dev/null 2>&1 || true
 
 # Create logs directory if it doesn't exist
 echo "📁 Creating logs directory..."
-mkdir -p "$REPO_ROOT/infrastructure/prod/logs/nginx" \
-  "$REPO_ROOT/infrastructure/prod/logs/redis"
+mkdir -p "$REPO_ROOT/infrastructure/prod/logs/nginx"
 
 # Stop any existing containers
 echo "🛑 Stopping any existing containers..."
@@ -113,18 +112,14 @@ echo "   • Resource limits configured for optimal performance"
 echo "   • Health checks enabled for all services"
 echo "   • Log rotation configured (10MB max, 3 files)"
 echo "   • Automatic restart policies enabled"
-echo "   • Production-optimized Redis configuration"
 echo ""
 echo "📊 Monitoring & Management:"
 echo "   • View logs: docker compose --env-file infrastructure/.env -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml -f infrastructure/prod/docker-compose.monitoring.prod.yml logs -f"
 echo "   • Check status: docker compose --env-file infrastructure/.env -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml -f infrastructure/prod/docker-compose.monitoring.prod.yml ps"
 echo "   • Scale services: docker compose --env-file infrastructure/.env -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml -f infrastructure/prod/docker-compose.monitoring.prod.yml up -d --scale [service]=[count]"
-echo "   • Redis Commander (optional): docker compose --env-file infrastructure/.env -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml --profile monitoring up -d"
 echo ""
 echo "⚠️  Important Production Notes:"
-echo "   • Update VITE_API_BASE_URL in prod/docker-compose.prod.yml with your actual domain"
 echo "   • Configure SSL certificates in nginx configuration"
-echo "   • Set up proper backup strategies for Redis data"
 echo "   • Monitor resource usage and adjust limits as needed"
 echo "   • Consider setting up monitoring and alerting"
 echo ""

@@ -156,35 +156,6 @@ services:
       retries: 3
       start_period: 40s
 
-  redis-exporter:
-    image: oliver006/redis_exporter:v1.39.0
-    platform: linux/amd64
-    container_name: portfolio-redis-exporter
-    command:
-      - -redis.addr=redis://redis:6379
-      - -redis.password=
-    ports:
-      - "9121:9121"
-    networks:
-      - portfolio-network
-    restart: unless-stopped
-    depends_on:
-      - redis
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "wget",
-          "--no-verbose",
-          "--tries=1",
-          "--spider",
-          "http://localhost:9121/metrics",
-        ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-
 networks:
   portfolio-network:
     driver: bridge

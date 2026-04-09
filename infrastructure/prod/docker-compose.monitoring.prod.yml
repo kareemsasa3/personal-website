@@ -223,33 +223,6 @@ services:
         max-size: "10m"
         max-file: "3"
 
-  redis-exporter:
-    image: oliver006/redis_exporter:v1.39.0
-    container_name: portfolio-redis-exporter-prod
-    command:
-      - -redis.addr=redis://redis:6379
-      - -redis.password=
-    ports:
-      - "9121:9121"
-    networks:
-      - portfolio-network-prod
-    restart: unless-stopped
-    healthcheck:
-      disable: true
-    deploy:
-      resources:
-        limits:
-          memory: 64M
-          cpus: "0.1"
-        reservations:
-          memory: 32M
-          cpus: "0.05"
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
-
 volumes:
   prometheus_data_prod:
     driver: local

@@ -1,249 +1,73 @@
 # Environment Configuration Guide
 
-This document explains how to set up and manage environment variables for the portfolio project.
+This document explains the active environment variables used by the current portfolio stack.
 
-## Overview
+## Current Architecture
 
-The portfolio uses a centralized environment variable system to manage configuration across all services. This includes:
+The deployed stack in this repo is:
 
-- **Domain configuration** for SSL certificates and routing
-- **API keys** for external services (e.g., Cloudflare Turnstile)
-- **Service configuration** for ports, memory limits, and other settings
-- **Development vs Production** environment overrides
+- `workfolio`: React/Vite frontend
+- `nginx`: reverse proxy and TLS termination
+- optional monitoring services
+
+The current stack does not deploy backend APIs, session services, or Redis.
 
 ## Quick Setup
 
-### 1. Automated Setup (Recommended)
-
-Run the interactive setup script:
+### Automated setup
 
 ```bash
 cd infrastructure
 ./setup-env.sh
 ```
 
-This script will:
-- Create a `.env` file from the template
-- Prompt for your domain name and email
-- Allow customization of resource limits
-- Provide next steps for deployment
-
-### 2. Manual Setup
-
-To fetch Grafana dashboards locally:
-```bash
-cd infrastructure
-./fetch-grafana-dashboards.sh
-```
-
-If you prefer manual setup:
+### Manual setup
 
 ```bash
 cd infrastructure
 cp env.example .env
-# Edit .env with your configuration
-nano .env
 ```
 
 ## Environment Variables Reference
 
-### Domain Configuration
+### Required
 
 | Variable | Description | Default | Required |
 |----------|-------------|---------|----------|
-| `DOMAIN_NAME` | Your primary domain name | `your-domain.com` | Yes |
-| `SSL_EMAIL` | Email for SSL certificate notifications | `your-email@example.com` | Yes |
+| `DOMAIN_NAME` | Primary domain name | `your-domain.com` | Yes |
+| `SSL_EMAIL` | Email for TLS certificate notifications | `your-email@example.com` | Yes |
 
-### Session & Turnstile Configuration
-
-| Variable | Description | Default | Required |
-|----------|-------------|---------|----------|
-| `SESSION_TOKEN_SECRET` | Secret for signing session tokens | - | Yes in production |
-| `TURNSTILE_SECRET` | Cloudflare Turnstile secret key | - | Yes if using Turnstile |
-| `TURNSTILE_REQUIRED` | Require Turnstile in production (set `false` to bypass) | `false` | No |
-
-### Redis Configuration
+### Frontend
 
 | Variable | Description | Default | Required |
 |----------|-------------|---------|----------|
-| `REDIS_PORT` | Redis server port | `6379` | No |
-| `REDIS_MAX_MEMORY` | Maximum memory usage | `512mb` | No |
-| `REDIS_MAX_MEMORY_POLICY` | Memory eviction policy | `allkeys-lru` | No |
-| `REDIS_COMMANDER_ENABLED` | Enable Redis Commander UI | `true` | No |
-| `REDIS_COMMANDER_PORT` | Redis Commander port | `8081` | No |
+| `WORKFOLIO_IMAGE` | Frontend image to deploy | `ghcr.io/username/personal-website/workfolio:build-id` | No |
+| `WORKFOLIO_NODE_ENV` | Node environment passed to the container | `production` | No |
 
-### Workfolio Frontend Configuration
-
-| Variable | Description | Default | Required |
-|----------|-------------|---------|----------|
-| `WORKFOLIO_NODE_ENV` | Node.js environment | `production` | No |
-| `WORKFOLIO_PORT` | Frontend port | `3000` | No |
-| `VITE_TURNSTILE_SITE_KEY` | Cloudflare Turnstile site key (public) | - | Yes if using Turnstile |
-
-### Nginx Configuration
+### Nginx
 
 | Variable | Description | Default | Required |
 |----------|-------------|---------|----------|
 | `NGINX_HTTP_PORT` | HTTP port | `80` | No |
 | `NGINX_HTTPS_PORT` | HTTPS port | `443` | No |
-| `SSL_CERT_PATH` | SSL certificate path | `/etc/nginx/ssl/cert.pem` | No |
-| `SSL_KEY_PATH` | SSL private key path | `/etc/nginx/ssl/key.pem` | No |
 
-### Docker Configuration
+### Docker / Resource Limits
 
 | Variable | Description | Default | Required |
 |----------|-------------|---------|----------|
 | `DOCKER_NETWORK_NAME` | Docker network name | `portfolio-network` | No |
-| `DOCKER_NETWORK_SUBNET` | Docker network subnet | `172.20.0.0/16` | No |
-
-### Resource Limits
-
-| Variable | Description | Default | Required |
-|----------|-------------|---------|----------|
 | `NGINX_MEMORY_LIMIT` | Nginx memory limit | `256M` | No |
 | `NGINX_CPU_LIMIT` | Nginx CPU limit | `0.5` | No |
 | `WORKFOLIO_MEMORY_LIMIT` | Workfolio memory limit | `512M` | No |
 | `WORKFOLIO_CPU_LIMIT` | Workfolio CPU limit | `1.0` | No |
-| `REDIS_MEMORY_LIMIT` | Redis memory limit | `1G` | No |
-| `REDIS_CPU_LIMIT` | Redis CPU limit | `1.0` | No |
 
-### Development Configuration
+### Development
 
 | Variable | Description | Default | Required |
 |----------|-------------|---------|----------|
-| `DEV_NODE_ENV` | Development Node.js environment | `development` | No |
-| `DEV_WORKFOLIO_PORT` | Development frontend port | `3000` | No |
+| `DEV_NODE_ENV` | Development Node environment | `development` | No |
 
-### Logging Configuration
+## Notes
 
-| Variable | Description | Default | Required |
-|----------|-------------|---------|----------|
-| `LOG_MAX_SIZE` | Maximum log file size | `10m` | No |
-| `LOG_MAX_FILES` | Maximum number of log files | `3` | No |
-
-### Security Configuration
-
-| Variable | Description | Default | Required |
-|----------|-------------|---------|----------|
-| `CORS_ALLOW_ORIGIN` | CORS allowed origin | `*` | No |
-| `CORS_ALLOW_METHODS` | CORS allowed methods | `GET, POST, OPTIONS` | No |
-| `CORS_ALLOW_HEADERS` | CORS allowed headers | `DNT,User-Agent...` | No |
-| `API_RATE_LIMIT_BURST` | API rate limit burst | `20` | No |
-| `SCRAPER_RATE_LIMIT_BURST` | Scraper rate limit burst | `10` | No |
-
-## Environment-Specific Configuration
-
-### Development Environment
-
-For development, the following variables are automatically overridden:
-
-- `NODE_ENV=development`
-- Lower resource limits
-- Debug logging
-- Local URLs instead of domain names
-
-### Production Environment
-
-For production, ensure you have:
-
-1. **Valid domain name** in `DOMAIN_NAME`
-2. **Valid email** in `SSL_EMAIL`
-3. **Appropriate resource limits** for your server
-
-## Usage Examples
-
-### Starting Services
-
-**Development:**
-```bash
-docker compose --env-file infrastructure/.env \
-  -f infrastructure/docker-compose.yml \
-  -f infrastructure/dev/docker-compose.dev.yml \
-  up --build
-```
-
-**Production:**
-```bash
-docker compose --env-file infrastructure/.env \
-  -f infrastructure/docker-compose.yml \
-  -f infrastructure/prod/docker-compose.prod.yml \
-  -f infrastructure/prod/docker-compose.monitoring.prod.yml \
-  up -d --no-build --pull always
-```
-
-### SSL Certificate Setup
-
-```bash
-docker compose --env-file infrastructure/.env \
-  -f infrastructure/docker-compose.yml \
-  -f infrastructure/prod/docker-compose.prod.yml \
-  --profile ssl-setup up certbot
-```
-
-### Checking Configuration
-
-```bash
-# Validate environment variables
-docker compose --env-file infrastructure/.env \
-  -f infrastructure/docker-compose.yml \
-  config
-
-# Check specific service configuration
-docker compose --env-file infrastructure/.env \
-  -f infrastructure/docker-compose.yml \
-  -f infrastructure/prod/docker-compose.prod.yml \
-  config nginx
-```
-
-## Security Best Practices
-
-1. **Never commit `.env` files** to version control
-2. **Use strong, unique API keys** for external services
-3. **Regularly rotate secrets** and API keys
-4. **Use environment-specific configurations** for dev/staging/prod
-5. **Limit resource usage** to prevent abuse
-6. **Enable rate limiting** for API endpoints
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Invalid Domain**: SSL certificates won't work with invalid domain
-2. **Port Conflicts**: Change port variables if services conflict
-3. **Memory Issues**: Adjust resource limits based on your server capacity
-
-### Validation Commands
-
-```bash
-# Check if .env file exists
-ls -la infrastructure/.env
-
-# Validate docker-compose configuration
-docker compose --env-file infrastructure/.env \
-  -f infrastructure/docker-compose.yml \
-  config
-
-# Test environment variable substitution
-docker compose --env-file infrastructure/.env \
-  -f infrastructure/docker-compose.yml \
-  config | grep -E "\$\{.*\}"
-```
-
-## Migration from Hardcoded Values
-
-If you're migrating from hardcoded configuration:
-
-1. **Backup your current configuration**
-2. **Run the setup script** to create `.env`
-3. **Copy your existing values** to the new variables
-4. **Test the configuration** before deploying
-5. **Update your deployment scripts** to use the new variables
-
-## Support
-
-For issues with environment configuration:
-
-1. Check the troubleshooting section above
-2. Validate your `.env` file syntax
-3. Ensure all required variables are set
-4. Check Docker Compose logs for specific errors 
+- If future backend services are added later, they should be documented separately as future-state architecture until they are actually deployed from this repo.
+- Historical references to sessions, Turnstile, and Redis were removed from active setup because they are not consumed by the live stack.

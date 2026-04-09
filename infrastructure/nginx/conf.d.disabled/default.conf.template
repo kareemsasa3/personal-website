@@ -1,3 +1,9 @@
+#
+# Historical reference only.
+# This file reflects an older backend-oriented nginx layout that is not deployed
+# by the current repo. Keep for reference, not for active runtime use.
+#
+
 # HTTP server for ACME challenges and redirects
 server {
     listen 80 default_server;
@@ -191,5 +197,4 @@ server {
         root /usr/share/nginx/html;
     }
 }
-
 
