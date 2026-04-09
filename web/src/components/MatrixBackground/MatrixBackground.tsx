@@ -1,6 +1,5 @@
 import { useRef, useEffect, useState, useCallback } from "react";
-import { useLayoutContext } from "../../contexts/LayoutContext";
-import { useTheme } from "../../contexts/ThemeContext";
+import type { Theme } from "../../contexts/ThemeContext";
 import "./MatrixBackground.css";
 
 // Configuration object to manage the "magic numbers"
@@ -24,12 +23,21 @@ interface MatrixColumn {
   length: number;
 }
 
-const MatrixBackground = () => {
-  const { isAnimationPaused, matrixSpeed } = useLayoutContext();
-  const { theme } = useTheme();
+interface MatrixBackgroundProps {
+  theme: Theme;
+  paused: boolean;
+  motionSpeed: number;
+  reducedMotion: boolean;
+}
+
+const MatrixBackground = ({
+  theme,
+  paused,
+  motionSpeed,
+  reducedMotion,
+}: MatrixBackgroundProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const requestRef = useRef<number | null>(null);
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const columnsRef = useRef<MatrixColumn[]>([]);
   const colorsRef = useRef({
@@ -39,17 +47,6 @@ const MatrixBackground = () => {
 
   // Matrix characters (numbers and some symbols)
   const matrixChars = "0123456789ABCDEF";
-
-  // Check for reduced motion preference
-  useEffect(() => {
-    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setPrefersReducedMotion(mediaQuery.matches);
-
-    const handleChange = (e: MediaQueryListEvent) =>
-      setPrefersReducedMotion(e.matches);
-    mediaQuery.addEventListener("change", handleChange);
-    return () => mediaQuery.removeEventListener("change", handleChange);
-  }, []);
 
   // Visibility API for performance optimization
   useEffect(() => {
@@ -112,7 +109,7 @@ const MatrixBackground = () => {
 
     columns.forEach((column) => {
       // Always update positions when this function is called
-      column.y += column.speed * matrixSpeed;
+      column.y += column.speed * motionSpeed;
 
       // Reset column if it goes off screen
       if (column.y > canvas.height + column.length * CONFIG.characterSpacing) {
@@ -149,7 +146,7 @@ const MatrixBackground = () => {
         context.fillText(char, column.x + CONFIG.columnWidth / 2, charY);
       });
     });
-  }, [matrixSpeed]); // React to matrixSpeed changes.
+  }, [motionSpeed]);
 
   // **THE FINAL POLISH**: useLatest hook pattern implementation
   // 1. Create a ref to hold the LATEST version of the drawing function
@@ -208,7 +205,7 @@ const MatrixBackground = () => {
 
   // Main setup effect
   useEffect(() => {
-    if (prefersReducedMotion) return;
+    if (reducedMotion) return;
 
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -229,12 +226,12 @@ const MatrixBackground = () => {
       window.removeEventListener("resize", handleResize);
       if (requestRef.current) cancelAnimationFrame(requestRef.current);
     };
-  }, [prefersReducedMotion, initializeColumns, redrawStaticFrame]);
+  }, [reducedMotion, initializeColumns, redrawStaticFrame]);
 
   // **FIX 3**: The animation control effect - now PERFECT
   // The `animate` dependency is now completely stable - the loop is never restarted
   useEffect(() => {
-    if (isAnimationPaused || !isVisible || prefersReducedMotion) {
+    if (paused || !isVisible || reducedMotion) {
       if (requestRef.current) {
         cancelAnimationFrame(requestRef.current);
         requestRef.current = null;
@@ -247,7 +244,7 @@ const MatrixBackground = () => {
     }
 
     // This effect needs to re-evaluate when the theme changes to draw a new static frame
-    if (isAnimationPaused) {
+    if (paused) {
       redrawStaticFrame();
     }
 
@@ -257,10 +254,10 @@ const MatrixBackground = () => {
         requestRef.current = null;
       }
     };
-  }, [isAnimationPaused, isVisible, prefersReducedMotion, redrawStaticFrame]); // eslint-disable-line react-hooks/exhaustive-deps -- animate intentionally excluded, uses ref pattern
+  }, [paused, isVisible, reducedMotion, redrawStaticFrame]); // eslint-disable-line react-hooks/exhaustive-deps -- animate intentionally excluded, uses ref pattern
 
   // Hide the canvas entirely for reduced motion users
-  if (prefersReducedMotion) {
+  if (reducedMotion) {
     return null;
   }
 
@@ -268,7 +265,7 @@ const MatrixBackground = () => {
     <canvas
       ref={canvasRef}
       className={`matrix-background ${
-        isAnimationPaused ? "animation-paused" : ""
+        paused ? "animation-paused" : ""
       }`}
     />
   );

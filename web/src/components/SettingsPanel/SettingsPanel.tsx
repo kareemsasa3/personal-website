@@ -15,7 +15,7 @@ import {
   DOCK_SIZE_CONFIG,
   DOCK_STIFFNESS_CONFIG,
   MAGNIFICATION_CONFIG,
-  MATRIX_SPEED_CONFIG,
+  BACKGROUND_MOTION_SPEED_CONFIG,
 } from "./settingsConstants";
 import {
   resetAllSettings,
@@ -40,8 +40,8 @@ interface SettingsPanelProps {
   onAnimationToggle: (paused: boolean) => void;
   isOpen: boolean;
   onClose: () => void;
-  matrixSpeed?: number;
-  onMatrixSpeedChange?: (speed: number) => void;
+  backgroundMotionSpeed?: number;
+  onBackgroundMotionSpeedChange?: (speed: number) => void;
 }
 
 interface SettingsSectionProps {
@@ -167,8 +167,8 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
   onAnimationToggle,
   isOpen,
   onClose,
-  matrixSpeed,
-  onMatrixSpeedChange,
+  backgroundMotionSpeed,
+  onBackgroundMotionSpeedChange,
 }) => {
   const { showSuccess, showError } = useToast();
   const { theme, setTheme } = useTheme();
@@ -227,7 +227,9 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
       onDockStiffnessChange(DEFAULT_SETTINGS.dockStiffness);
       onMagnificationChange(DEFAULT_SETTINGS.magnification);
       onAnimationToggle(DEFAULT_SETTINGS.isAnimationPaused);
-      onMatrixSpeedChange?.(DEFAULT_SETTINGS.matrixSpeed ?? 1);
+      onBackgroundMotionSpeedChange?.(
+        DEFAULT_SETTINGS.backgroundMotionSpeed ?? 1
+      );
       setNavMode(DEFAULT_SETTINGS.navMode);
       setTheme("dark");
 
@@ -307,8 +309,15 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
               onAnimationToggle(settings.isAnimationPaused);
             }
 
-            if (typeof settings.matrixSpeed === "number") {
-              onMatrixSpeedChange?.(settings.matrixSpeed);
+            if (typeof settings.backgroundMotionSpeed === "number") {
+              onBackgroundMotionSpeedChange?.(settings.backgroundMotionSpeed);
+            } else if (
+              typeof (settings as { matrixSpeed?: number }).matrixSpeed ===
+              "number"
+            ) {
+              onBackgroundMotionSpeedChange?.(
+                (settings as { matrixSpeed: number }).matrixSpeed
+              );
             }
 
             showSuccess(
@@ -435,27 +444,31 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                   </div>
 
                   <div className="setting-group">
-                    <label htmlFor="matrix-speed" className="setting-label">
+                    <label htmlFor="background-motion-speed" className="setting-label">
                       Background Motion
                     </label>
                     <div className="setting-control">
                       <input
                         type="range"
-                        id="matrix-speed"
-                        min={MATRIX_SPEED_CONFIG.min}
-                        max={MATRIX_SPEED_CONFIG.max}
-                        step={MATRIX_SPEED_CONFIG.step}
+                        id="background-motion-speed"
+                        min={BACKGROUND_MOTION_SPEED_CONFIG.min}
+                        max={BACKGROUND_MOTION_SPEED_CONFIG.max}
+                        step={BACKGROUND_MOTION_SPEED_CONFIG.step}
                         value={
-                          typeof matrixSpeed === "number" ? matrixSpeed : 1
+                          typeof backgroundMotionSpeed === "number"
+                            ? backgroundMotionSpeed
+                            : 1
                         }
                         onChange={(e) =>
-                          onMatrixSpeedChange?.(parseFloat(e.target.value))
+                          onBackgroundMotionSpeedChange?.(
+                            parseFloat(e.target.value)
+                          )
                         }
                         className="magnification-slider"
                       />
                       <div className="magnification-value">
-                        {typeof matrixSpeed === "number"
-                          ? matrixSpeed.toFixed(1)
+                        {typeof backgroundMotionSpeed === "number"
+                          ? backgroundMotionSpeed.toFixed(1)
                           : "1.0"}
                         ×
                       </div>

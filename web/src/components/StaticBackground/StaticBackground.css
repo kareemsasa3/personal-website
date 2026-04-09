@@ -1,4 +1,5 @@
 .static-background {
+  --background-motion-speed: 1;
   position: fixed;
   top: 0;
   left: 0;
@@ -86,7 +87,7 @@
     radial-gradient(circle at 76% 82%, color-mix(in srgb, var(--bg-topology) 68%, transparent) 0 2px, transparent 3px),
     radial-gradient(circle at 18% 78%, color-mix(in srgb, var(--bg-topology) 68%, transparent) 0 2px, transparent 3px);
   filter: blur(0.1px);
-  animation: static-background-topology-drift 34s ease-in-out infinite alternate;
+  animation: static-background-topology-drift calc(34s / var(--background-motion-speed)) ease-in-out infinite alternate;
   transform: translate3d(0, 0, 0);
 }
 
@@ -98,8 +99,14 @@
     radial-gradient(circle at 78% 84%, color-mix(in srgb, var(--bg-signal) 72%, transparent), transparent 11%),
     radial-gradient(circle at 18% 80%, color-mix(in srgb, var(--bg-signal) 64%, transparent), transparent 12%),
     radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.08), transparent 24%);
-  animation: static-background-drift 16s ease-in-out infinite alternate;
+  animation: static-background-drift calc(16s / var(--background-motion-speed)) ease-in-out infinite alternate;
   transform: translate3d(0, 0, 0);
+}
+
+.static-background--motion-disabled .static-background__topology,
+.static-background--motion-disabled .static-background__signals {
+  animation: none;
+  transform: none;
 }
 
 @keyframes static-background-topology-drift {

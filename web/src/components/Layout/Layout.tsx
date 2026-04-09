@@ -1,15 +1,13 @@
 import { Outlet, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Suspense, useMemo, useState, useEffect, useRef } from "react";
-import MatrixBackground from "../MatrixBackground/MatrixBackground";
-import StaticBackground from "../StaticBackground/StaticBackground";
+import AppBackground from "../AppBackground/AppBackground";
 import SiteNavigation from "../Navigation/SiteNavigation";
 import GlobalSectionNavigation from "./GlobalSectionNavigation";
 import GlobalScrollProgress from "./GlobalScrollProgress";
 import { PageLoader } from "../common";
 import ErrorBoundary from "../common/ErrorBoundary";
 import { useLayoutContext } from "../../contexts/LayoutContext";
-import { useTheme } from "../../contexts/ThemeContext";
 import { useNavigationMode } from "../../contexts/NavigationModeContext";
 import { caseStudiesData } from "../../data/caseStudies";
 import "./Layout.css";
@@ -48,7 +46,6 @@ const DEFAULT_IMAGE_ALT = "Kareem Sasa logo";
 const Layout = () => {
   const location = useLocation();
   const { mainContentAreaRef } = useLayoutContext();
-  const { theme } = useTheme();
   const { navMode } = useNavigationMode();
   const [isLoading, setIsLoading] = useState(true);
   const hasMarkedAppReady = useRef(false);
@@ -186,7 +183,7 @@ const Layout = () => {
   return (
     // Use a simple fragment, or a div with NO positioning/transform styles
     <>
-      {theme === "dark" ? <MatrixBackground /> : <StaticBackground />}
+      <AppBackground />
 
       {/* This is now the top-level container for all INTERACTIVE content */}
       <div className={`layout-foreground nav-mode-${navMode}`}>

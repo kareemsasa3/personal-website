@@ -18,11 +18,11 @@ interface LayoutContextType {
   sections: PageSection[];
   activeSection: string;
   isAnimationPaused: boolean;
-  matrixSpeed: number;
+  backgroundMotionSpeed: number;
   setSections: (sections: PageSection[]) => void;
   setActiveSection: (id: string) => void;
   setIsAnimationPaused: (paused: boolean) => void;
-  setMatrixSpeed: (speed: number) => void;
+  setBackgroundMotionSpeed: (speed: number) => void;
 }
 
 // Create the context with a default value
@@ -31,12 +31,33 @@ const LayoutContext = createContext<LayoutContextType>({
   sections: [],
   activeSection: "",
   isAnimationPaused: false,
-  matrixSpeed: 1,
+  backgroundMotionSpeed: 1,
   setSections: () => {},
   setActiveSection: () => {},
   setIsAnimationPaused: () => {},
-  setMatrixSpeed: () => {},
+  setBackgroundMotionSpeed: () => {},
 });
+
+const BACKGROUND_MOTION_SPEED_STORAGE_KEY = "workfolio-background-motion-speed";
+const LEGACY_MATRIX_SPEED_STORAGE_KEY = "workfolio-matrix-speed";
+
+const clampBackgroundMotionSpeed = (value: number) =>
+  Math.min(2, Math.max(0.5, value));
+
+const readStoredBackgroundMotionSpeed = () => {
+  if (typeof window === "undefined") return 1;
+
+  const saved =
+    localStorage.getItem(BACKGROUND_MOTION_SPEED_STORAGE_KEY) ??
+    localStorage.getItem(LEGACY_MATRIX_SPEED_STORAGE_KEY);
+  const parsed = saved ? parseFloat(saved) : 1;
+
+  if (!isNaN(parsed)) {
+    return clampBackgroundMotionSpeed(parsed);
+  }
+
+  return 1;
+};
 
 // Create the provider component
 export const LayoutContextProvider = ({
@@ -56,18 +77,9 @@ export const LayoutContextProvider = ({
     return false;
   });
 
-  // Matrix speed (multiplier) persisted in localStorage
-  const [matrixSpeed, setMatrixSpeed] = useState<number>(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("workfolio-matrix-speed");
-      const parsed = saved ? parseFloat(saved) : 1;
-      // Clamp between 0.5 and 2.0
-      if (!isNaN(parsed)) {
-        return Math.min(2, Math.max(0.5, parsed));
-      }
-    }
-    return 1;
-  });
+  const [backgroundMotionSpeed, setBackgroundMotionSpeed] = useState<number>(
+    readStoredBackgroundMotionSpeed
+  );
 
   const mainContentAreaRef = useRef<HTMLElement>(null);
 
@@ -81,23 +93,26 @@ export const LayoutContextProvider = ({
     }
   }, [isAnimationPaused]);
 
-  // Persist matrix speed
+  // Persist normalized background motion speed to the new storage key.
   useEffect(() => {
     if (typeof window !== "undefined") {
-      localStorage.setItem("workfolio-matrix-speed", String(matrixSpeed));
+      localStorage.setItem(
+        BACKGROUND_MOTION_SPEED_STORAGE_KEY,
+        String(backgroundMotionSpeed)
+      );
     }
-  }, [matrixSpeed]);
+  }, [backgroundMotionSpeed]);
 
   const value = {
     mainContentAreaRef,
     sections,
     activeSection,
     isAnimationPaused,
-    matrixSpeed,
+    backgroundMotionSpeed,
     setSections,
     setActiveSection,
     setIsAnimationPaused,
-    setMatrixSpeed,
+    setBackgroundMotionSpeed,
   };
 
   return (

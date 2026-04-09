@@ -18,7 +18,7 @@ export const MAGNIFICATION_CONFIG = {
   step: 10,
 };
 
-export const MATRIX_SPEED_CONFIG = {
+export const BACKGROUND_MOTION_SPEED_CONFIG = {
   min: 0.5,
   max: 2.0,
   step: 0.1,

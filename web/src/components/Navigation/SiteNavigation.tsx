@@ -72,8 +72,8 @@ const SiteNavigation = () => {
   const {
     isAnimationPaused,
     setIsAnimationPaused,
-    matrixSpeed,
-    setMatrixSpeed,
+    backgroundMotionSpeed,
+    setBackgroundMotionSpeed,
   } = useLayoutContext();
   const shellRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLElement>(null);
@@ -159,8 +159,8 @@ const SiteNavigation = () => {
         onAnimationToggle={setIsAnimationPaused}
         isOpen={isSettingsOpen}
         onClose={closeSettings}
-        matrixSpeed={matrixSpeed}
-        onMatrixSpeedChange={setMatrixSpeed}
+        backgroundMotionSpeed={backgroundMotionSpeed}
+        onBackgroundMotionSpeedChange={setBackgroundMotionSpeed}
       />
     </div>
   );

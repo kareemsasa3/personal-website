@@ -8,7 +8,7 @@ export interface UserSettings {
 
   // Animation settings
   isAnimationPaused: boolean;
-  matrixSpeed?: number;
+  backgroundMotionSpeed?: number;
 
   // UI settings
   isSettingsOpen: boolean;
@@ -27,7 +27,7 @@ export const DEFAULT_SETTINGS: UserSettings = {
   isAnimationPaused: false,
   isSettingsOpen: false,
   navMode: "header",
-  matrixSpeed: 1,
+  backgroundMotionSpeed: 1,
 };
 
 // Local storage keys
@@ -35,9 +35,30 @@ const STORAGE_KEYS = {
   DOCK_SETTINGS: "dockSettings",
   ANIMATION_PAUSED: "workfolio-animation-paused",
   SETTINGS_OPEN: "workfolio-settings-open",
-  MATRIX_SPEED: "workfolio-matrix-speed",
+  BACKGROUND_MOTION_SPEED: "workfolio-background-motion-speed",
+  LEGACY_MATRIX_SPEED: "workfolio-matrix-speed",
   NAV_MODE: "workfolio-nav-mode",
 } as const;
+
+const clampBackgroundMotionSpeed = (value: number) =>
+  Math.min(2, Math.max(0.5, value));
+
+const getBackgroundMotionSpeed = (): number => {
+  try {
+    const saved =
+      localStorage.getItem(STORAGE_KEYS.BACKGROUND_MOTION_SPEED) ??
+      localStorage.getItem(STORAGE_KEYS.LEGACY_MATRIX_SPEED);
+
+    if (saved != null) {
+      const parsed = parseFloat(saved);
+      if (!isNaN(parsed)) return clampBackgroundMotionSpeed(parsed);
+    }
+  } catch {
+    // ignore localStorage read failures
+  }
+
+  return DEFAULT_SETTINGS.backgroundMotionSpeed ?? 1;
+};
 
 // Settings validation schema
 const validateDockSettings = (settings: unknown) => {
@@ -167,18 +188,7 @@ export const getAllSettings = (
       return DEFAULT_SETTINGS.navMode;
     })(),
     ...(theme ? { theme } : {}),
-    matrixSpeed: (() => {
-      try {
-        const saved = localStorage.getItem(STORAGE_KEYS.MATRIX_SPEED);
-        if (saved != null) {
-          const parsed = parseFloat(saved);
-          if (!isNaN(parsed)) return parsed;
-        }
-    } catch {
-      // ignore localStorage read failures
-    }
-      return DEFAULT_SETTINGS.matrixSpeed;
-    })(),
+    backgroundMotionSpeed: getBackgroundMotionSpeed(),
   };
 };
 
