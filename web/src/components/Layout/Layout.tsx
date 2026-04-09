@@ -9,7 +9,6 @@ import GlobalScrollProgress from "./GlobalScrollProgress";
 import { PageLoader } from "../common";
 import ErrorBoundary from "../common/ErrorBoundary";
 import { useLayoutContext } from "../../contexts/LayoutContext";
-import { useSettings } from "../../contexts/SettingsContext";
 import { useTheme } from "../../contexts/ThemeContext";
 import { useNavigationMode } from "../../contexts/NavigationModeContext";
 import { caseStudiesData } from "../../data/caseStudies";
@@ -49,7 +48,6 @@ const DEFAULT_IMAGE_ALT = "Kareem Sasa logo";
 const Layout = () => {
   const location = useLocation();
   const { mainContentAreaRef } = useLayoutContext();
-  const { isSettingsOpen } = useSettings();
   const { theme } = useTheme();
   const { navMode } = useNavigationMode();
   const [isLoading, setIsLoading] = useState(true);
@@ -194,7 +192,7 @@ const Layout = () => {
       <div className={`layout-foreground nav-mode-${navMode}`}>
         <GlobalScrollProgress />
         <SiteNavigation />
-        <GlobalSectionNavigation isSettingsOpen={isSettingsOpen} />
+        <GlobalSectionNavigation />
 
         <main
           ref={mainContentAreaRef}

@@ -1,18 +1,10 @@
-import { CSSProperties, useEffect, useMemo, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { useLayoutContext, PageSection } from "../../contexts/LayoutContext";
-import { useWindowSize } from "../../hooks/useWindowSize";
 import "./GlobalSectionNavigation.css";
 
-interface GlobalSectionNavigationProps {
-  isSettingsOpen: boolean;
-}
-
-const GlobalSectionNavigation = ({
-  isSettingsOpen,
-}: GlobalSectionNavigationProps) => {
+const GlobalSectionNavigation = () => {
   const { sections, activeSection, setActiveSection } = useLayoutContext();
-  const { width: windowWidth } = useWindowSize();
 
   // Use a ref to track the active section without causing re-renders
   const activeSectionRef = useRef(activeSection);
@@ -115,13 +107,6 @@ const GlobalSectionNavigation = ({
     }
   };
 
-  const settingsOffset = useMemo(() => {
-    if (!isSettingsOpen) return 0;
-    const SIDEBAR_WIDTH = 360;
-    if (windowWidth > 768) return SIDEBAR_WIDTH;
-    return 0;
-  }, [isSettingsOpen, windowWidth]);
-
   // No longer need to check isHomePage here, it's implicit
   if (sections.length === 0) {
     return null;
@@ -129,14 +114,7 @@ const GlobalSectionNavigation = ({
 
   return (
     <motion.nav
-      className={`global-section-navigation ${
-        isSettingsOpen ? "settings-open" : ""
-      }`}
-      style={
-        {
-          "--global-section-nav-settings-offset": `${settingsOffset}px`,
-        } as CSSProperties
-      }
+      className="global-section-navigation"
       initial={{ opacity: 0, x: 50 }}
       animate={{
         opacity: 1,
