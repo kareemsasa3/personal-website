@@ -37,7 +37,7 @@ jobs:
 
       - name: Build Workfolio image (local, PRs only)
         if: github.ref != 'refs/heads/main' && github.ref != 'refs/heads/master'
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: ./workfolio
           load: true
@@ -49,7 +49,7 @@ jobs:
 
       - name: Build and push Workfolio image (GHCR, main/master only)
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: ./workfolio
           push: true
@@ -80,9 +80,9 @@ jobs:
           severity: CRITICAL
           exit-code: 1
 
-      # Alternative: build from within the submodule directory
+      # Alternative: build from within the workfolio directory
       # - name: Build (working-directory: workfolio)
-      #   uses: docker/build-push-action@v5
+      #   uses: docker/build-push-action@v6
       #   with:
       #     context: ./workfolio
       #     file: ./workfolio/Dockerfile
