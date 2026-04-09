@@ -5,6 +5,10 @@ import "./MatrixRain3DBackground.css";
 const MATRIX_GLYPHS = "0123456789ABCDEF";
 const FAR_PLANE = 1200;
 const NEAR_PLANE = 140;
+const DARK_BACKGROUND_FILL = "#050506";
+const DARK_TRAIL_FADE_ALPHA = 0.28;
+const LIGHT_TRAIL_FADE_ALPHA = 0.18;
+const DARK_HEAD_GLOW_ALPHA_CAP = 0.28;
 
 interface MatrixRain3DBackgroundProps {
   theme: Theme;
@@ -72,6 +76,25 @@ const createStream = (config: ViewportConfig, initial = false): Stream => {
   };
 };
 
+const resizeStreamToViewport = (
+  stream: Stream,
+  previousViewport: ViewportConfig,
+  nextViewport: ViewportConfig
+): Stream => {
+  const widthRatio =
+    previousViewport.width > 0 ? nextViewport.width / previousViewport.width : 1;
+  const heightRatio =
+    previousViewport.height > 0
+      ? nextViewport.height / previousViewport.height
+      : 1;
+
+  return {
+    ...stream,
+    x: stream.x * widthRatio,
+    y: stream.y * heightRatio,
+  };
+};
+
 const MatrixRain3DBackground = ({
   theme,
   paused,
@@ -93,10 +116,14 @@ const MatrixRain3DBackground = ({
       const viewport = viewportRef.current;
       if (!canvas || !context || !viewport) return;
 
-      const backgroundFill = theme === "dark" ? "#060806" : "#f5f5f5";
+      const backgroundFill = theme === "dark" ? DARK_BACKGROUND_FILL : "#f5f5f5";
       const glyphRgb = theme === "dark" ? [102, 255, 136] : [44, 44, 44];
       const leadRgb = theme === "dark" ? "232, 255, 238" : "255, 255, 255";
-      const trailAlpha = animate ? 0.18 : 1;
+      const trailAlpha = animate
+        ? theme === "dark"
+          ? DARK_TRAIL_FADE_ALPHA
+          : LIGHT_TRAIL_FADE_ALPHA
+        : 1;
       const centerX = viewport.width / 2;
       const centerY = viewport.height / 2;
       const glyphStep = 18;
@@ -104,7 +131,7 @@ const MatrixRain3DBackground = ({
       context.setTransform(1, 0, 0, 1, 0, 0);
       context.fillStyle =
         theme === "dark"
-          ? `rgba(6, 8, 6, ${trailAlpha})`
+          ? `rgba(5, 5, 6, ${trailAlpha})`
           : `rgba(245, 245, 245, ${trailAlpha})`;
       context.fillRect(0, 0, viewport.width, viewport.height);
 
@@ -145,7 +172,7 @@ const MatrixRain3DBackground = ({
             context.shadowBlur = 6 + proximityBoost * 10;
             context.shadowColor =
               theme === "dark"
-                ? `rgba(142, 255, 172, ${Math.min(0.42, headAlpha * 0.45)})`
+                ? `rgba(142, 255, 172, ${Math.min(DARK_HEAD_GLOW_ALPHA_CAP, headAlpha * 0.32)})`
                 : `rgba(255, 255, 255, ${Math.min(0.3, headAlpha * 0.35)})`;
             context.fillStyle = `rgba(${leadRgb}, ${headAlpha})`;
           } else {
@@ -203,6 +230,7 @@ const MatrixRain3DBackground = ({
     const isCompactViewport = width <= 768;
     const dpr = clampDpr(isCompactViewport);
     const viewport = createViewportConfig(width, height, dpr);
+    const previousViewport = viewportRef.current;
 
     viewportRef.current = viewport;
     canvas.width = Math.floor(width * dpr);
@@ -215,9 +243,26 @@ const MatrixRain3DBackground = ({
       context.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
 
-    streamsRef.current = Array.from({ length: viewport.streamCount }, () =>
-      createStream(viewport, true)
-    );
+    if (!previousViewport) {
+      streamsRef.current = Array.from({ length: viewport.streamCount }, () =>
+        createStream(viewport, true)
+      );
+    } else {
+      const resizedStreams = streamsRef.current.map((stream) =>
+        resizeStreamToViewport(stream, previousViewport, viewport)
+      );
+      const streamDelta = viewport.streamCount - resizedStreams.length;
+
+      if (streamDelta > 0) {
+        resizedStreams.push(
+          ...Array.from({ length: streamDelta }, () => createStream(viewport, true))
+        );
+      } else if (streamDelta < 0) {
+        resizedStreams.length = viewport.streamCount;
+      }
+
+      streamsRef.current = resizedStreams;
+    }
 
     drawFrameRef.current();
   }, []);
