@@ -94,7 +94,7 @@ const MatrixRain3DBackground = ({
       if (!canvas || !context || !viewport) return;
 
       const backgroundFill = theme === "dark" ? "#060806" : "#f5f5f5";
-      const glyphRgb = theme === "dark" ? "102, 255, 136" : "44, 44, 44";
+      const glyphRgb = theme === "dark" ? [102, 255, 136] : [44, 44, 44];
       const leadRgb = theme === "dark" ? "232, 255, 238" : "255, 255, 255";
       const trailAlpha = animate ? 0.18 : 1;
       const centerX = viewport.width / 2;
@@ -151,9 +151,7 @@ const MatrixRain3DBackground = ({
           } else {
             const depthTint = 0.7 + proximityBoost * 0.3;
             const greenAlpha = alpha * (0.78 + fade * 0.18);
-            const [red, green, blue] = glyphRgb
-              .split(",")
-              .map((value) => Number.parseInt(value.trim(), 10));
+            const [red, green, blue] = glyphRgb;
             context.shadowBlur = 0;
             context.shadowColor = "transparent";
             context.fillStyle = `rgba(${Math.round(red * depthTint)}, ${Math.round(
@@ -256,6 +254,7 @@ const MatrixRain3DBackground = ({
   }, [drawStaticFrame]);
 
   useEffect(() => {
+    // Reduced motion and explicit pause both intentionally collapse to a frozen frame.
     if (reducedMotion || paused || !isVisible) {
       stopAnimation();
       drawStaticFrame();

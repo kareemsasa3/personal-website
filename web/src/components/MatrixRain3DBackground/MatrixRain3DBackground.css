@@ -12,8 +12,3 @@
 .matrix-rain-3d-background.animation-paused {
   opacity: 0.32;
 }
-
-.matrix-rain-3d-background::before,
-.matrix-rain-3d-background::after {
-  pointer-events: none;
-}
