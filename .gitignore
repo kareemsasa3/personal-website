@@ -56,3 +56,5 @@ build/
 .env.test.development
 
 .codex
+web/.vite
+
