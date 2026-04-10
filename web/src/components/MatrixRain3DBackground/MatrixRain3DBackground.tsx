@@ -9,6 +9,11 @@ const DARK_BACKGROUND_FILL = "#050506";
 const DARK_TRAIL_FADE_ALPHA = 0.28;
 const LIGHT_TRAIL_FADE_ALPHA = 0.18;
 const DARK_HEAD_GLOW_ALPHA_CAP = 0.28;
+const COMPACT_VIEWPORT_WIDTH = 768;
+const MOBILE_HEIGHT_IGNORE_THRESHOLD = 24;
+const MOBILE_HEIGHT_LIGHT_RESIZE_THRESHOLD = 160;
+
+type ResizeMode = "ignore" | "light" | "full";
 
 interface MatrixRain3DBackgroundProps {
   theme: Theme;
@@ -31,32 +36,74 @@ interface ViewportConfig {
   width: number;
   height: number;
   dpr: number;
+  isCompactViewport: boolean;
   focalLength: number;
   streamCount: number;
   maxLength: number;
+  glyphStep: number;
+  minFontSize: number;
+  maxFontSize: number;
+  headGlowBlurBase: number;
+  headGlowBlurRange: number;
 }
 
 const randomGlyph = () =>
   MATRIX_GLYPHS[Math.floor(Math.random() * MATRIX_GLYPHS.length)];
 
 const clampDpr = (isCompactViewport: boolean) =>
-  Math.min(window.devicePixelRatio || 1, isCompactViewport ? 1.1 : 1.5);
+  Math.min(window.devicePixelRatio || 1, isCompactViewport ? 1.35 : 1.5);
+
+const readWindowViewport = () => ({
+  width: window.innerWidth,
+  height: window.innerHeight,
+});
 
 const createViewportConfig = (
   width: number,
   height: number,
   dpr: number
 ): ViewportConfig => {
-  const isCompactViewport = width <= 768;
+  const isCompactViewport = width <= COMPACT_VIEWPORT_WIDTH;
 
   return {
     width,
     height,
     dpr,
+    isCompactViewport,
     focalLength: Math.max(260, width * (isCompactViewport ? 0.42 : 0.5)),
-    streamCount: Math.max(22, Math.floor(width / (isCompactViewport ? 42 : 28))),
-    maxLength: isCompactViewport ? 14 : 20,
+    streamCount: Math.max(24, Math.floor(width / (isCompactViewport ? 34 : 28))),
+    maxLength: isCompactViewport ? 16 : 20,
+    glyphStep: isCompactViewport ? 16 : 18,
+    minFontSize: isCompactViewport ? 9 : 8,
+    maxFontSize: isCompactViewport ? 24 : 22,
+    headGlowBlurBase: isCompactViewport ? 4.5 : 6,
+    headGlowBlurRange: isCompactViewport ? 7 : 10,
   };
+};
+
+const getResizeMode = (
+  previousViewport: ViewportConfig | null,
+  nextWidth: number,
+  nextHeight: number
+) : ResizeMode => {
+  if (!previousViewport || nextWidth > COMPACT_VIEWPORT_WIDTH) {
+    return "full";
+  }
+
+  if (previousViewport.width !== nextWidth) {
+    return "full";
+  }
+
+  const heightDelta = Math.abs(previousViewport.height - nextHeight);
+  if (heightDelta <= MOBILE_HEIGHT_IGNORE_THRESHOLD) {
+    return "ignore";
+  }
+
+  if (heightDelta <= MOBILE_HEIGHT_LIGHT_RESIZE_THRESHOLD) {
+    return "light";
+  }
+
+  return "full";
 };
 
 const createStream = (config: ViewportConfig, initial = false): Stream => {
@@ -95,6 +142,22 @@ const resizeStreamToViewport = (
   };
 };
 
+const resizeStreamHeightOnly = (
+  stream: Stream,
+  previousViewport: ViewportConfig,
+  nextViewport: ViewportConfig
+): Stream => {
+  const heightRatio =
+    previousViewport.height > 0
+      ? nextViewport.height / previousViewport.height
+      : 1;
+
+  return {
+    ...stream,
+    y: stream.y * heightRatio,
+  };
+};
+
 const MatrixRain3DBackground = ({
   theme,
   paused,
@@ -104,10 +167,19 @@ const MatrixRain3DBackground = ({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const frameRef = useRef<number | null>(null);
   const viewportRef = useRef<ViewportConfig | null>(null);
+  const resizeFrameRef = useRef<number | null>(null);
   const streamsRef = useRef<Stream[]>([]);
   const lastTimeRef = useRef<number | null>(null);
   const drawFrameRef = useRef<() => void>(() => {});
   const [isVisible, setIsVisible] = useState(true);
+
+  const syncCanvasStyleToViewport = useCallback(
+    (canvas: HTMLCanvasElement, viewport: ViewportConfig) => {
+      canvas.style.width = `${viewport.width}px`;
+      canvas.style.height = `${viewport.height}px`;
+    },
+    []
+  );
 
   const renderScene = useCallback(
     (animate: boolean, deltaMultiplier = 1) => {
@@ -126,9 +198,8 @@ const MatrixRain3DBackground = ({
         : 1;
       const centerX = viewport.width / 2;
       const centerY = viewport.height / 2;
-      const glyphStep = 18;
 
-      context.setTransform(1, 0, 0, 1, 0, 0);
+      context.setTransform(viewport.dpr, 0, 0, viewport.dpr, 0, 0);
       context.fillStyle =
         theme === "dark"
           ? `rgba(5, 5, 6, ${trailAlpha})`
@@ -156,20 +227,25 @@ const MatrixRain3DBackground = ({
         const perspective = viewport.focalLength / (depth + viewport.focalLength);
         const screenX = centerX + stream.x * perspective;
         const headY = centerY + stream.y * perspective;
-        const fontSize = Math.max(8, Math.min(22, 12 + perspective * 10));
+        const fontSize = Math.max(
+          viewport.minFontSize,
+          Math.min(viewport.maxFontSize, 12 + perspective * 10)
+        );
         const proximityBoost = Math.min(1, Math.max(0, (perspective - 0.16) / 0.72));
 
         context.font = `${fontSize}px 'Courier New', monospace`;
 
         for (let index = 0; index < stream.length; index += 1) {
-          const glyphY = headY - index * glyphStep * perspective;
+          const glyphY = headY - index * viewport.glyphStep * perspective;
           if (glyphY < -30 || glyphY > viewport.height + 30) continue;
 
           const fade = Math.max(0, 1 - index / stream.length);
           const alpha = fade * stream.opacity * Math.max(0.28, perspective);
           if (index === 0) {
             const headAlpha = Math.min(0.98, alpha + 0.24 + proximityBoost * 0.08);
-            context.shadowBlur = 6 + proximityBoost * 10;
+            context.shadowBlur =
+              viewport.headGlowBlurBase +
+              proximityBoost * viewport.headGlowBlurRange;
             context.shadowColor =
               theme === "dark"
                 ? `rgba(142, 255, 172, ${Math.min(DARK_HEAD_GLOW_ALPHA_CAP, headAlpha * 0.32)})`
@@ -221,33 +297,50 @@ const MatrixRain3DBackground = ({
     lastTimeRef.current = null;
   }, []);
 
-  const setupViewport = useCallback(() => {
+  const syncCanvasToViewport = useCallback(
+    (canvas: HTMLCanvasElement, viewport: ViewportConfig) => {
+      canvas.width = Math.floor(viewport.width * viewport.dpr);
+      canvas.height = Math.floor(viewport.height * viewport.dpr);
+      syncCanvasStyleToViewport(canvas, viewport);
+
+      const context = canvas.getContext("2d");
+      if (context) {
+        context.setTransform(viewport.dpr, 0, 0, viewport.dpr, 0, 0);
+      }
+    },
+    [syncCanvasStyleToViewport]
+  );
+
+  const setupViewport = useCallback((force = false) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const width = window.innerWidth;
-    const height = window.innerHeight;
-    const isCompactViewport = width <= 768;
-    const dpr = clampDpr(isCompactViewport);
-    const viewport = createViewportConfig(width, height, dpr);
+    const { width, height } = readWindowViewport();
     const previousViewport = viewportRef.current;
+    const resizeMode = force ? "full" : getResizeMode(previousViewport, width, height);
 
-    viewportRef.current = viewport;
-    canvas.width = Math.floor(width * dpr);
-    canvas.height = Math.floor(height * dpr);
-    canvas.style.width = `${width}px`;
-    canvas.style.height = `${height}px`;
-
-    const context = canvas.getContext("2d");
-    if (context) {
-      context.setTransform(dpr, 0, 0, dpr, 0, 0);
+    if (resizeMode === "ignore") {
+      return;
     }
 
+    const isCompactViewport = width <= COMPACT_VIEWPORT_WIDTH;
+    const dpr = clampDpr(isCompactViewport);
+    const viewport = createViewportConfig(width, height, dpr);
+
+    viewportRef.current = viewport;
+
     if (!previousViewport) {
+      syncCanvasToViewport(canvas, viewport);
       streamsRef.current = Array.from({ length: viewport.streamCount }, () =>
         createStream(viewport, true)
       );
+    } else if (resizeMode === "light") {
+      syncCanvasStyleToViewport(canvas, viewport);
+      streamsRef.current = streamsRef.current.map((stream) =>
+        resizeStreamHeightOnly(stream, previousViewport, viewport)
+      );
     } else {
+      syncCanvasToViewport(canvas, viewport);
       const resizedStreams = streamsRef.current.map((stream) =>
         resizeStreamToViewport(stream, previousViewport, viewport)
       );
@@ -265,7 +358,7 @@ const MatrixRain3DBackground = ({
     }
 
     drawFrameRef.current();
-  }, []);
+  }, [syncCanvasStyleToViewport, syncCanvasToViewport]);
 
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -278,18 +371,27 @@ const MatrixRain3DBackground = ({
   }, []);
 
   useEffect(() => {
-    setupViewport();
+    setupViewport(true);
 
     const handleResize = () => {
-      setupViewport();
+      if (resizeFrameRef.current != null) {
+        cancelAnimationFrame(resizeFrameRef.current);
+      }
+
+      resizeFrameRef.current = requestAnimationFrame(() => {
+        resizeFrameRef.current = null;
+        setupViewport();
+      });
     };
 
     window.addEventListener("resize", handleResize);
-    window.visualViewport?.addEventListener("resize", handleResize);
 
     return () => {
       window.removeEventListener("resize", handleResize);
-      window.visualViewport?.removeEventListener("resize", handleResize);
+      if (resizeFrameRef.current != null) {
+        cancelAnimationFrame(resizeFrameRef.current);
+        resizeFrameRef.current = null;
+      }
       stopAnimation();
     };
   }, [setupViewport, stopAnimation]);
