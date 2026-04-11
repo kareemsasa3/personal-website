@@ -19,6 +19,12 @@ inputs:
   ghcr_token:
     description: GHCR token
     required: true
+  grafana_admin_user:
+    description: Grafana admin username
+    required: true
+  grafana_admin_password:
+    description: Grafana admin password
+    required: true
   repository:
     description: owner/repo for images
     required: true
@@ -101,6 +107,8 @@ runs:
         # Validate required environment variables are present
         : "${GHCR_TOKEN:?missing GHCR_TOKEN}"
         : "${GHCR_USERNAME:?missing GHCR_USERNAME}"
+        : "${GRAFANA_ADMIN_USER:?missing GRAFANA_ADMIN_USER}"
+        : "${GRAFANA_ADMIN_PASSWORD:?missing GRAFANA_ADMIN_PASSWORD}"
         : "${REPO:?missing REPO}"
         : "${SHA:?missing SHA}"
 
@@ -117,6 +125,8 @@ runs:
         trap 'rm -rf "$DOCKER_CONFIG_DIR"' EXIT
 
         export WEB_IMAGE=ghcr.io/$REPO/web:$SHA
+        export GRAFANA_ADMIN_USER
+        export GRAFANA_ADMIN_PASSWORD
 
         # Note: rely on compose pull/up --pull always; no manual docker pull here
 
@@ -284,6 +294,8 @@ runs:
           if ssh -T $SSH_OPTS -p "$PORT" "$USER@$HOST" \
             GHCR_TOKEN="${{ inputs.ghcr_token }}" \
             GHCR_USERNAME="${{ inputs.ghcr_username }}" \
+            GRAFANA_ADMIN_USER="${{ inputs.grafana_admin_user }}" \
+            GRAFANA_ADMIN_PASSWORD="${{ inputs.grafana_admin_password }}" \
             REPO="${{ inputs.repository }}" \
             SHA="${{ inputs.sha }}" \
             bash -s < /tmp/remote_deploy.sh; then
@@ -302,6 +314,8 @@ runs:
           ssh -vvv -T $SSH_OPTS -p "$PORT" "$USER@$HOST" \
             GHCR_TOKEN="${{ inputs.ghcr_token }}" \
             GHCR_USERNAME="${{ inputs.ghcr_username }}" \
+            GRAFANA_ADMIN_USER="${{ inputs.grafana_admin_user }}" \
+            GRAFANA_ADMIN_PASSWORD="${{ inputs.grafana_admin_password }}" \
             REPO="${{ inputs.repository }}" \
             SHA="${{ inputs.sha }}" \
             bash -s < /tmp/remote_deploy.sh || true

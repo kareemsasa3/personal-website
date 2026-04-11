@@ -33,6 +33,8 @@ jobs:
           ssh_key: ${{ secrets.PROD_SSH_KEY }}
           ghcr_username: ${{ github.actor }}
           ghcr_token: ${{ github.token }}
+          grafana_admin_user: ${{ secrets.GRAFANA_ADMIN_USER }}
+          grafana_admin_password: ${{ secrets.GRAFANA_ADMIN_PASSWORD }}
           repository: ${{ github.repository }}
           sha: ${{ github.event.workflow_run.head_sha }}
 
