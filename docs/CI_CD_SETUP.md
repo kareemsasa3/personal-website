@@ -17,7 +17,7 @@ GHCR_TOKEN
 
 ## Build and Deploy Model
 
-- Build and push the `workfolio` image to GHCR
+- Build and push the `web` image to GHCR
 - Deploy the image to the production host
 - Start the stack with:
   - `infrastructure/docker-compose.yml`

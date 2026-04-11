@@ -4,13 +4,13 @@
 
 The CI/CD pipeline for this repo supports the current deployed architecture:
 
-- `workfolio` frontend image build and push
+- `web` frontend image build and push
 - nginx + frontend deployment on the target host
 - optional monitoring stack deployment
 
 ## Active Health Checks
 
-- `workfolio`: container health check
+- `web`: container health check
 - `nginx`: `/health` endpoint
 
 ## Notes

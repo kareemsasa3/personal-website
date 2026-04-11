@@ -11,7 +11,7 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({
   // Initialize state from localStorage if available
   const [isSettingsOpen, setIsSettingsOpen] = useState(() => {
     if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("workfolio-settings-open");
+      const saved = localStorage.getItem("web-settings-open");
       return saved ? JSON.parse(saved) : false;
     }
     return false;
@@ -21,7 +21,7 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({
   useEffect(() => {
     if (typeof window !== "undefined") {
       localStorage.setItem(
-        "workfolio-settings-open",
+        "web-settings-open",
         JSON.stringify(isSettingsOpen)
       );
     }

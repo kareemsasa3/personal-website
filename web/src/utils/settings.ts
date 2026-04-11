@@ -33,11 +33,11 @@ export const DEFAULT_SETTINGS: UserSettings = {
 // Local storage keys
 const STORAGE_KEYS = {
   DOCK_SETTINGS: "dockSettings",
-  ANIMATION_PAUSED: "workfolio-animation-paused",
-  SETTINGS_OPEN: "workfolio-settings-open",
-  BACKGROUND_MOTION_SPEED: "workfolio-background-motion-speed",
-  LEGACY_MATRIX_SPEED: "workfolio-matrix-speed",
-  NAV_MODE: "workfolio-nav-mode",
+  ANIMATION_PAUSED: "web-animation-paused",
+  SETTINGS_OPEN: "web-settings-open",
+  BACKGROUND_MOTION_SPEED: "web-background-motion-speed",
+  LEGACY_MATRIX_SPEED: "web-matrix-speed",
+  NAV_MODE: "web-nav-mode",
 } as const;
 
 const clampBackgroundMotionSpeed = (value: number) =>

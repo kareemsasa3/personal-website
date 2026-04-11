@@ -94,7 +94,7 @@ check_url() {
 
 # nginx health (HTTP 80 inside container, exposed on host)
 check_url "http://localhost/health" 60 2 || echo "⚠️  nginx health not ready yet"
-# workfolio served by nginx, same URL covers it
+# web served by nginx, same URL covers it
 
 echo ""
 echo "🔍 Docker Compose service status:"

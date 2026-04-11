@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  build-workfolio:
+  build-web:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -35,7 +35,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build Workfolio image (local, PRs only)
+      - name: Build web image (local, PRs only)
         if: github.ref != 'refs/heads/main'
         uses: docker/build-push-action@v6
         with:
@@ -43,39 +43,39 @@ jobs:
           load: true
           push: false
           tags: |
-            workfolio:ci
+            web:ci
           build-args: |
             VITE_TURNSTILE_SITE_KEY=
 
-      - name: Build and push Workfolio image (GHCR, main only)
+      - name: Build and push web image (GHCR, main only)
         if: github.ref == 'refs/heads/main'
         uses: docker/build-push-action@v6
         with:
           context: ./web
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}/workfolio:${{ github.sha }}
-            ghcr.io/${{ github.repository }}/workfolio:${{ github.ref_name }}
-            ghcr.io/${{ github.repository }}/workfolio:latest
+            ghcr.io/${{ github.repository }}/web:${{ github.sha }}
+            ghcr.io/${{ github.repository }}/web:${{ github.ref_name }}
+            ghcr.io/${{ github.repository }}/web:latest
           build-args: |
             VITE_TURNSTILE_SITE_KEY=${{ secrets.VITE_TURNSTILE_SITE_KEY }}
 
-      - name: Scan Workfolio image with Trivy (local)
+      - name: Scan web image with Trivy (local)
         if: github.ref != 'refs/heads/main'
         uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # v0.35.0
         with:
           scan-type: image
-          image-ref: workfolio:ci
+          image-ref: web:ci
           format: table
           severity: CRITICAL
           exit-code: 1
 
-      - name: Scan Workfolio image with Trivy (remote)
+      - name: Scan web image with Trivy (remote)
         if: github.ref == 'refs/heads/main'
         uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # v0.35.0
         with:
           scan-type: image
-          image-ref: ghcr.io/${{ github.repository }}/workfolio:${{ github.sha }}
+          image-ref: ghcr.io/${{ github.repository }}/web:${{ github.sha }}
           format: table
           severity: CRITICAL
           exit-code: 1
@@ -87,7 +87,7 @@ jobs:
       #     context: ./web
       #     file: ./web/Dockerfile
       #     load: true
-      #     tags: workfolio:ci
+      #     tags: web:ci
       #     build-args: |
       #       VITE_TURNSTILE_SITE_KEY=${{ secrets.VITE_TURNSTILE_SITE_KEY }}
       #       VITE_AI_BACKEND_URL=${{ secrets.VITE_AI_BACKEND_URL }}

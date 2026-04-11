@@ -1,13 +1,13 @@
 # Infrastructure
 
-This directory contains the infrastructure layer used to run, serve, and deploy the Workfolio frontend application using Docker and nginx, with optional monitoring for the deployed stack.
+This directory contains the infrastructure layer used to run, serve, and deploy the web frontend application using Docker and nginx, with optional monitoring for the deployed stack.
 
-It is a support layer for the website, not a separate product. The production architecture remains frontend-only: nginx serves as the public entry point, and Workfolio is the only application container in the active runtime.
+It is a support layer for the website, not a separate product. The production architecture remains frontend-only: nginx serves as the public entry point, and web is the only application container in the active runtime.
 
 ## Components / Services
 
 Core runtime:
-- `workfolio`: the frontend website application, built from the `web/` directory and run as a container image
+- `web`: the frontend website application, built from the `web/` directory and run as a container image
 - `nginx`: reverse proxy and edge web server for routing, TLS termination, headers, and health checks
 - `certbot`: optional certificate setup and renewal support used by the production compose configuration
 
@@ -22,7 +22,7 @@ Optional monitoring:
 
 ```text
 infrastructure/
-├── docker-compose.yml                # Base stack for nginx + Workfolio
+├── docker-compose.yml                # Base stack for nginx + web
 ├── env.example                       # Environment template
 ├── setup-env.sh                      # Environment setup helper
 ├── dev.sh                            # Local development helper
@@ -43,7 +43,7 @@ cd infrastructure
 docker compose up --build
 ```
 
-This starts nginx in front of the Workfolio container using the base compose file.
+This starts nginx in front of the web container using the base compose file.
 
 For local development with the development overrides, use the scripts in this directory:
 
@@ -71,11 +71,11 @@ This configuration covers values such as domain name, SSL email, image tag, ngin
 
 The infrastructure layer deploys the frontend site behind nginx using Docker Compose.
 
-- `docker-compose.yml` defines the base nginx + Workfolio stack
+- `docker-compose.yml` defines the base nginx + web stack
 - `prod/docker-compose.prod.yml` adds production runtime settings and certificate support
 - `prod/docker-compose.monitoring.prod.yml` adds the optional production monitoring stack
 
-GitHub Actions builds and publishes the Workfolio image to GHCR. The production deployment consumes that image through the compose configuration. There are no backend API, database, queue, or session services in the active deployment model.
+GitHub Actions builds and publishes the web image to GHCR. The production deployment consumes that image through the compose configuration. There are no backend API, database, queue, or session services in the active deployment model.
 
 ## Monitoring
 

@@ -215,10 +215,10 @@ if [[ "$customize_resources" =~ ^[Yy]$ ]]; then
         sed -i.bak "s/NGINX_MEMORY_LIMIT=256M/NGINX_MEMORY_LIMIT=$nginx_memory/" .env
     fi
     
-    echo "Enter memory limit for Workfolio (default: 512M):"
-    read -r workfolio_memory
-    if [ -n "$workfolio_memory" ]; then
-        sed -i.bak "s/WORKFOLIO_MEMORY_LIMIT=512M/WORKFOLIO_MEMORY_LIMIT=$workfolio_memory/" .env
+    echo "Enter memory limit for Web (default: 512M):"
+    read -r web_memory
+    if [ -n "$web_memory" ]; then
+        sed -i.bak "s/WEB_MEMORY_LIMIT=512M/WEB_MEMORY_LIMIT=$web_memory/" .env
     fi
     
     :

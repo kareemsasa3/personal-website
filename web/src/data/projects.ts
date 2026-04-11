@@ -117,10 +117,10 @@ export const projectsData: Project[] = [
     ],
   },
   {
-    id: "workfolio",
+    id: "web",
     category: "Portfolio",
     date: "2024",
-    title: "Workfolio",
+    title: "Personal Website",
     description:
       "Interactive developer portfolio built in React and TypeScript to present projects, work history, and systems thinking through a distinctive UI.",
     techStack: ["React 18", "TypeScript", "Vite", "Framer Motion"],
@@ -132,8 +132,8 @@ export const projectsData: Project[] = [
     ],
     complexity: "Advanced",
     status: "Live",
-    url: "https://github.com/kareemsasa3/workfolio",
-    githubUrl: "https://github.com/kareemsasa3/workfolio",
+    url: "https://github.com/kareemsasa3/personal-website",
+    githubUrl: "https://github.com/kareemsasa3/personal-website",
     highlights: [
       "Portfolio-first interactive UX",
       "Modern React architecture",

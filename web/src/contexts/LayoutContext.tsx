@@ -38,8 +38,8 @@ const LayoutContext = createContext<LayoutContextType>({
   setBackgroundMotionSpeed: () => {},
 });
 
-const BACKGROUND_MOTION_SPEED_STORAGE_KEY = "workfolio-background-motion-speed";
-const LEGACY_MATRIX_SPEED_STORAGE_KEY = "workfolio-matrix-speed";
+const BACKGROUND_MOTION_SPEED_STORAGE_KEY = "web-background-motion-speed";
+const LEGACY_MATRIX_SPEED_STORAGE_KEY = "web-matrix-speed";
 
 const clampBackgroundMotionSpeed = (value: number) =>
   Math.min(2, Math.max(0.5, value));
@@ -71,7 +71,7 @@ export const LayoutContextProvider = ({
   // Initialize animation pause state from localStorage
   const [isAnimationPaused, setIsAnimationPaused] = useState<boolean>(() => {
     if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("workfolio-animation-paused");
+      const saved = localStorage.getItem("web-animation-paused");
       return saved ? JSON.parse(saved) : false;
     }
     return false;
@@ -87,7 +87,7 @@ export const LayoutContextProvider = ({
   useEffect(() => {
     if (typeof window !== "undefined") {
       localStorage.setItem(
-        "workfolio-animation-paused",
+        "web-animation-paused",
         JSON.stringify(isAnimationPaused)
       );
     }

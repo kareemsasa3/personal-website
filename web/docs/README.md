@@ -1,4 +1,4 @@
-# 🚀 Workfolio - Interactive Developer Portfolio
+# 🚀 Web - Interactive Developer Portfolio
 
 [Live Site](https://kareemsasa.dev)
 
@@ -55,7 +55,7 @@ To get started with this project, follow these steps:
 
 1. Clone the repository
 
-   ### `git clone https://github.com/kareemsasa3/workfolio.git`
+   ### `git clone https://github.com/kareemsasa3/personal-website.git`
 
 2. Install dependencies
 
@@ -100,7 +100,7 @@ See the Vite docs: https://vitejs.dev/guide/
   - Command: `docker compose -f infrastructure/docker-compose.yml -f infrastructure/dev/docker-compose.dev.yml up --build`
   - Nginx: HTTP-only `infrastructure/nginx/conf.d/default.dev.conf`
   - Proxies:
-    - `/` → `workfolio:80`
+    - `/` → `web:80`
   - Frontend local dev: `npm run dev` in `web/` also works
 
 - Production (Docker Compose):

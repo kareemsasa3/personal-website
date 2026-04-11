@@ -11,7 +11,7 @@ The active monitoring setup in this repo is focused on:
 - `node-exporter`
 - `nginx-exporter`
 
-`workfolio` is a frontend app. Prometheus can scrape it only if the app exposes `/metrics`, which is not a guaranteed feature of the current stack.
+`web` is a frontend app. Prometheus can scrape it only if the app exposes `/metrics`, which is not a guaranteed feature of the current stack.
 
 ## Quick Start
 
@@ -50,7 +50,7 @@ docker compose --env-file infrastructure/.env \
 - CPU, memory, disk, and network usage
 - File system metrics
 
-### Workfolio
+### Web
 
 - Only applicable if the frontend exposes `/metrics`
 

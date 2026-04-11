@@ -6,7 +6,7 @@ This document explains the active environment variables used by the current port
 
 The deployed stack in this repo is:
 
-- `workfolio`: React/Vite frontend
+- `web`: React/Vite frontend
 - `nginx`: reverse proxy and TLS termination
 - optional monitoring services
 
@@ -41,8 +41,8 @@ cp env.example .env
 
 | Variable | Description | Default | Required |
 |----------|-------------|---------|----------|
-| `WORKFOLIO_IMAGE` | Frontend image to deploy | `ghcr.io/username/personal-website/workfolio:build-id` | No |
-| `WORKFOLIO_NODE_ENV` | Node environment passed to the container | `production` | No |
+| `WEB_IMAGE` | Frontend image to deploy | `ghcr.io/username/personal-website/web:build-id` | No |
+| `WEB_NODE_ENV` | Node environment passed to the container | `production` | No |
 
 ### Nginx
 
@@ -58,8 +58,8 @@ cp env.example .env
 | `DOCKER_NETWORK_NAME` | Docker network name | `portfolio-network` | No |
 | `NGINX_MEMORY_LIMIT` | Nginx memory limit | `256M` | No |
 | `NGINX_CPU_LIMIT` | Nginx CPU limit | `0.5` | No |
-| `WORKFOLIO_MEMORY_LIMIT` | Workfolio memory limit | `512M` | No |
-| `WORKFOLIO_CPU_LIMIT` | Workfolio CPU limit | `1.0` | No |
+| `WEB_MEMORY_LIMIT` | Web memory limit | `512M` | No |
+| `WEB_CPU_LIMIT` | Web CPU limit | `1.0` | No |
 
 ### Development
 

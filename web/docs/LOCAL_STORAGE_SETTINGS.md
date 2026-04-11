@@ -1,6 +1,6 @@
 # Local Storage Settings Implementation
 
-This document describes the local storage functionality implemented for user settings in the Workfolio application.
+This document describes the local storage functionality implemented for user settings in the web application.
 
 ## Overview
 
@@ -24,12 +24,12 @@ All user-configurable settings are now automatically saved to the browser's loca
 ### 3. Animation Settings
 - **isAnimationPaused**: Whether background animations are paused
 
-**Storage Key**: `workfolio-animation-paused`
+**Storage Key**: `web-animation-paused`
 
 ### 4. UI Settings
 - **isSettingsOpen**: Whether the settings panel is open
 
-**Storage Key**: `workfolio-settings-open`
+**Storage Key**: `web-settings-open`
 
 ## Implementation Details
 

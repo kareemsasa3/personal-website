@@ -72,11 +72,11 @@ Production serves the built frontend behind nginx using Docker-based deployment 
 
 At a high level:
 1. Configure environment variables in `infrastructure/.env`
-2. Build and publish the Workfolio image through GitHub Actions
+2. Build and publish the web image through GitHub Actions
 3. Deploy the production stack with the compose files under `infrastructure/prod/`
 
 ## Notes
 
-- `web/` contains the website source. It previously lived at `workfolio/` before this repository was consolidated and simplified.
+- `web/` contains the website source.
 - The production site is frontend-only. There are no deployed API, session, queue, or database services in the active stack.
 - CI/CD is configured to lint and typecheck the app, build the production image, and support deployment without requiring a separate application repository.

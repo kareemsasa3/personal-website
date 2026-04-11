@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document outlines the long-term vision for the Workfolio project, evolving it from a personal portfolio into a comprehensive, interactive, and multi-functional "Productivity OS" in the browser. The current implementation, with its feature-rich terminal and cohesive "Matrix" aesthetic, serves as the powerful foundation for this ambitious future.
+This document outlines the long-term vision for the web project, evolving it from a personal portfolio into a comprehensive, interactive, and multi-functional "Productivity OS" in the browser. The current implementation, with its feature-rich terminal and cohesive "Matrix" aesthetic, serves as the powerful foundation for this ambitious future.
 
 The following epics represent major new "applications" to be built within this ecosystem. They are designed to showcase advanced architectural patterns, full-stack capabilities, and a deep understanding of professional developer tools.
 

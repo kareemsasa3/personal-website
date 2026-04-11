@@ -148,7 +148,7 @@ cat can read from standard input and pass data to other commands.`,
         description: "Display contents of multiple files",
       },
       {
-        command: "cat projects/workfolio/package.json | grep react",
+        command: "cat projects/web/package.json | grep react",
         description: "Use cat in a pipe to search for 'react'",
       },
     ],

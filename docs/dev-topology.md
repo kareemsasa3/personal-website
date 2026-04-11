@@ -2,7 +2,7 @@
 
 ## Overview
 
-This repository runs the `workfolio` frontend as a Vite dev server inside Docker.
+This repository runs the `web` frontend as a Vite dev server inside Docker.
 During development, the browser usually connects from another machine over Tailscale
 rather than talking to Vite directly.
 
@@ -24,7 +24,7 @@ Vite dev server :5173
 ## Container Roles
 
 - `nginx`: public entrypoint for the dev stack. It receives HTTP traffic and proxies requests to the Vite dev server. It must also forward WebSocket upgrade headers.
-- `workfolio`: React/Vite development server. Source is bind-mounted into the container, and `node_modules` stays inside the container volume.
+- `web`: React/Vite development server. Source is bind-mounted into the container, and `node_modules` stays inside the container volume.
 
 ## Ports and Networking
 

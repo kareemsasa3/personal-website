@@ -25,10 +25,10 @@ scrape_configs:
       - targets: ['node-exporter:9100']
     scrape_interval: 15s
 
-  # Workfolio - Frontend application (if it exposes metrics)
-  - job_name: 'workfolio'
+  # Web - Frontend application (if it exposes metrics)
+  - job_name: 'web'
     static_configs:
-      - targets: ['workfolio:80']
+      - targets: ['web:80']
     metrics_path: '/metrics'
     scrape_interval: 30s
     scrape_timeout: 10s 

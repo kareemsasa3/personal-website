@@ -4,7 +4,7 @@ import {
   NavigationModeContext,
 } from "./NavigationModeContextTypes";
 
-const NAV_MODE_STORAGE_KEY = "workfolio-nav-mode";
+const NAV_MODE_STORAGE_KEY = "web-nav-mode";
 const DEFAULT_NAV_MODE: NavigationMode = "header";
 
 const isNavigationMode = (value: string | null): value is NavigationMode => {

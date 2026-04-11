@@ -251,7 +251,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
       const url = URL.createObjectURL(settingsBlob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `workfolio-settings-${
+      a.download = `web-settings-${
         new Date().toISOString().split("T")[0]
       }.json`;
       document.body.appendChild(a);
@@ -514,7 +514,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                 <SettingsSection title="About">
                   <div className="setting-group">
                     <div className="setting-description">
-                      <strong>Workfolio v1.0</strong>
+                      <strong>Web v1.0</strong>
                       <br />
                       A Mac-inspired portfolio with interactive dock
                       navigation.

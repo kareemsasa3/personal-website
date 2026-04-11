@@ -1,6 +1,6 @@
 # Error Boundary System
 
-This directory contains a comprehensive error handling system for the Workfolio application.
+This directory contains a comprehensive error handling system for the web application.
 
 ## Components
 

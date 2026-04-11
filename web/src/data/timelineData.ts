@@ -37,7 +37,7 @@ export const timelineData: TimelineEvent[] = [
   {
     id: 14,
     date: "Present",
-    title: "Expanding Workfolio: A Developer Simulation",
+    title: "Expanding Web: A Developer Simulation",
     description: `A dynamic OS in the browser that encapsulates how I think, build, and innovate. It serves as a living reflection of my journey, from early challenges to moments of rebuilding, and is a platform for pushing the boundaries of what a portfolio can represent.`,
     icon: faRocket,
     category: "milestone",

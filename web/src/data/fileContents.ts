@@ -7,9 +7,9 @@ export interface FileContent {
 
 export const fileContents: FileContent[] = [
   {
-    path: "projects/workfolio/README.md",
+    path: "projects/web/README.md",
     content: [
-      "# Workfolio - Interactive Developer Portfolio",
+      "# Web - Interactive Developer Portfolio",
       "",
       "A React and TypeScript portfolio built to present projects, work history, and systems thinking through an interactive interface.",
       "The site balances distinctive presentation with proof-of-work, including projects, professional experience, and a terminal-inspired exploration layer.",
@@ -36,10 +36,10 @@ export const fileContents: FileContent[] = [
       "The terminal window and overlays are managed separately from page routes to preserve the interactive shell experience.",
     ],
     description:
-      "Main project documentation for the Workfolio portfolio website",
+      "Main project documentation for the web portfolio website",
   },
   {
-    path: "projects/workfolio/BUILD-OVERVIEW.md",
+    path: "projects/web/BUILD-OVERVIEW.md",
     content: [
       "# Build Overview",
       "",
@@ -67,7 +67,7 @@ export const fileContents: FileContent[] = [
     description: "Intentional artifact summarizing the portfolio build stack and delivery shape",
   },
   {
-    path: "projects/workfolio/src/components/Terminal/TERMINAL-ARCHITECTURE.md",
+    path: "projects/web/src/components/Terminal/TERMINAL-ARCHITECTURE.md",
     content: [
       "# Terminal Architecture",
       "",
@@ -203,7 +203,7 @@ export const fileContents: FileContent[] = [
       "For the strongest current proof of work, review:",
       "- work/resolute consulting group",
       "- projects/arachne",
-      "- projects/workfolio/README.md",
+      "- projects/web/README.md",
     ],
     description: "Pointer entry for contract and independent work represented elsewhere in the portfolio",
   },

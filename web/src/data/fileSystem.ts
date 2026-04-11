@@ -40,12 +40,12 @@ export const fileSystem: FileSystemItem[] = [
     route: "/projects",
     children: [
       {
-        name: "workfolio",
+        name: "web",
         type: "directory",
         permissions: "drwxr-xr-x",
         size: "4096",
         date: "Dec 15 10:30",
-        githubUrl: "https://github.com/kareemsasa3/workfolio",
+        githubUrl: "https://github.com/kareemsasa3/personal-website",
         children: [
           {
             name: "README.md",
