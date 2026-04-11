@@ -27,7 +27,13 @@ export default [
   ),
   ...compat.env({ browser: true, es2020: true }),
   {
-    ignores: ["dist", "build"],
+    ignores: [
+      "node_modules/**",
+      ".vite/**",
+      "build/**",
+      "dist/**",
+      "coverage/**",
+    ],
   },
   {
     languageOptions: {
@@ -80,4 +86,3 @@ export default [
     },
   },
 ];
-

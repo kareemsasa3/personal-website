@@ -30,7 +30,12 @@ const resolveTailscaleIp = (env: Record<string, string>): string | undefined => 
     return configured;
   }
 
-  const interfaces = os.networkInterfaces();
+  let interfaces: ReturnType<typeof os.networkInterfaces>;
+  try {
+    interfaces = os.networkInterfaces();
+  } catch {
+    return undefined;
+  }
   const tailscaleInterfaces = interfaces.tailscale0 ?? [];
 
   for (const iface of tailscaleInterfaces) {
@@ -355,7 +360,7 @@ export default defineConfig(({ command, mode }) => {
 
   const devHost = resolveDevHost(env);
   const devPort = resolveDevPort(env);
-  const tailscaleIp = resolveTailscaleIp(env);
+  const tailscaleIp = command === "serve" ? resolveTailscaleIp(env) : undefined;
 
   const hmrHost = env.HMR_HOST?.trim() || env.VITE_HMR_HOST?.trim();
   const hmrClientPort = resolveOptionalPort(

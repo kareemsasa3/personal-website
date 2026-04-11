@@ -10,6 +10,8 @@
 
 # production
 /build
+/.vite
+/coverage
 
 # misc
 .DS_Store
