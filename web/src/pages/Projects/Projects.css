@@ -254,46 +254,6 @@ primary comprehension layer.
     color: var(--terminal-primary, #4CAF50);
 }
 
-.complexity-badge,
-.status-badge {
-    padding: 0.25rem 0.75rem;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: white;
-}
-
-.complexity-badge.expert {
-    background: #ff6b6b;
-}
-
-.complexity-badge.advanced {
-    background: #4ecdc4;
-}
-
-.complexity-badge.intermediate {
-    background: #45b7d1;
-}
-
-.complexity-badge.beginner {
-    background: #96ceb4;
-}
-
-.status-badge.live {
-    background: #51cf66;
-}
-
-.status-badge.development {
-    background: #ffd43b;
-    color: #333;
-}
-
-.status-badge.completed {
-    background: #74c0fc;
-}
-
 .tech-tag {
     padding: 0.25rem 0.75rem;
     background: var(--primary-color-light);
