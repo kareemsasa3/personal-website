@@ -1,7 +1,13 @@
 .typewriter-text {
-    display: inline-block;
+    display: inline;
     position: relative;
     transition: opacity 0.3s ease;
+    white-space: normal;
+}
+
+.typewriter-word {
+    display: inline-block;
+    white-space: nowrap;
 }
 
 .typewriter-text::after {

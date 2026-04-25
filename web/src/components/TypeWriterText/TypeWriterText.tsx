@@ -19,9 +19,15 @@ const TypeWriterText: React.FC<TypeWriterTextProps> = ({
   onComplete,
 }) => {
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  const [hasCompletedReducedMotion, setHasCompletedReducedMotion] =
+    useState(false);
 
   // Handle reduced motion preference
   useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     setPrefersReducedMotion(mediaQuery.matches);
 
@@ -32,6 +38,15 @@ const TypeWriterText: React.FC<TypeWriterTextProps> = ({
     mediaQuery.addEventListener("change", handleChange);
     return () => mediaQuery.removeEventListener("change", handleChange);
   }, []);
+
+  useEffect(() => {
+    if (!prefersReducedMotion || hasCompletedReducedMotion) {
+      return;
+    }
+
+    onComplete?.();
+    setHasCompletedReducedMotion(true);
+  }, [hasCompletedReducedMotion, onComplete, prefersReducedMotion]);
 
   // Validate inputs
   if (!text || typeof text !== "string") {
@@ -50,8 +65,7 @@ const TypeWriterText: React.FC<TypeWriterTextProps> = ({
     console.warn("TypeWriterText: Delay should be between 0 and 10000ms");
   }
 
-  // We receive the full text string
-  const characters = text.split("");
+  const tokens = text.split(/(\s+)/);
 
   // Variants for the container to orchestrate the animation
   const containerVariants = {
@@ -104,11 +118,24 @@ const TypeWriterText: React.FC<TypeWriterTextProps> = ({
       onAnimationComplete={handleAnimationComplete}
       aria-live="polite"
     >
-      {characters.map((char, index) => (
-        <motion.span key={`${char}-${index}`} variants={characterVariants}>
-          {char}
-        </motion.span>
-      ))}
+      {tokens.map((token, tokenIndex) => {
+        if (/^\s+$/.test(token)) {
+          return <React.Fragment key={`space-${tokenIndex}`}>{token}</React.Fragment>;
+        }
+
+        return (
+          <span className="typewriter-word" key={`${token}-${tokenIndex}`}>
+            {token.split("").map((char, charIndex) => (
+              <motion.span
+                key={`${char}-${charIndex}`}
+                variants={characterVariants}
+              >
+                {char}
+              </motion.span>
+            ))}
+          </span>
+        );
+      })}
     </motion.span>
   );
 };
