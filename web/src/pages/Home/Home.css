@@ -140,50 +140,9 @@ TABLE OF CONTENTS
   transform: translateY(-2px) scale(1.05);
 }
 
-.btn-large {
-  padding: 1rem 2.5rem;
-  font-size: 1.1rem;
-}
-
-/* --- Floating Action Button (FAB) --- */
-.floating-action-btn {
-  position: fixed;
-  z-index: 1000;
-  right: 2rem;
-  bottom: 2rem;
-  width: 60px;
-  height: 60px;
-  background: var(--primary-color);
-  border: none;
-  border-radius: 50%;
-  box-shadow: 0 4px 20px rgba(175, 42, 42, 0.4);
-  color: white;
-  font-size: 1.5rem;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  cursor: pointer;
-  will-change: transform;
-}
-
-.floating-action-btn:hover {
-  box-shadow: 0 8px 30px rgba(175, 42, 42, 0.6);
-  transform: scale(1.1);
-}
-
-
 /* ========================================
    3. SECTION-SPECIFIC STYLES
    ======================================== */
-
-.cta-section {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  position: relative;
-  /* Section height rules are applied per-section below */
-  overflow-x: hidden;
-  overflow-y: visible;
-}
 
 .section-title {
   position: relative;
@@ -205,33 +164,6 @@ TABLE OF CONTENTS
   background: linear-gradient(90deg, var(--primary-color), #000000);
   border-radius: 2px;
   animation: titleUnderlineScale 2s ease-in-out infinite alternate;
-}
-
-/* --- CTA Section --- */
-.cta-section {
-  margin-bottom: 2rem;
-}
-
-.cta-content {
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 0 2rem;
-  text-align: center;
-}
-
-.cta-content h2 {
-  margin: 0 0 1rem 0;
-  color: var(--text-color);
-  font-size: 2.5rem;
-  font-weight: 700;
-  text-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
-}
-
-.cta-content p {
-  margin: 0 0 2rem 0;
-  color: var(--text-secondary);
-  font-size: 1.2rem;
-  line-height: 1.6;
 }
 
 
@@ -261,43 +193,6 @@ TABLE OF CONTENTS
   }
 }
 
-/* Common entrance animations (can be applied with JS) */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes slideInFromLeft {
-  from {
-    opacity: 0;
-    transform: translateX(-50px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes slideInFromRight {
-  from {
-    opacity: 0;
-    transform: translateX(50px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
 
 /* ========================================
    5. RESPONSIVE DESIGN (MEDIA QUERIES)
@@ -316,41 +211,6 @@ TABLE OF CONTENTS
     max-width: 100%;
     padding: 0 1rem;
   }
-
-  .cta-section {
-    min-height: auto;
-    padding: 1rem 0;
-    justify-content: flex-start;
-  }
-
-  /* CTA Adjustments */
-  .cta-content h2 {
-    font-size: 2rem;
-  }
-
-  .cta-content p {
-    font-size: 1rem;
-  }
-
-  /* FAB Adjustments */
-  .floating-action-btn {
-    width: 50px;
-    height: 50px;
-    right: 1rem;
-    bottom: 1rem;
-    font-size: 1.25rem;
-  }
-}
-
-/* --- Small Mobile Phones --- */
-@media (max-width: 480px) {
-
-  .cta-section {
-    min-height: auto;
-    padding: 0.75rem 0;
-    justify-content: flex-start;
-  }
-
 }
 
 
@@ -380,8 +240,7 @@ TABLE OF CONTENTS
     transition: none !important;
   }
 
-  .btn:hover,
-  .floating-action-btn:hover {
+  .btn:hover {
     transform: none;
   }
 }
