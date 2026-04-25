@@ -1,0 +1,99 @@
+.capabilities-section {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  position: relative;
+  overflow-x: hidden;
+  overflow-y: visible;
+}
+
+.capabilities-content {
+  width: 100%;
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.capabilities-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  width: 100%;
+  margin: 2rem auto 0 auto;
+  padding: 0;
+  list-style: none;
+}
+
+.capability-card {
+  padding: 2rem;
+  text-align: center;
+}
+
+.card-icon {
+  display: inline-block;
+  margin-bottom: 1rem;
+  font-size: 3rem;
+  text-shadow: 0 0 10px rgba(0, 255, 0, 0.7);
+  animation: float 3s ease-in-out infinite;
+  will-change: transform;
+}
+
+.capability-card h3 {
+  margin: 0 0 1rem 0;
+  color: var(--text-color);
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.capability-card p {
+  margin: 0;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+@container home (min-width: 700px) {
+  .capabilities-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@container home (min-width: 1100px) {
+  .capabilities-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .capabilities-section {
+    min-height: auto;
+    padding: 1rem 0;
+    justify-content: flex-start;
+  }
+
+  .capabilities-grid {
+    gap: 1.5rem;
+    padding: 0 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .capabilities-section {
+    min-height: auto;
+    padding: 0.75rem 0;
+    justify-content: flex-start;
+  }
+
+  .capability-card {
+    padding: 1.5rem;
+  }
+
+  .card-icon {
+    font-size: 2.5rem;
+  }
+
+  .capability-card h3 {
+    font-size: 1.2rem;
+  }
+}

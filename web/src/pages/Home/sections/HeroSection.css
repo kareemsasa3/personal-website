@@ -1,0 +1,120 @@
+.hero-section {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  overflow-x: hidden;
+  overflow-y: visible;
+  min-height: 100svh;
+}
+
+.hero-content {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  text-align: center;
+}
+
+.hero-title {
+  margin: 0 0 1rem 0;
+  color: var(--text-color);
+  font-size: clamp(2rem, 6vw, 3.5rem);
+  font-weight: 700;
+  line-height: 1.2;
+  text-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+}
+
+.hero-subtitle {
+  margin: 0 0 2rem 0;
+  color: var(--primary-color);
+  font-size: clamp(1.1rem, 3.5vw, 1.5rem);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  text-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+}
+
+.hero-description {
+  max-width: 600px;
+  margin: 0 auto 3rem auto;
+  color: var(--text-secondary);
+  font-size: clamp(1rem, 2.7vw, 1.2rem);
+  letter-spacing: normal;
+  line-height: 1.7;
+}
+
+.hero-buttons {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+@media (max-width: 1024px) {
+  .hero-title {
+    font-size: 3rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-section {
+    min-height: 100svh;
+    padding: clamp(6rem, 18svh, 8rem) 0 2rem;
+    justify-content: flex-start;
+  }
+
+  .hero-content {
+    width: 100%;
+    max-width: 38rem;
+    padding: 0 0.75rem;
+  }
+
+  .hero-title {
+    margin-bottom: 0.75rem;
+    font-size: clamp(1.75rem, 7vw, 2.5rem);
+    line-height: 1.15;
+  }
+
+  .hero-subtitle {
+    margin-bottom: 1.25rem;
+    font-size: clamp(1rem, 4.5vw, 1.25rem);
+    line-height: 1.35;
+  }
+
+  .hero-description {
+    margin-bottom: 2rem;
+    font-size: clamp(0.95rem, 4vw, 1rem);
+    letter-spacing: 0;
+    line-height: 1.55;
+  }
+
+  .hero-buttons {
+    gap: 1rem;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+  }
+
+  .hero-buttons .btn {
+    width: min(100%, 280px);
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-section {
+    min-height: 100svh;
+    padding-top: clamp(5rem, 15svh, 7rem);
+  }
+
+  .hero-content {
+    padding: 0 0.25rem;
+  }
+
+  .hero-title {
+    font-size: clamp(1.5rem, 8vw, 2rem);
+  }
+
+  .hero-subtitle {
+    font-size: clamp(0.95rem, 4.5vw, 1.1rem);
+  }
+}

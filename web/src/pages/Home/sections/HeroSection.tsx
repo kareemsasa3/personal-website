@@ -1,3 +1,4 @@
+import "./HeroSection.css";
 import { motion } from "framer-motion";
 import TypeWriterText from "../../../components/TypeWriterText";
 import { heroContent } from "../../../data/siteContent";

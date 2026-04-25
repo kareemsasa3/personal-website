@@ -1,3 +1,4 @@
+import "./ContactStripSection.css";
 import { motion, MotionStyle } from "framer-motion";
 import { forwardRef, ForwardedRef } from "react";
 import { socialContent } from "../../../data/siteContent";

@@ -1,3 +1,4 @@
+import "./FeaturedProjectsSection.css";
 import { motion, MotionStyle } from "framer-motion";
 import { forwardRef, ForwardedRef } from "react";
 import { Link } from "react-router-dom";

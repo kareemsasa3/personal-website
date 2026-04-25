@@ -1,3 +1,4 @@
+import "./CapabilitiesSection.css";
 import { motion, MotionStyle } from "framer-motion";
 import { forwardRef, ForwardedRef } from "react";
 import { capabilitiesContent } from "../../../data/siteContent";
