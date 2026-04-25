@@ -1,8 +1,7 @@
 import "./Home.css";
 import { useNavigation } from "../../hooks/useNavigation";
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { useLayoutContext, PageSection } from "../../contexts/LayoutContext";
 import { useIsMobile } from "../../hooks/useIsMobile";
 
 import {
@@ -15,40 +14,21 @@ import {
 const Home = () => {
   const { navigateTo, navigateToProjects, navigateToExperience } =
     useNavigation();
-  const { setSections } = useLayoutContext();
+  const isMountedRef = useRef(true);
 
-  // Define the sections for this page
-  const homeSections: PageSection[] = useMemo(
-    () => [
-      { id: "hero", label: "Hero" },
-      { id: "projects", label: "Systems" },
-      { id: "capabilities", label: "Approach" },
-      { id: "contact", label: "Contact" },
-    ],
-    []
-  );
-
-  // Dynamic section refs management
-  const sectionRefs = useRef(new Map<string, HTMLElement>());
-
-  // Ref getter function for dynamic ref assignment
-  const getSectionRef = (id: string) => (el: HTMLElement | null) => {
-    if (el) {
-      sectionRefs.current.set(id, el);
-    } else {
-      sectionRefs.current.delete(id);
-    }
-  };
-
-  // Announce our sections when the component mounts
   useEffect(() => {
-    setSections(homeSections);
-    return () => setSections([]);
-  }, [homeSections, setSections]); // homeSections is stable via useMemo, setSections is stable from context
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   // Check if home intro has been shown before
   const [hasShownHomeIntro, setHasShownHomeIntro] = useState(() => {
-    return localStorage.getItem("home-intro-shown") === "true";
+    try {
+      return window.localStorage.getItem("home-intro-shown") === "true";
+    } catch {
+      return false;
+    }
   });
 
   // Consolidated loading states for navigation buttons
@@ -58,12 +38,30 @@ const Home = () => {
     work: false,
   });
 
-  // Optimized parallax implementation using a single scroll container
-  const containerRef = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
-    container: containerRef,
-    offset: ["start end", "end start"],
-  });
+  const resetLoadingState = (
+    key: keyof typeof loadingStates,
+    frameCount = 2
+  ) => {
+    let remainingFrames = frameCount;
+
+    const resetOnNextFrame = () => {
+      if (!isMountedRef.current) {
+        return;
+      }
+
+      if (remainingFrames > 0) {
+        remainingFrames -= 1;
+        requestAnimationFrame(resetOnNextFrame);
+        return;
+      }
+
+      setLoadingStates((prev) => ({ ...prev, [key]: false }));
+    };
+
+    requestAnimationFrame(resetOnNextFrame);
+  };
+
+  const { scrollYProgress } = useScroll();
 
   // Map scroll progress to different parallax effects for each section
   // These ranges are approximate and can be fine-tuned based on actual content
@@ -75,31 +73,46 @@ const Home = () => {
   // Navigation handlers - simplified and more robust
   const handleNavigateToProjects = () => {
     setLoadingStates((prev) => ({ ...prev, projects: true }));
-    navigateToProjects();
+    try {
+      navigateToProjects();
+    } finally {
+      resetLoadingState("projects");
+    }
   };
 
   const handleNavigateToWork = () => {
     setLoadingStates((prev) => ({ ...prev, work: true }));
-    navigateToExperience();
+    try {
+      navigateToExperience();
+    } finally {
+      resetLoadingState("work");
+    }
   };
 
   const handleNavigateToCaseStudies = () => {
     setLoadingStates((prev) => ({ ...prev, caseStudies: true }));
-    navigateTo("/case-studies");
+    try {
+      navigateTo("/case-studies");
+    } finally {
+      resetLoadingState("caseStudies");
+    }
   };
 
   const handleIntroComplete = () => {
     setHasShownHomeIntro(true);
-    localStorage.setItem("home-intro-shown", "true");
+    try {
+      window.localStorage.setItem("home-intro-shown", "true");
+    } catch {
+      // Non-critical. Intro state can remain in memory.
+    }
   };
 
   return (
-    <div className="page-content home-page" ref={containerRef}>
+    <div className="page-content home-page">
       <div className="home-container">
         {/* Hero Section */}
         <motion.div
           id="hero"
-          ref={getSectionRef("hero")}
           style={{ y: isMobile ? 0 : heroYMotion }}
         >
           <HeroSection
@@ -115,27 +128,26 @@ const Home = () => {
         {/* Featured Projects Section */}
         <motion.div
           id="projects"
-          ref={getSectionRef("projects")}
           style={{ y: isMobile ? 0 : projectsYMotion }}
         >
           <FeaturedProjectsSection
             onNavigateToCaseStudies={handleNavigateToCaseStudies}
             onNavigateToProjects={handleNavigateToProjects}
-            isNavigating={loadingStates.caseStudies}
+            isNavigatingToCaseStudies={loadingStates.caseStudies}
+            isNavigatingToProjects={loadingStates.projects}
           />
         </motion.div>
 
         {/* Capabilities Section */}
         <motion.div
           id="capabilities"
-          ref={getSectionRef("capabilities")}
           style={{ y: isMobile ? 0 : capabilitiesYMotion }}
         >
           <CapabilitiesSection />
         </motion.div>
 
         {/* Contact Section */}
-        <div id="contact" ref={getSectionRef("contact")}>
+        <div id="contact">
           <ContactStripSection />
         </div>
       </div>

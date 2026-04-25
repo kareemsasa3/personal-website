@@ -1,24 +1,9 @@
-import { useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import TypeWriterText from "../../components/TypeWriterText";
 import { caseStudyCards } from "../../data/caseStudies";
-import { useLayoutContext, PageSection } from "../../contexts/LayoutContext";
 import "../../components/CaseStudyPage/CaseStudyPage.css";
 
-const caseStudiesSections: PageSection[] = [
-  { id: "case-studies-overview", label: "Overview" },
-  { id: "case-studies-list", label: "Case Studies" },
-];
-
 const CaseStudies = () => {
-  const { setSections } = useLayoutContext();
-  const sections = useMemo(() => caseStudiesSections, []);
-
-  useEffect(() => {
-    setSections(sections);
-    return () => setSections([]);
-  }, [sections, setSections]);
-
   return (
     <div className="page-content case-studies-page">
       <div className="case-study-container">
