@@ -11,7 +11,8 @@ const featuredProjects = featuredProjectIds
 interface FeaturedProjectsSectionProps {
   onNavigateToCaseStudies: () => void;
   onNavigateToProjects: () => void;
-  isNavigating: boolean;
+  isNavigatingToCaseStudies: boolean;
+  isNavigatingToProjects: boolean;
   style?: MotionStyle;
 }
 
@@ -20,7 +21,8 @@ export const FeaturedProjectsSection = forwardRef(
     {
       onNavigateToCaseStudies,
       onNavigateToProjects,
-      isNavigating,
+      isNavigatingToCaseStudies,
+      isNavigatingToProjects,
       style,
     }: FeaturedProjectsSectionProps,
     ref: ForwardedRef<HTMLElement>
@@ -111,17 +113,18 @@ export const FeaturedProjectsSection = forwardRef(
           <button
             className="btn btn-outline"
             onClick={onNavigateToCaseStudies}
-            disabled={isNavigating}
+            disabled={isNavigatingToCaseStudies}
             aria-label="Read flagship system case studies"
           >
-            {isNavigating ? "Loading..." : "Read Case Studies →"}
+            {isNavigatingToCaseStudies ? "Loading..." : "Read Case Studies →"}
           </button>
           <button
             className="btn btn-secondary"
             onClick={onNavigateToProjects}
+            disabled={isNavigatingToProjects}
             aria-label="Browse the full project archive"
           >
-            Browse All Projects →
+            {isNavigatingToProjects ? "Loading..." : "Browse All Projects →"}
           </button>
         </motion.div>
       </motion.section>
