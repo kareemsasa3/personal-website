@@ -3,107 +3,112 @@ import { motion } from "framer-motion";
 import { useLayoutContext, PageSection } from "../../contexts/LayoutContext";
 import "./GlobalSectionNavigation.css";
 
+const getMeasuredHeaderOffset = () => {
+  const rootStyles = getComputedStyle(document.documentElement);
+  const measuredHeaderOffset = parseFloat(
+    rootStyles.getPropertyValue("--site-header-measured-offset") || "0"
+  );
+
+  if (!Number.isFinite(measuredHeaderOffset) || measuredHeaderOffset <= 0) {
+    return 96;
+  }
+
+  return measuredHeaderOffset;
+};
+
 const GlobalSectionNavigation = () => {
   const { sections, activeSection, setActiveSection } = useLayoutContext();
 
   // Use a ref to track the active section without causing re-renders
   const activeSectionRef = useRef(activeSection);
+  const frameRef = useRef<number | null>(null);
+
   useEffect(() => {
     // Keep the ref synchronized with the state on every render
     activeSectionRef.current = activeSection;
   }, [activeSection]);
 
-  // The IntersectionObserver logic is now foolproof because it only runs when `sections` are provided by the active page
   useEffect(() => {
-    if (sections.length === 0) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        // Find the section with the highest intersection ratio
-        let maxRatio = 0;
-        let mostVisibleSection = "";
-
-        entries.forEach((entry) => {
-          if (entry.intersectionRatio > maxRatio) {
-            maxRatio = entry.intersectionRatio;
-            mostVisibleSection = entry.target.id;
-          }
-        });
-
-        // If no section has a significant intersection ratio, find the section closest to the top
-        if (maxRatio < 0.1) {
-          let closestToTop = "";
-          let minDistance = Infinity;
-
-          sections.forEach((section: PageSection) => {
-            const element = document.getElementById(section.id);
-            if (element) {
-              const rect = element.getBoundingClientRect();
-              const distance = Math.abs(rect.top);
-              if (distance < minDistance) {
-                minDistance = distance;
-                closestToTop = section.id;
-              }
-            }
-          });
-
-          if (closestToTop && closestToTop !== activeSectionRef.current) {
-            mostVisibleSection = closestToTop;
-          }
-        }
-
-        // Compare against the ref's current value, not the stale state from the closure.
-        // This prevents unnecessary state updates and breaks the loop.
-        if (
-          mostVisibleSection &&
-          mostVisibleSection !== activeSectionRef.current
-        ) {
-          setActiveSection(mostVisibleSection);
-        }
-      },
-      {
-        // More sensitive thresholds for better detection
-        threshold: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9],
-        // Adjusted rootMargin to be more balanced
-        rootMargin: "-10% 0px -10% 0px",
-      }
-    );
-
-    // Observe all section elements
-    sections.forEach((section: PageSection) => {
-      const element = document.getElementById(section.id);
-      if (element) {
-        observer.observe(element);
-      }
-    });
-
-    // Set initial active section to the first section if none is set
-    if (!activeSectionRef.current && sections.length > 0) {
-      setActiveSection(sections[0].id);
+    if (sections.length === 0) {
+      return;
     }
 
-    return () => {
-      observer.disconnect();
+    const updateActiveSection = () => {
+      const headerOffset = getMeasuredHeaderOffset();
+      const activationLine = window.scrollY + headerOffset + 24;
+      let nextActiveSection = sections[0]?.id ?? "";
+
+      sections.forEach((section: PageSection) => {
+        const element = document.getElementById(section.id);
+        if (!element) {
+          return;
+        }
+
+        const sectionTop = element.getBoundingClientRect().top + window.scrollY;
+        if (sectionTop <= activationLine) {
+          nextActiveSection = section.id;
+        }
+      });
+
+      if (window.scrollY <= 0 && sections.length > 0) {
+        nextActiveSection = sections[0].id;
+      }
+
+      if (
+        nextActiveSection &&
+        nextActiveSection !== activeSectionRef.current
+      ) {
+        setActiveSection(nextActiveSection);
+      }
     };
-  }, [sections, setActiveSection]); // Using ref to avoid dependency on activeSection
+
+    const scheduleUpdate = () => {
+      if (frameRef.current !== null) {
+        return;
+      }
+
+      frameRef.current = window.requestAnimationFrame(() => {
+        frameRef.current = null;
+        updateActiveSection();
+      });
+    };
+
+    updateActiveSection();
+    window.addEventListener("scroll", scheduleUpdate, { passive: true });
+    window.addEventListener("resize", scheduleUpdate);
+    window.visualViewport?.addEventListener("resize", scheduleUpdate);
+
+    return () => {
+      if (frameRef.current !== null) {
+        window.cancelAnimationFrame(frameRef.current);
+        frameRef.current = null;
+      }
+
+      window.removeEventListener("scroll", scheduleUpdate);
+      window.removeEventListener("resize", scheduleUpdate);
+      window.visualViewport?.removeEventListener("resize", scheduleUpdate);
+    };
+  }, [sections, setActiveSection]);
 
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
     if (element) {
-      // For the first section, scroll to the very top
-      if (sectionId === sections[0]?.id) {
-        window.scrollTo({
-          top: 0,
-          behavior: "smooth",
-        });
-      } else {
-        element.scrollIntoView({
-          behavior: "smooth",
-          block: "start",
-        });
-      }
-      // Trust the IntersectionObserver to handle the active section update
-      // No manual setTimeout needed - the observer will see the scroll and update automatically
+      const topOffset = getMeasuredHeaderOffset();
+      const elementTop = element.getBoundingClientRect().top + window.scrollY;
+      const maxScrollTop = Math.max(
+        0,
+        document.documentElement.scrollHeight - window.innerHeight
+      );
+      const targetTop = Math.min(
+        Math.max(0, elementTop - topOffset - 16),
+        maxScrollTop
+      );
+
+      setActiveSection(sectionId);
+      window.scrollTo({
+        top: targetTop,
+        behavior: "smooth",
+      });
     }
   };
 
