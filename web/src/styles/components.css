@@ -1,0 +1,107 @@
+/* Shared card, tag, and badge primitives used across routes. */
+
+.interactive-card {
+  position: relative;
+  overflow: hidden;
+  padding: 1.5rem;
+  background: var(--background-color);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  /* Performance optimizations for animations */
+  transform: translateZ(0);
+  will-change: transform, box-shadow;
+}
+
+.interactive-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(0, 255, 0, 0.1), transparent);
+  transition: left 0.5s ease;
+}
+
+.interactive-card:hover {
+  background: rgba(0, 255, 0, 0.05);
+  border-color: var(--primary-color);
+  box-shadow: 0 0 30px rgba(0, 255, 0, 0.3), 0 10px 40px rgba(0, 0, 0, 0.1);
+  transform: translateY(-4px) scale(1.02);
+}
+
+.interactive-card:hover::before {
+  left: 100%;
+}
+
+.complexity-badge,
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: white;
+}
+
+.complexity-badge.expert {
+  background: #ff6b6b;
+}
+
+.complexity-badge.advanced {
+  background: #4ecdc4;
+}
+
+.complexity-badge.intermediate {
+  background: #45b7d1;
+}
+
+.complexity-badge.beginner {
+  background: #96ceb4;
+}
+
+.status-badge.live {
+  background: #51cf66;
+  color: white;
+}
+
+.status-badge.development {
+  background: #ffd43b;
+  color: #333;
+}
+
+.status-badge.completed {
+  background: #74c0fc;
+  color: white;
+}
+
+.tech-tag {
+  padding: 0.25rem 0.75rem;
+  background: var(--primary-color-light);
+  border: 1px solid var(--primary-color-medium);
+  border-radius: 15px;
+  color: var(--primary-color);
+  font-size: 0.8rem;
+  font-weight: 500;
+  transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease;
+}
+
+.tech-tag:hover {
+  background: var(--primary-color);
+  color: white;
+  transform: translateY(-2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .interactive-card,
+  .tech-tag {
+    transition: none;
+  }
+
+  .interactive-card:hover,
+  .tech-tag:hover {
+    transform: none;
+  }
+}
