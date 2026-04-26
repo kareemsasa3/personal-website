@@ -165,13 +165,13 @@
         top: max(0.5rem, env(safe-area-inset-top));
         left: 50%;
         transform: translateX(-50%);
-        width: min(100vw - 1rem, 1180px);
+        width: min(calc(100vw - 1rem), 1180px);
         margin: 0;
     }
 
     .site-header__nav {
         gap: 0.25rem;
-        overflow: visible;
+        overflow-x: auto;
     }
 
     .site-header__link {

@@ -38,6 +38,7 @@ primary comprehension layer.
     max-width: 1400px;
     margin: 0 auto;
     font-family: var(--terminal-font);
+    min-width: 0;
 }
 
 .projects-hero {
@@ -65,6 +66,7 @@ primary comprehension layer.
     font-weight: 700;
     line-height: 1.15;
     text-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+    overflow-wrap: anywhere;
 }
 
 .projects-title::after {
@@ -86,6 +88,7 @@ primary comprehension layer.
     color: var(--text-secondary);
     font-size: 1.1rem;
     line-height: 1.7;
+    overflow-wrap: anywhere;
 }
 
 .projects-hero-actions {
@@ -548,7 +551,7 @@ primary comprehension layer.
 
 @media (max-width: 768px) {
     .projects-container {
-        padding: 0 1rem;
+        padding: 0;
     }
 
     .projects-hero {
@@ -557,7 +560,12 @@ primary comprehension layer.
     }
 
     .projects-title {
-        font-size: 2rem;
+        font-size: clamp(1.65rem, 6vw, 2rem);
+    }
+
+    .projects-hero,
+    .projects-section-heading {
+        width: min(100%, calc(100vw - 2rem));
     }
 
     .projects-controls {
@@ -610,7 +618,7 @@ primary comprehension layer.
 
 @media (max-width: 480px) {
     .projects-title {
-        font-size: 1.75rem;
+        font-size: clamp(1.2rem, 5.7vw, 1.45rem);
     }
 
     .projects-subtitle {
@@ -620,6 +628,13 @@ primary comprehension layer.
     .projects-hero-actions,
     .flagship-actions {
         flex-direction: column;
+    }
+
+    .projects-cta {
+        width: min(100%, calc(100vw - 2rem));
+        padding-right: 0.9rem;
+        padding-left: 0.9rem;
+        white-space: normal;
     }
 
     .projects-controls {

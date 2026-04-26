@@ -40,7 +40,7 @@ interface RouteMeta {
 }
 
 const BASE_URL = "https://kareemsasa.dev";
-const DEFAULT_IMAGE_URL = `${BASE_URL}/src/assets/logo.svg`;
+const DEFAULT_IMAGE_URL = `${BASE_URL}/og-image.svg`;
 const DEFAULT_IMAGE_ALT = "Kareem Sasa logo";
 
 const Layout = () => {
