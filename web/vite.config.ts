@@ -9,6 +9,7 @@ import {
   DEFAULT_IMAGE_ALT,
   DEFAULT_IMAGE_URL,
   SITE_URL,
+  type RouteMetadata,
   routeMetadataByPath,
   sitemapRouteMetadata,
 } from "./src/data/routeMetadata";
@@ -176,6 +177,127 @@ ${sitemapRouteMetadata
   .join("\n")}
 </urlset>
 `;
+
+const primaryRouteShellPaths = [
+  "/projects",
+  "/experience",
+  "/journey",
+  "/games",
+  "/games/snake",
+  "/games/spider",
+  "/terminal",
+] as const;
+
+const primaryRouteShellDetails: Record<
+  (typeof primaryRouteShellPaths)[number],
+  {
+    eyebrow: string;
+    heading: string;
+    highlights: string[];
+    links?: Array<{ label: string; href: string }>;
+  }
+> = {
+  "/projects": {
+    eyebrow: "Portfolio Systems",
+    heading: "Projects",
+    highlights: [
+      "Flagship engineering systems across Linux infrastructure, research workflows, and product interfaces.",
+      "Public project entries link to available repositories and case-study proof paths where applicable.",
+    ],
+    links: [{ label: "Read case studies", href: "/case-studies" }],
+  },
+  "/experience": {
+    eyebrow: "Professional Work",
+    heading: "Experience",
+    highlights: [
+      "Consulting, platform modernization, frontend stabilization, and backend architecture work.",
+      "Public-safe summaries focus on systems clarity, production reliability, and software delivery.",
+    ],
+    links: [{ label: "View projects", href: "/projects" }],
+  },
+  "/journey": {
+    eyebrow: "Background",
+    heading: "Engineering Journey",
+    highlights: [
+      "A narrative route covering the experiences that shaped Kareem Sasa's engineering practice.",
+      "The page connects technical interests, operating principles, and portfolio direction.",
+    ],
+  },
+  "/games": {
+    eyebrow: "Interactive Experiments",
+    heading: "Games & Experiments",
+    highlights: [
+      "Browser games and interactive frontend experiments outside the main portfolio proof path.",
+      "Known game routes include Snake and Spider Solitaire.",
+    ],
+    links: [
+      { label: "Open Snake", href: "/games/snake" },
+      { label: "Open Spider Solitaire", href: "/games/spider" },
+    ],
+  },
+  "/games/snake": {
+    eyebrow: "Browser Game",
+    heading: "Snake Game",
+    highlights: [
+      "A browser-based Snake implementation from the games and experiments section.",
+      "The interactive game loads through the React application when JavaScript is available.",
+    ],
+    links: [{ label: "Back to games", href: "/games" }],
+  },
+  "/games/spider": {
+    eyebrow: "Browser Game",
+    heading: "Spider Solitaire",
+    highlights: [
+      "A browser-based Spider Solitaire implementation from the games and experiments section.",
+      "The interactive card game loads through the React application when JavaScript is available.",
+    ],
+    links: [{ label: "Back to games", href: "/games" }],
+  },
+  "/terminal": {
+    eyebrow: "Command Interface",
+    heading: "Terminal",
+    highlights: [
+      "An interactive terminal route for exploring portfolio content through a command-driven interface.",
+      "The full terminal experience loads through the React application when JavaScript is available.",
+    ],
+    links: [{ label: "View projects", href: "/projects" }],
+  },
+};
+
+const renderPrimaryRouteBody = (metadata: RouteMetadata) => {
+  const details =
+    primaryRouteShellDetails[
+      metadata.path as (typeof primaryRouteShellPaths)[number]
+    ];
+
+  if (!details) {
+    throw new Error(`Missing primary route shell details for path: ${metadata.path}`);
+  }
+
+  return `
+    <main class="route-fallback" aria-label="${escapeHtml(
+      details.heading
+    )} overview">
+      <p class="route-fallback__eyebrow">${escapeHtml(details.eyebrow)}</p>
+      <h1 class="route-fallback__title">${escapeHtml(details.heading)}</h1>
+      <p class="route-fallback__summary">${escapeHtml(metadata.description)}</p>
+
+      <section class="route-fallback__section">
+        <h2>Page Overview</h2>
+        ${renderList(details.highlights)}
+      </section>
+
+      ${
+        details.links
+          ? `<section class="route-fallback__section route-fallback__link-list">
+              <h2>Related Routes</h2>
+              ${renderLinkList(details.links)}
+            </section>`
+          : ""
+      }
+    </main>
+  `;
+};
 
 const renderCaseStudiesIndexBody = () => `
   <main class="route-fallback" aria-label="Case studies overview">
@@ -409,31 +531,47 @@ const applyRouteShell = (baseHtml: string, route: StaticRouteShell) => {
   );
 };
 
-const caseStudyShellPlugin = (): Plugin => {
+const routeShellFromMetadata = (
+  metadata: RouteMetadata,
+  bodyHtml: string
+): StaticRouteShell => ({
+  path: metadata.path,
+  title: metadata.title,
+  description: metadata.description,
+  canonicalPath: metadata.canonicalPath,
+  bodyHtml,
+});
+
+const getRouteMetadata = (path: string) => {
+  const metadata = routeMetadataByPath[path];
+
+  if (!metadata) {
+    throw new Error(`Missing route metadata for path: ${path}`);
+  }
+
+  return metadata;
+};
+
+const staticRouteShellPlugin = (): Plugin => {
   let outDir = "build";
 
-  const caseStudiesIndexMeta = routeMetadataByPath["/case-studies"];
+  const primaryRoutes = primaryRouteShellPaths.map((path) => {
+    const metadata = getRouteMetadata(path);
+    return routeShellFromMetadata(metadata, renderPrimaryRouteBody(metadata));
+  });
+
+  const caseStudiesIndexMeta = getRouteMetadata("/case-studies");
   const routes: StaticRouteShell[] = [
-    {
-      path: caseStudiesIndexMeta.path,
-      title: caseStudiesIndexMeta.title,
-      description: caseStudiesIndexMeta.description,
-      canonicalPath: caseStudiesIndexMeta.canonicalPath,
-      bodyHtml: renderCaseStudiesIndexBody(),
-    },
-    ...caseStudiesData.map((caseStudy) => ({
-      path: routeMetadataByPath[`/case-studies/${caseStudy.slug}`].path,
-      title: routeMetadataByPath[`/case-studies/${caseStudy.slug}`].title,
-      description:
-        routeMetadataByPath[`/case-studies/${caseStudy.slug}`].description,
-      canonicalPath:
-        routeMetadataByPath[`/case-studies/${caseStudy.slug}`].canonicalPath,
-      bodyHtml: renderCaseStudyBody(caseStudy.slug),
-    })),
+    ...primaryRoutes,
+    routeShellFromMetadata(caseStudiesIndexMeta, renderCaseStudiesIndexBody()),
+    ...caseStudiesData.map((caseStudy) => {
+      const metadata = getRouteMetadata(`/case-studies/${caseStudy.slug}`);
+      return routeShellFromMetadata(metadata, renderCaseStudyBody(caseStudy.slug));
+    }),
   ];
 
   return {
-    name: "case-study-route-shells",
+    name: "static-route-shells",
     apply: "build",
     transformIndexHtml(html) {
       return html.replace(
@@ -489,7 +627,7 @@ export default defineConfig(({ command, mode }) => {
     plugins:
       command === "serve"
         ? [react(), devBannerPlugin(tailscaleIp, devPort)]
-        : [react(), caseStudyShellPlugin()],
+        : [react(), staticRouteShellPlugin()],
     server:
       command === "serve"
         ? {
