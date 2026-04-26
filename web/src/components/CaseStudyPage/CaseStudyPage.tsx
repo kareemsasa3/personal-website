@@ -17,6 +17,7 @@ const sectionDefinitions: PageSection[] = [
   { id: "decisions", label: "Decisions" },
   { id: "implementation", label: "Implementation" },
   { id: "outcome", label: "Outcome" },
+  { id: "evidence", label: "Evidence" },
   { id: "links", label: "Links" },
 ];
 
@@ -119,6 +120,36 @@ const CaseStudyPage = ({ caseStudy }: CaseStudyPageProps) => {
           </ul>
         </section>
 
+        <section id="evidence" className="case-study-section">
+          <h2>Evidence</h2>
+          <div className="case-study-grid">
+            {caseStudy.artifacts.map((artifact) => (
+              <article key={artifact.title} className="interactive-card">
+                <div className="case-study-artifact-meta">
+                  <span>{artifact.kind}</span>
+                  <span>{artifact.status}</span>
+                </div>
+                <h3>{artifact.title}</h3>
+                <p>{artifact.description}</p>
+                {artifact.note && (
+                  <p className="case-study-artifact-note">{artifact.note}</p>
+                )}
+                {artifact.href && (
+                  <a
+                    className="case-study-artifact-link"
+                    href={artifact.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`View artifact: ${artifact.title}`}
+                  >
+                    View artifact
+                  </a>
+                )}
+              </article>
+            ))}
+          </div>
+        </section>
+
         <section id="links" className="case-study-section interactive-card">
           <h2>Links</h2>
           <div className="case-study-links">
@@ -127,7 +158,7 @@ const CaseStudyPage = ({ caseStudy }: CaseStudyPageProps) => {
                 return (
                   <div key={link.label} className="case-study-link disabled">
                     <span>{link.label}</span>
-                    <span>Not public yet</span>
+                    <span>{link.unavailableLabel ?? "Not public yet"}</span>
                   </div>
                 );
               }

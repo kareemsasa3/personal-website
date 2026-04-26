@@ -10,11 +10,33 @@ export interface CaseStudyHighlight {
   detail: string;
 }
 
+export type CaseStudyArtifactKind =
+  | "Private operator artifact"
+  | "Sanitized architecture summary"
+  | "Repository provenance"
+  | "Local system evidence";
+
+export type CaseStudyArtifactStatus =
+  | "Public"
+  | "Private"
+  | "Sanitized"
+  | "Unavailable";
+
+export interface CaseStudyArtifact {
+  title: string;
+  kind: CaseStudyArtifactKind;
+  status: CaseStudyArtifactStatus;
+  description: string;
+  href?: string;
+  note?: string;
+}
+
 export interface CaseStudyLink {
   label: string;
   href: string;
   external?: boolean;
   unavailable?: boolean;
+  unavailableLabel?: string;
 }
 
 export interface CaseStudy {
@@ -32,6 +54,7 @@ export interface CaseStudy {
   keyTechnicalDecisions: CaseStudyDecision[];
   implementationHighlights: CaseStudyHighlight[];
   outcome: string[];
+  artifacts: CaseStudyArtifact[];
   links: CaseStudyLink[];
   focusAreas: string[];
 }
@@ -105,6 +128,25 @@ export const caseStudiesData: CaseStudy[] = [
     outcome: [
       "Aether turned audio analysis into a reusable local systems primitive rather than a single-purpose effect.",
       "The architecture supports low-latency hardware synchronization and additional consumers without reworking the capture path.",
+    ],
+    artifacts: [
+      {
+        title: "Repository provenance",
+        kind: "Repository provenance",
+        status: "Public",
+        description:
+          "Public source history for the Linux audio daemon remains on the legacy repository account where the project was developed.",
+        href: "https://github.com/kareemsasa3/aether",
+        note: "Canonical contact identity remains github.com/kareemsasa; this repository has not migrated.",
+      },
+      {
+        title: "Local system evidence",
+        kind: "Local system evidence",
+        status: "Private",
+        description:
+          "The project is deployed locally as a systemd user service with PipeWire capture, shared-memory publication, and detachable consumers.",
+        note: "Private workstation paths and service configuration are intentionally not published.",
+      },
     ],
     links: [
       {
@@ -182,11 +224,29 @@ export const caseStudiesData: CaseStudy[] = [
       "Erebus replaces ad hoc workstation debugging with a durable model of what happened and why the system believed it was happening.",
       "The project is still in active development, but the architecture already establishes a path for auditable local automation.",
     ],
+    artifacts: [
+      {
+        title: "Private operator artifact",
+        kind: "Private operator artifact",
+        status: "Private",
+        description:
+          "Local project evidence includes append-only event history, emitter output, and inference traces from a personal Linux environment.",
+        note: "Public repository is not currently available; private machine identifiers, socket paths, policies, and actuator details are not published.",
+      },
+      {
+        title: "Sanitized architecture summary",
+        kind: "Sanitized architecture summary",
+        status: "Sanitized",
+        description:
+          "The public case study summarizes the event log, belief engine, and inspection workflow without exposing host-specific automation details.",
+      },
+    ],
     links: [
       {
-        label: "GitHub Repository",
+        label: "Public Repository",
         href: "",
         unavailable: true,
+        unavailableLabel: "Public repository not available.",
       },
       { label: "Related: Aether", href: "/case-studies/aether" },
       { label: "Related: Arachne", href: "/case-studies/arachne" },
@@ -262,6 +322,24 @@ export const caseStudiesData: CaseStudy[] = [
     outcome: [
       "Arachne makes research repeatable, searchable, and inspectable across time instead of tied to transient browser sessions.",
       "The architecture supports both direct retrieval and higher-level synthesis workflows on top of the same indexed corpus.",
+    ],
+    artifacts: [
+      {
+        title: "Repository provenance",
+        kind: "Repository provenance",
+        status: "Public",
+        description:
+          "Public source history for the research platform remains on the legacy repository account where the project was developed.",
+        href: "https://github.com/kareemsasa3/arachne",
+        note: "Canonical contact identity remains github.com/kareemsasa; this repository has not migrated.",
+      },
+      {
+        title: "Sanitized architecture summary",
+        kind: "Sanitized architecture summary",
+        status: "Sanitized",
+        description:
+          "The case study documents the search, scrape, versioning, indexing, and synthesis pipeline without publishing target lists or private datasets.",
+      },
     ],
     links: [
       {

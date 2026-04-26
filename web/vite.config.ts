@@ -99,22 +99,71 @@ const renderList = (items: string[]) =>
   `<ul>${items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
 
 const renderLinkList = (
-  links: Array<{ label: string; href: string; external?: boolean; unavailable?: boolean }>
+  links: Array<{
+    label: string;
+    href: string;
+    external?: boolean;
+    unavailable?: boolean;
+    unavailableLabel?: string;
+  }>
 ) =>
   `<ul>${links
     .map((link) => {
       if (link.unavailable) {
         return `<li><span class="route-fallback__label">${escapeHtml(
           link.label
-        )}</span>: Not public yet</li>`;
+        )}</span>: ${escapeHtml(link.unavailableLabel ?? "Not public yet")}</li>`;
       }
 
-      const target = link.external ? ' target="_blank" rel="noreferrer"' : "";
+      const target = link.external
+        ? ' target="_blank" rel="noopener noreferrer"'
+        : "";
       return `<li><a href="${escapeHtml(link.href)}"${target}>${escapeHtml(
         link.label
       )}</a></li>`;
     })
     .join("")}</ul>`;
+
+const renderArtifactGrid = (
+  artifacts: Array<{
+    title: string;
+    kind: string;
+    status: string;
+    description: string;
+    href?: string;
+    note?: string;
+  }>
+) => `
+  <div class="route-fallback__grid">
+    ${artifacts
+      .map(
+        (artifact) => `
+          <article class="route-fallback__card">
+            <p class="route-fallback__eyebrow">${escapeHtml(
+              artifact.kind
+            )} / ${escapeHtml(artifact.status)}</p>
+            <h3>${escapeHtml(artifact.title)}</h3>
+            <p>${escapeHtml(artifact.description)}</p>
+            ${
+              artifact.note
+                ? `<p><strong>Note:</strong> ${escapeHtml(artifact.note)}</p>`
+                : ""
+            }
+            ${
+              artifact.href
+                ? `<a class="route-fallback__card-link" href="${escapeHtml(
+                    artifact.href
+                  )}" target="_blank" rel="noopener noreferrer" aria-label="View artifact: ${escapeHtml(
+                    artifact.title
+                  )}">View artifact</a>`
+                : ""
+            }
+          </article>
+        `
+      )
+      .join("")}
+  </div>
+`;
 
 const renderSitemap = () => `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -248,6 +297,11 @@ const renderCaseStudyBody = (slug: string) => {
       <section class="route-fallback__section">
         <h2>Outcome</h2>
         ${renderList(caseStudy.outcome)}
+      </section>
+
+      <section class="route-fallback__section">
+        <h2>Evidence</h2>
+        ${renderArtifactGrid(caseStudy.artifacts)}
       </section>
 
       <section class="route-fallback__section route-fallback__link-list">
