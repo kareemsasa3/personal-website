@@ -66,6 +66,22 @@ jobs:
                   ;;
               esac
 
+              echo "Verifying removed/private public paths are not reachable..."
+              for path in "/monitoring/grafana/" "/monitoring/grafana/api/health" "/assets/index-D97KyDEI.js.map"; do
+                status="$(curl -L -s -o /tmp/public-check-body -w "%{http_code}" "https://$DOMAIN$path" || true)"
+
+                case "$status" in
+                  401|403|404)
+                    echo "OK: $path -> $status"
+                    ;;
+                  *)
+                    echo "ERROR: $path should return 401/403/404, got $status" >&2
+                    head -20 /tmp/public-check-body >&2 || true
+                    exit 1
+                    ;;
+                esac
+              done
+
               echo "Verifying OG image..."
               og_status="$(curl -L -s -o /dev/null -w "%{http_code}" "https://$DOMAIN/og-image.svg" || true)"
               og_type="$(curl -L -s -I "https://$DOMAIN/og-image.svg" | awk -F': ' 'tolower($1)=="content-type"{print tolower($2); exit}')"
