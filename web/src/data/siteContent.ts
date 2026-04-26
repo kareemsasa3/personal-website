@@ -58,12 +58,14 @@ export const capabilitiesContent = {
     ],
 } as const;
 
+export const githubProfileUrl = "https://github.com/kareemsasa";
+
 export const socialContent = {
     title: "Contact",
     links: [
       {
         name: "GitHub",
-        url: "https://github.com/kareemsasa3",
+        url: githubProfileUrl,
         icon: "🐙",
       },
       {
