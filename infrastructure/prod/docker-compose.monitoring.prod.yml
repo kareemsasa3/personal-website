@@ -17,7 +17,7 @@ services:
       - "--web.enable-lifecycle"
       - "--storage.tsdb.retention.size=10GB"
     ports:
-      - "9090:9090"
+      - "127.0.0.1:9090:9090"
     networks:
       - portfolio-network-prod
     restart: unless-stopped
@@ -68,7 +68,7 @@ services:
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
       - GF_AUTH_DISABLE_LOGIN_FORM=true
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     networks:
       - portfolio-network-prod
     restart: unless-stopped
@@ -164,7 +164,7 @@ services:
       - "--collector.filesystem.ignored-mount-points=^/(sys|proc|dev|host|etc)($$|/)"
       - "--collector.filesystem.ignored-fs-types=^(sys|proc|auto)fs$$"
     ports:
-      - "9100:9100"
+      - "127.0.0.1:9100:9100"
     networks:
       - portfolio-network-prod
     restart: unless-stopped
@@ -203,7 +203,7 @@ services:
       - -nginx.scrape-uri=http://nginx:80/stub_status
       - -nginx.ssl-verify=false
     ports:
-      - "9113:9113"
+      - "127.0.0.1:9113:9113"
     networks:
       - portfolio-network-prod
     restart: unless-stopped
