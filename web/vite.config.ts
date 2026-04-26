@@ -653,7 +653,6 @@ export default defineConfig(({ command, mode }) => {
         output: {
           manualChunks: {
             // Vendor chunks
-            "react-vendor": ["react", "react-dom"],
             "router-vendor": ["react-router-dom"],
             "animation-vendor": ["framer-motion"],
             "ui-vendor": [
