@@ -259,20 +259,6 @@ runs:
           exit 1
         fi
 
-        echo "Waiting for Grafana to be reachable through Nginx..."
-        for i in $(seq 1 60); do
-          curl -fsS -m 5 "http://localhost/monitoring/grafana/api/health" >/dev/null 2>&1 && ok=1 || ok=0
-          if [ "$ok" -eq 1 ]; then
-            echo "Grafana reachable through Nginx."
-            break
-          fi
-          sleep 5
-        done
-        if [ "$ok" -ne 1 ]; then
-          echo "ERROR: Grafana proxy health check failed at http://localhost/monitoring/grafana/api/health" >&2
-          exit 1
-        fi
-
         echo "Disk usage after cleanup:" && df -h /
         echo "Docker disk usage after cleanup:" && docker system df || true
 

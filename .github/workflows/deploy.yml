@@ -45,22 +45,29 @@ jobs:
           ORIGIN_IP: ${{ secrets.PROD_ORIGIN_IP }}
         run: |
           set -e
-          echo "Waiting for services at https://$DOMAIN ..."
+          echo "Waiting for public app health at https://$DOMAIN ..."
           for i in {1..60}; do
-            ok=0
             if [ -n "$ORIGIN_IP" ]; then
-              curl -fsS -m 10 --resolve "$DOMAIN:443:$ORIGIN_IP" "https://$DOMAIN/health" >/dev/null && ok=$((ok+1)) || true
-              # Grafana proxied under subpath
-              curl -fsS -m 10 --resolve "$DOMAIN:443:$ORIGIN_IP" "https://$DOMAIN/monitoring/grafana/api/health" >/dev/null && ok=$((ok+1)) || true
+              curl -fsS -m 10 --resolve "$DOMAIN:443:$ORIGIN_IP" "https://$DOMAIN/health" >/dev/null && ok=1 || ok=0
             else
-              curl -fsS -m 5 "https://$DOMAIN/health" >/dev/null && ok=$((ok+1)) || true
-              curl -fsS -m 5 "https://$DOMAIN/monitoring/grafana/api/health" >/dev/null && ok=$((ok+1)) || true
+              curl -fsS -m 5 "https://$DOMAIN/health" >/dev/null && ok=1 || ok=0
             fi
-            if [ "$ok" -eq 2 ]; then
-              echo "All endpoints healthy."
+            if [ "$ok" -eq 1 ]; then
+              echo "Public app health endpoint healthy."
+              echo "Verifying Grafana is not publicly exposed..."
+              status="$(curl -L -s -o /dev/null -w "%{http_code}" "https://$DOMAIN/monitoring/grafana/api/health" || true)"
+              case "$status" in
+                401|403|404)
+                  echo "OK: public Grafana endpoint is not exposed: $status"
+                  ;;
+                *)
+                  echo "ERROR: public Grafana endpoint should not be reachable, got: $status" >&2
+                  exit 1
+                  ;;
+              esac
               exit 0
             fi
             sleep 5
           done
-          echo "ERROR: One or more health checks failed at https://$DOMAIN" >&2
+          echo "ERROR: Public app health check failed at https://$DOMAIN/health" >&2
           exit 1
