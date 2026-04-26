@@ -51,7 +51,7 @@ const TypeWriterText: React.FC<TypeWriterTextProps> = ({
   // Validate inputs
   if (!text || typeof text !== "string") {
     return (
-      <span className={`typewriter-text error ${className}`} aria-live="polite">
+      <span className={`typewriter-text error ${className}`}>
         {text}
       </span>
     );
@@ -103,40 +103,43 @@ const TypeWriterText: React.FC<TypeWriterTextProps> = ({
   // If user prefers reduced motion, show text immediately
   if (prefersReducedMotion) {
     return (
-      <span className={`typewriter-text ${className}`} aria-live="polite">
+      <span className={`typewriter-text ${className}`}>
         {text}
       </span>
     );
   }
 
   return (
-    <motion.span
-      className={`typewriter-text ${className}`}
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-      onAnimationComplete={handleAnimationComplete}
-      aria-live="polite"
-    >
-      {tokens.map((token, tokenIndex) => {
-        if (/^\s+$/.test(token)) {
-          return <React.Fragment key={`space-${tokenIndex}`}>{token}</React.Fragment>;
-        }
+    <span className={`typewriter-accessible ${className}`}>
+      <span className="typewriter-screen-reader-text">{text}</span>
+      <motion.span
+        className="typewriter-text"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        onAnimationComplete={handleAnimationComplete}
+        aria-hidden="true"
+      >
+        {tokens.map((token, tokenIndex) => {
+          if (/^\s+$/.test(token)) {
+            return <React.Fragment key={`space-${tokenIndex}`}>{token}</React.Fragment>;
+          }
 
-        return (
-          <span className="typewriter-word" key={`${token}-${tokenIndex}`}>
-            {token.split("").map((char, charIndex) => (
-              <motion.span
-                key={`${char}-${charIndex}`}
-                variants={characterVariants}
-              >
-                {char}
-              </motion.span>
-            ))}
-          </span>
-        );
-      })}
-    </motion.span>
+          return (
+            <span className="typewriter-word" key={`${token}-${tokenIndex}`}>
+              {token.split("").map((char, charIndex) => (
+                <motion.span
+                  key={`${char}-${charIndex}`}
+                  variants={characterVariants}
+                >
+                  {char}
+                </motion.span>
+              ))}
+            </span>
+          );
+        })}
+      </motion.span>
+    </span>
   );
 };
 

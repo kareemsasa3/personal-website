@@ -98,6 +98,13 @@ const Home = () => {
     }
   };
 
+  const handleNavigateToContact = () => {
+    document.getElementById("contact")?.scrollIntoView({
+      behavior: isMobile ? "auto" : "smooth",
+      block: "start",
+    });
+  };
+
   const handleIntroComplete = () => {
     setHasShownHomeIntro(true);
     try {
@@ -118,9 +125,10 @@ const Home = () => {
           <HeroSection
             hasShownHomeIntro={hasShownHomeIntro}
             onIntroComplete={handleIntroComplete}
-            onNavigateToProjects={handleNavigateToProjects}
+            onNavigateToCaseStudies={handleNavigateToCaseStudies}
             onNavigateToWork={handleNavigateToWork}
-            isNavigatingToProjects={loadingStates.projects}
+            onNavigateToContact={handleNavigateToContact}
+            isNavigatingToCaseStudies={loadingStates.caseStudies}
             isNavigatingToWork={loadingStates.work}
           />
         </motion.div>

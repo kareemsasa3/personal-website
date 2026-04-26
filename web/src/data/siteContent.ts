@@ -5,10 +5,28 @@ export const heroContent = {
     title: "Kareem Sasa",
     subtitle: "Systems engineer building production software for Linux, backend, and infrastructure-heavy products.",
     description: "I design event-driven systems, platform tooling, and interfaces that make complex behavior observable and easier to operate. Recent work includes a replayable Linux coordination layer and a production-oriented autonomous research platform.",
-    cta: "View Systems",
+    cta: "Read Case Studies",
 } as const;
 
 export const featuredProjectIds = ["erebus", "arachne"] as const;
+
+export const heroProofContent = [
+  {
+    label: "Current Work",
+    value: "Lead Software Consultant",
+    detail: "systems modernization and production reliability",
+  },
+  {
+    label: "Core Focus",
+    value: "Backend, Linux, Infrastructure",
+    detail: "event-driven systems, observability, operational tooling",
+  },
+  {
+    label: "Flagship Systems",
+    value: "Erebus, Arachne, Aether",
+    detail: "case studies with architecture and implementation decisions",
+  },
+] as const;
 
 export const capabilitiesContent = {
     title: "How I Work",
