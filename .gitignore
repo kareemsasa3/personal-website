@@ -58,3 +58,4 @@ build/
 .codex
 web/.vite
 docs/audits/*
+docs/private/*
