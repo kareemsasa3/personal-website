@@ -5,10 +5,17 @@ export const COMPLEXITY_LEVELS = [
   "Advanced",
   "Expert",
 ] as const;
-export const STATUSES = ["Live", "Development", "Completed"] as const;
+export const STATUSES = [
+  "Live",
+  "Development",
+  "Active development",
+  "Demo-ready",
+  "Completed",
+] as const;
 export const CATEGORIES = [
   "Systems Infrastructure",
   "Backend Systems",
+  "Developer Tooling",
   "Full-Stack Web App",
   "Portfolio",
 ] as const;
@@ -58,12 +65,12 @@ export const projectsData: Project[] = [
       "Append-only audit log with replay determinism",
     ],
     complexity: "Expert",
-    status: "Development",
+    status: "Active development",
     url: "#",
     highlights: [
       "Belief-driven system state modeling",
       "Replayable operational history",
-      "Active development, v0.6.3",
+      "Active development",
     ],
   },
   {
@@ -138,6 +145,77 @@ export const projectsData: Project[] = [
       "Portfolio-first interactive UX",
       "Modern React architecture",
       "Custom terminal-inspired navigation",
+    ],
+  },
+  {
+    id: "mnemosyne",
+    category: "Backend Systems",
+    date: "2026",
+    title: "Mnemosyne",
+    description:
+      "Source-first documentation and traceability system for mapping documented events, rules, oversight, and source-reported claims without asserting conclusions.",
+    techStack: ["Python", "JSON Schema", "React", "Traceability", "Data Modeling"],
+    features: [
+      "Source-first event and claim modeling",
+      "JSON Schema and semantic validation layers",
+      "Read-only React projection viewer",
+      "Anti-bleed boundaries between context and evidence",
+    ],
+    complexity: "Advanced",
+    status: "Active development",
+    url: "#",
+    highlights: [
+      "Source-first traceability",
+      "Deterministic documentation model",
+      "Active development",
+    ],
+  },
+  {
+    id: "kctl",
+    category: "Developer Tooling",
+    date: "2026",
+    title: "kctl",
+    description:
+      "Local control plane for running staged, verifiable AI-assisted development workflows across repositories.",
+    techStack: ["Python", "Developer Tooling", "Automation", "CI", "Agent Workflows"],
+    features: [
+      "YAML execution plans for staged development runs",
+      "Verification gates and review passes",
+      "Durable run logs and structured artifacts",
+      "Multi-repository workflow coordination",
+    ],
+    complexity: "Advanced",
+    status: "Active development",
+    url: "https://github.com/kareemsasa/kctl",
+    githubUrl: "https://github.com/kareemsasa/kctl",
+    highlights: [
+      "Planned agent-assisted development runs",
+      "Verifiable local workflow control",
+      "Active development",
+    ],
+  },
+  {
+    id: "operating-system-audit",
+    category: "Systems Infrastructure",
+    date: "2026",
+    title: "Operating System Audit",
+    description:
+      "Read-only OS snapshot and diff tool for detecting configuration, network, identity, persistence, and execution drift.",
+    techStack: ["Go", "Bash", "Security", "Systems", "CLI"],
+    features: [
+      "Read-only operating system snapshots",
+      "Snapshot diffs for visible drift over time",
+      "Configuration, network, identity, and persistence checks",
+      "Cross-platform CLI with embedded collectors",
+    ],
+    complexity: "Advanced",
+    status: "Demo-ready",
+    url: "https://github.com/kareemsasa/operating-system-audit",
+    githubUrl: "https://github.com/kareemsasa/operating-system-audit",
+    highlights: [
+      "Read-only OS drift detection",
+      "Deterministic snapshot comparisons",
+      "Demo-ready CLI",
     ],
   },
 ];
