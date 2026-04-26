@@ -64,6 +64,11 @@ Infrastructure commands are documented in `README.md` and `infrastructure/README
 - Do not rewrite repository links from `kareemsasa3` to `kareemsasa` unless the target repository has actually been migrated.
 - Contact, social, JSON-LD `sameAs`, and primary public identity links should prefer `kareemsasa`.
 - Project and case-study repository links should point to the account where the repository currently lives.
+- A local, gitignored private source file may exist at `docs/private/resume.md`. If present, it may be used to ground public-safe website copy, experience summaries, case-study proof, and resume/contact conversion work.
+- Treat `docs/private/resume.md` as private source material, not publishable content. Do not copy it wholesale into the website.
+- Use only public-safe positioning and sanitized project/experience facts from that file.
+- Do not publish client-internal details, private infrastructure details, hostnames, admin routes, service inventories, secrets, private datasets, or repository links that do not actually exist.
+- If `docs/private/resume.md` conflicts with public website data, pause and report the conflict instead of silently overwriting public content.
 - Navigation items live in `web/src/data/navigation.ts`; route definitions live separately in `web/src/routes/index.tsx`.
 - SEO, canonical paths, sitemap route metadata, and social image constants live in `web/src/data/routeMetadata.ts`.
 - JSON-LD structured data lives in `web/src/data/structuredData.ts`.
@@ -105,4 +110,5 @@ Future agent final summaries should include:
 - Delete audit history or remediation notes.
 - Change package scripts.
 - Modify generated/public assets unrelated to the task.
+- Publish or commit private source material from `docs/private/`.
 - Make unrelated cleanup changes.
