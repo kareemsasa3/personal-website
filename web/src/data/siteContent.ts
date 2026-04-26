@@ -81,6 +81,14 @@ export const socialContent = {
     ],
 } as const;
 
+export const professionalContactContent = {
+  title: "Professional Inquiries",
+  description:
+    "For systems/platform engineering, backend modernization, Linux infrastructure, or production reliability work, reach out by email or LinkedIn.",
+  primaryActionLabel: "Email Kareem",
+  secondaryActionLabel: "Connect on LinkedIn",
+} as const;
+
 export const aboutContent = {
     title: capabilitiesContent.title,
     items: capabilitiesContent.items,

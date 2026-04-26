@@ -15,9 +15,9 @@
   max-width: 960px;
   margin: 0 auto;
   padding: 1.25rem 1.5rem;
-  display: flex;
+  display: grid;
+  grid-template-columns: auto minmax(16rem, 1fr) auto;
   align-items: center;
-  justify-content: space-between;
   gap: 1rem;
 }
 
@@ -28,6 +28,13 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+.contact-strip-description {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.6;
 }
 
 .contact-strip-links {
@@ -63,8 +70,8 @@
   }
 
   .contact-strip-content {
-    flex-direction: column;
     align-items: flex-start;
+    grid-template-columns: 1fr;
     padding: 1rem;
   }
 }

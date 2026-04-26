@@ -172,6 +172,81 @@
     opacity: 0.3;
 }
 
+.work-contact-cta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    margin: 2rem auto 0;
+    padding: 1.5rem;
+    max-width: 960px;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    background: var(--background-color);
+    font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
+}
+
+.work-contact-eyebrow {
+    margin: 0 0 0.5rem;
+    color: var(--primary-color);
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.work-contact-cta h2 {
+    margin: 0;
+    color: var(--text-color);
+    font-size: 1.35rem;
+}
+
+.work-contact-cta p:last-child {
+    margin: 0.75rem 0 0;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.work-contact-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.75rem;
+}
+
+.work-contact-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.5rem;
+    padding: 0.55rem 0.9rem;
+    color: var(--text-color);
+    text-decoration: none;
+    font-weight: 700;
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    transition: border-color 0.3s ease, color 0.3s ease, background-color 0.3s ease;
+}
+
+.work-contact-link:hover,
+.work-contact-link:focus-visible {
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+    background: rgba(0, 255, 0, 0.05);
+}
+
+.work-contact-link.primary {
+    color: var(--background-color);
+    border-color: var(--primary-color);
+    background: var(--primary-color);
+}
+
+.work-contact-link.primary:hover,
+.work-contact-link.primary:focus-visible {
+    color: var(--primary-color);
+    background: transparent;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .work-title {
@@ -201,6 +276,15 @@
 
     .work-timeline-content::before {
         left: -0.75rem;
+    }
+
+    .work-contact-cta {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .work-contact-actions {
+        justify-content: flex-start;
     }
 }
 

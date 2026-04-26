@@ -1,5 +1,9 @@
 import "./Work.css";
 import { motion } from "framer-motion";
+import {
+  professionalContactContent,
+  socialContent,
+} from "../../data/siteContent";
 import { workExperienceData } from "../../data/workExperience";
 import WorkDetails from "../../components/WorkDetails";
 import TypeWriterText from "../../components/TypeWriterText";
@@ -12,6 +16,13 @@ const workSections: PageSection[] = workExperienceData.map((exp) => ({
   id: `work-${exp.id}`,
   label: exp.company,
 }));
+
+const emailLink = socialContent.links.find((link) =>
+  link.url.startsWith("mailto:")
+);
+const linkedInLink = socialContent.links.find(
+  (link) => link.name === "LinkedIn"
+);
 
 const Work = () => {
   // Get the current location to create a key for TypeWriterText
@@ -82,6 +93,30 @@ const Work = () => {
           </React.Fragment>
         ))}
       </div>
+      <section className="work-contact-cta" aria-labelledby="work-contact-title">
+        <div>
+          <p className="work-contact-eyebrow">Next Step</p>
+          <h2 id="work-contact-title">{professionalContactContent.title}</h2>
+          <p>{professionalContactContent.description}</p>
+        </div>
+        <div className="work-contact-actions">
+          {emailLink && (
+            <a className="work-contact-link primary" href={emailLink.url}>
+              {professionalContactContent.primaryActionLabel}
+            </a>
+          )}
+          {linkedInLink && (
+            <a
+              className="work-contact-link"
+              href={linkedInLink.url}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {professionalContactContent.secondaryActionLabel}
+            </a>
+          )}
+        </div>
+      </section>
     </motion.div>
   );
 };

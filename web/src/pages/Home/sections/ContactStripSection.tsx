@@ -1,7 +1,10 @@
 import "./ContactStripSection.css";
 import { motion, MotionStyle } from "framer-motion";
 import { forwardRef, ForwardedRef } from "react";
-import { socialContent } from "../../../data/siteContent";
+import {
+  professionalContactContent,
+  socialContent,
+} from "../../../data/siteContent";
 
 interface ContactStripSectionProps {
   style?: MotionStyle;
@@ -28,6 +31,15 @@ export const ContactStripSection = forwardRef(
           >
             {socialContent.title}
           </motion.h2>
+          <motion.p
+            className="contact-strip-description"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.5, delay: 0.15 }}
+          >
+            {professionalContactContent.description}
+          </motion.p>
           <motion.div
             className="contact-strip-links"
             initial={{ opacity: 0, y: 20 }}
