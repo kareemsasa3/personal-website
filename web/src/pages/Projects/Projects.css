@@ -168,6 +168,7 @@ primary comprehension layer.
     display: flex;
     flex-direction: column;
     gap: 1rem;
+    min-width: 0;
     padding: 1.75rem;
     background: color-mix(in srgb, var(--card-background) 92%, transparent);
     border: 1px solid var(--border-color);
@@ -187,6 +188,11 @@ primary comprehension layer.
     justify-content: space-between;
     align-items: flex-start;
     gap: 1rem;
+    min-width: 0;
+}
+
+.flagship-card-header > div {
+    min-width: 0;
 }
 
 .flagship-kicker {
@@ -203,6 +209,7 @@ primary comprehension layer.
     color: var(--text-color);
     font-size: 1.45rem;
     line-height: 1.25;
+    overflow-wrap: anywhere;
 }
 
 .flagship-badges {
@@ -235,6 +242,7 @@ primary comprehension layer.
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    max-width: 100%;
     min-height: 42px;
     padding: 0.7rem 1rem;
     border: 1px solid var(--border-color);
@@ -242,6 +250,9 @@ primary comprehension layer.
     color: var(--text-color);
     font-weight: 700;
     text-decoration: none;
+    overflow-wrap: anywhere;
+    text-align: center;
+    white-space: normal;
     transition: background 0.25s ease, border-color 0.25s ease, transform 0.25s ease, color 0.25s ease;
 }
 
@@ -258,6 +269,11 @@ primary comprehension layer.
 }
 
 .tech-tag {
+    display: inline-flex;
+    flex: 0 0 auto;
+    box-sizing: border-box;
+    width: fit-content;
+    max-width: 100%;
     padding: 0.25rem 0.75rem;
     background: var(--primary-color-light);
     border: 1px solid color-mix(in srgb, var(--terminal-primary, #4CAF50) 55%, transparent);
@@ -265,6 +281,10 @@ primary comprehension layer.
     color: var(--terminal-primary, #4CAF50);
     font-size: 0.8rem;
     font-weight: 500;
+    line-height: 1.25;
+    overflow-wrap: normal;
+    white-space: normal;
+    word-break: normal;
 }
 
 .projects-controls {

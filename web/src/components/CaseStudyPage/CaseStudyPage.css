@@ -3,6 +3,7 @@
   max-width: 1280px;
   margin: 0 auto;
   font-family: "Courier New", "Monaco", "Menlo", monospace;
+  min-width: 0;
 }
 
 .case-study-container > * + * {
@@ -16,6 +17,7 @@
 
 .case-study-breadcrumbs {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.5rem;
   align-items: center;
   margin-bottom: 1.5rem;
@@ -46,6 +48,7 @@
   color: var(--text-color);
   font-size: clamp(2.4rem, 6vw, 4.5rem);
   line-height: 1.05;
+  overflow-wrap: anywhere;
 }
 
 .case-study-summary {
@@ -54,6 +57,7 @@
   color: var(--text-color);
   font-size: 1.05rem;
   line-height: 1.8;
+  overflow-wrap: anywhere;
 }
 
 .case-study-focus-list {
@@ -83,6 +87,7 @@
 .case-studies-header p {
   color: var(--text-color);
   line-height: 1.8;
+  overflow-wrap: anywhere;
 }
 
 .case-study-grid {
@@ -112,6 +117,10 @@
 }
 
 .case-study-artifact-meta span {
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  width: fit-content;
+  max-width: 100%;
   padding: 0.25rem 0.55rem;
   border: 1px solid var(--border-color);
   border-radius: 999px;
@@ -120,6 +129,8 @@
   font-weight: 700;
   line-height: 1.2;
   text-transform: uppercase;
+  white-space: nowrap;
+  word-break: normal;
 }
 
 .case-study-artifact-note {
@@ -151,6 +162,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
+  min-width: 0;
   padding: 1rem 1.25rem;
   border: 1px solid var(--border-color);
   border-radius: 12px;
@@ -158,6 +170,11 @@
   color: var(--text-color);
   text-decoration: none;
   transition: border-color 0.3s ease, background 0.3s ease, transform 0.3s ease;
+}
+
+.case-study-link span {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .case-study-link:hover {
@@ -204,12 +221,22 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
+  min-width: 0;
+}
+
+.case-study-card-header > div {
+  min-width: 0;
 }
 
 .case-study-card-meta {
   display: flex;
   flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 0.5rem;
+}
+
+.case-study-card-header > .case-study-card-meta {
+  min-width: min-content;
 }
 
 .case-study-card-actions {
@@ -236,5 +263,22 @@
   .case-study-grid,
   .case-studies-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .case-study-card-header {
+    flex-direction: column;
+  }
+
+  .case-study-card-meta {
+    justify-content: flex-start;
+  }
+
+  .case-study-link {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding: 0.9rem 1rem;
   }
 }

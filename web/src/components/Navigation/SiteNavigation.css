@@ -196,7 +196,8 @@
     }
 
     .site-header__link.active {
-        flex-grow: 1.6;
+        flex: 0 0 auto;
+        min-width: max-content;
     }
 
     .site-header__link.active .site-header__link-label {

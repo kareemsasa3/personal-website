@@ -13,6 +13,10 @@
   will-change: transform, box-shadow;
 }
 
+.interactive-card > * {
+  min-width: 0;
+}
+
 .interactive-card::before {
   content: '';
   position: absolute;
@@ -37,6 +41,13 @@
 
 .complexity-badge,
 .status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  width: fit-content;
+  max-width: 100%;
   padding: 0.25rem 0.75rem;
   border-radius: 20px;
   font-size: 0.75rem;
@@ -44,6 +55,10 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
   color: white;
+  line-height: 1.2;
+  overflow-wrap: normal;
+  white-space: nowrap;
+  word-break: normal;
 }
 
 .complexity-badge.expert {
@@ -78,6 +93,11 @@
 }
 
 .tech-tag {
+  display: inline-flex;
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  width: fit-content;
+  max-width: 100%;
   padding: 0.25rem 0.75rem;
   background: var(--primary-color-light);
   border: 1px solid var(--primary-color-medium);
@@ -85,7 +105,17 @@
   color: var(--primary-color);
   font-size: 0.8rem;
   font-weight: 500;
+  line-height: 1.25;
+  overflow-wrap: normal;
+  white-space: normal;
+  word-break: normal;
   transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease;
+}
+
+@media (max-width: 480px) {
+  .interactive-card {
+    padding: 1rem;
+  }
 }
 
 .tech-tag:hover {
