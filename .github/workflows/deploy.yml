@@ -65,6 +65,17 @@ jobs:
                   exit 1
                   ;;
               esac
+
+              echo "Verifying OG image..."
+              og_status="$(curl -L -s -o /dev/null -w "%{http_code}" "https://$DOMAIN/og-image.svg" || true)"
+              og_type="$(curl -L -s -I "https://$DOMAIN/og-image.svg" | awk -F': ' 'tolower($1)=="content-type"{print tolower($2); exit}')"
+
+              if [ "$og_status" != "200" ] || ! printf "%s" "$og_type" | grep -q "image/svg+xml"; then
+                echo "ERROR: /og-image.svg should return 200 image/svg+xml, got status=$og_status content-type=$og_type" >&2
+                exit 1
+              fi
+
+              echo "OK: /og-image.svg returns 200 image/svg+xml"
               exit 0
             fi
             sleep 5
