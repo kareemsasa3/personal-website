@@ -14,6 +14,7 @@
   margin: 0 auto;
   padding: 0 2rem;
   text-align: center;
+  min-width: 0;
 }
 
 .hero-title {
@@ -32,6 +33,7 @@
   font-weight: 600;
   letter-spacing: 0.01em;
   text-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+  overflow-wrap: anywhere;
 }
 
 .hero-description {
@@ -41,6 +43,7 @@
   font-size: clamp(1rem, 2.7vw, 1.2rem);
   letter-spacing: normal;
   line-height: 1.7;
+  overflow-wrap: anywhere;
 }
 
 .hero-buttons {
@@ -64,9 +67,14 @@
   }
 
   .hero-content {
-    width: 100%;
+    width: min(100%, calc(100vw - 2rem));
     max-width: 38rem;
-    padding: 0 0.75rem;
+    padding: 0;
+  }
+
+  .hero-subtitle .typewriter-word,
+  .hero-description {
+    white-space: normal;
   }
 
   .hero-title {
@@ -96,7 +104,8 @@
   }
 
   .hero-buttons .btn {
-    width: min(100%, 280px);
+    width: min(100%, calc(100vw - 2rem));
+    max-width: 280px;
   }
 }
 
@@ -111,10 +120,20 @@
   }
 
   .hero-title {
-    font-size: clamp(1.5rem, 8vw, 2rem);
+    font-size: clamp(1.35rem, 7vw, 1.8rem);
   }
 
   .hero-subtitle {
     font-size: clamp(0.95rem, 4.5vw, 1.1rem);
+  }
+}
+
+@media (max-width: 430px) {
+  .hero-subtitle {
+    font-size: clamp(0.9rem, 4vw, 1rem);
+  }
+
+  .hero-description {
+    font-size: 0.92rem;
   }
 }

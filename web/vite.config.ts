@@ -391,7 +391,7 @@ export default defineConfig(({ command, mode }) => {
         : undefined,
     build: {
       outDir: "build",
-      sourcemap: true,
+      sourcemap: false,
       chunkSizeWarningLimit: 1000, // Increase warning limit to 1MB
       rollupOptions: {
         output: {
