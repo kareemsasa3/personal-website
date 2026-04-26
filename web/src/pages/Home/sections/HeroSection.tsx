@@ -1,23 +1,25 @@
 import "./HeroSection.css";
 import { motion } from "framer-motion";
 import TypeWriterText from "../../../components/TypeWriterText";
-import { heroContent } from "../../../data/siteContent";
+import { heroContent, heroProofContent } from "../../../data/siteContent";
 
 interface HeroSectionProps {
   hasShownHomeIntro: boolean;
   onIntroComplete: () => void;
-  onNavigateToProjects: () => void;
+  onNavigateToCaseStudies: () => void;
   onNavigateToWork: () => void;
-  isNavigatingToProjects: boolean;
+  onNavigateToContact: () => void;
+  isNavigatingToCaseStudies: boolean;
   isNavigatingToWork: boolean;
 }
 
 export const HeroSection = ({
   hasShownHomeIntro,
   onIntroComplete,
-  onNavigateToProjects,
+  onNavigateToCaseStudies,
   onNavigateToWork,
-  isNavigatingToProjects,
+  onNavigateToContact,
+  isNavigatingToCaseStudies,
   isNavigatingToWork,
 }: HeroSectionProps) => {
   return (
@@ -81,11 +83,11 @@ export const HeroSection = ({
         >
           <button
             className="btn btn-primary"
-            onClick={onNavigateToProjects}
-            disabled={isNavigatingToProjects}
-            aria-label="View my projects and work portfolio"
+            onClick={onNavigateToCaseStudies}
+            disabled={isNavigatingToCaseStudies}
+            aria-label="Read flagship system case studies"
           >
-            {isNavigatingToProjects ? "Loading..." : heroContent.cta}
+            {isNavigatingToCaseStudies ? "Loading..." : heroContent.cta}
           </button>
           <button
             className="btn btn-secondary"
@@ -95,6 +97,29 @@ export const HeroSection = ({
           >
             {isNavigatingToWork ? "Loading..." : "View Experience"}
           </button>
+          <button
+            className="btn btn-outline"
+            onClick={onNavigateToContact}
+            aria-label="Jump to contact links"
+          >
+            Contact
+          </button>
+        </motion.div>
+        <motion.div
+          className="hero-proof-strip"
+          aria-label="Professional credibility highlights"
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "0px" }}
+          transition={{ duration: 0.6, delay: 0.95 }}
+        >
+          {heroProofContent.map((item) => (
+            <div className="hero-proof-item" key={item.label}>
+              <span className="hero-proof-label">{item.label}</span>
+              <strong className="hero-proof-value">{item.value}</strong>
+              <span className="hero-proof-detail">{item.detail}</span>
+            </div>
+          ))}
         </motion.div>
       </div>
     </motion.section>

@@ -5,6 +5,14 @@ import * as os from "node:os";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { caseStudiesData } from "./src/data/caseStudies";
+import {
+  DEFAULT_IMAGE_ALT,
+  DEFAULT_IMAGE_URL,
+  SITE_URL,
+  routeMetadataByPath,
+  sitemapRouteMetadata,
+} from "./src/data/routeMetadata";
+import { structuredDataJson } from "./src/data/structuredData";
 
 const DEFAULT_DEV_HOST = "0.0.0.0";
 const DEFAULT_DEV_PORT = 5173;
@@ -68,8 +76,6 @@ const devBannerPlugin = (
   },
 });
 
-const SITE_URL = "https://kareemsasa.dev";
-
 interface StaticRouteShell {
   path: string;
   title: string;
@@ -85,6 +91,9 @@ const escapeHtml = (value: string) =>
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
+
+const escapeScriptJson = (value: string) =>
+  value.replaceAll("<", "\\u003c").replaceAll(">", "\\u003e");
 
 const renderList = (items: string[]) =>
   `<ul>${items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
@@ -106,6 +115,18 @@ const renderLinkList = (
       )}</a></li>`;
     })
     .join("")}</ul>`;
+
+const renderSitemap = () => `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${sitemapRouteMetadata
+  .map((metadata) => `  <url>
+    <loc>${SITE_URL}${metadata.canonicalPath}</loc>
+    <changefreq>${metadata.sitemap?.changefreq}</changefreq>
+    <priority>${metadata.sitemap?.priority}</priority>
+  </url>`)
+  .join("\n")}
+</urlset>
+`;
 
 const renderCaseStudiesIndexBody = () => `
   <main class="route-fallback" aria-label="Case studies overview">
@@ -294,6 +315,37 @@ const applyRouteShell = (baseHtml: string, route: StaticRouteShell) => {
       )}" />`,
     },
     {
+      pattern: /<meta property="og:image" content="[^"]*" \/>/,
+      replacement: `<meta property="og:image" content="${escapeHtml(
+        DEFAULT_IMAGE_URL
+      )}" />`,
+    },
+    {
+      pattern: /<meta property="og:image:alt" content="[^"]*" \/>/,
+      replacement: `<meta property="og:image:alt" content="${escapeHtml(
+        DEFAULT_IMAGE_ALT
+      )}" />`,
+    },
+    {
+      pattern: /<meta name="twitter:image" content="[^"]*" \/>/,
+      replacement: `<meta name="twitter:image" content="${escapeHtml(
+        DEFAULT_IMAGE_URL
+      )}" />`,
+    },
+    {
+      pattern: /<meta name="twitter:image:alt" content="[^"]*" \/>/,
+      replacement: `<meta name="twitter:image:alt" content="${escapeHtml(
+        DEFAULT_IMAGE_ALT
+      )}" />`,
+    },
+    {
+      pattern:
+        /<script type="application\/ld\+json" data-site-structured-data="true">[\s\S]*?<\/script>/,
+      replacement: `<script type="application/ld+json" data-site-structured-data="true">${escapeScriptJson(
+        structuredDataJson
+      )}</script>`,
+    },
+    {
       pattern: /<main class="route-fallback homepage-fallback"[\s\S]*?<\/main>/,
       replacement: route.bodyHtml,
     },
@@ -306,20 +358,22 @@ const applyRouteShell = (baseHtml: string, route: StaticRouteShell) => {
 const caseStudyShellPlugin = (): Plugin => {
   let outDir = "build";
 
+  const caseStudiesIndexMeta = routeMetadataByPath["/case-studies"];
   const routes: StaticRouteShell[] = [
     {
-      path: "/case-studies",
-      title: "Case Studies — Kareem Sasa",
-      description:
-        "Engineering case studies documenting system architecture, constraints, and implementation decisions across flagship projects.",
-      canonicalPath: "/case-studies",
+      path: caseStudiesIndexMeta.path,
+      title: caseStudiesIndexMeta.title,
+      description: caseStudiesIndexMeta.description,
+      canonicalPath: caseStudiesIndexMeta.canonicalPath,
       bodyHtml: renderCaseStudiesIndexBody(),
     },
     ...caseStudiesData.map((caseStudy) => ({
-      path: `/case-studies/${caseStudy.slug}`,
-      title: `${caseStudy.title} Case Study — Kareem Sasa`,
-      description: caseStudy.shortDescription,
-      canonicalPath: `/case-studies/${caseStudy.slug}`,
+      path: routeMetadataByPath[`/case-studies/${caseStudy.slug}`].path,
+      title: routeMetadataByPath[`/case-studies/${caseStudy.slug}`].title,
+      description:
+        routeMetadataByPath[`/case-studies/${caseStudy.slug}`].description,
+      canonicalPath:
+        routeMetadataByPath[`/case-studies/${caseStudy.slug}`].canonicalPath,
       bodyHtml: renderCaseStudyBody(caseStudy.slug),
     })),
   ];
@@ -327,6 +381,14 @@ const caseStudyShellPlugin = (): Plugin => {
   return {
     name: "case-study-route-shells",
     apply: "build",
+    transformIndexHtml(html) {
+      return html.replace(
+        /<script type="application\/ld\+json" data-site-structured-data="true">[\s\S]*?<\/script>/,
+        `<script type="application/ld+json" data-site-structured-data="true">${escapeScriptJson(
+          structuredDataJson
+        )}</script>`
+      );
+    },
     configResolved(config) {
       outDir = config.build.outDir;
     },
@@ -349,6 +411,8 @@ const caseStudyShellPlugin = (): Plugin => {
           );
         })
       );
+
+      await writeFile(resolve(resolvedOutDir, "sitemap.xml"), renderSitemap(), "utf8");
     },
   };
 };

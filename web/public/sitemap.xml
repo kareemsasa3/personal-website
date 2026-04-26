@@ -16,24 +16,14 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://kareemsasa.dev/case-studies/erebus</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://kareemsasa.dev/case-studies/arachne</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://kareemsasa.dev/case-studies/aether</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://kareemsasa.dev/experience</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://kareemsasa.dev/journey</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.4</priority>
   </url>
   <url>
     <loc>https://kareemsasa.dev/games</loc>
@@ -51,13 +41,23 @@
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://kareemsasa.dev/journey</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.4</priority>
-  </url>
-  <url>
     <loc>https://kareemsasa.dev/terminal</loc>
     <changefreq>monthly</changefreq>
     <priority>0.2</priority>
+  </url>
+  <url>
+    <loc>https://kareemsasa.dev/case-studies/aether</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://kareemsasa.dev/case-studies/erebus</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://kareemsasa.dev/case-studies/arachne</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
   </url>
 </urlset>

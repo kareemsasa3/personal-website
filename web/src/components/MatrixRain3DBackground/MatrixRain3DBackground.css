@@ -5,10 +5,22 @@
   height: 100%;
   z-index: -1;
   pointer-events: none;
-  opacity: 0.82;
+  opacity: 0.66;
   transition: opacity 0.3s ease;
 }
 
 .matrix-rain-3d-background.animation-paused {
-  opacity: 0.32;
+  opacity: 0.22;
+}
+
+@media (max-width: 768px) {
+  .matrix-rain-3d-background {
+    opacity: 0.42;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .matrix-rain-3d-background {
+    opacity: 0.28;
+  }
 }

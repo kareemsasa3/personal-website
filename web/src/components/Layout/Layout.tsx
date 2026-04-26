@@ -9,7 +9,14 @@ import { PageLoader } from "../common";
 import ErrorBoundary from "../common/ErrorBoundary";
 import { useLayoutContext } from "../../contexts/LayoutContext";
 import { useNavigationMode } from "../../contexts/NavigationModeContext";
-import { caseStudiesData } from "../../data/caseStudies";
+import {
+  DEFAULT_IMAGE_ALT,
+  DEFAULT_IMAGE_URL,
+  SITE_URL,
+  defaultRouteMetadata,
+  routeMetadataByPath,
+} from "../../data/routeMetadata";
+import { structuredDataJson } from "../../data/structuredData";
 import "./Layout.css";
 
 const pageVariants = {
@@ -32,16 +39,6 @@ const pageTransition = {
   ease: "anticipate",
   duration: 0.4, // Slightly longer duration to allow sections to settle
 };
-
-interface RouteMeta {
-  title: string;
-  description: string;
-  canonicalPath: string;
-}
-
-const BASE_URL = "https://kareemsasa.dev";
-const DEFAULT_IMAGE_URL = `${BASE_URL}/og-image.svg`;
-const DEFAULT_IMAGE_ALT = "Kareem Sasa logo";
 
 const Layout = () => {
   const location = useLocation();
@@ -75,88 +72,9 @@ const Layout = () => {
     }
   }, [isLoading]);
 
-  // Route-aware metadata
   useEffect(() => {
-    const defaultMeta: RouteMeta = {
-      title: "Kareem Sasa — Systems Engineer",
-      description:
-        "Systems engineer and consultant building production software across backend, infrastructure, and product experience.",
-      canonicalPath: "/",
-    };
-
-    const caseStudyMeta = caseStudiesData.reduce<Record<string, RouteMeta>>(
-      (accumulator, caseStudy) => {
-        accumulator[`/case-studies/${caseStudy.slug}`] = {
-          title: `${caseStudy.title} Case Study — Kareem Sasa`,
-          description: caseStudy.shortDescription,
-          canonicalPath: `/case-studies/${caseStudy.slug}`,
-        };
-        return accumulator;
-      },
-      {}
-    );
-
-    const routeMeta: Record<string, RouteMeta> = {
-      "/": defaultMeta,
-      "/projects": {
-        title: "Projects — Kareem Sasa",
-        description:
-          "Flagship systems and backend projects spanning Linux infrastructure, autonomous research workflows, and interactive product engineering.",
-        canonicalPath: "/projects",
-      },
-      "/case-studies": {
-        title: "Case Studies — Kareem Sasa",
-        description:
-          "Engineering case studies documenting system architecture, constraints, and implementation decisions across flagship projects.",
-        canonicalPath: "/case-studies",
-      },
-      "/experience": {
-        title: "Experience — Kareem Sasa",
-        description:
-          "Professional experience across consulting, platform modernization, frontend stabilization, and backend architecture for business-critical software.",
-        canonicalPath: "/experience",
-      },
-      "/work": {
-        title: "Experience — Kareem Sasa",
-        description:
-          "Professional experience across consulting, platform modernization, frontend stabilization, and backend architecture for business-critical software.",
-        canonicalPath: "/experience",
-      },
-      "/journey": {
-        title: "Background & Journey — Kareem Sasa",
-        description:
-          "Context behind the work: the experiences and turning points that shaped how Kareem Sasa approaches software engineering.",
-        canonicalPath: "/journey",
-      },
-      "/games": {
-        title: "Games & Experiments — Kareem Sasa",
-        description:
-          "A lighter side area for interactive experiments, gameplay ideas, and frontend exploration outside the main portfolio proof path.",
-        canonicalPath: "/games",
-      },
-      "/games/snake": {
-        title: "Snake Game — Kareem Sasa",
-        description:
-          "A browser-based Snake implementation from the games and experiments section of Kareem Sasa's portfolio.",
-        canonicalPath: "/games/snake",
-      },
-      "/games/spider": {
-        title: "Spider Solitaire — Kareem Sasa",
-        description:
-          "A browser-based Spider Solitaire implementation from the games and experiments section of Kareem Sasa's portfolio.",
-        canonicalPath: "/games/spider",
-      },
-      "/terminal": {
-        title: "Terminal — Kareem Sasa",
-        description:
-          "An interactive terminal layer for exploring portfolio content, projects, and work history through a command-driven interface.",
-        canonicalPath: "/terminal",
-      },
-      ...caseStudyMeta,
-    };
-
-    const meta = routeMeta[location.pathname] || defaultMeta;
-    const canonicalUrl = `${BASE_URL}${meta.canonicalPath}`;
+    const meta = routeMetadataByPath[location.pathname] || defaultRouteMetadata;
+    const canonicalUrl = `${SITE_URL}${meta.canonicalPath}`;
 
     if (document.title !== meta.title) document.title = meta.title;
 
@@ -184,6 +102,16 @@ const Layout = () => {
     setMetaContent('meta[name="twitter:description"]', meta.description);
     setMetaContent('meta[name="twitter:image"]', DEFAULT_IMAGE_URL);
     setMetaContent('meta[name="twitter:image:alt"]', DEFAULT_IMAGE_ALT);
+
+    const structuredDataElement = document.querySelector<HTMLScriptElement>(
+      'script[type="application/ld+json"][data-site-structured-data="true"]'
+    );
+    if (
+      structuredDataElement &&
+      structuredDataElement.textContent !== structuredDataJson
+    ) {
+      structuredDataElement.textContent = structuredDataJson;
+    }
   }, [location.pathname]);
 
   return (
