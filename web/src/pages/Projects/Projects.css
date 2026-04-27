@@ -215,8 +215,60 @@ primary comprehension layer.
 .flagship-badges {
     display: flex;
     flex-wrap: wrap;
+    align-items: flex-start;
     justify-content: flex-end;
     gap: 0.5rem;
+    min-width: 0;
+}
+
+.flagship-badges .status-badge {
+    min-height: 0;
+    line-height: 1.15;
+    overflow-wrap: normal;
+    text-align: center;
+    white-space: normal;
+    word-break: normal;
+}
+
+.flagship-badges .status-badge.active-development {
+    max-width: 7rem;
+}
+
+.flagship-badges .status-badge.demo-ready {
+    max-width: 5.25rem;
+}
+
+.flagship-badges .complexity-badge {
+    white-space: nowrap;
+}
+
+.projects-container .project-status {
+    min-width: 0;
+}
+
+.projects-container .project-status .status-badge {
+    min-height: 0;
+    line-height: 1.15;
+    overflow-wrap: normal;
+    text-align: center;
+    white-space: normal;
+    word-break: normal;
+}
+
+.projects-container .project-status .status-badge.active-development {
+    max-width: 7rem;
+}
+
+.projects-container .project-status .status-badge.demo-ready {
+    max-width: 5.25rem;
+}
+
+.projects-container .project-status .status-dot {
+    flex: 0 0 auto;
+}
+
+.projects-container .project-status .complexity-badge {
+    white-space: nowrap;
 }
 
 .flagship-summary {
@@ -604,6 +656,11 @@ primary comprehension layer.
 
     .flagship-card-header {
         flex-direction: column;
+    }
+
+    .flagship-badges {
+        justify-content: flex-start;
+        width: 100%;
     }
 
     .projects-stats {

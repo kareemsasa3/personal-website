@@ -11,6 +11,15 @@ type SortByType = "date" | "complexity" | "name" | "category";
 
 const flagshipProjectIds = ["erebus", "arachne", "aether"] as const;
 
+const getStatusClasses = (status: string) => {
+  const legacyClass = status.toLowerCase();
+  const statusClass = legacyClass.replace(/\s+/g, "-");
+
+  return legacyClass === statusClass
+    ? statusClass
+    : `${legacyClass} ${statusClass}`;
+};
+
 const flagshipProjects = flagshipProjectIds
   .map((id) => caseStudyCards.find((caseStudy) => caseStudy.projectId === id))
   .filter(
@@ -104,7 +113,7 @@ const Projects = () => {
                       {caseStudy.project.complexity}
                     </span>
                     <span
-                      className={`status-badge ${caseStudy.project.status.toLowerCase()}`}
+                      className={`status-badge ${getStatusClasses(caseStudy.project.status)}`}
                     >
                       {caseStudy.project.status}
                     </span>

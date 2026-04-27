@@ -26,6 +26,15 @@ const normalizePreviewText = (description: string) => {
 const normalizeKeyPoint = (value: string) =>
   value.replace(/\s+/g, " ").replace(/[.]+$/, "").trim();
 
+const getStatusClasses = (status: string) => {
+  const legacyClass = status.toLowerCase();
+  const statusClass = legacyClass.replace(/\s+/g, "-");
+
+  return legacyClass === statusClass
+    ? statusClass
+    : `${legacyClass} ${statusClass}`;
+};
+
 const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const detailsId = `project-details-${project.id}`;
@@ -94,7 +103,7 @@ const ProjectDetails: React.FC<ProjectDetailsProps> = ({ project }) => {
 
         <div className="project-status">
           <span
-            className="status-badge"
+            className={`status-badge ${getStatusClasses(project.status)}`}
             style={{ backgroundColor: getStatusColor(project.status) }}
           >
             <span className="status-dot" aria-hidden="true" />
