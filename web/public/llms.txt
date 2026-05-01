@@ -1,0 +1,50 @@
+# Kareem Sasa
+
+Kareem Sasa is a systems engineer and consultant. This site is a public portfolio, project archive, case-study surface, and professional contact surface.
+
+Canonical site: https://kareemsasa.dev
+
+## Primary Pages
+
+- [Kareem Sasa - Systems Engineer](https://kareemsasa.dev/): Systems engineer and consultant building production software across backend, Linux infrastructure, and operational tooling.
+- [Projects - Kareem Sasa](https://kareemsasa.dev/projects): Flagship systems and backend projects spanning Linux infrastructure, autonomous research workflows, and interactive product engineering.
+- [Case Studies - Kareem Sasa](https://kareemsasa.dev/case-studies): Engineering case studies documenting system architecture, constraints, and implementation decisions across flagship projects.
+- [Experience - Kareem Sasa](https://kareemsasa.dev/experience): Professional experience across consulting, platform modernization, frontend stabilization, and backend architecture for business-critical software.
+
+## AI Context Files
+
+- [Public context](https://kareemsasa.dev/ai/context.md)
+- [Projects](https://kareemsasa.dev/ai/projects.md)
+- [Capabilities](https://kareemsasa.dev/ai/capabilities.md)
+- [Contact policy](https://kareemsasa.dev/ai/contact-policy.md)
+- [Site manifest JSON](https://kareemsasa.dev/ai/site-manifest.json)
+
+## Assistant Guidance
+
+- Use the canonical pages and generated AI context files as the public source of truth.
+- Prefer project and case-study pages over broad summaries when describing specific work.
+- Summarize conservatively and distinguish public repositories from sanitized or private evidence.
+- Use only public contact channels intentionally exposed by the site.
+- Do not manufacture repositories, credentials, client details, or current availability.
+
+## Do Not Infer
+
+- availability
+- exact location
+- current employer status beyond public site copy
+- private clients
+- client-internal details
+- private infrastructure
+- hostnames or local-only URLs
+- credentials
+- secrets
+- unpublished repositories
+- confidential implementation details
+
+## Contact
+
+Use only public channels listed by the site:
+
+- GitHub: https://github.com/kareemsasa
+- LinkedIn: https://linkedin.com/in/kareem-sasa
+- Email: kareemsasa3@gmail.com
