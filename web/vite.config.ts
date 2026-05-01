@@ -13,7 +13,7 @@ import {
   routeMetadataByPath,
   sitemapRouteMetadata,
 } from "./src/data/routeMetadata";
-import { structuredDataJson } from "./src/data/structuredData";
+import { getStructuredDataJson } from "./src/data/structuredData";
 
 const DEFAULT_DEV_HOST = "0.0.0.0";
 const DEFAULT_DEV_PORT = 5173;
@@ -82,6 +82,7 @@ interface StaticRouteShell {
   title: string;
   description: string;
   canonicalPath: string;
+  structuredDataJson: string;
   bodyHtml: string;
 }
 
@@ -518,7 +519,7 @@ const applyRouteShell = (baseHtml: string, route: StaticRouteShell) => {
       pattern:
         /<script type="application\/ld\+json" data-site-structured-data="true">[\s\S]*?<\/script>/,
       replacement: `<script type="application/ld+json" data-site-structured-data="true">${escapeScriptJson(
-        structuredDataJson
+        route.structuredDataJson
       )}</script>`,
     },
     {
@@ -539,6 +540,7 @@ const routeShellFromMetadata = (
   title: metadata.title,
   description: metadata.description,
   canonicalPath: metadata.canonicalPath,
+  structuredDataJson: getStructuredDataJson(metadata.path),
   bodyHtml,
 });
 
@@ -577,7 +579,7 @@ const staticRouteShellPlugin = (): Plugin => {
       return html.replace(
         /<script type="application\/ld\+json" data-site-structured-data="true">[\s\S]*?<\/script>/,
         `<script type="application/ld+json" data-site-structured-data="true">${escapeScriptJson(
-          structuredDataJson
+          getStructuredDataJson("/")
         )}</script>`
       );
     },

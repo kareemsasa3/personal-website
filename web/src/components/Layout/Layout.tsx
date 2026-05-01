@@ -16,7 +16,7 @@ import {
   defaultRouteMetadata,
   routeMetadataByPath,
 } from "../../data/routeMetadata";
-import { structuredDataJson } from "../../data/structuredData";
+import { getStructuredDataJson } from "../../data/structuredData";
 import "./Layout.css";
 
 const pageVariants = {
@@ -106,6 +106,7 @@ const Layout = () => {
     const structuredDataElement = document.querySelector<HTMLScriptElement>(
       'script[type="application/ld+json"][data-site-structured-data="true"]'
     );
+    const structuredDataJson = getStructuredDataJson(location.pathname);
     if (
       structuredDataElement &&
       structuredDataElement.textContent !== structuredDataJson
