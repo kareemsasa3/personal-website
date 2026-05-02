@@ -205,6 +205,59 @@
   text-transform: uppercase;
 }
 
+.rhythm-lab-recording-controls {
+  display: flex;
+  align-items: center;
+  flex: 1 1 100%;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.rhythm-lab-chart-mode-button,
+.rhythm-lab-record-button,
+.rhythm-lab-clear-recording {
+  min-height: 2rem;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid rgba(76, 175, 80, 0.42);
+  border-radius: 0.36rem;
+  background: rgba(0, 0, 0, 0.48);
+  color: rgba(255, 255, 255, 0.74);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.7rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.rhythm-lab-chart-mode-button[aria-pressed="true"] {
+  border-color: rgba(76, 175, 80, 0.78);
+  background: rgba(76, 175, 80, 0.18);
+  color: var(--terminal-primary, #4caf50);
+}
+
+.rhythm-lab-chart-mode-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.rhythm-lab-record-button {
+  border-color: rgba(255, 215, 0, 0.62);
+  color: #ffe58a;
+}
+
+.rhythm-lab-record-button-active {
+  border-color: rgba(255, 111, 125, 0.8);
+  background: rgba(255, 111, 125, 0.16);
+  color: #ffb8c0;
+}
+
+.rhythm-lab-clear-recording {
+  border-color: rgba(255, 255, 255, 0.22);
+  color: rgba(255, 255, 255, 0.68);
+}
+
 .rhythm-lab-hud {
   display: flex;
   flex-wrap: wrap;
@@ -402,6 +455,11 @@
   opacity: 1;
 }
 
+.rhythm-lab-status-recording {
+  animation: none;
+  opacity: 1;
+}
+
 .rhythm-lab-status-readout > span {
   font-size: clamp(1.35rem, 4vw, 2.5rem);
   font-weight: 800;
@@ -423,6 +481,10 @@
 
 .rhythm-lab-judgment-miss {
   color: #ff6f7d;
+}
+
+.rhythm-lab-status-recording > span {
+  color: #ffb8c0;
 }
 
 @keyframes rhythmLabJudgmentReadout {
@@ -624,6 +686,18 @@
   .rhythm-lab-audio-details {
     width: 100%;
     max-width: 100%;
+  }
+
+  .rhythm-lab-recording-controls {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .rhythm-lab-chart-mode-button,
+  .rhythm-lab-record-button,
+  .rhythm-lab-clear-recording {
+    width: 100%;
   }
 
   .rhythm-lab-hud {
