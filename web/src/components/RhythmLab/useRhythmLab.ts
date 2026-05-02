@@ -34,8 +34,13 @@ interface RhythmLabState {
 type RhythmLabAction =
   | { type: "START" }
   | { type: "RESET" }
-  | { type: "TICK"; elapsedMs: number }
+  | { type: "TICK"; elapsedMs: number; isClockComplete: boolean }
   | { type: "HIT_LANE"; lane: LaneIndex; elapsedMs: number };
+
+interface RhythmLabClockOptions {
+  getElapsedMs?: () => number;
+  isClockComplete?: () => boolean;
+}
 
 const initialState: RhythmLabState = {
   phase: "ready",
@@ -158,6 +163,7 @@ const createRhythmReducer =
         });
 
         const isComplete =
+          action.isClockComplete ||
           action.elapsedMs >= chart.durationMs + MISS_WINDOW_MS ||
           Object.keys(completedNotes).length === chart.notes.length;
 
@@ -208,7 +214,10 @@ const createRhythmReducer =
     }
   };
 
-export const useRhythmLab = (chart: RhythmChart) => {
+export const useRhythmLab = (
+  chart: RhythmChart,
+  { getElapsedMs, isClockComplete }: RhythmLabClockOptions = {}
+) => {
   const reducer = useMemo(() => createRhythmReducer(chart), [chart]);
   const [state, dispatch] = useReducer(reducer, initialState);
   const animationFrameRef = useRef<number | null>(null);
@@ -222,11 +231,34 @@ export const useRhythmLab = (chart: RhythmChart) => {
     pendingHitNoteIdsRef.current = new Set();
   }, [state]);
 
+  const usesExternalClock = Boolean(getElapsedMs);
+
+  const readElapsedMs = useCallback(
+    (timestamp = performance.now()) => {
+      const elapsedMs = getElapsedMs
+        ? getElapsedMs()
+        : timestamp - startedAtRef.current;
+
+      return Math.max(0, elapsedMs);
+    },
+    [getElapsedMs]
+  );
+
+  const readClockComplete = useCallback(
+    () => Boolean(isClockComplete?.()),
+    [isClockComplete]
+  );
+
   const startGame = useCallback(() => {
-    startedAtRef.current = performance.now();
-    hiddenAtRef.current = document.hidden ? performance.now() : null;
+    if (!usesExternalClock) {
+      startedAtRef.current = performance.now();
+      hiddenAtRef.current = document.hidden ? performance.now() : null;
+    } else {
+      startedAtRef.current = 0;
+      hiddenAtRef.current = null;
+    }
     dispatch({ type: "START" });
-  }, []);
+  }, [usesExternalClock]);
 
   const resetGame = useCallback(() => {
     if (animationFrameRef.current !== null) {
@@ -243,15 +275,20 @@ export const useRhythmLab = (chart: RhythmChart) => {
       cancelAnimationFrame(animationFrameRef.current);
       animationFrameRef.current = null;
     }
-    startedAtRef.current = performance.now();
-    hiddenAtRef.current = document.hidden ? performance.now() : null;
+    if (!usesExternalClock) {
+      startedAtRef.current = performance.now();
+      hiddenAtRef.current = document.hidden ? performance.now() : null;
+    } else {
+      startedAtRef.current = 0;
+      hiddenAtRef.current = null;
+    }
     dispatch({ type: "START" });
-  }, []);
+  }, [usesExternalClock]);
 
   const hitLane = useCallback((lane: LaneIndex): NoteJudgment | null => {
     if (stateRef.current.phase !== "playing") return null;
 
-    const elapsedMs = performance.now() - startedAtRef.current;
+    const elapsedMs = readElapsedMs();
     const hitCandidate = getHitCandidate(chart, lane, elapsedMs, (noteId) =>
       Boolean(stateRef.current.completedNotes[noteId]) ||
       pendingHitNoteIdsRef.current.has(noteId)
@@ -266,7 +303,7 @@ export const useRhythmLab = (chart: RhythmChart) => {
     pendingHitNoteIdsRef.current.add(hitCandidate.noteId);
     dispatch({ type: "HIT_LANE", lane, elapsedMs });
     return hitCandidate.judgment;
-  }, [chart]);
+  }, [chart, readElapsedMs]);
 
   useEffect(() => {
     if (state.phase !== "playing") return;
@@ -279,7 +316,7 @@ export const useRhythmLab = (chart: RhythmChart) => {
     };
 
     const scheduleFrame = (loop: FrameRequestCallback) => {
-      if (animationFrameRef.current !== null || hiddenAtRef.current !== null) {
+      if (animationFrameRef.current !== null || document.hidden) {
         return;
       }
       animationFrameRef.current = requestAnimationFrame(loop);
@@ -287,8 +324,12 @@ export const useRhythmLab = (chart: RhythmChart) => {
 
     const loop = (timestamp: number) => {
       animationFrameRef.current = null;
-      const elapsedMs = timestamp - startedAtRef.current;
-      dispatch({ type: "TICK", elapsedMs });
+      const elapsedMs = readElapsedMs(timestamp);
+      dispatch({
+        type: "TICK",
+        elapsedMs,
+        isClockComplete: readClockComplete(),
+      });
 
       if (stateRef.current.phase === "playing") {
         scheduleFrame(loop);
@@ -297,14 +338,14 @@ export const useRhythmLab = (chart: RhythmChart) => {
 
     const handleVisibilityChange = () => {
       if (document.hidden) {
-        if (hiddenAtRef.current === null) {
+        if (!usesExternalClock && hiddenAtRef.current === null) {
           hiddenAtRef.current = performance.now();
         }
         cancelCurrentFrame();
         return;
       }
 
-      if (hiddenAtRef.current !== null) {
+      if (!usesExternalClock && hiddenAtRef.current !== null) {
         startedAtRef.current += performance.now() - hiddenAtRef.current;
         hiddenAtRef.current = null;
       }
@@ -321,7 +362,7 @@ export const useRhythmLab = (chart: RhythmChart) => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       cancelCurrentFrame();
     };
-  }, [state.phase]);
+  }, [readClockComplete, readElapsedMs, state.phase, usesExternalClock]);
 
   const visibleNotes: VisibleNote[] = useMemo(
     () =>

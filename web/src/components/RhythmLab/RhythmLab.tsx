@@ -1,7 +1,9 @@
 import {
+  type ChangeEvent,
   type CSSProperties,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type PointerEvent,
@@ -9,6 +11,7 @@ import {
 import { Link } from "react-router-dom";
 import { starterChart } from "./rhythmCharts";
 import { type LaneIndex, type NoteJudgment } from "./types";
+import { useLocalAudioFile } from "./useLocalAudioFile";
 import { useRhythmLab } from "./useRhythmLab";
 import "./RhythmLab.css";
 
@@ -47,7 +50,30 @@ const createLaneFeedbackTimers = (): LaneFeedbackTimers => ({
 });
 
 const RhythmLab = () => {
-  const game = useRhythmLab(starterChart);
+  const {
+    audioRef,
+    fileName,
+    error: audioError,
+    hasSelectedFile,
+    isPausedAfterVisibilityChange,
+    handleFileChange,
+    playFromStart,
+    resumePlayback,
+    pausePlayback,
+    getElapsedMs,
+    isPlaybackComplete,
+  } = useLocalAudioFile();
+  const rhythmClock = useMemo(
+    () =>
+      hasSelectedFile
+        ? {
+            getElapsedMs,
+            isClockComplete: isPlaybackComplete,
+          }
+        : undefined,
+    [getElapsedMs, hasSelectedFile, isPlaybackComplete]
+  );
+  const game = useRhythmLab(starterChart, rhythmClock);
   const {
     phase,
     score,
@@ -57,6 +83,7 @@ const RhythmLab = () => {
     chart,
     visibleNotes,
     startGame: beginGame,
+    resetGame,
     restartGame: beginRestart,
     hitLane,
   } = game;
@@ -79,15 +106,37 @@ const RhythmLab = () => {
     requestAnimationFrame(() => gameRef.current?.focus());
   }, []);
 
-  const startGame = useCallback(() => {
+  const startGame = useCallback(async () => {
+    const canPlay = await playFromStart();
+    if (!canPlay) return;
+
     beginGame();
     focusGame();
-  }, [beginGame, focusGame]);
+  }, [beginGame, focusGame, playFromStart]);
 
-  const restartGame = useCallback(() => {
+  const restartGame = useCallback(async () => {
+    const canPlay = await playFromStart();
+    if (!canPlay) return;
+
     beginRestart();
     focusGame();
-  }, [beginRestart, focusGame]);
+  }, [beginRestart, focusGame, playFromStart]);
+
+  const resumeAudio = useCallback(async () => {
+    const canPlay = await resumePlayback();
+    if (canPlay) {
+      focusGame();
+    }
+  }, [focusGame, resumePlayback]);
+
+  const handleAudioFileChange = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      resetGame();
+      handleFileChange(event);
+      focusGame();
+    },
+    [focusGame, handleFileChange, resetGame]
+  );
 
   const showInputFeedback = useCallback((lane: LaneIndex) => {
     const expiresAt = performance.now() + INPUT_FEEDBACK_MS;
@@ -209,12 +258,9 @@ const RhythmLab = () => {
         return;
       }
 
-      if (
-        (event.key === "Enter" || event.key === " ") &&
-        phase !== "playing"
-      ) {
+      if ((event.key === "Enter" || event.key === " ") && phase !== "playing") {
         event.preventDefault();
-        restartGame();
+        void restartGame();
       }
     };
 
@@ -248,6 +294,15 @@ const RhythmLab = () => {
   const rhythmLineStyle = {
     "--rhythm-line-y": `${RHYTHM_LINE_PERCENT}%`,
   } as CSSProperties;
+  const chartModeLabel = hasSelectedFile
+    ? "Local audio chart clock"
+    : "Silent static chart";
+
+  useEffect(() => {
+    if (phase === "complete") {
+      pausePlayback();
+    }
+  }, [pausePlayback, phase]);
 
   return (
     <div
@@ -265,6 +320,32 @@ const RhythmLab = () => {
             </Link>
             <h1>Rhythm Lab</h1>
           </div>
+          <div className="rhythm-lab-audio-panel">
+            <label className="rhythm-lab-audio-picker">
+              <span>Local audio</span>
+              <input
+                type="file"
+                accept="audio/*"
+                onChange={handleAudioFileChange}
+              />
+            </label>
+            <div className="rhythm-lab-audio-details" aria-live="polite">
+              <span>{fileName ? fileName : "No audio selected"}</span>
+              <small>Local only. Not uploaded or stored.</small>
+              {audioError && (
+                <small className="rhythm-lab-audio-error">{audioError}</small>
+              )}
+            </div>
+            {isPausedAfterVisibilityChange && phase === "playing" && (
+              <button
+                className="rhythm-lab-audio-resume"
+                type="button"
+                onClick={resumeAudio}
+              >
+                Resume audio
+              </button>
+            )}
+          </div>
         </div>
         <div className="rhythm-lab-hud" aria-live="polite">
           <span>Score {score}</span>
@@ -272,6 +353,7 @@ const RhythmLab = () => {
           <span>Best {maxCombo}</span>
         </div>
       </header>
+      <audio ref={audioRef} preload="metadata" />
 
       <main className="rhythm-lab-stage">
         <section
@@ -358,14 +440,18 @@ const RhythmLab = () => {
           {phase !== "playing" && (
             <div className="rhythm-lab-overlay">
               <div className="rhythm-lab-overlay-panel">
-                <p>{chart.title} - Silent static chart</p>
+                <p>
+                  {chart.title} - {chartModeLabel}
+                </p>
                 <h2>
                   {phase === "complete" ? "Run Complete" : "Ready Check"}
                 </h2>
                 <button
                   className="rhythm-lab-primary-action"
                   type="button"
-                  onClick={phase === "complete" ? restartGame : startGame}
+                  onClick={() => {
+                    void (phase === "complete" ? restartGame() : startGame());
+                  }}
                 >
                   {phase === "complete" ? "Restart" : "Start"}
                 </button>

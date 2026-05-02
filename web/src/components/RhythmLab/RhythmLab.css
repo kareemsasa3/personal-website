@@ -68,6 +68,94 @@
   text-shadow: 0 0 14px rgba(76, 175, 80, 0.5);
 }
 
+.rhythm-lab audio {
+  display: none;
+}
+
+.rhythm-lab-audio-panel {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  max-width: 34rem;
+  margin-top: 0.65rem;
+}
+
+.rhythm-lab-audio-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.2rem;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid rgba(76, 175, 80, 0.42);
+  border-radius: 0.4rem;
+  background: rgba(0, 0, 0, 0.52);
+  color: var(--terminal-primary, #4caf50);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.rhythm-lab-audio-picker input {
+  max-width: 13rem;
+  color: rgba(255, 255, 255, 0.78);
+  font-family: inherit;
+  font-size: 0.75rem;
+}
+
+.rhythm-lab-audio-picker input::file-selector-button {
+  margin-right: 0.55rem;
+  border: 1px solid rgba(76, 175, 80, 0.52);
+  border-radius: 0.32rem;
+  background: rgba(76, 175, 80, 0.14);
+  color: var(--terminal-primary, #4caf50);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.rhythm-lab-audio-details {
+  display: flex;
+  flex-direction: column;
+  min-width: 11rem;
+  max-width: min(100%, 20rem);
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.rhythm-lab-audio-details span {
+  overflow: hidden;
+  color: rgba(255, 255, 255, 0.86);
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rhythm-lab-audio-details small {
+  color: rgba(255, 255, 255, 0.58);
+}
+
+.rhythm-lab-audio-details .rhythm-lab-audio-error {
+  color: #ff8a96;
+}
+
+.rhythm-lab-audio-resume {
+  min-height: 2.15rem;
+  padding: 0.35rem 0.55rem;
+  border: 1px solid rgba(255, 215, 0, 0.7);
+  border-radius: 0.4rem;
+  background: rgba(255, 215, 0, 0.12);
+  color: #ffe58a;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
 .rhythm-lab-hud {
   display: flex;
   flex-wrap: wrap;
@@ -450,6 +538,30 @@
     font-size: 0.7rem;
   }
 
+  .rhythm-lab-audio-panel {
+    align-items: stretch;
+    gap: 0.45rem;
+    max-width: none;
+  }
+
+  .rhythm-lab-audio-picker,
+  .rhythm-lab-audio-resume {
+    width: 100%;
+  }
+
+  .rhythm-lab-audio-picker {
+    justify-content: space-between;
+  }
+
+  .rhythm-lab-audio-picker input {
+    min-width: 0;
+    max-width: min(62%, 14rem);
+  }
+
+  .rhythm-lab-audio-details {
+    max-width: none;
+  }
+
   .rhythm-lab-hud {
     justify-content: stretch;
     max-width: none;
@@ -466,9 +578,9 @@
 
   .rhythm-lab-highway {
     width: min(100%, 430px);
-    height: calc(100vh - 9.75rem);
-    height: calc(100dvh - 9.75rem);
-    min-height: 430px;
+    height: calc(100vh - 13.5rem);
+    height: calc(100dvh - 13.5rem);
+    min-height: 360px;
     border-radius: 0.5rem;
   }
 
@@ -494,9 +606,9 @@
 
 @media (max-width: 380px) {
   .rhythm-lab-highway {
-    height: calc(100vh - 9.2rem);
-    height: calc(100dvh - 9.2rem);
-    min-height: 390px;
+    height: calc(100vh - 13rem);
+    height: calc(100dvh - 13rem);
+    min-height: 340px;
   }
 
   .rhythm-lab-hit-zone {
