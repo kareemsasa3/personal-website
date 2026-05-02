@@ -180,24 +180,31 @@
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 1.1rem;
+  width: 3.5rem;
   aspect-ratio: 1;
-  border: 1px solid rgba(255, 215, 0, 0.62);
+  border: 2px solid rgba(255, 215, 0, 0.72);
   border-radius: 999px;
-  transform: translate(-50%, -50%) scale(0.45);
+  box-shadow:
+    0 0 10px rgba(255, 215, 0, 0.35),
+    inset 0 0 12px rgba(255, 215, 0, 0.18);
+  transform: translate(-50%, -50%) scale(0.32);
   opacity: 0;
   animation: rhythmLabHitBurst 120ms ease-out;
 }
 
 @keyframes rhythmLabHitBurst {
   0% {
-    opacity: 0.8;
-    transform: translate(-50%, -50%) scale(0.35);
+    opacity: 0.86;
+    transform: translate(-50%, -50%) scale(0.28);
+  }
+
+  55% {
+    opacity: 0.68;
   }
 
   100% {
     opacity: 0;
-    transform: translate(-50%, -50%) scale(1.2);
+    transform: translate(-50%, -50%) scale(1);
   }
 }
 
