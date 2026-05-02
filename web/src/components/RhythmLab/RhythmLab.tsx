@@ -35,6 +35,7 @@ type LaneFeedbackTimers = Record<LaneIndex, number | null>;
 const laneIndexes: LaneIndex[] = [0, 1, 2];
 const INPUT_FEEDBACK_MS = 80;
 const HIT_FEEDBACK_MS = 120;
+const JUDGMENT_READOUT_MS = 700;
 const RHYTHM_LINE_PERCENT = 76;
 const NOTE_OVERSHOOT_MULTIPLIER = 1.09;
 
@@ -62,6 +63,8 @@ const RhythmLab = () => {
     useState<LaneFeedbackExpiries>({});
   const [hitFeedbackExpiries, setHitFeedbackExpiries] =
     useState<LaneFeedbackExpiries>({});
+  const [visibleJudgment, setVisibleJudgment] =
+    useState<NoteJudgment | null>(null);
   const gameRef = useRef<HTMLDivElement>(null);
   const inputFeedbackTimeoutRefs = useRef<LaneFeedbackTimers>(
     createLaneFeedbackTimers()
@@ -69,6 +72,7 @@ const RhythmLab = () => {
   const hitFeedbackTimeoutRefs = useRef<LaneFeedbackTimers>(
     createLaneFeedbackTimers()
   );
+  const judgmentReadoutTimeoutRef = useRef<number | null>(null);
 
   const focusGame = useCallback(() => {
     requestAnimationFrame(() => gameRef.current?.focus());
@@ -163,9 +167,34 @@ const RhythmLab = () => {
           window.clearTimeout(hitTimeout);
         }
       });
+
+      if (judgmentReadoutTimeoutRef.current) {
+        window.clearTimeout(judgmentReadoutTimeoutRef.current);
+      }
     },
     []
   );
+
+  useEffect(() => {
+    if (judgmentReadoutTimeoutRef.current) {
+      window.clearTimeout(judgmentReadoutTimeoutRef.current);
+      judgmentReadoutTimeoutRef.current = null;
+    }
+
+    setVisibleJudgment(lastJudgment);
+
+    if (!lastJudgment) return;
+
+    judgmentReadoutTimeoutRef.current = window.setTimeout(() => {
+      setVisibleJudgment((currentJudgment) =>
+        currentJudgment?.judgedAtMs === lastJudgment.judgedAtMs &&
+        currentJudgment.lane === lastJudgment.lane
+          ? null
+          : currentJudgment
+      );
+      judgmentReadoutTimeoutRef.current = null;
+    }, JUDGMENT_READOUT_MS);
+  }, [lastJudgment]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -204,9 +233,12 @@ const RhythmLab = () => {
     }
   };
 
-  const lastJudgmentClass = lastJudgment
-    ? `rhythm-lab-judgment-${lastJudgment.rating.toLowerCase()}`
+  const visibleJudgmentClass = visibleJudgment
+    ? `rhythm-lab-judgment-${visibleJudgment.rating.toLowerCase()}`
     : "";
+  const visibleJudgmentKey = visibleJudgment
+    ? `${visibleJudgment.rating}-${visibleJudgment.lane}-${visibleJudgment.judgedAtMs}`
+    : "ready";
   const rhythmLineStyle = {
     "--rhythm-line-y": `${RHYTHM_LINE_PERCENT}%`,
   } as CSSProperties;
@@ -285,18 +317,32 @@ const RhythmLab = () => {
           </div>
 
           <div className="rhythm-lab-status">
-            <span className={lastJudgmentClass}>
-              {lastJudgment
-                ? lastJudgment.rating
-                : "Ready"}
-            </span>
-            {lastJudgment?.deltaMs !== null &&
-              lastJudgment?.deltaMs !== undefined && (
-                <small>
-                  {lastJudgment.deltaMs > 0 ? "+" : ""}
-                  {lastJudgment.deltaMs}ms
-                </small>
-              )}
+            {visibleJudgment ? (
+              <div
+                key={visibleJudgmentKey}
+                className="rhythm-lab-status-readout"
+              >
+                <span className={visibleJudgmentClass}>
+                  {visibleJudgment.rating}
+                </span>
+                {visibleJudgment.deltaMs !== null &&
+                  visibleJudgment.deltaMs !== undefined && (
+                    <small>
+                      {visibleJudgment.deltaMs > 0 ? "+" : ""}
+                      {visibleJudgment.deltaMs}ms
+                    </small>
+                  )}
+              </div>
+            ) : (
+              phase === "ready" && (
+                <div
+                  key={visibleJudgmentKey}
+                  className="rhythm-lab-status-readout rhythm-lab-status-ready"
+                >
+                  <span>Ready</span>
+                </div>
+              )
+            )}
           </div>
 
           {phase !== "playing" && (

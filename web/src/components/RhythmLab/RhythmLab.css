@@ -223,7 +223,20 @@
   pointer-events: none;
 }
 
-.rhythm-lab-status > span {
+.rhythm-lab-status-readout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: rhythmLabJudgmentReadout 700ms ease-out forwards;
+  will-change: opacity, transform;
+}
+
+.rhythm-lab-status-ready {
+  animation: none;
+  opacity: 1;
+}
+
+.rhythm-lab-status-readout > span {
   font-size: clamp(1.35rem, 4vw, 2.5rem);
   font-weight: 800;
   text-shadow: 0 0 18px rgba(255, 255, 255, 0.22);
@@ -244,6 +257,31 @@
 
 .rhythm-lab-judgment-miss {
   color: #ff6f7d;
+}
+
+@keyframes rhythmLabJudgmentReadout {
+  0% {
+    opacity: 0;
+    transform: translateY(0.18rem) scale(0.94);
+  }
+
+  18% {
+    opacity: 1;
+    transform: translateY(0) scale(1.04);
+  }
+
+  30% {
+    transform: translateY(0) scale(1);
+  }
+
+  82% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .rhythm-lab-hit-zones {
@@ -437,6 +475,10 @@
   }
 
   .rhythm-lab-judgment-line .rhythm-lab-target-hit::after {
+    animation: none;
+  }
+
+  .rhythm-lab-status-readout {
     animation: none;
   }
 }
