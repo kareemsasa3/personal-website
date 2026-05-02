@@ -72,6 +72,24 @@
     font-family: var(--terminal-font, 'Courier New', 'Monaco', 'Menlo', monospace);
 }
 
+.game-card-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    max-width: 100%;
+    margin: 0 0 var(--spacing-sm);
+    padding: 4px 10px;
+    border: 1px solid rgba(0, 255, 0, 0.55);
+    border-radius: 999px;
+    color: var(--terminal-primary, #4CAF50);
+    background: rgba(0, 255, 0, 0.08);
+    font-family: var(--terminal-font, 'Courier New', 'Monaco', 'Menlo', monospace);
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1.2;
+    text-transform: uppercase;
+}
+
 .game-card p {
     color: var(--terminal-text-light, #ffffff);
     text-align: center;

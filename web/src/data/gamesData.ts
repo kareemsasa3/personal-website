@@ -5,6 +5,7 @@ export interface GameData {
   path: string;
   previewType: string;
   isAvailable: boolean;
+  modeLabel?: string;
 }
 
 export const gamesData: GameData[] = [
@@ -32,6 +33,7 @@ export const gamesData: GameData[] = [
     path: "/games/rhythm-lab",
     previewType: "placeholder",
     isAvailable: true,
+    modeLabel: "Fullscreen prototype",
   },
   // Future games will be added here
   // Example:

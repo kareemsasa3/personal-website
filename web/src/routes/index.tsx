@@ -25,7 +25,7 @@ const CaseStudyArachne = lazyWithMinTime(
 const Games = lazyWithMinTime(() => import("../pages/Games"));
 const SnakeGame = lazyWithMinTime(() => import("../pages/SnakeGame"));
 const SpiderSolitaire = lazyWithMinTime(() => import("../pages/SpiderSolitaire"));
-const RhythmLab = lazyWithMinTime(() => import("../pages/RhythmLab"));
+const RhythmLab = lazyWithMinTime(() => import("../pages/RhythmLab"), 0);
 const Work = lazyWithMinTime(() => import("../pages/Work"));
 const Journey = lazyWithMinTime(() => import("../pages/Journey"));
 
@@ -62,8 +62,8 @@ const routes: AppRoute[] = [
 
 export const mainRoutes: AppRoute[] = routes;
 
-// Top-level routes that don't use the main Layout
-export const topLevelRoutes: AppRoute[] = [
+// Immersive routes bypass the standard site Layout shell.
+export const immersiveRoutes: AppRoute[] = [
   { path: "games/rhythm-lab", element: React.createElement(RhythmLab) },
 ];
 

@@ -5,7 +5,7 @@ import Layout from "./components/Layout/Layout";
 import { ErrorBoundary, PageLoader } from "./components/common";
 import {
   mainRoutes,
-  topLevelRoutes,
+  immersiveRoutes,
   defaultRoute,
   notFoundRoute,
 } from "./routes";
@@ -67,7 +67,7 @@ const RouteMetadataUpdater = () => {
   return null;
 };
 
-const topLevelRouteElement = (element: ReactElement) => (
+const immersiveRouteElement = (element: ReactElement) => (
   <ErrorBoundary>
     <Suspense fallback={<PageLoader />}>{element}</Suspense>
   </ErrorBoundary>
@@ -96,12 +96,12 @@ const AppRoutes = () => {
           <Route path={notFoundRoute.path} element={notFoundRoute.element} />
         </Route>
 
-        {/* Render top-level routes that don't use the main Layout */}
-        {topLevelRoutes.map((route) => (
+        {/* Render immersive routes that bypass the standard site Layout shell. */}
+        {immersiveRoutes.map((route) => (
           <Route
             key={route.path}
             path={route.path}
-            element={topLevelRouteElement(route.element)}
+            element={immersiveRouteElement(route.element)}
           />
         ))}
       </Routes>

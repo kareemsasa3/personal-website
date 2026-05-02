@@ -11,6 +11,7 @@ const GameCard: React.FC<GameCardProps> = ({
   description,
   path,
   previewType,
+  modeLabel,
   isComingSoon = false,
 }) => {
   const renderPreview = () => {
@@ -47,6 +48,7 @@ const GameCard: React.FC<GameCardProps> = ({
     <Link to={path} className="game-card">
       <div className="game-card-content">
         <h3>{title}</h3>
+        {modeLabel ? <div className="game-card-badge">{modeLabel}</div> : null}
         <p>{description}</p>
         <div className="game-preview">{renderPreview()}</div>
         <div className="play-button">Play Now</div>

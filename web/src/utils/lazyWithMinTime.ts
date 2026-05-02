@@ -12,6 +12,10 @@ export const lazyWithMinTime = <P = Record<string, never>>(
   factory: () => Promise<{ default: ComponentType<P> }>,
   minDisplayTime: number = 500
 ): LazyExoticComponent<ComponentType<P>> => {
+  if (minDisplayTime <= 0) {
+    return lazy(factory);
+  }
+
   return lazy(() =>
     Promise.all([
       factory(),
