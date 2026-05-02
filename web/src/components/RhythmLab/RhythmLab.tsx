@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useRef, type PointerEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type PointerEvent,
+} from "react";
 import { starterChart } from "./rhythmCharts";
 import { LaneIndex } from "./types";
 import { useRhythmLab } from "./useRhythmLab";
@@ -36,7 +42,15 @@ const RhythmLab = () => {
     restartGame: beginRestart,
     hitLane,
   } = game;
+  const [inputFeedbackLane, setInputFeedbackLane] =
+    useState<LaneIndex | null>(null);
+  const [hitFeedbackLane, setHitFeedbackLane] = useState<LaneIndex | null>(
+    null
+  );
   const gameRef = useRef<HTMLDivElement>(null);
+  const inputFeedbackTimeoutRef = useRef<number | null>(null);
+  const hitFeedbackTimeoutRef = useRef<number | null>(null);
+  const lastHitFeedbackAtRef = useRef<number | null>(null);
 
   const focusGame = useCallback(() => {
     requestAnimationFrame(() => gameRef.current?.focus());
@@ -52,6 +66,50 @@ const RhythmLab = () => {
     focusGame();
   }, [beginRestart, focusGame]);
 
+  const showInputFeedback = useCallback((lane: LaneIndex) => {
+    setInputFeedbackLane(lane);
+
+    if (inputFeedbackTimeoutRef.current) {
+      window.clearTimeout(inputFeedbackTimeoutRef.current);
+    }
+
+    inputFeedbackTimeoutRef.current = window.setTimeout(() => {
+      setInputFeedbackLane(null);
+      inputFeedbackTimeoutRef.current = null;
+    }, 80);
+  }, []);
+
+  useEffect(() => {
+    if (!lastJudgment) return;
+    if (lastJudgment.rating === "Miss") return;
+    if (lastHitFeedbackAtRef.current === lastJudgment.judgedAtMs) return;
+
+    lastHitFeedbackAtRef.current = lastJudgment.judgedAtMs;
+    setHitFeedbackLane(lastJudgment.lane);
+
+    if (hitFeedbackTimeoutRef.current) {
+      window.clearTimeout(hitFeedbackTimeoutRef.current);
+    }
+
+    hitFeedbackTimeoutRef.current = window.setTimeout(() => {
+      setHitFeedbackLane(null);
+      hitFeedbackTimeoutRef.current = null;
+    }, 120);
+  }, [lastJudgment]);
+
+  useEffect(
+    () => () => {
+      if (inputFeedbackTimeoutRef.current) {
+        window.clearTimeout(inputFeedbackTimeoutRef.current);
+      }
+
+      if (hitFeedbackTimeoutRef.current) {
+        window.clearTimeout(hitFeedbackTimeoutRef.current);
+      }
+    },
+    []
+  );
+
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       const lane = keyToLane[event.key.toLowerCase()];
@@ -59,6 +117,7 @@ const RhythmLab = () => {
       if (lane !== undefined) {
         if (phase === "playing") {
           event.preventDefault();
+          showInputFeedback(lane);
           hitLane(lane);
         }
         return;
@@ -75,7 +134,7 @@ const RhythmLab = () => {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [hitLane, phase, restartGame]);
+  }, [hitLane, phase, restartGame, showInputFeedback]);
 
   const handleLanePointerDown = (
     event: PointerEvent<HTMLButtonElement>,
@@ -83,6 +142,7 @@ const RhythmLab = () => {
   ) => {
     if (phase === "playing") {
       event.preventDefault();
+      showInputFeedback(lane);
       hitLane(lane);
     }
   };
@@ -116,7 +176,11 @@ const RhythmLab = () => {
             {lanes.map((lane) => (
               <div
                 key={lane.index}
-                className={`rhythm-lab-lane rhythm-lab-lane-${lane.index}`}
+                className={`rhythm-lab-lane rhythm-lab-lane-${lane.index} ${
+                  inputFeedbackLane === lane.index
+                    ? "rhythm-lab-lane-input"
+                    : ""
+                }`}
               >
                 <span className="rhythm-lab-lane-label">{lane.label}</span>
                 {visibleNotes
@@ -136,7 +200,18 @@ const RhythmLab = () => {
 
           <div className="rhythm-lab-judgment-line" aria-hidden="true">
             {lanes.map((lane) => (
-              <span key={lane.index} />
+              <span
+                key={lane.index}
+                className={`${
+                  inputFeedbackLane === lane.index
+                    ? "rhythm-lab-target-input"
+                    : ""
+                } ${
+                  hitFeedbackLane === lane.index
+                    ? "rhythm-lab-target-hit"
+                    : ""
+                }`}
+              />
             ))}
           </div>
 
@@ -178,7 +253,11 @@ const RhythmLab = () => {
             {lanes.map((lane) => (
               <button
                 key={lane.index}
-                className="rhythm-lab-hit-zone"
+                className={`rhythm-lab-hit-zone ${
+                  inputFeedbackLane === lane.index
+                    ? "rhythm-lab-hit-zone-input"
+                    : ""
+                }`}
                 type="button"
                 onPointerDown={(event) =>
                   handleLanePointerDown(event, lane.index)

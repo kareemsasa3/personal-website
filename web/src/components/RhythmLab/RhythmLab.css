@@ -100,10 +100,15 @@
 .rhythm-lab-lane {
   position: relative;
   border-left: 1px solid rgba(76, 175, 80, 0.22);
+  transition: background-color 0.08s ease;
 }
 
 .rhythm-lab-lane:first-child {
   border-left: 0;
+}
+
+.rhythm-lab-lane-input {
+  background: rgba(76, 175, 80, 0.045);
 }
 
 .rhythm-lab-lane-label {
@@ -147,12 +152,54 @@
 }
 
 .rhythm-lab-judgment-line span {
+  position: relative;
   justify-self: center;
   width: min(58%, 6.25rem);
   height: 2px;
   border-radius: 999px;
   background: rgba(76, 175, 80, 0.5);
   box-shadow: 0 0 10px rgba(76, 175, 80, 0.36);
+  transition:
+    background-color 0.08s ease,
+    box-shadow 0.08s ease;
+}
+
+.rhythm-lab-judgment-line .rhythm-lab-target-input {
+  background: rgba(76, 175, 80, 0.78);
+  box-shadow: 0 0 14px rgba(76, 175, 80, 0.52);
+}
+
+.rhythm-lab-judgment-line .rhythm-lab-target-hit {
+  background: rgba(255, 215, 0, 0.72);
+  box-shadow:
+    0 0 14px rgba(255, 215, 0, 0.42),
+    0 0 10px rgba(76, 175, 80, 0.34);
+}
+
+.rhythm-lab-judgment-line .rhythm-lab-target-hit::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1.1rem;
+  aspect-ratio: 1;
+  border: 1px solid rgba(255, 215, 0, 0.62);
+  border-radius: 999px;
+  transform: translate(-50%, -50%) scale(0.45);
+  opacity: 0;
+  animation: rhythmLabHitBurst 120ms ease-out;
+}
+
+@keyframes rhythmLabHitBurst {
+  0% {
+    opacity: 0.8;
+    transform: translate(-50%, -50%) scale(0.35);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.2);
+  }
 }
 
 .rhythm-lab-status {
@@ -229,6 +276,12 @@
   transform: translateY(1px);
   background: rgba(76, 175, 80, 0.16);
   box-shadow: 0 0 18px rgba(76, 175, 80, 0.45);
+}
+
+.rhythm-lab-hit-zone-input {
+  border-color: rgba(76, 175, 80, 0.58);
+  background: rgba(76, 175, 80, 0.12);
+  box-shadow: 0 0 12px rgba(76, 175, 80, 0.22);
 }
 
 .rhythm-lab-hit-zone span {
@@ -367,8 +420,14 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .rhythm-lab-lane,
+  .rhythm-lab-judgment-line span,
   .rhythm-lab-hit-zone,
   .rhythm-lab-primary-action {
     transition: none;
+  }
+
+  .rhythm-lab-judgment-line .rhythm-lab-target-hit::after {
+    animation: none;
   }
 }
