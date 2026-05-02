@@ -55,7 +55,7 @@ const getHitCandidate = (
     .filter((note) => {
       if (note.lane !== lane) return false;
       if (isNoteCompleted(note.id)) return false;
-      return Math.abs(elapsedMs - note.timeMs) <= GOOD_WINDOW_MS;
+      return Math.abs(elapsedMs - note.timeMs) <= MISS_WINDOW_MS;
     })
     .sort(
       (first, second) =>
@@ -69,14 +69,31 @@ const getHitCandidate = (
   const deltaMs = Math.round(elapsedMs - note.timeMs);
   const absDeltaMs = Math.abs(deltaMs);
   const judgment: NoteJudgment = {
-    rating: absDeltaMs <= PERFECT_WINDOW_MS ? "Perfect" : "Good",
+    rating:
+      absDeltaMs <= PERFECT_WINDOW_MS
+        ? "Perfect"
+        : absDeltaMs <= GOOD_WINDOW_MS
+          ? "Good"
+          : "Miss",
     lane,
     judgedAtMs: elapsedMs,
     deltaMs,
+    reason: "note",
   };
 
   return { noteId: note.id, judgment };
 };
+
+const createEmptyInputMiss = (
+  lane: LaneIndex,
+  elapsedMs: number
+): NoteJudgment => ({
+  rating: "Miss",
+  lane,
+  judgedAtMs: elapsedMs,
+  deltaMs: null,
+  reason: "empty-input",
+});
 
 const createRhythmReducer =
   (chart: RhythmChart) =>
@@ -111,6 +128,7 @@ const createRhythmReducer =
             lane: note.lane,
             judgedAtMs: action.elapsedMs,
             deltaMs: null,
+            reason: "note",
           };
           completedNotes[note.id] = lastJudgment;
           combo = 0;
@@ -140,10 +158,17 @@ const createRhythmReducer =
           (noteId) => Boolean(state.completedNotes[noteId])
         );
 
-        if (!hitCandidate) return state;
-
-        const { judgment, noteId } = hitCandidate;
-        const nextCombo = state.combo + 1;
+        const judgment =
+          hitCandidate?.judgment ??
+          createEmptyInputMiss(action.lane, action.elapsedMs);
+        const nextCombo =
+          judgment.rating === "Miss" ? 0 : state.combo + 1;
+        const completedNotes = hitCandidate
+          ? {
+              ...state.completedNotes,
+              [hitCandidate.noteId]: judgment,
+            }
+          : state.completedNotes;
 
         return {
           ...state,
@@ -151,10 +176,7 @@ const createRhythmReducer =
           combo: nextCombo,
           maxCombo: Math.max(state.maxCombo, nextCombo),
           lastJudgment: judgment,
-          completedNotes: {
-            ...state.completedNotes,
-            [noteId]: judgment,
-          },
+          completedNotes,
         };
       }
 
@@ -208,7 +230,11 @@ export const useRhythmLab = (chart: RhythmChart) => {
       pendingHitNoteIdsRef.current.has(noteId)
     );
 
-    if (!hitCandidate) return null;
+    if (!hitCandidate) {
+      const judgment = createEmptyInputMiss(lane, elapsedMs);
+      dispatch({ type: "HIT_LANE", lane, elapsedMs });
+      return judgment;
+    }
 
     pendingHitNoteIdsRef.current.add(hitCandidate.noteId);
     dispatch({ type: "HIT_LANE", lane, elapsedMs });

@@ -23,6 +23,7 @@ export interface NoteJudgment {
   lane: LaneIndex;
   judgedAtMs: number;
   deltaMs: number | null;
+  reason: "note" | "empty-input";
 }
 
 export interface VisibleNote {
