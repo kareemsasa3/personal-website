@@ -190,6 +190,7 @@ export const useRhythmLab = (chart: RhythmChart) => {
   const [state, dispatch] = useReducer(reducer, initialState);
   const animationFrameRef = useRef<number | null>(null);
   const startedAtRef = useRef<number>(0);
+  const hiddenAtRef = useRef<number | null>(null);
   const stateRef = useRef(state);
   const pendingHitNoteIdsRef = useRef<Set<string>>(new Set());
 
@@ -200,24 +201,27 @@ export const useRhythmLab = (chart: RhythmChart) => {
 
   const startGame = useCallback(() => {
     startedAtRef.current = performance.now();
+    hiddenAtRef.current = document.hidden ? performance.now() : null;
     dispatch({ type: "START" });
   }, []);
 
   const resetGame = useCallback(() => {
-    if (animationFrameRef.current) {
+    if (animationFrameRef.current !== null) {
       cancelAnimationFrame(animationFrameRef.current);
       animationFrameRef.current = null;
     }
     startedAtRef.current = 0;
+    hiddenAtRef.current = null;
     dispatch({ type: "RESET" });
   }, []);
 
   const restartGame = useCallback(() => {
-    if (animationFrameRef.current) {
+    if (animationFrameRef.current !== null) {
       cancelAnimationFrame(animationFrameRef.current);
       animationFrameRef.current = null;
     }
     startedAtRef.current = performance.now();
+    hiddenAtRef.current = document.hidden ? performance.now() : null;
     dispatch({ type: "START" });
   }, []);
 
@@ -244,22 +248,55 @@ export const useRhythmLab = (chart: RhythmChart) => {
   useEffect(() => {
     if (state.phase !== "playing") return;
 
+    const cancelCurrentFrame = () => {
+      if (animationFrameRef.current !== null) {
+        cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
+      }
+    };
+
+    const scheduleFrame = (loop: FrameRequestCallback) => {
+      if (animationFrameRef.current !== null || hiddenAtRef.current !== null) {
+        return;
+      }
+      animationFrameRef.current = requestAnimationFrame(loop);
+    };
+
     const loop = (timestamp: number) => {
+      animationFrameRef.current = null;
       const elapsedMs = timestamp - startedAtRef.current;
       dispatch({ type: "TICK", elapsedMs });
 
       if (stateRef.current.phase === "playing") {
-        animationFrameRef.current = requestAnimationFrame(loop);
+        scheduleFrame(loop);
       }
     };
 
-    animationFrameRef.current = requestAnimationFrame(loop);
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        if (hiddenAtRef.current === null) {
+          hiddenAtRef.current = performance.now();
+        }
+        cancelCurrentFrame();
+        return;
+      }
+
+      if (hiddenAtRef.current !== null) {
+        startedAtRef.current += performance.now() - hiddenAtRef.current;
+        hiddenAtRef.current = null;
+      }
+
+      if (stateRef.current.phase === "playing") {
+        scheduleFrame(loop);
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    handleVisibilityChange();
 
     return () => {
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-        animationFrameRef.current = null;
-      }
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      cancelCurrentFrame();
     };
   }, [state.phase]);
 
