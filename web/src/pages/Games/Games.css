@@ -18,6 +18,7 @@
     width: 100%;
     max-width: 1400px;
     margin: 0 auto;
+    box-sizing: border-box;
     font-family: var(--terminal-font);
 }
 
@@ -67,6 +68,7 @@
 
 @media (max-width: 768px) {
     .games-container {
+        width: min(100%, calc(100vw - (var(--spacing-sm) * 2)));
         max-width: 100%;
         padding: 0 1rem;
     }
@@ -87,6 +89,11 @@
 }
 
 @media (max-width: 480px) {
+    .games-container {
+        width: min(100%, calc(100vw - (var(--spacing-sm) * 4)));
+        padding: 0;
+    }
+
     .games-header {
         margin-bottom: 1.5rem;
         padding: 1rem 0;
