@@ -147,7 +147,7 @@ const RhythmLab = () => {
       showInputFeedback(lane);
       const judgment: NoteJudgment | null = hitLane(lane);
 
-      if (judgment && judgment.rating !== "Miss") {
+      if (judgment?.kind === "note-hit") {
         showHitFeedback(judgment.lane);
       }
     },
@@ -239,6 +239,11 @@ const RhythmLab = () => {
   const visibleJudgmentKey = visibleJudgment
     ? `${visibleJudgment.rating}-${visibleJudgment.lane}-${visibleJudgment.judgedAtMs}`
     : "ready";
+  const visibleDeltaMs =
+    visibleJudgment?.kind === "note-hit" ||
+    visibleJudgment?.kind === "note-miss"
+      ? visibleJudgment.deltaMs
+      : null;
   const rhythmLineStyle = {
     "--rhythm-line-y": `${RHYTHM_LINE_PERCENT}%`,
   } as CSSProperties;
@@ -325,13 +330,12 @@ const RhythmLab = () => {
                 <span className={visibleJudgmentClass}>
                   {visibleJudgment.rating}
                 </span>
-                {visibleJudgment.deltaMs !== null &&
-                  visibleJudgment.deltaMs !== undefined && (
-                    <small>
-                      {visibleJudgment.deltaMs > 0 ? "+" : ""}
-                      {visibleJudgment.deltaMs}ms
-                    </small>
-                  )}
+                {typeof visibleDeltaMs === "number" && (
+                  <small>
+                    {visibleDeltaMs > 0 ? "+" : ""}
+                    {visibleDeltaMs}ms
+                  </small>
+                )}
               </div>
             ) : (
               phase === "ready" && (

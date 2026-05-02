@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef } from "react";
-import {
+import type {
+  EmptyInputJudgment,
+  GamePhase,
   LaneIndex,
+  NoteHitJudgment,
   NoteJudgment,
+  NoteMissJudgment,
   RhythmChart,
   VisibleNote,
 } from "./types";
@@ -11,10 +15,14 @@ const PERFECT_WINDOW_MS = 45;
 const GOOD_WINDOW_MS = 90;
 const MISS_WINDOW_MS = 140;
 
-type CompletedNotes = Record<string, NoteJudgment>;
+type CompletedNotes = Record<string, NoteHitJudgment | NoteMissJudgment>;
+type HitCandidate = {
+  noteId: string;
+  judgment: NoteHitJudgment | NoteMissJudgment;
+};
 
 interface RhythmLabState {
-  phase: "ready" | "playing" | "complete";
+  phase: GamePhase;
   elapsedMs: number;
   score: number;
   combo: number;
@@ -50,7 +58,7 @@ const getHitCandidate = (
   lane: LaneIndex,
   elapsedMs: number,
   isNoteCompleted: (noteId: string) => boolean
-) => {
+): HitCandidate | null => {
   const candidates = chart.notes
     .filter((note) => {
       if (note.lane !== lane) return false;
@@ -68,17 +76,32 @@ const getHitCandidate = (
 
   const deltaMs = Math.round(elapsedMs - note.timeMs);
   const absDeltaMs = Math.abs(deltaMs);
-  const judgment: NoteJudgment = {
-    rating:
-      absDeltaMs <= PERFECT_WINDOW_MS
-        ? "Perfect"
-        : absDeltaMs <= GOOD_WINDOW_MS
-          ? "Good"
-          : "Miss",
+  const rating =
+    absDeltaMs <= PERFECT_WINDOW_MS
+      ? "Perfect"
+      : absDeltaMs <= GOOD_WINDOW_MS
+        ? "Good"
+        : "Miss";
+  if (rating === "Miss") {
+    const judgment: NoteMissJudgment = {
+      kind: "note-miss",
+      rating,
+      lane,
+      noteId: note.id,
+      judgedAtMs: elapsedMs,
+      deltaMs,
+    };
+
+    return { noteId: note.id, judgment };
+  }
+
+  const judgment: NoteHitJudgment = {
+    kind: "note-hit",
+    rating,
     lane,
+    noteId: note.id,
     judgedAtMs: elapsedMs,
     deltaMs,
-    reason: "note",
   };
 
   return { noteId: note.id, judgment };
@@ -87,12 +110,11 @@ const getHitCandidate = (
 const createEmptyInputMiss = (
   lane: LaneIndex,
   elapsedMs: number
-): NoteJudgment => ({
+): EmptyInputJudgment => ({
+  kind: "empty-input",
   rating: "Miss",
   lane,
   judgedAtMs: elapsedMs,
-  deltaMs: null,
-  reason: "empty-input",
 });
 
 const createRhythmReducer =
@@ -124,11 +146,12 @@ const createRhythmReducer =
           }
 
           lastJudgment = {
+            kind: "note-miss",
             rating: "Miss",
             lane: note.lane,
+            noteId: note.id,
             judgedAtMs: action.elapsedMs,
             deltaMs: null,
-            reason: "note",
           };
           completedNotes[note.id] = lastJudgment;
           combo = 0;
@@ -162,11 +185,11 @@ const createRhythmReducer =
           hitCandidate?.judgment ??
           createEmptyInputMiss(action.lane, action.elapsedMs);
         const nextCombo =
-          judgment.rating === "Miss" ? 0 : state.combo + 1;
+          judgment.kind === "note-hit" ? state.combo + 1 : 0;
         const completedNotes = hitCandidate
           ? {
               ...state.completedNotes,
-              [hitCandidate.noteId]: judgment,
+              [hitCandidate.noteId]: hitCandidate.judgment,
             }
           : state.completedNotes;
 
