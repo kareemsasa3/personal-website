@@ -67,7 +67,6 @@
 }
 
 .rhythm-lab-highway {
-  --rhythm-line-y: 78%;
   position: relative;
   width: min(86vw, 760px);
   height: min(74vh, 760px);
@@ -244,22 +243,24 @@
   position: absolute;
   left: 0.75rem;
   right: 0.75rem;
+  top: var(--rhythm-line-y);
   bottom: max(0.75rem, env(safe-area-inset-bottom));
   z-index: 6;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.65rem;
+  gap: 0;
 }
 
 .rhythm-lab-hit-zone {
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  min-height: 4.75rem;
-  padding: 0.55rem 0.35rem;
-  border: 1px solid rgba(76, 175, 80, 0.38);
-  border-radius: 0.55rem;
-  background: rgba(0, 0, 0, 0.18);
+  min-height: 0;
+  padding: 0.65rem 0.35rem 0.55rem;
+  border: 0;
+  border-left: 1px solid rgba(76, 175, 80, 0.16);
+  border-radius: 0;
+  background: transparent;
   color: var(--terminal-primary, #4caf50);
   cursor: pointer;
   font-weight: 800;
@@ -272,16 +273,19 @@
     box-shadow 0.08s ease;
 }
 
+.rhythm-lab-hit-zone:first-child {
+  border-left: 0;
+}
+
 .rhythm-lab-hit-zone:active {
   transform: translateY(1px);
-  background: rgba(76, 175, 80, 0.16);
-  box-shadow: 0 0 18px rgba(76, 175, 80, 0.45);
+  background: linear-gradient(180deg, rgba(76, 175, 80, 0.1), transparent);
+  box-shadow: inset 0 1px 0 rgba(76, 175, 80, 0.35);
 }
 
 .rhythm-lab-hit-zone-input {
-  border-color: rgba(76, 175, 80, 0.58);
-  background: rgba(76, 175, 80, 0.12);
-  box-shadow: 0 0 12px rgba(76, 175, 80, 0.22);
+  background: linear-gradient(180deg, rgba(76, 175, 80, 0.08), transparent);
+  box-shadow: inset 0 1px 0 rgba(76, 175, 80, 0.32);
 }
 
 .rhythm-lab-hit-zone span {
@@ -388,11 +392,9 @@
   .rhythm-lab-hit-zones {
     left: 0.55rem;
     right: 0.55rem;
-    gap: 0.45rem;
   }
 
   .rhythm-lab-hit-zone {
-    min-height: 6.25rem;
     padding-bottom: 0.7rem;
   }
 
@@ -415,7 +417,7 @@
   }
 
   .rhythm-lab-hit-zone {
-    min-height: 5.65rem;
+    padding-bottom: 0.6rem;
   }
 }
 

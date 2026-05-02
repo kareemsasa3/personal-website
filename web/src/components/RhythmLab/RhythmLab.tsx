@@ -1,4 +1,5 @@
 import {
+  type CSSProperties,
   useCallback,
   useEffect,
   useRef,
@@ -34,6 +35,8 @@ type LaneFeedbackTimers = Record<LaneIndex, number | null>;
 const laneIndexes: LaneIndex[] = [0, 1, 2];
 const INPUT_FEEDBACK_MS = 80;
 const HIT_FEEDBACK_MS = 120;
+const RHYTHM_LINE_PERCENT = 76;
+const NOTE_OVERSHOOT_MULTIPLIER = 1.09;
 
 const createLaneFeedbackTimers = (): LaneFeedbackTimers => ({
   0: null,
@@ -204,6 +207,9 @@ const RhythmLab = () => {
   const lastJudgmentClass = lastJudgment
     ? `rhythm-lab-judgment-${lastJudgment.rating.toLowerCase()}`
     : "";
+  const rhythmLineStyle = {
+    "--rhythm-line-y": `${RHYTHM_LINE_PERCENT}%`,
+  } as CSSProperties;
 
   return (
     <div
@@ -225,7 +231,11 @@ const RhythmLab = () => {
       </header>
 
       <main className="rhythm-lab-stage">
-        <section className="rhythm-lab-highway" aria-label="Three lane note highway">
+        <section
+          className="rhythm-lab-highway"
+          style={rhythmLineStyle}
+          aria-label="Three lane note highway"
+        >
           <div className="rhythm-lab-track">
             {lanes.map((lane) => (
               <div
@@ -244,7 +254,12 @@ const RhythmLab = () => {
                       key={note.id}
                       className="rhythm-lab-note"
                       style={{
-                        top: `${Math.min(note.progress, 1.09) * 78}%`,
+                        top: `${
+                          Math.min(
+                            note.progress,
+                            NOTE_OVERSHOOT_MULTIPLIER
+                          ) * RHYTHM_LINE_PERCENT
+                        }%`,
                       }}
                     />
                   ))}
