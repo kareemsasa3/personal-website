@@ -312,7 +312,7 @@ const RhythmLab = () => {
       aria-label="Rhythm Lab three lane timing prototype"
     >
       <header className="rhythm-lab-header">
-        <div>
+        <div className="rhythm-lab-header-copy">
           <p className="rhythm-lab-eyebrow">Interaction Systems Experiment</p>
           <div className="rhythm-lab-title-row">
             <Link className="rhythm-lab-back-link" to="/games">
@@ -324,13 +324,24 @@ const RhythmLab = () => {
             <label className="rhythm-lab-audio-picker">
               <span>Local audio</span>
               <input
+                className="rhythm-lab-audio-input"
                 type="file"
                 accept="audio/*"
+                aria-label="Choose local audio file"
                 onChange={handleAudioFileChange}
               />
+              <span className="rhythm-lab-audio-picker-button" aria-hidden="true">
+                Choose file
+              </span>
             </label>
             <div className="rhythm-lab-audio-details" aria-live="polite">
-              <span>{fileName ? fileName : "No audio selected"}</span>
+              <span
+                className="rhythm-lab-audio-filename"
+                title={fileName ?? "No audio selected"}
+                aria-label={fileName ?? "No audio selected"}
+              >
+                {fileName ? fileName : "No audio selected"}
+              </span>
               <small>Local only. Not uploaded or stored.</small>
               {audioError && (
                 <small className="rhythm-lab-audio-error">{audioError}</small>
