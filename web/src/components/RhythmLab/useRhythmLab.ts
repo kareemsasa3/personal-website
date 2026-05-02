@@ -45,6 +45,39 @@ const getJudgmentScore = (judgment: NoteJudgment, combo: number) => {
   return 0;
 };
 
+const getHitCandidate = (
+  chart: RhythmChart,
+  lane: LaneIndex,
+  elapsedMs: number,
+  isNoteCompleted: (noteId: string) => boolean
+) => {
+  const candidates = chart.notes
+    .filter((note) => {
+      if (note.lane !== lane) return false;
+      if (isNoteCompleted(note.id)) return false;
+      return Math.abs(elapsedMs - note.timeMs) <= GOOD_WINDOW_MS;
+    })
+    .sort(
+      (first, second) =>
+        Math.abs(elapsedMs - first.timeMs) -
+        Math.abs(elapsedMs - second.timeMs)
+    );
+
+  const note = candidates[0];
+  if (!note) return null;
+
+  const deltaMs = Math.round(elapsedMs - note.timeMs);
+  const absDeltaMs = Math.abs(deltaMs);
+  const judgment: NoteJudgment = {
+    rating: absDeltaMs <= PERFECT_WINDOW_MS ? "Perfect" : "Good",
+    lane,
+    judgedAtMs: elapsedMs,
+    deltaMs,
+  };
+
+  return { noteId: note.id, judgment };
+};
+
 const createRhythmReducer =
   (chart: RhythmChart) =>
   (state: RhythmLabState, action: RhythmLabAction): RhythmLabState => {
@@ -100,29 +133,16 @@ const createRhythmReducer =
       case "HIT_LANE": {
         if (state.phase !== "playing") return state;
 
-        const candidates = chart.notes
-          .filter((note) => {
-            if (note.lane !== action.lane) return false;
-            if (state.completedNotes[note.id]) return false;
-            return Math.abs(action.elapsedMs - note.timeMs) <= GOOD_WINDOW_MS;
-          })
-          .sort(
-            (first, second) =>
-              Math.abs(action.elapsedMs - first.timeMs) -
-              Math.abs(action.elapsedMs - second.timeMs)
-          );
+        const hitCandidate = getHitCandidate(
+          chart,
+          action.lane,
+          action.elapsedMs,
+          (noteId) => Boolean(state.completedNotes[noteId])
+        );
 
-        const note = candidates[0];
-        if (!note) return state;
+        if (!hitCandidate) return state;
 
-        const deltaMs = Math.round(action.elapsedMs - note.timeMs);
-        const absDeltaMs = Math.abs(deltaMs);
-        const judgment: NoteJudgment = {
-          rating: absDeltaMs <= PERFECT_WINDOW_MS ? "Perfect" : "Good",
-          lane: action.lane,
-          judgedAtMs: action.elapsedMs,
-          deltaMs,
-        };
+        const { judgment, noteId } = hitCandidate;
         const nextCombo = state.combo + 1;
 
         return {
@@ -133,7 +153,7 @@ const createRhythmReducer =
           lastJudgment: judgment,
           completedNotes: {
             ...state.completedNotes,
-            [note.id]: judgment,
+            [noteId]: judgment,
           },
         };
       }
@@ -149,9 +169,11 @@ export const useRhythmLab = (chart: RhythmChart) => {
   const animationFrameRef = useRef<number | null>(null);
   const startedAtRef = useRef<number>(0);
   const stateRef = useRef(state);
+  const pendingHitNoteIdsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     stateRef.current = state;
+    pendingHitNoteIdsRef.current = new Set();
   }, [state]);
 
   const startGame = useCallback(() => {
@@ -177,12 +199,21 @@ export const useRhythmLab = (chart: RhythmChart) => {
     dispatch({ type: "START" });
   }, []);
 
-  const hitLane = useCallback((lane: LaneIndex) => {
-    if (stateRef.current.phase !== "playing") return;
+  const hitLane = useCallback((lane: LaneIndex): NoteJudgment | null => {
+    if (stateRef.current.phase !== "playing") return null;
 
     const elapsedMs = performance.now() - startedAtRef.current;
+    const hitCandidate = getHitCandidate(chart, lane, elapsedMs, (noteId) =>
+      Boolean(stateRef.current.completedNotes[noteId]) ||
+      pendingHitNoteIdsRef.current.has(noteId)
+    );
+
+    if (!hitCandidate) return null;
+
+    pendingHitNoteIdsRef.current.add(hitCandidate.noteId);
     dispatch({ type: "HIT_LANE", lane, elapsedMs });
-  }, []);
+    return hitCandidate.judgment;
+  }, [chart]);
 
   useEffect(() => {
     if (state.phase !== "playing") return;
