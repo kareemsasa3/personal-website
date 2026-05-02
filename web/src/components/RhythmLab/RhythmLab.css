@@ -1,0 +1,374 @@
+.rhythm-lab {
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: clamp(0.75rem, 2vw, 1.5rem);
+  box-sizing: border-box;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: clamp(0.75rem, 1.6vw, 1.25rem);
+  color: var(--text-color, #ffffff);
+  font-family: var(--terminal-font, "Courier New", Monaco, monospace);
+  outline: none;
+  overflow: hidden;
+}
+
+.rhythm-lab-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  width: min(100%, 1040px);
+  margin: 0 auto;
+}
+
+.rhythm-lab-eyebrow {
+  margin: 0 0 0.25rem;
+  color: var(--terminal-primary, #4caf50);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.rhythm-lab h1 {
+  margin: 0;
+  color: var(--terminal-primary, #4caf50);
+  font-size: clamp(1.6rem, 3vw, 2.6rem);
+  line-height: 1;
+  text-shadow: 0 0 14px rgba(76, 175, 80, 0.5);
+}
+
+.rhythm-lab-hud {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  max-width: 28rem;
+}
+
+.rhythm-lab-hud span {
+  min-width: 6.75rem;
+  padding: 0.45rem 0.65rem;
+  border: 1px solid rgba(76, 175, 80, 0.45);
+  border-radius: 0.4rem;
+  background: rgba(0, 0, 0, 0.55);
+  color: var(--terminal-primary, #4caf50);
+  text-align: center;
+  font-weight: 700;
+  box-shadow: 0 0 10px rgba(76, 175, 80, 0.16);
+}
+
+.rhythm-lab-stage {
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rhythm-lab-highway {
+  --rhythm-line-y: 78%;
+  position: relative;
+  width: min(86vw, 760px);
+  height: min(74vh, 760px);
+  height: min(74dvh, 760px);
+  min-height: 440px;
+  overflow: hidden;
+  border: 1px solid rgba(76, 175, 80, 0.55);
+  border-radius: 0.65rem;
+  background:
+    linear-gradient(180deg, rgba(12, 18, 12, 0.92), rgba(0, 0, 0, 0.94)),
+    repeating-linear-gradient(
+      0deg,
+      rgba(76, 175, 80, 0.08) 0,
+      rgba(76, 175, 80, 0.08) 1px,
+      transparent 1px,
+      transparent 42px
+    );
+  box-shadow:
+    inset 0 0 34px rgba(76, 175, 80, 0.12),
+    0 18px 44px rgba(0, 0, 0, 0.38);
+}
+
+.rhythm-lab-track {
+  position: absolute;
+  inset: 0 0 0 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.rhythm-lab-lane {
+  position: relative;
+  border-left: 1px solid rgba(76, 175, 80, 0.22);
+}
+
+.rhythm-lab-lane:first-child {
+  border-left: 0;
+}
+
+.rhythm-lab-lane-label {
+  position: absolute;
+  top: 0.85rem;
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgba(255, 255, 255, 0.42);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.rhythm-lab-note {
+  position: absolute;
+  z-index: 4;
+  left: 50%;
+  width: min(58%, 6.25rem);
+  height: clamp(2.2rem, 6vh, 3.3rem);
+  transform: translate(-50%, -50%);
+  border: 1px solid rgba(255, 215, 0, 0.9);
+  border-radius: 0.45rem;
+  background: linear-gradient(180deg, #ffe58a, #f4b83c);
+  box-shadow:
+    0 0 18px rgba(255, 215, 0, 0.55),
+    inset 0 0 10px rgba(255, 255, 255, 0.35);
+  pointer-events: none;
+}
+
+.rhythm-lab-judgment-line {
+  position: absolute;
+  top: var(--rhythm-line-y);
+  left: 0;
+  right: 0;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.rhythm-lab-judgment-line span {
+  justify-self: center;
+  width: min(58%, 6.25rem);
+  height: 2px;
+  border-radius: 999px;
+  background: rgba(76, 175, 80, 0.5);
+  box-shadow: 0 0 10px rgba(76, 175, 80, 0.36);
+}
+
+.rhythm-lab-status {
+  position: absolute;
+  top: calc(var(--rhythm-line-y) - 4.75rem);
+  left: 50%;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 9rem;
+  transform: translateX(-50%);
+  color: rgba(255, 255, 255, 0.76);
+  text-align: center;
+  pointer-events: none;
+}
+
+.rhythm-lab-status > span {
+  font-size: clamp(1.35rem, 4vw, 2.5rem);
+  font-weight: 800;
+  text-shadow: 0 0 18px rgba(255, 255, 255, 0.22);
+}
+
+.rhythm-lab-status small {
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 700;
+}
+
+.rhythm-lab-judgment-perfect {
+  color: #ffe58a;
+}
+
+.rhythm-lab-judgment-good {
+  color: #8edbff;
+}
+
+.rhythm-lab-judgment-miss {
+  color: #ff6f7d;
+}
+
+.rhythm-lab-hit-zones {
+  position: absolute;
+  left: 0.75rem;
+  right: 0.75rem;
+  bottom: max(0.75rem, env(safe-area-inset-bottom));
+  z-index: 6;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.rhythm-lab-hit-zone {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  min-height: 4.75rem;
+  padding: 0.55rem 0.35rem;
+  border: 1px solid rgba(76, 175, 80, 0.38);
+  border-radius: 0.55rem;
+  background: rgba(0, 0, 0, 0.18);
+  color: var(--terminal-primary, #4caf50);
+  cursor: pointer;
+  font-weight: 800;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: none;
+  transition:
+    transform 0.08s ease,
+    background-color 0.08s ease,
+    box-shadow 0.08s ease;
+}
+
+.rhythm-lab-hit-zone:active {
+  transform: translateY(1px);
+  background: rgba(76, 175, 80, 0.16);
+  box-shadow: 0 0 18px rgba(76, 175, 80, 0.45);
+}
+
+.rhythm-lab-hit-zone span {
+  display: block;
+  font-size: clamp(0.72rem, 1.5vw, 0.95rem);
+  line-height: 1.25;
+}
+
+.rhythm-lab-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.68);
+  backdrop-filter: blur(3px);
+}
+
+.rhythm-lab-overlay-panel {
+  width: min(100%, 25rem);
+  padding: 1.25rem;
+  border: 1px solid rgba(76, 175, 80, 0.55);
+  border-radius: 0.65rem;
+  background: rgba(0, 0, 0, 0.78);
+  text-align: center;
+  box-shadow: 0 0 24px rgba(76, 175, 80, 0.18);
+}
+
+.rhythm-lab-overlay-panel p,
+.rhythm-lab-overlay-panel span {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.rhythm-lab-overlay-panel h2 {
+  margin: 0.35rem 0 1rem;
+  color: var(--terminal-primary, #4caf50);
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+}
+
+.rhythm-lab-primary-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 9rem;
+  min-height: 2.75rem;
+  margin: 0 0 1rem;
+  border: 1px solid var(--terminal-primary, #4caf50);
+  border-radius: 0.45rem;
+  background: var(--terminal-primary, #4caf50);
+  color: #000000;
+  cursor: pointer;
+  font-weight: 900;
+  text-transform: uppercase;
+  box-shadow: 0 0 18px rgba(76, 175, 80, 0.35);
+}
+
+.rhythm-lab-primary-action:hover {
+  transform: translateY(-1px);
+}
+
+@media (max-width: 768px) {
+  .rhythm-lab {
+    padding: 0.75rem 0.65rem max(0.75rem, env(safe-area-inset-bottom));
+    gap: 0.6rem;
+  }
+
+  .rhythm-lab-header {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 0.65rem;
+  }
+
+  .rhythm-lab-eyebrow {
+    font-size: 0.7rem;
+  }
+
+  .rhythm-lab-hud {
+    justify-content: stretch;
+    max-width: none;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.4rem;
+  }
+
+  .rhythm-lab-hud span {
+    min-width: 0;
+    padding: 0.42rem 0.35rem;
+    font-size: 0.78rem;
+  }
+
+  .rhythm-lab-highway {
+    width: min(100%, 430px);
+    height: calc(100vh - 9.75rem);
+    height: calc(100dvh - 9.75rem);
+    min-height: 430px;
+    border-radius: 0.5rem;
+  }
+
+  .rhythm-lab-hit-zones {
+    left: 0.55rem;
+    right: 0.55rem;
+    gap: 0.45rem;
+  }
+
+  .rhythm-lab-hit-zone {
+    min-height: 6.25rem;
+    padding-bottom: 0.7rem;
+  }
+
+  .rhythm-lab-lane-label {
+    top: 0.55rem;
+    font-size: 0.68rem;
+  }
+
+  .rhythm-lab-note {
+    width: 68%;
+    height: 2.75rem;
+  }
+}
+
+@media (max-width: 380px) {
+  .rhythm-lab-highway {
+    height: calc(100vh - 9.2rem);
+    height: calc(100dvh - 9.2rem);
+    min-height: 390px;
+  }
+
+  .rhythm-lab-hit-zone {
+    min-height: 5.65rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rhythm-lab-hit-zone,
+  .rhythm-lab-primary-action {
+    transition: none;
+  }
+}

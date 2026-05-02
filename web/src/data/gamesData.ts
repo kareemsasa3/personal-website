@@ -24,6 +24,15 @@ export const gamesData: GameData[] = [
     previewType: "spider",
     isAvailable: true,
   },
+  {
+    id: "rhythm-lab",
+    title: "Rhythm Lab",
+    description:
+      "Three-lane timing prototype for input windows, chart data, and mobile rhythm ergonomics.",
+    path: "/games/rhythm-lab",
+    previewType: "placeholder",
+    isAvailable: true,
+  },
   // Future games will be added here
   // Example:
   // {

@@ -186,6 +186,7 @@ const primaryRouteShellPaths = [
   "/games",
   "/games/snake",
   "/games/spider",
+  "/games/rhythm-lab",
   "/terminal",
 ] as const;
 
@@ -229,11 +230,12 @@ const primaryRouteShellDetails: Record<
     heading: "Games & Experiments",
     highlights: [
       "Browser games and interactive frontend experiments outside the main portfolio proof path.",
-      "Known game routes include Snake and Spider Solitaire.",
+      "Known game routes include Snake, Spider Solitaire, and Rhythm Lab.",
     ],
     links: [
       { label: "Open Snake", href: "/games/snake" },
       { label: "Open Spider Solitaire", href: "/games/spider" },
+      { label: "Open Rhythm Lab", href: "/games/rhythm-lab" },
     ],
   },
   "/games/snake": {
@@ -251,6 +253,15 @@ const primaryRouteShellDetails: Record<
     highlights: [
       "A browser-based Spider Solitaire implementation from the games and experiments section.",
       "The interactive card game loads through the React application when JavaScript is available.",
+    ],
+    links: [{ label: "Back to games", href: "/games" }],
+  },
+  "/games/rhythm-lab": {
+    eyebrow: "Interaction Prototype",
+    heading: "Rhythm Lab",
+    highlights: [
+      "A three-lane rhythm interaction prototype focused on timing windows and chart playback.",
+      "The interactive experiment loads through the React application when JavaScript is available.",
     ],
     links: [{ label: "Back to games", href: "/games" }],
   },
