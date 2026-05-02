@@ -50,7 +50,6 @@ const routes: AppRoute[] = [
   { path: "games", element: React.createElement(Games) },
   { path: "games/snake", element: React.createElement(SnakeGame) },
   { path: "games/spider", element: React.createElement(SpiderSolitaire) },
-  { path: "games/rhythm-lab", element: React.createElement(RhythmLab) },
   { path: "experience", element: React.createElement(Work) },
   { path: "work", element: React.createElement(Work) },
   { path: "journey", element: React.createElement(Journey) },
@@ -64,7 +63,9 @@ const routes: AppRoute[] = [
 export const mainRoutes: AppRoute[] = routes;
 
 // Top-level routes that don't use the main Layout
-export const topLevelRoutes: AppRoute[] = [];
+export const topLevelRoutes: AppRoute[] = [
+  { path: "games/rhythm-lab", element: React.createElement(RhythmLab) },
+];
 
 // Default and catch-all routes
 export const defaultRoute: AppRoute = {

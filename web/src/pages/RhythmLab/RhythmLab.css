@@ -1,9 +1,18 @@
 .rhythm-lab-page {
-  position: fixed;
-  inset: 0;
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   align-items: stretch;
   justify-content: stretch;
-  z-index: 10;
   overflow: hidden;
+}
+
+.rhythm-lab-page .rhythm-lab {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
 }

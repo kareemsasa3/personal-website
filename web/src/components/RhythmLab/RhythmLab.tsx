@@ -6,6 +6,7 @@ import {
   useState,
   type PointerEvent,
 } from "react";
+import { Link } from "react-router-dom";
 import { starterChart } from "./rhythmCharts";
 import { type LaneIndex, type NoteJudgment } from "./types";
 import { useRhythmLab } from "./useRhythmLab";
@@ -258,7 +259,12 @@ const RhythmLab = () => {
       <header className="rhythm-lab-header">
         <div>
           <p className="rhythm-lab-eyebrow">Interaction Systems Experiment</p>
-          <h1>Rhythm Lab</h1>
+          <div className="rhythm-lab-title-row">
+            <Link className="rhythm-lab-back-link" to="/games">
+              Games
+            </Link>
+            <h1>Rhythm Lab</h1>
+          </div>
         </div>
         <div className="rhythm-lab-hud" aria-live="polite">
           <span>Score {score}</span>
