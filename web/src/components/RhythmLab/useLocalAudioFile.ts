@@ -9,6 +9,7 @@ import {
   getAudioBlob,
   getPreferences,
   getSong,
+  getSongs,
   openRhythmLabDb,
   RHYTHM_LAB_PREFERENCES_ID,
   savePreferences,
@@ -48,6 +49,7 @@ export const useLocalAudioFile = () => {
   const restoreRequestIdRef = useRef(0);
   const isMountedRef = useRef(true);
   const [activeSongId, setActiveSongId] = useState<string | null>(null);
+  const [importedSongs, setImportedSongs] = useState<RhythmLabSong[]>([]);
   const [fileName, setFileName] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isPausedAfterVisibilityChange, setIsPausedAfterVisibilityChange] =
@@ -105,6 +107,98 @@ export const useLocalAudioFile = () => {
     return db;
   }, []);
 
+  const loadImportedSongs = useCallback(async () => {
+    const db = await getDb();
+    const songs = await getSongs(db);
+
+    if (isMountedRef.current) {
+      setImportedSongs(songs);
+    }
+
+    return songs;
+  }, [getDb]);
+
+  const selectSong = useCallback(
+    async (songId: string) => {
+      const restoreRequestId = restoreRequestIdRef.current + 1;
+      restoreRequestIdRef.current = restoreRequestId;
+      setError(null);
+      setIsPausedAfterVisibilityChange(false);
+
+      try {
+        const db = await getDb();
+        const preferences = await getPreferences(db);
+        const song = await getSong(db, songId);
+
+        if (!song) {
+          await savePreferences(db, createPreferences(null, preferences, null));
+          if (
+            isMountedRef.current &&
+            restoreRequestId === restoreRequestIdRef.current
+          ) {
+            clearSelectedAudio();
+            setError("Saved song could not be found. Silent mode is available.");
+          }
+          return;
+        }
+
+        const blob = await getAudioBlob(db, song.audioBlobId);
+
+        if (!blob) {
+          if (
+            isMountedRef.current &&
+            restoreRequestId === restoreRequestIdRef.current
+          ) {
+            setError(
+              "Saved audio data could not be loaded. Reimport the file to restore playback."
+            );
+          }
+          return;
+        }
+
+        if (
+          !isMountedRef.current ||
+          restoreRequestId !== restoreRequestIdRef.current
+        ) {
+          return;
+        }
+
+        const objectUrl = URL.createObjectURL(blob);
+
+        setAudioSource(objectUrl, song.filename);
+        setActiveSongId(song.id);
+        try {
+          await savePreferences(
+            db,
+            createPreferences(
+              song.id,
+              preferences,
+              preferences?.activeChartId ?? null
+            )
+          );
+          setError(null);
+        } catch {
+          if (
+            isMountedRef.current &&
+            restoreRequestId === restoreRequestIdRef.current
+          ) {
+            setError("Song selection could not be saved for next reload.");
+          }
+        }
+      } catch {
+        if (
+          !isMountedRef.current ||
+          restoreRequestId !== restoreRequestIdRef.current
+        ) {
+          return;
+        }
+
+        setError("Saved audio could not be loaded. Silent mode is available.");
+      }
+    },
+    [clearSelectedAudio, getDb, setAudioSource]
+  );
+
   const handleFileChange = useCallback(
     async (event: ChangeEvent<HTMLInputElement>) => {
       const file = event.currentTarget.files?.[0] ?? null;
@@ -144,6 +238,7 @@ export const useLocalAudioFile = () => {
         };
 
         const savedSong = await saveSongWithBlob(db, { song, blob: file });
+        const songs = await loadImportedSongs();
         const shouldPreserveActiveChart =
           savedSong.id === existingPreferences?.activeSongId;
 
@@ -153,13 +248,18 @@ export const useLocalAudioFile = () => {
             savedSong.id,
             existingPreferences,
             shouldPreserveActiveChart
-              ? existingPreferences.activeChartId
+              ? existingPreferences?.activeChartId ?? null
               : null
           )
         );
         if (!isMountedRef.current) return;
 
         setActiveSongId(savedSong.id);
+        setImportedSongs((currentSongs) =>
+          songs.some((currentSong) => currentSong.id === savedSong.id)
+            ? songs
+            : [savedSong, ...currentSongs]
+        );
       } catch {
         if (!isMountedRef.current) return;
 
@@ -168,7 +268,7 @@ export const useLocalAudioFile = () => {
         );
       }
     },
-    [clearSelectedAudio, getDb, setAudioSource]
+    [clearSelectedAudio, getDb, loadImportedSongs, setAudioSource]
   );
 
   const playFromStart = useCallback(async () => {
@@ -242,8 +342,13 @@ export const useLocalAudioFile = () => {
     const restoreActiveSong = async () => {
       try {
         const db = await getDb();
+        const songs = await getSongs(db);
         const preferences = await getPreferences(db);
         const activeSongId = preferences?.activeSongId ?? null;
+
+        if (!isMountedRef.current) return;
+
+        setImportedSongs(songs);
 
         if (!activeSongId) return;
 
@@ -299,11 +404,13 @@ export const useLocalAudioFile = () => {
   return {
     audioRef,
     activeSongId,
+    importedSongs,
     fileName,
     error,
     hasSelectedFile: Boolean(fileName),
     isPausedAfterVisibilityChange,
     handleFileChange,
+    selectSong,
     playFromStart,
     resumePlayback,
     pausePlayback,

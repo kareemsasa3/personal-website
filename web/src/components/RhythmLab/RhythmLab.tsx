@@ -27,6 +27,7 @@ import {
 import type {
   RhythmLabChart,
   RhythmLabPreferences,
+  RhythmLabSong,
 } from "./library/types";
 import { useLocalAudioFile } from "./useLocalAudioFile";
 import { useRhythmLab } from "./useRhythmLab";
@@ -108,6 +109,19 @@ const formatChartOptionLabel = (chart: RhythmLabChart) => {
   )}`;
 };
 
+const formatSongTimestamp = (timestamp: string) => {
+  const date = new Date(timestamp);
+  if (Number.isNaN(date.getTime())) return "imported";
+
+  return date.toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+  });
+};
+
+const formatSongOptionLabel = (song: RhythmLabSong) =>
+  `${song.title || song.filename} - ${formatSongTimestamp(song.importedAt)}`;
+
 const createChartPreference = (
   activeSongId: string | null,
   activeChartId: string | null,
@@ -188,11 +202,13 @@ const RhythmLab = () => {
   const {
     audioRef,
     activeSongId,
+    importedSongs,
     fileName,
     error: audioError,
     hasSelectedFile,
     isPausedAfterVisibilityChange,
     handleFileChange,
+    selectSong,
     playFromStart,
     resumePlayback,
     pausePlayback,
@@ -364,6 +380,16 @@ const RhythmLab = () => {
     });
   }, [resetGame, resetRecordingDraft, saveActiveChartPreference]);
 
+  const resetChartRuntimeForSongChange = useCallback(() => {
+    resetRecordingDraft();
+    setRecordedChart(null);
+    setActiveChartMode("starter");
+    setIsRecording(false);
+    setVisibleJudgment(null);
+    setChartStorageError(null);
+    resetGame();
+  }, [resetGame, resetRecordingDraft]);
+
   const selectRecordedChart = useCallback(
     (chartId: string) => {
       const selectedChart =
@@ -407,13 +433,30 @@ const RhythmLab = () => {
     (event: ChangeEvent<HTMLInputElement>) => {
       pausePlayback();
       resetGame();
-      clearRecordedChart();
+      resetChartRuntimeForSongChange();
       setRecordedCharts([]);
       setChartStorageError(null);
       handleFileChange(event);
       focusGame();
     },
-    [clearRecordedChart, focusGame, handleFileChange, pausePlayback, resetGame]
+    [
+      focusGame,
+      handleFileChange,
+      pausePlayback,
+      resetChartRuntimeForSongChange,
+      resetGame,
+    ]
+  );
+
+  const handleSongSelect = useCallback(
+    (songId: string) => {
+      if (!songId || songId === activeSongId) return;
+
+      pausePlayback();
+      void selectSong(songId);
+      focusGame();
+    },
+    [activeSongId, focusGame, pausePlayback, selectSong]
   );
 
   const startRecording = useCallback(async () => {
@@ -664,6 +707,7 @@ const RhythmLab = () => {
 
     setRecordedCharts([]);
     setRecordedChart(null);
+    setActiveChartMode("starter");
 
     const loadRecordedCharts = async () => {
       const db = await getDb();
@@ -924,6 +968,30 @@ const RhythmLab = () => {
                     Choose file
                   </span>
                 </label>
+                {importedSongs.length > 0 && (
+                  <label
+                    className="rhythm-lab-song-selector"
+                    aria-label="Imported song selector"
+                  >
+                    <span>Saved songs</span>
+                    <select
+                      value={activeSongId ?? ""}
+                      disabled={isRecording}
+                      onChange={(event) =>
+                        handleSongSelect(event.currentTarget.value)
+                      }
+                    >
+                      <option value="" disabled>
+                        Select song
+                      </option>
+                      {importedSongs.map((song) => (
+                        <option key={song.id} value={song.id}>
+                          {formatSongOptionLabel(song)}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                )}
                 <div className="rhythm-lab-audio-details" aria-live="polite">
                   <span
                     className="rhythm-lab-audio-filename"
@@ -932,7 +1000,7 @@ const RhythmLab = () => {
                   >
                     {fileName ? fileName : "No audio selected"}
                   </span>
-                  <small>Local only. Not uploaded or stored.</small>
+                  <small>Stored locally in this browser. Not uploaded.</small>
                   {audioError && (
                     <small className="rhythm-lab-audio-error">
                       {audioError}
