@@ -242,6 +242,7 @@ const RhythmLab = () => {
   const {
     audioRef,
     activeSongId,
+    activeSongRevision,
     importedSongs,
     fileName,
     error: audioError,
@@ -277,7 +278,19 @@ const RhythmLab = () => {
     activeChartMode === "recorded" && recordedChart
       ? recordedChart
       : starterChart;
-  const bestRun = useMemo(() => getBestRun(chartRuns), [chartRuns]);
+  const currentRunContextKey = [
+    activeChartMode,
+    activeSongId ?? "songless",
+    activeChart.id,
+  ].join(":");
+  const [loadedRunContextKey, setLoadedRunContextKey] = useState<string | null>(
+    null
+  );
+  const isBestRunLoaded = loadedRunContextKey === currentRunContextKey;
+  const bestRun = useMemo(
+    () => (isBestRunLoaded ? getBestRun(chartRuns) : null),
+    [chartRuns, isBestRunLoaded]
+  );
   const rhythmClock = useMemo(
     () =>
       hasSelectedFile
@@ -432,6 +445,10 @@ const RhythmLab = () => {
     setIsRecording(false);
     setVisibleJudgment(null);
     setChartStorageError(null);
+    setChartRuns([]);
+    setLoadedRunContextKey(null);
+    setRunStorageError(null);
+    runLoadRequestIdRef.current += 1;
     resetGame();
   }, [resetGame, resetRecordingDraft]);
 
@@ -498,10 +515,18 @@ const RhythmLab = () => {
       if (!songId || songId === activeSongId) return;
 
       pausePlayback();
+      resetChartRuntimeForSongChange();
+      setRecordedCharts([]);
       void selectSong(songId);
       focusGame();
     },
-    [activeSongId, focusGame, pausePlayback, selectSong]
+    [
+      activeSongId,
+      focusGame,
+      pausePlayback,
+      resetChartRuntimeForSongChange,
+      selectSong,
+    ]
   );
 
   const startRecording = useCallback(async () => {
@@ -797,7 +822,7 @@ const RhythmLab = () => {
         "Saved charts could not be loaded. Recording still works for this session."
       );
     });
-  }, [activeSongId, getDb, resetGame]);
+  }, [activeSongId, activeSongRevision, getDb, resetGame]);
 
   const summaryChartLabel =
     activeChartMode === "recorded" && recordedChart
@@ -812,6 +837,7 @@ const RhythmLab = () => {
     const requestId = runLoadRequestIdRef.current + 1;
     runLoadRequestIdRef.current = requestId;
     setChartRuns([]);
+    setLoadedRunContextKey(null);
     setRunStorageError(null);
 
     const loadChartRuns = async () => {
@@ -821,6 +847,7 @@ const RhythmLab = () => {
       if (requestId !== runLoadRequestIdRef.current) return;
 
       setChartRuns(runs);
+      setLoadedRunContextKey(currentRunContextKey);
       setRunStorageError(null);
     };
 
@@ -828,9 +855,10 @@ const RhythmLab = () => {
       if (requestId !== runLoadRequestIdRef.current) return;
 
       setChartRuns([]);
+      setLoadedRunContextKey(currentRunContextKey);
       setRunStorageError("Best stats could not be loaded.");
     });
-  }, [activeChart.id, getDb]);
+  }, [activeChart.id, currentRunContextKey, getDb]);
 
   useEffect(() => {
     if (phase !== "complete" || isRecording) {
@@ -867,6 +895,7 @@ const RhythmLab = () => {
           ? runs
           : [run, ...runs]
       );
+      setLoadedRunContextKey(currentRunContextKey);
       setRunStorageError(null);
     };
 
@@ -881,6 +910,7 @@ const RhythmLab = () => {
     activeChart.id,
     activeChartMode,
     activeSongId,
+    currentRunContextKey,
     getDb,
     isRecording,
     judgments.length,
@@ -977,10 +1007,14 @@ const RhythmLab = () => {
     activeChartMode === "recorded" && recordedChart ? "Recorded" : "Starter";
   const activeAudioLabel = fileName ?? "Local audio";
   const chartBestLabel = bestRun
-    ? `Best: ${formatScore(bestRun.score)} · ${formatPercent(
+    ? `${
+        activeChartMode === "starter" ? "Starter best (global)" : "Best"
+      }: ${formatScore(bestRun.score)} · ${formatPercent(
         bestRun.accuracy
       )} · Combo ${bestRun.maxCombo}`
-    : "No runs yet";
+    : isBestRunLoaded
+      ? "No runs yet"
+      : "Loading best...";
 
   useEffect(() => {
     if (phase === "complete") {

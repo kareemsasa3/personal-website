@@ -49,6 +49,7 @@ export const useLocalAudioFile = () => {
   const restoreRequestIdRef = useRef(0);
   const isMountedRef = useRef(true);
   const [activeSongId, setActiveSongId] = useState<string | null>(null);
+  const [activeSongRevision, setActiveSongRevision] = useState(0);
   const [importedSongs, setImportedSongs] = useState<RhythmLabSong[]>([]);
   const [fileName, setFileName] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -94,6 +95,7 @@ export const useLocalAudioFile = () => {
   const clearSelectedAudio = useCallback(() => {
     hasSelectedFileRef.current = false;
     setActiveSongId(null);
+    setActiveSongRevision((currentRevision) => currentRevision + 1);
     setFileName(null);
     resetAudioElement();
     clearObjectUrl();
@@ -167,6 +169,7 @@ export const useLocalAudioFile = () => {
 
         setAudioSource(objectUrl, song.filename);
         setActiveSongId(song.id);
+        setActiveSongRevision((currentRevision) => currentRevision + 1);
         try {
           await savePreferences(
             db,
@@ -255,6 +258,7 @@ export const useLocalAudioFile = () => {
         if (!isMountedRef.current) return;
 
         setActiveSongId(savedSong.id);
+        setActiveSongRevision((currentRevision) => currentRevision + 1);
         setImportedSongs((currentSongs) =>
           songs.some((currentSong) => currentSong.id === savedSong.id)
             ? songs
@@ -374,6 +378,7 @@ export const useLocalAudioFile = () => {
         const objectUrl = URL.createObjectURL(blob);
         setAudioSource(objectUrl, song.filename);
         setActiveSongId(song.id);
+        setActiveSongRevision((currentRevision) => currentRevision + 1);
         setError(null);
       } catch {
         if (
@@ -404,6 +409,7 @@ export const useLocalAudioFile = () => {
   return {
     audioRef,
     activeSongId,
+    activeSongRevision,
     importedSongs,
     fileName,
     error,
