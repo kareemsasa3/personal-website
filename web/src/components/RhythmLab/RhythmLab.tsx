@@ -59,6 +59,74 @@ const createLaneFeedbackTimers = (): LaneFeedbackTimers => ({
 
 type ActiveChartMode = "starter" | "recorded";
 
+interface RhythmRunSummary {
+  chartLabel: string;
+  score: number;
+  maxCombo: number;
+  perfectCount: number;
+  goodCount: number;
+  missCount: number;
+  emptyInputMissCount: number;
+  accuracyPercent: number;
+  meanAbsoluteDeltaMs: number | null;
+  earlyCount: number;
+  lateCount: number;
+}
+
+const formatPercent = (value: number) => `${value.toFixed(1)}%`;
+
+const formatDelta = (value: number | null) =>
+  value === null ? "N/A" : `${Math.round(value)}ms`;
+
+const createRunSummary = (
+  chartLabel: string,
+  score: number,
+  maxCombo: number,
+  judgments: NoteJudgment[]
+): RhythmRunSummary => {
+  const noteBackedJudgments = judgments.filter(
+    (judgment) =>
+      judgment.kind === "note-hit" || judgment.kind === "note-miss"
+  );
+  const perfectCount = noteBackedJudgments.filter(
+    (judgment) => judgment.rating === "Perfect"
+  ).length;
+  const goodCount = noteBackedJudgments.filter(
+    (judgment) => judgment.rating === "Good"
+  ).length;
+  const missCount = noteBackedJudgments.filter(
+    (judgment) => judgment.kind === "note-miss"
+  ).length;
+  const emptyInputMissCount = judgments.filter(
+    (judgment) => judgment.kind === "empty-input"
+  ).length;
+  const numericDeltas = noteBackedJudgments
+    .map((judgment) => judgment.deltaMs)
+    .filter((deltaMs): deltaMs is number => typeof deltaMs === "number");
+  const accuracyPercent =
+    ((perfectCount + goodCount * 0.5) /
+      Math.max(noteBackedJudgments.length, 1)) *
+    100;
+  const meanAbsoluteDeltaMs = numericDeltas.length
+    ? numericDeltas.reduce((total, deltaMs) => total + Math.abs(deltaMs), 0) /
+      numericDeltas.length
+    : null;
+
+  return {
+    chartLabel,
+    score,
+    maxCombo,
+    perfectCount,
+    goodCount,
+    missCount,
+    emptyInputMissCount,
+    accuracyPercent,
+    meanAbsoluteDeltaMs,
+    earlyCount: numericDeltas.filter((deltaMs) => deltaMs < 0).length,
+    lateCount: numericDeltas.filter((deltaMs) => deltaMs > 0).length,
+  };
+};
+
 const RhythmLab = () => {
   const {
     audioRef,
@@ -102,6 +170,7 @@ const RhythmLab = () => {
     combo,
     maxCombo,
     lastJudgment,
+    judgments,
     chart,
     visibleNotes,
     startGame: beginGame,
@@ -188,6 +257,13 @@ const RhythmLab = () => {
       focusGame();
     }
   }, [focusGame, resumePlayback]);
+
+  const returnToSetup = useCallback(() => {
+    pausePlayback();
+    setVisibleJudgment(null);
+    resetGame();
+    focusGame();
+  }, [focusGame, pausePlayback, resetGame]);
 
   const clearRecordedChart = useCallback(() => {
     resetRecordingDraft();
@@ -459,6 +535,14 @@ const RhythmLab = () => {
   const activeChartModeLabel =
     activeChartMode === "recorded" && recordedChart ? "Recorded" : "Starter";
   const activeAudioLabel = fileName ?? "Local audio";
+  const summaryChartLabel =
+    activeChartMode === "recorded" && recordedChart
+      ? "Recorded Chart"
+      : "Starter Chart";
+  const runSummary = useMemo(
+    () => createRunSummary(summaryChartLabel, score, maxCombo, judgments),
+    [judgments, maxCombo, score, summaryChartLabel]
+  );
 
   useEffect(() => {
     if (phase === "complete") {
@@ -745,24 +829,90 @@ const RhythmLab = () => {
             )}
           </div>
 
-          {phase !== "playing" && !isRecording && (
+          {phase === "ready" && !isRecording && (
             <div className="rhythm-lab-overlay">
               <div className="rhythm-lab-overlay-panel">
                 <p>
                   {chart.title} - {chartModeLabel}
                 </p>
-                <h2>
-                  {phase === "complete" ? "Run Complete" : "Ready Check"}
-                </h2>
+                <h2>Ready Check</h2>
                 <button
                   className="rhythm-lab-primary-action"
                   type="button"
                   onClick={() => {
-                    void (phase === "complete" ? restartGame() : startGame());
+                    void startGame();
                   }}
                 >
-                  {phase === "complete" ? "Restart" : "Start"}
+                  Start
                 </button>
+                <span>A/S/D | J/K/L | Arrow keys | tap zones</span>
+              </div>
+            </div>
+          )}
+
+          {phase === "complete" && !isRecording && (
+            <div className="rhythm-lab-overlay">
+              <div className="rhythm-lab-overlay-panel rhythm-lab-summary-panel">
+                <p>{runSummary.chartLabel}</p>
+                <h2>Run Summary</h2>
+                <div className="rhythm-lab-summary-score">
+                  <span>Final score</span>
+                  <strong>{runSummary.score}</strong>
+                </div>
+                <dl className="rhythm-lab-summary-metrics">
+                  <div>
+                    <dt>Max combo</dt>
+                    <dd>{runSummary.maxCombo}</dd>
+                  </div>
+                  <div>
+                    <dt>Accuracy</dt>
+                    <dd>{formatPercent(runSummary.accuracyPercent)}</dd>
+                  </div>
+                  <div>
+                    <dt>Perfect</dt>
+                    <dd>{runSummary.perfectCount}</dd>
+                  </div>
+                  <div>
+                    <dt>Good</dt>
+                    <dd>{runSummary.goodCount}</dd>
+                  </div>
+                  <div>
+                    <dt>Miss</dt>
+                    <dd>{runSummary.missCount}</dd>
+                  </div>
+                  <div>
+                    <dt>Empty miss</dt>
+                    <dd>{runSummary.emptyInputMissCount}</dd>
+                  </div>
+                  <div>
+                    <dt>Mean |delta|</dt>
+                    <dd>{formatDelta(runSummary.meanAbsoluteDeltaMs)}</dd>
+                  </div>
+                  <div>
+                    <dt>Early / Late</dt>
+                    <dd>
+                      {runSummary.earlyCount} / {runSummary.lateCount}
+                    </dd>
+                  </div>
+                </dl>
+                <div className="rhythm-lab-summary-actions">
+                  <button
+                    className="rhythm-lab-primary-action"
+                    type="button"
+                    onClick={() => {
+                      void restartGame();
+                    }}
+                  >
+                    Play again
+                  </button>
+                  <button
+                    className="rhythm-lab-secondary-action"
+                    type="button"
+                    onClick={returnToSetup}
+                  >
+                    Back to setup
+                  </button>
+                </div>
                 <span>A/S/D | J/K/L | Arrow keys | tap zones</span>
               </div>
             </div>

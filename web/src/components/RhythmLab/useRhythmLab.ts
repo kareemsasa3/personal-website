@@ -28,6 +28,7 @@ interface RhythmLabState {
   combo: number;
   maxCombo: number;
   lastJudgment: NoteJudgment | null;
+  judgments: NoteJudgment[];
   completedNotes: CompletedNotes;
 }
 
@@ -49,6 +50,7 @@ const initialState: RhythmLabState = {
   combo: 0,
   maxCombo: 0,
   lastJudgment: null,
+  judgments: [],
   completedNotes: {},
 };
 
@@ -141,6 +143,7 @@ const createRhythmReducer =
         let completedNotes = state.completedNotes;
         let combo = state.combo;
         let lastJudgment = state.lastJudgment;
+        const missedJudgments: NoteMissJudgment[] = [];
 
         chart.notes.forEach((note) => {
           if (completedNotes[note.id]) return;
@@ -150,7 +153,7 @@ const createRhythmReducer =
             completedNotes = { ...state.completedNotes };
           }
 
-          lastJudgment = {
+          const judgment: NoteMissJudgment = {
             kind: "note-miss",
             rating: "Miss",
             lane: note.lane,
@@ -158,7 +161,9 @@ const createRhythmReducer =
             judgedAtMs: action.elapsedMs,
             deltaMs: null,
           };
-          completedNotes[note.id] = lastJudgment;
+          lastJudgment = judgment;
+          missedJudgments.push(judgment);
+          completedNotes[note.id] = judgment;
           combo = 0;
         });
 
@@ -173,6 +178,9 @@ const createRhythmReducer =
           elapsedMs: action.elapsedMs,
           combo,
           lastJudgment,
+          judgments: missedJudgments.length
+            ? [...state.judgments, ...missedJudgments]
+            : state.judgments,
           completedNotes,
         };
       }
@@ -205,6 +213,7 @@ const createRhythmReducer =
           combo: nextCombo,
           maxCombo: Math.max(state.maxCombo, nextCombo),
           lastJudgment: judgment,
+          judgments: [...state.judgments, judgment],
           completedNotes,
         };
       }
