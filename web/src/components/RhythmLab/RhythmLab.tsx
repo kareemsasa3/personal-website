@@ -17,6 +17,7 @@ import {
   type RhythmChart,
 } from "./types";
 import {
+  deleteChart,
   getChartsForSong,
   getPreferences,
   getRunsForChart,
@@ -25,6 +26,7 @@ import {
   saveChart,
   savePreferences,
   saveRun,
+  updateChartName,
 } from "./library/rhythmLabDb";
 import type {
   RhythmLabChart,
@@ -67,6 +69,7 @@ const RECORDING_DEDUPE_MS = 40;
 const RECORDED_CHART_BPM = 120;
 const RECORDED_CHART_TAIL_MS = 1800;
 const DEFAULT_SCROLL_SPEED = 1;
+const CHART_NAME_MAX_LENGTH = 72;
 
 const createLaneFeedbackTimers = (): LaneFeedbackTimers => ({
   0: null,
@@ -151,6 +154,9 @@ const createRunId = (chartId: string) =>
 const formatRecordedChartName = (chartCount: number) =>
   `Recorded Chart ${chartCount + 1}`;
 
+const normalizeChartName = (name: string) =>
+  name.trim().slice(0, CHART_NAME_MAX_LENGTH);
+
 const toRuntimeChart = (chart: RhythmLabChart): RhythmChart => ({
   id: chart.id,
   title: chart.name,
@@ -158,6 +164,13 @@ const toRuntimeChart = (chart: RhythmLabChart): RhythmChart => ({
   durationMs: chart.durationMs,
   notes: chart.notes,
 });
+
+const sortRecordedChartsNewestFirst = (charts: RhythmLabChart[]) =>
+  [...charts].sort((first, second) =>
+    (second.updatedAt || second.createdAt).localeCompare(
+      first.updatedAt || first.createdAt
+    )
+  );
 
 const compareBestRuns = (first: RhythmLabRun, second: RhythmLabRun) => {
   if (first.score !== second.score) return second.score - first.score;
@@ -263,6 +276,11 @@ const RhythmLab = () => {
   const [chartStorageError, setChartStorageError] = useState<string | null>(
     null
   );
+  const [chartNameDraft, setChartNameDraft] = useState("");
+  const [isRenamingChart, setIsRenamingChart] = useState(false);
+  const [pendingChartAction, setPendingChartAction] = useState<
+    "rename" | "delete" | null
+  >(null);
   const [chartRuns, setChartRuns] = useState<RhythmLabRun[]>([]);
   const [runStorageError, setRunStorageError] = useState<string | null>(null);
   const [recordingCount, setRecordingCount] = useState(0);
@@ -271,6 +289,7 @@ const RhythmLab = () => {
   const recordingSequenceRef = useRef(0);
   const lastRecordedByLaneRef = useRef<Partial<Record<LaneIndex, number>>>({});
   const dbRef = useRef<IDBDatabase | null>(null);
+  const activeSongIdRef = useRef(activeSongId);
   const chartLoadRequestIdRef = useRef(0);
   const runLoadRequestIdRef = useRef(0);
   const completedRunSaveKeyRef = useRef<string | null>(null);
@@ -283,6 +302,20 @@ const RhythmLab = () => {
     activeSongId ?? "songless",
     activeChart.id,
   ].join(":");
+  const selectedRecordedChart = useMemo(() => {
+    if (activeChartMode !== "recorded" || !recordedChart || !activeSongId) {
+      return null;
+    }
+
+    return (
+      recordedCharts.find(
+        (chart) =>
+          chart.id === recordedChart.id &&
+          chart.songId === activeSongId &&
+          chart.source === "recorded"
+      ) ?? null
+    );
+  }, [activeChartMode, activeSongId, recordedChart, recordedCharts]);
   const [loadedRunContextKey, setLoadedRunContextKey] = useState<string | null>(
     null
   );
@@ -338,6 +371,22 @@ const RhythmLab = () => {
     dbRef.current = db;
     return db;
   }, []);
+
+  useEffect(() => {
+    activeSongIdRef.current = activeSongId;
+  }, [activeSongId]);
+
+  useEffect(() => {
+    if (!selectedRecordedChart) {
+      setChartNameDraft("");
+      setIsRenamingChart(false);
+      return;
+    }
+
+    if (!isRenamingChart) {
+      setChartNameDraft(selectedRecordedChart.name);
+    }
+  }, [isRenamingChart, selectedRecordedChart]);
 
   const saveActiveChartPreference = useCallback(
     async (nextActiveChartId: string | null) => {
@@ -395,6 +444,12 @@ const RhythmLab = () => {
     setRecordingCount(0);
   }, []);
 
+  const resetChartManagement = useCallback(() => {
+    setChartNameDraft("");
+    setIsRenamingChart(false);
+    setPendingChartAction(null);
+  }, []);
+
   const startGame = useCallback(async () => {
     const canPlay = await playFromStart();
     if (!canPlay) return;
@@ -425,21 +480,9 @@ const RhythmLab = () => {
     focusGame();
   }, [focusGame, pausePlayback, resetGame]);
 
-  const clearRecordedChart = useCallback(() => {
-    resetRecordingDraft();
-    setRecordedChart(null);
-    setActiveChartMode("starter");
-    setIsRecording(false);
-    setVisibleJudgment(null);
-    setChartStorageError(null);
-    resetGame();
-    void saveActiveChartPreference(null).catch(() => {
-      setChartStorageError("Chart selection could not be saved.");
-    });
-  }, [resetGame, resetRecordingDraft, saveActiveChartPreference]);
-
   const resetChartRuntimeForSongChange = useCallback(() => {
     resetRecordingDraft();
+    resetChartManagement();
     setRecordedChart(null);
     setActiveChartMode("starter");
     setIsRecording(false);
@@ -450,7 +493,7 @@ const RhythmLab = () => {
     setRunStorageError(null);
     runLoadRequestIdRef.current += 1;
     resetGame();
-  }, [resetGame, resetRecordingDraft]);
+  }, [resetChartManagement, resetGame, resetRecordingDraft]);
 
   const selectRecordedChart = useCallback(
     (chartId: string) => {
@@ -460,6 +503,7 @@ const RhythmLab = () => {
         null;
 
       pausePlayback();
+      resetChartManagement();
       setIsRecording(false);
       setVisibleJudgment(null);
       resetGame();
@@ -486,6 +530,7 @@ const RhythmLab = () => {
       focusGame,
       pausePlayback,
       recordedCharts,
+      resetChartManagement,
       resetGame,
       saveActiveChartPreference,
     ]
@@ -536,13 +581,21 @@ const RhythmLab = () => {
     if (!canPlay) return;
 
     resetRecordingDraft();
+    resetChartManagement();
     setRecordedChart(null);
     setActiveChartMode("starter");
     setIsRecording(true);
     setVisibleJudgment(null);
     resetGame();
     focusGame();
-  }, [focusGame, hasSelectedFile, playFromStart, resetGame, resetRecordingDraft]);
+  }, [
+    focusGame,
+    hasSelectedFile,
+    playFromStart,
+    resetChartManagement,
+    resetGame,
+    resetRecordingDraft,
+  ]);
 
   const stopRecording = useCallback(() => {
     if (!isRecording) return;
@@ -612,6 +665,174 @@ const RhythmLab = () => {
     resetGame,
   ]);
 
+  const beginChartRename = useCallback(() => {
+    if (!selectedRecordedChart || isRecording || pendingChartAction) return;
+
+    setChartNameDraft(selectedRecordedChart.name);
+    setIsRenamingChart(true);
+    setChartStorageError(null);
+  }, [isRecording, pendingChartAction, selectedRecordedChart]);
+
+  const cancelChartRename = useCallback(() => {
+    setChartNameDraft(selectedRecordedChart?.name ?? "");
+    setIsRenamingChart(false);
+  }, [selectedRecordedChart]);
+
+  const saveChartRename = useCallback(async () => {
+    if (
+      !activeSongId ||
+      !selectedRecordedChart ||
+      selectedRecordedChart.songId !== activeSongId ||
+      selectedRecordedChart.source !== "recorded" ||
+      pendingChartAction
+    ) {
+      return;
+    }
+
+    const nextName = normalizeChartName(chartNameDraft);
+    if (!nextName || nextName === selectedRecordedChart.name) {
+      setChartNameDraft(selectedRecordedChart.name);
+      setIsRenamingChart(false);
+      return;
+    }
+
+    setPendingChartAction("rename");
+
+    try {
+      const db = await getDb();
+      const updatedChart = await updateChartName(
+        db,
+        selectedRecordedChart.id,
+        nextName
+      );
+
+      if (
+        !updatedChart ||
+        updatedChart.songId !== activeSongId ||
+        updatedChart.source !== "recorded" ||
+        activeSongIdRef.current !== activeSongId
+      ) {
+        throw new Error("Recorded chart was not available.");
+      }
+
+      setRecordedCharts((currentCharts) =>
+        sortRecordedChartsNewestFirst(
+          currentCharts.map((chart) =>
+            chart.id === updatedChart.id ? updatedChart : chart
+          )
+        )
+      );
+      setRecordedChart(toRuntimeChart(updatedChart));
+      setChartNameDraft(updatedChart.name);
+      setIsRenamingChart(false);
+      setChartStorageError(null);
+    } catch {
+      setChartStorageError("Chart name could not be saved.");
+    } finally {
+      setPendingChartAction(null);
+    }
+  }, [
+    activeSongId,
+    chartNameDraft,
+    getDb,
+    pendingChartAction,
+    selectedRecordedChart,
+  ]);
+
+  const deleteSelectedChart = useCallback(async () => {
+    if (
+      !activeSongId ||
+      !selectedRecordedChart ||
+      selectedRecordedChart.songId !== activeSongId ||
+      selectedRecordedChart.source !== "recorded" ||
+      pendingChartAction
+    ) {
+      return;
+    }
+
+    const shouldDelete = window.confirm(
+      `Delete "${selectedRecordedChart.name}"? Saved runs for this chart will also be deleted.`
+    );
+    if (!shouldDelete) return;
+
+    setPendingChartAction("delete");
+    pausePlayback();
+    setIsRecording(false);
+    setVisibleJudgment(null);
+    setChartRuns([]);
+    setLoadedRunContextKey(null);
+    setRunStorageError(null);
+    completedRunSaveKeyRef.current = null;
+    runLoadRequestIdRef.current += 1;
+    resetGame();
+
+    try {
+      const db = await getDb();
+      const deletedChart = await deleteChart(db, selectedRecordedChart.id);
+
+      if (
+        !deletedChart ||
+        deletedChart.songId !== activeSongId ||
+        deletedChart.source !== "recorded" ||
+        activeSongIdRef.current !== activeSongId
+      ) {
+        throw new Error("Recorded chart was not available.");
+      }
+
+      const nextCharts = recordedCharts.filter(
+        (chart) =>
+          chart.id !== selectedRecordedChart.id && chart.songId === activeSongId
+      );
+      const nextSelectedChart = nextCharts[0] ?? null;
+
+      setRecordedCharts(nextCharts);
+      resetChartManagement();
+
+      if (nextSelectedChart) {
+        setRecordedChart(toRuntimeChart(nextSelectedChart));
+        setActiveChartMode("recorded");
+      } else {
+        setRecordedChart(null);
+        setActiveChartMode("starter");
+      }
+
+      try {
+        const preferences = await getPreferences(db);
+        await savePreferences(
+          db,
+          createChartPreference(
+            activeSongId,
+            nextSelectedChart?.id ?? null,
+            preferences
+          )
+        );
+        setChartStorageError(null);
+      } catch {
+        setChartStorageError(
+          "Chart was deleted, but chart selection could not be saved."
+        );
+      }
+
+      focusGame();
+    } catch {
+      setChartStorageError(
+        "Chart could not be deleted. Local selection remains usable."
+      );
+    } finally {
+      setPendingChartAction(null);
+    }
+  }, [
+    activeSongId,
+    focusGame,
+    getDb,
+    pausePlayback,
+    pendingChartAction,
+    recordedCharts,
+    resetChartManagement,
+    resetGame,
+    selectedRecordedChart,
+  ]);
+
   const selectActiveChartMode = useCallback(
     (mode: ActiveChartMode) => {
       if (mode === "recorded") {
@@ -621,6 +842,7 @@ const RhythmLab = () => {
       }
 
       pausePlayback();
+      resetChartManagement();
       setIsRecording(false);
       setActiveChartMode(mode);
       setVisibleJudgment(null);
@@ -637,6 +859,7 @@ const RhythmLab = () => {
       pausePlayback,
       recordedChart,
       recordedCharts,
+      resetChartManagement,
       resetGame,
       saveActiveChartPreference,
       selectRecordedChart,
@@ -1251,14 +1474,77 @@ const RhythmLab = () => {
                     >
                       Record chart
                     </button>
-                    {recordedChart && (
-                      <button
-                        className="rhythm-lab-clear-recording"
-                        type="button"
-                        onClick={clearRecordedChart}
+                    {selectedRecordedChart && (
+                      <div
+                        className="rhythm-lab-chart-management"
+                        aria-label="Recorded chart management"
                       >
-                        Clear
-                      </button>
+                        {isRenamingChart ? (
+                          <>
+                            <input
+                              className="rhythm-lab-chart-name-input"
+                              type="text"
+                              aria-label="Recorded chart name"
+                              value={chartNameDraft}
+                              maxLength={CHART_NAME_MAX_LENGTH}
+                              disabled={pendingChartAction !== null}
+                              onChange={(event) =>
+                                setChartNameDraft(event.currentTarget.value)
+                              }
+                              onKeyDown={(event) => {
+                                if (event.key === "Enter") {
+                                  event.preventDefault();
+                                  void saveChartRename();
+                                }
+
+                                if (event.key === "Escape") {
+                                  event.preventDefault();
+                                  cancelChartRename();
+                                }
+                              }}
+                            />
+                            <button
+                              className="rhythm-lab-chart-management-button"
+                              type="button"
+                              disabled={pendingChartAction !== null}
+                              onClick={() => {
+                                void saveChartRename();
+                              }}
+                            >
+                              Save
+                            </button>
+                            <button
+                              className="rhythm-lab-chart-management-button"
+                              type="button"
+                              disabled={pendingChartAction !== null}
+                              onClick={cancelChartRename}
+                            >
+                              Cancel
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button
+                              className="rhythm-lab-chart-management-button"
+                              type="button"
+                              disabled={pendingChartAction !== null}
+                              onClick={beginChartRename}
+                            >
+                              Rename
+                            </button>
+                            <button
+                              className="rhythm-lab-chart-management-button rhythm-lab-chart-management-danger"
+                              type="button"
+                              disabled={pendingChartAction !== null}
+                              onClick={() => {
+                                void deleteSelectedChart();
+                              }}
+                            >
+                              Delete
+                            </button>
+                          </>
+                        )}
+                      </div>
                     )}
                   </div>
                 )}

@@ -263,7 +263,7 @@
 
 .rhythm-lab-chart-mode-button,
 .rhythm-lab-record-button,
-.rhythm-lab-clear-recording {
+.rhythm-lab-chart-management-button {
   min-height: 2rem;
   padding: 0.35rem 0.5rem;
   border: 1px solid rgba(76, 175, 80, 0.42);
@@ -378,9 +378,49 @@
   color: #ffb8c0;
 }
 
-.rhythm-lab-clear-recording {
-  border-color: rgba(255, 255, 255, 0.22);
+.rhythm-lab-chart-management {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 1 auto;
+  gap: 0.35rem;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.rhythm-lab-chart-management-button {
   color: rgba(255, 255, 255, 0.68);
+}
+
+.rhythm-lab-chart-management-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.rhythm-lab-chart-management-danger {
+  border-color: rgba(255, 111, 125, 0.6);
+  color: #ffb8c0;
+}
+
+.rhythm-lab-chart-name-input {
+  min-width: 7rem;
+  max-width: min(100%, 14rem);
+  min-height: 2rem;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid rgba(76, 175, 80, 0.42);
+  border-radius: 0.36rem;
+  background: rgba(0, 0, 0, 0.56);
+  box-sizing: border-box;
+  color: rgba(255, 255, 255, 0.86);
+  font: inherit;
+  font-size: 0.7rem;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.rhythm-lab-chart-name-input:focus {
+  border-color: rgba(76, 175, 80, 0.8);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.18);
 }
 
 .rhythm-lab-hud {
@@ -1203,15 +1243,27 @@
 
   .rhythm-lab-chart-mode-button,
   .rhythm-lab-record-button,
-  .rhythm-lab-clear-recording {
+  .rhythm-lab-chart-management-button {
     width: 100%;
   }
 
   .rhythm-lab-chart-selector,
   .rhythm-lab-chart-empty,
-  .rhythm-lab-chart-best {
+  .rhythm-lab-chart-best,
+  .rhythm-lab-chart-management {
     grid-column: 1 / -1;
     width: 100%;
+  }
+
+  .rhythm-lab-chart-management {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .rhythm-lab-chart-name-input {
+    grid-column: 1 / -1;
+    width: 100%;
+    max-width: 100%;
   }
 
   .rhythm-lab-chart-selector {

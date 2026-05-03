@@ -220,6 +220,34 @@ const putStoreRecord = async <T>(
   return record;
 };
 
+const getRunChartIdBounds = (
+  chartId: string
+): [[string, string], [string, string]] => [
+  [chartId, ""],
+  [chartId, "\uffff"],
+];
+
+const queueDeleteRunsForChart = (
+  transaction: IDBTransaction,
+  chartId: string
+) => {
+  const [lowerBound, upperBound] = getRunChartIdBounds(chartId);
+  const request = transaction
+    .objectStore(RHYTHM_LAB_STORES.runs)
+    .index(RHYTHM_LAB_INDEXES.runsByChartIdPlayedAt)
+    .openCursor(IDBKeyRange.bound(lowerBound, upperBound));
+
+  request.onsuccess = () => {
+    const cursor = request.result;
+    if (!cursor) return;
+
+    cursor.delete();
+    cursor.continue();
+  };
+
+  request.onerror = () => transaction.abort();
+};
+
 export const openRhythmLabDb = (): Promise<IDBDatabase> =>
   new Promise((resolve, reject) => {
     if (typeof window === "undefined" || !("indexedDB" in window)) {
@@ -330,6 +358,26 @@ export const saveChart = (
 ): Promise<RhythmLabChart> =>
   putStoreRecord(db, RHYTHM_LAB_STORES.charts, chart);
 
+export const updateChartName = async (
+  db: IDBDatabase,
+  chartId: string,
+  name: string
+): Promise<RhythmLabChart | null> => {
+  const chart = await getStoreRecord<RhythmLabChart>(
+    db,
+    RHYTHM_LAB_STORES.charts,
+    chartId
+  );
+
+  if (!chart) return null;
+
+  return putStoreRecord(db, RHYTHM_LAB_STORES.charts, {
+    ...chart,
+    name,
+    updatedAt: new Date().toISOString(),
+  });
+};
+
 export const getChartsForSong = async (
   db: IDBDatabase,
   songId: string | null
@@ -357,12 +405,44 @@ export const saveRun = (
   run: RhythmLabRun
 ): Promise<RhythmLabRun> => putStoreRecord(db, RHYTHM_LAB_STORES.runs, run);
 
+export const deleteRunsForChart = async (
+  db: IDBDatabase,
+  chartId: string
+): Promise<void> => {
+  const transaction = db.transaction(RHYTHM_LAB_STORES.runs, "readwrite");
+  queueDeleteRunsForChart(transaction, chartId);
+  await transactionToPromise(transaction);
+};
+
+export const deleteChart = async (
+  db: IDBDatabase,
+  chartId: string
+): Promise<RhythmLabChart | null> => {
+  const chart = await getStoreRecord<RhythmLabChart>(
+    db,
+    RHYTHM_LAB_STORES.charts,
+    chartId
+  );
+
+  if (!chart) return null;
+
+  const transaction = db.transaction(
+    [RHYTHM_LAB_STORES.charts, RHYTHM_LAB_STORES.runs],
+    "readwrite"
+  );
+
+  transaction.objectStore(RHYTHM_LAB_STORES.charts).delete(chartId);
+  queueDeleteRunsForChart(transaction, chartId);
+  await transactionToPromise(transaction);
+
+  return chart;
+};
+
 export const getRunsForChart = async (
   db: IDBDatabase,
   chartId: string
 ): Promise<RhythmLabRun[]> => {
-  const lowerBound: [string, string] = [chartId, ""];
-  const upperBound: [string, string] = [chartId, "\uffff"];
+  const [lowerBound, upperBound] = getRunChartIdBounds(chartId);
   const runs = await getAllFromIndex<RhythmLabRun>(
     db,
     RHYTHM_LAB_STORES.runs,
