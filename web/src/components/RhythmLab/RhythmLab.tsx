@@ -972,6 +972,7 @@ const RhythmLab = () => {
         ? "Starter chart - local audio clock"
         : "Starter chart - silent static clock";
   const isActiveSession = phase === "playing" || isRecording;
+  const isHotStreak = phase === "playing" && combo >= 10;
   const activeChartModeLabel =
     activeChartMode === "recorded" && recordedChart ? "Recorded" : "Starter";
   const activeAudioLabel = fileName ?? "Local audio";
@@ -1010,6 +1011,8 @@ const RhythmLab = () => {
       ref={gameRef}
       className={`rhythm-lab ${isRecording ? "rhythm-lab-recording" : ""} ${
         isActiveSession ? "rhythm-lab-active-session" : ""
+      } ${
+        isHotStreak ? "rhythm-lab-hot-streak" : ""
       }`}
       tabIndex={0}
       aria-label="Rhythm Lab three lane timing prototype"
