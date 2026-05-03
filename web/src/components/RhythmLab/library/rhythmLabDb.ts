@@ -191,6 +191,23 @@ const getAllFromIndex = async <T>(
   return records;
 };
 
+const getFromIndex = async <T>(
+  db: IDBDatabase,
+  storeName: string,
+  indexName: string,
+  query: IDBValidKey | IDBKeyRange
+): Promise<T | null> => {
+  const transaction = db.transaction(storeName, "readonly");
+  const request = transaction
+    .objectStore(storeName)
+    .index(indexName)
+    .get(query);
+  const record = await requestToPromise<T | undefined>(request);
+  await transactionToPromise(transaction);
+
+  return record ?? null;
+};
+
 const putStoreRecord = async <T>(
   db: IDBDatabase,
   storeName: string,
@@ -245,6 +262,11 @@ export const saveSongWithBlob = async (
   db: IDBDatabase,
   { song, blob }: SaveSongWithBlobInput
 ): Promise<RhythmLabSong> => {
+  const existingSong = await getSongByFingerprint(db, song.fingerprint);
+  if (existingSong) {
+    return existingSong;
+  }
+
   const transaction = db.transaction(
     [RHYTHM_LAB_STORES.audioBlobs, RHYTHM_LAB_STORES.songs],
     "readwrite"
@@ -277,6 +299,17 @@ export const getSong = (
   songId: string
 ): Promise<RhythmLabSong | null> =>
   getStoreRecord<RhythmLabSong>(db, RHYTHM_LAB_STORES.songs, songId);
+
+export const getSongByFingerprint = (
+  db: IDBDatabase,
+  fingerprint: string
+): Promise<RhythmLabSong | null> =>
+  getFromIndex<RhythmLabSong>(
+    db,
+    RHYTHM_LAB_STORES.songs,
+    RHYTHM_LAB_INDEXES.songsByFingerprint,
+    fingerprint
+  );
 
 export const getAudioBlob = async (
   db: IDBDatabase,

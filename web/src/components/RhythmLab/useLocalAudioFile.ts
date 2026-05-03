@@ -29,11 +29,12 @@ const createSongTitle = (fileName: string) =>
 
 const createPreferences = (
   activeSongId: string | null,
-  previousPreferences: RhythmLabPreferences | null = null
+  previousPreferences: RhythmLabPreferences | null = null,
+  activeChartId: string | null = previousPreferences?.activeChartId ?? null
 ): RhythmLabPreferences => ({
   id: RHYTHM_LAB_PREFERENCES_ID,
   activeSongId,
-  activeChartId: previousPreferences?.activeChartId ?? null,
+  activeChartId,
   defaultScrollSpeed:
     previousPreferences?.defaultScrollSpeed ?? DEFAULT_SCROLL_SPEED,
   updatedAt: new Date().toISOString(),
@@ -46,6 +47,7 @@ export const useLocalAudioFile = () => {
   const hasSelectedFileRef = useRef(false);
   const restoreRequestIdRef = useRef(0);
   const isMountedRef = useRef(true);
+  const [activeSongId, setActiveSongId] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isPausedAfterVisibilityChange, setIsPausedAfterVisibilityChange] =
@@ -89,6 +91,7 @@ export const useLocalAudioFile = () => {
 
   const clearSelectedAudio = useCallback(() => {
     hasSelectedFileRef.current = false;
+    setActiveSongId(null);
     setFileName(null);
     resetAudioElement();
     clearObjectUrl();
@@ -109,6 +112,7 @@ export const useLocalAudioFile = () => {
       restoreRequestIdRef.current += 1;
       setError(null);
       setIsPausedAfterVisibilityChange(false);
+      setActiveSongId(null);
 
       if (!file) {
         clearSelectedAudio();
@@ -139,11 +143,23 @@ export const useLocalAudioFile = () => {
           updatedAt: now,
         };
 
-        await saveSongWithBlob(db, { song, blob: file });
+        const savedSong = await saveSongWithBlob(db, { song, blob: file });
+        const shouldPreserveActiveChart =
+          savedSong.id === existingPreferences?.activeSongId;
+
         await savePreferences(
           db,
-          createPreferences(song.id, existingPreferences)
+          createPreferences(
+            savedSong.id,
+            existingPreferences,
+            shouldPreserveActiveChart
+              ? existingPreferences.activeChartId
+              : null
+          )
         );
+        if (!isMountedRef.current) return;
+
+        setActiveSongId(savedSong.id);
       } catch {
         if (!isMountedRef.current) return;
 
@@ -233,13 +249,13 @@ export const useLocalAudioFile = () => {
 
         const song = await getSong(db, activeSongId);
         if (!song) {
-          await savePreferences(db, createPreferences(null, preferences));
+          await savePreferences(db, createPreferences(null, preferences, null));
           return;
         }
 
         const blob = await getAudioBlob(db, song.audioBlobId);
         if (!blob) {
-          await savePreferences(db, createPreferences(null, preferences));
+          await savePreferences(db, createPreferences(null, preferences, null));
           return;
         }
 
@@ -252,6 +268,7 @@ export const useLocalAudioFile = () => {
 
         const objectUrl = URL.createObjectURL(blob);
         setAudioSource(objectUrl, song.filename);
+        setActiveSongId(song.id);
         setError(null);
       } catch {
         if (
@@ -281,6 +298,7 @@ export const useLocalAudioFile = () => {
 
   return {
     audioRef,
+    activeSongId,
     fileName,
     error,
     hasSelectedFile: Boolean(fileName),
