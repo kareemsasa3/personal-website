@@ -347,6 +347,26 @@
   text-transform: uppercase;
 }
 
+.rhythm-lab-chart-best {
+  display: inline-flex;
+  align-items: center;
+  flex: 1 1 14rem;
+  min-width: min(100%, 10rem);
+  max-width: 100%;
+  min-height: 2rem;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid rgba(255, 215, 0, 0.26);
+  border-radius: 0.36rem;
+  background: rgba(255, 215, 0, 0.08);
+  box-sizing: border-box;
+  color: #ffe58a;
+  font-size: 0.7rem;
+  font-weight: 900;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+  text-transform: uppercase;
+}
+
 .rhythm-lab-record-button {
   border-color: rgba(255, 215, 0, 0.62);
   color: #ffe58a;
@@ -918,6 +938,47 @@
   text-shadow: 0 0 14px rgba(76, 175, 80, 0.38);
 }
 
+.rhythm-lab-summary-best {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin: 0 0 1rem;
+}
+
+.rhythm-lab-summary-best div {
+  min-width: 0;
+  padding: 0.55rem 0.6rem;
+  border: 1px solid rgba(255, 215, 0, 0.28);
+  border-radius: 0.4rem;
+  background: rgba(255, 215, 0, 0.08);
+  text-align: left;
+}
+
+.rhythm-lab-summary-best dt {
+  margin: 0 0 0.25rem;
+  overflow: hidden;
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 0.66rem;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.rhythm-lab-summary-best dd {
+  margin: 0;
+  color: #ffe58a;
+  font-size: 0.95rem;
+  font-weight: 900;
+}
+
+.rhythm-lab-summary-warning {
+  margin: 0 0 0.75rem;
+  color: #ffb8c0;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
 .rhythm-lab-summary-metrics {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1090,7 +1151,8 @@
   }
 
   .rhythm-lab-chart-selector,
-  .rhythm-lab-chart-empty {
+  .rhythm-lab-chart-empty,
+  .rhythm-lab-chart-best {
     grid-column: 1 / -1;
     width: 100%;
   }
@@ -1180,6 +1242,24 @@
 
   .rhythm-lab-summary-metrics {
     gap: 0.42rem;
+  }
+
+  .rhythm-lab-summary-best {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.42rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .rhythm-lab-summary-best div {
+    padding: 0.5rem 0.58rem;
+  }
+
+  .rhythm-lab-summary-best dt {
+    font-size: 0.62rem;
+  }
+
+  .rhythm-lab-summary-best dd {
+    font-size: 0.88rem;
   }
 
   .rhythm-lab-summary-metrics div {

@@ -19,14 +19,17 @@ import {
 import {
   getChartsForSong,
   getPreferences,
+  getRunsForChart,
   openRhythmLabDb,
   RHYTHM_LAB_PREFERENCES_ID,
   saveChart,
   savePreferences,
+  saveRun,
 } from "./library/rhythmLabDb";
 import type {
   RhythmLabChart,
   RhythmLabPreferences,
+  RhythmLabRun,
   RhythmLabSong,
 } from "./library/types";
 import { useLocalAudioFile } from "./useLocalAudioFile";
@@ -87,10 +90,14 @@ interface RhythmRunSummary {
   lateCount: number;
 }
 
+type BestRun = RhythmLabRun | null;
+
 const formatPercent = (value: number) => `${value.toFixed(1)}%`;
 
 const formatDelta = (value: number | null) =>
   value === null ? "N/A" : `${Math.round(value)}ms`;
+
+const formatScore = (value: number) => value.toLocaleString();
 
 const formatChartTimestamp = (timestamp: string) => {
   const date = new Date(timestamp);
@@ -138,6 +145,9 @@ const createChartPreference = (
 const createStoredChartId = (songId: string) =>
   `recorded-${encodeURIComponent(songId)}-${Date.now()}`;
 
+const createRunId = (chartId: string) =>
+  `run-${encodeURIComponent(chartId)}-${Date.now()}`;
+
 const formatRecordedChartName = (chartCount: number) =>
   `Recorded Chart ${chartCount + 1}`;
 
@@ -148,6 +158,15 @@ const toRuntimeChart = (chart: RhythmLabChart): RhythmChart => ({
   durationMs: chart.durationMs,
   notes: chart.notes,
 });
+
+const compareBestRuns = (first: RhythmLabRun, second: RhythmLabRun) => {
+  if (first.score !== second.score) return second.score - first.score;
+  if (first.accuracy !== second.accuracy) return second.accuracy - first.accuracy;
+  return second.playedAt.localeCompare(first.playedAt);
+};
+
+const getBestRun = (runs: RhythmLabRun[]): BestRun =>
+  runs.length ? [...runs].sort(compareBestRuns)[0] : null;
 
 const createRunSummary = (
   chartLabel: string,
@@ -198,6 +217,27 @@ const createRunSummary = (
   };
 };
 
+const createRunRecord = (
+  chartId: string,
+  songId: string | null,
+  summary: RhythmRunSummary
+): RhythmLabRun => ({
+  id: createRunId(chartId),
+  songId,
+  chartId,
+  score: summary.score,
+  maxCombo: summary.maxCombo,
+  accuracy: summary.accuracyPercent,
+  perfectCount: summary.perfectCount,
+  goodCount: summary.goodCount,
+  missCount: summary.missCount,
+  emptyMissCount: summary.emptyInputMissCount,
+  meanAbsDeltaMs: summary.meanAbsoluteDeltaMs,
+  earlyCount: summary.earlyCount,
+  lateCount: summary.lateCount,
+  playedAt: new Date().toISOString(),
+});
+
 const RhythmLab = () => {
   const {
     audioRef,
@@ -222,6 +262,8 @@ const RhythmLab = () => {
   const [chartStorageError, setChartStorageError] = useState<string | null>(
     null
   );
+  const [chartRuns, setChartRuns] = useState<RhythmLabRun[]>([]);
+  const [runStorageError, setRunStorageError] = useState<string | null>(null);
   const [recordingCount, setRecordingCount] = useState(0);
   const [isRecording, setIsRecording] = useState(false);
   const recordingNotesRef = useRef<ChartNote[]>([]);
@@ -229,10 +271,13 @@ const RhythmLab = () => {
   const lastRecordedByLaneRef = useRef<Partial<Record<LaneIndex, number>>>({});
   const dbRef = useRef<IDBDatabase | null>(null);
   const chartLoadRequestIdRef = useRef(0);
+  const runLoadRequestIdRef = useRef(0);
+  const completedRunSaveKeyRef = useRef<string | null>(null);
   const activeChart =
     activeChartMode === "recorded" && recordedChart
       ? recordedChart
       : starterChart;
+  const bestRun = useMemo(() => getBestRun(chartRuns), [chartRuns]);
   const rhythmClock = useMemo(
     () =>
       hasSelectedFile
@@ -754,6 +799,98 @@ const RhythmLab = () => {
     });
   }, [activeSongId, getDb, resetGame]);
 
+  const summaryChartLabel =
+    activeChartMode === "recorded" && recordedChart
+      ? "Recorded Chart"
+      : "Starter Chart";
+  const runSummary = useMemo(
+    () => createRunSummary(summaryChartLabel, score, maxCombo, judgments),
+    [judgments, maxCombo, score, summaryChartLabel]
+  );
+
+  useEffect(() => {
+    const requestId = runLoadRequestIdRef.current + 1;
+    runLoadRequestIdRef.current = requestId;
+    setChartRuns([]);
+    setRunStorageError(null);
+
+    const loadChartRuns = async () => {
+      const db = await getDb();
+      const runs = await getRunsForChart(db, activeChart.id);
+
+      if (requestId !== runLoadRequestIdRef.current) return;
+
+      setChartRuns(runs);
+      setRunStorageError(null);
+    };
+
+    void loadChartRuns().catch(() => {
+      if (requestId !== runLoadRequestIdRef.current) return;
+
+      setChartRuns([]);
+      setRunStorageError("Best stats could not be loaded.");
+    });
+  }, [activeChart.id, getDb]);
+
+  useEffect(() => {
+    if (phase !== "complete" || isRecording) {
+      completedRunSaveKeyRef.current = null;
+      return;
+    }
+
+    const completionKey = [
+      activeChart.id,
+      activeSongId ?? "songless",
+      score,
+      maxCombo,
+      judgments.length,
+      lastJudgment?.judgedAtMs ?? "no-judgment",
+    ].join(":");
+
+    if (completedRunSaveKeyRef.current === completionKey) return;
+    completedRunSaveKeyRef.current = completionKey;
+
+    const saveCompletedRun = async () => {
+      const db = await getDb();
+      const songId =
+        activeChartMode === "recorded" ? activeSongId : null;
+      const run = await saveRun(
+        db,
+        createRunRecord(activeChart.id, songId, runSummary)
+      );
+      const runs = await getRunsForChart(db, activeChart.id);
+
+      if (completedRunSaveKeyRef.current !== completionKey) return;
+
+      setChartRuns(
+        runs.some((currentRun) => currentRun.id === run.id)
+          ? runs
+          : [run, ...runs]
+      );
+      setRunStorageError(null);
+    };
+
+    void saveCompletedRun().catch(() => {
+      if (completedRunSaveKeyRef.current !== completionKey) return;
+
+      setRunStorageError(
+        "Run result could not be saved. Your summary is still available."
+      );
+    });
+  }, [
+    activeChart.id,
+    activeChartMode,
+    activeSongId,
+    getDb,
+    isRecording,
+    judgments.length,
+    lastJudgment?.judgedAtMs,
+    maxCombo,
+    phase,
+    runSummary,
+    score,
+  ]);
+
   useEffect(() => {
     if (judgmentReadoutTimeoutRef.current) {
       window.clearTimeout(judgmentReadoutTimeoutRef.current);
@@ -838,14 +975,11 @@ const RhythmLab = () => {
   const activeChartModeLabel =
     activeChartMode === "recorded" && recordedChart ? "Recorded" : "Starter";
   const activeAudioLabel = fileName ?? "Local audio";
-  const summaryChartLabel =
-    activeChartMode === "recorded" && recordedChart
-      ? "Recorded Chart"
-      : "Starter Chart";
-  const runSummary = useMemo(
-    () => createRunSummary(summaryChartLabel, score, maxCombo, judgments),
-    [judgments, maxCombo, score, summaryChartLabel]
-  );
+  const chartBestLabel = bestRun
+    ? `Best: ${formatScore(bestRun.score)} · ${formatPercent(
+        bestRun.accuracy
+      )} · Combo ${bestRun.maxCombo}`
+    : "No runs yet";
 
   useEffect(() => {
     if (phase === "complete") {
@@ -1011,6 +1145,11 @@ const RhythmLab = () => {
                       {chartStorageError}
                     </small>
                   )}
+                  {runStorageError && phase !== "complete" && (
+                    <small className="rhythm-lab-audio-error">
+                      {runStorageError}
+                    </small>
+                  )}
                 </div>
                 {hasSelectedFile && (
                   <div
@@ -1060,6 +1199,12 @@ const RhythmLab = () => {
                         </span>
                       )
                     )}
+                    <span
+                      className="rhythm-lab-chart-best"
+                      aria-label={`Selected chart best stats: ${chartBestLabel}`}
+                    >
+                      {chartBestLabel}
+                    </span>
                     <button
                       className="rhythm-lab-record-button"
                       type="button"
@@ -1217,6 +1362,27 @@ const RhythmLab = () => {
                   <span>Final score</span>
                   <strong>{runSummary.score}</strong>
                 </div>
+                <dl className="rhythm-lab-summary-best">
+                  <div>
+                    <dt>Best score</dt>
+                    <dd>{bestRun ? bestRun.score : "N/A"}</dd>
+                  </div>
+                  <div>
+                    <dt>Best accuracy</dt>
+                    <dd>
+                      {bestRun ? formatPercent(bestRun.accuracy) : "N/A"}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Best combo</dt>
+                    <dd>{bestRun ? bestRun.maxCombo : "N/A"}</dd>
+                  </div>
+                </dl>
+                {runStorageError && (
+                  <p className="rhythm-lab-summary-warning">
+                    {runStorageError}
+                  </p>
+                )}
                 <dl className="rhythm-lab-summary-metrics">
                   <div>
                     <dt>Max combo</dt>
