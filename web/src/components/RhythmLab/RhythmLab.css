@@ -533,10 +533,48 @@
   box-shadow:
     inset 0 0 34px rgba(76, 175, 80, 0.12),
     0 18px 44px rgba(0, 0, 0, 0.38);
-  transition:
-    border-color 0.12s ease,
-    box-shadow 0.12s ease,
-    background-color 0.12s ease;
+}
+
+.rhythm-lab-highway::before,
+.rhythm-lab-highway::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.12s ease;
+}
+
+.rhythm-lab-highway::before {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(76, 175, 80, 0.035),
+      rgba(255, 215, 0, 0.05)
+    ),
+    radial-gradient(
+      circle at 50% var(--rhythm-line-y),
+      rgba(255, 215, 0, 0.11),
+      transparent 38%
+    );
+}
+
+.rhythm-lab-highway::after {
+  inset: 0.15rem;
+  border: 1px solid rgba(255, 215, 0, 0.22);
+  border-radius: 0.5rem;
+  box-shadow:
+    inset 0 0 26px rgba(76, 175, 80, 0.14),
+    inset 0 0 18px rgba(255, 215, 0, 0.08);
+}
+
+.rhythm-lab-hot-streak .rhythm-lab-highway::before {
+  opacity: 1;
+}
+
+.rhythm-lab-hot-streak .rhythm-lab-highway::after {
+  opacity: 0.9;
 }
 
 .rhythm-lab-track {
@@ -549,10 +587,6 @@
 .rhythm-lab-lane {
   position: relative;
   border-left: 1px solid rgba(76, 175, 80, 0.22);
-  transition:
-    border-color 0.12s ease,
-    background-color 0.12s ease,
-    box-shadow 0.12s ease;
 }
 
 .rhythm-lab-lane:first-child {
@@ -561,38 +595,6 @@
 
 .rhythm-lab-lane-input {
   background: rgba(76, 175, 80, 0.045);
-}
-
-.rhythm-lab-hot-streak .rhythm-lab-highway {
-  border-color: rgba(255, 215, 0, 0.42);
-  background:
-    linear-gradient(
-      180deg,
-      rgba(18, 25, 13, 0.94),
-      rgba(4, 6, 4, 0.95)
-    ),
-    repeating-linear-gradient(
-      0deg,
-      rgba(255, 215, 0, 0.055) 0,
-      rgba(255, 215, 0, 0.055) 1px,
-      transparent 1px,
-      transparent 42px
-    );
-  box-shadow:
-    inset 0 0 38px rgba(76, 175, 80, 0.18),
-    inset 0 0 26px rgba(255, 215, 0, 0.08),
-    0 18px 44px rgba(0, 0, 0, 0.38),
-    0 0 22px rgba(76, 175, 80, 0.12);
-}
-
-.rhythm-lab-hot-streak .rhythm-lab-lane {
-  border-left-color: rgba(255, 215, 0, 0.28);
-  background: rgba(76, 175, 80, 0.025);
-  box-shadow: inset 0 0 24px rgba(255, 215, 0, 0.035);
-}
-
-.rhythm-lab-hot-streak .rhythm-lab-lane:first-child {
-  border-left-color: transparent;
 }
 
 .rhythm-lab-lane-label {
@@ -652,6 +654,22 @@
   border-radius: 999px;
 }
 
+.rhythm-lab-target-window::before {
+  content: "";
+  position: absolute;
+  inset: -0.35rem 0;
+  border-radius: 999px;
+  background: rgba(255, 215, 0, 0.1);
+  filter: blur(0.42rem);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.12s ease;
+}
+
+.rhythm-lab-hot-streak .rhythm-lab-target-window::before {
+  opacity: 0.62;
+}
+
 .rhythm-lab-target-window-line {
   position: absolute;
   left: 0;
@@ -676,13 +694,6 @@
 .rhythm-lab-target-input .rhythm-lab-target-window-line {
   background: rgba(76, 175, 80, 0.78);
   box-shadow: 0 0 14px rgba(76, 175, 80, 0.52);
-}
-
-.rhythm-lab-hot-streak .rhythm-lab-target-window-line {
-  background: rgba(255, 215, 0, 0.42);
-  box-shadow:
-    0 0 12px rgba(255, 215, 0, 0.24),
-    0 0 10px rgba(76, 175, 80, 0.28);
 }
 
 .rhythm-lab-target-hit .rhythm-lab-target-window-line {
@@ -1362,8 +1373,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .rhythm-lab-lane,
-  .rhythm-lab-highway,
+  .rhythm-lab-highway::before,
+  .rhythm-lab-highway::after,
+  .rhythm-lab-target-window::before,
   .rhythm-lab-target-window-line,
   .rhythm-lab-hit-zone,
   .rhythm-lab-primary-action {
