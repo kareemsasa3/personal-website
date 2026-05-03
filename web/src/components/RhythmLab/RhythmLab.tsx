@@ -776,11 +776,11 @@ const RhythmLab = () => {
             ))}
           </div>
 
-          <div className="rhythm-lab-judgment-line" aria-hidden="true">
+          <div className="rhythm-lab-target-windows" aria-hidden="true">
             {lanes.map((lane) => (
               <span
                 key={lane.index}
-                className={`${
+                className={`rhythm-lab-target-window ${
                   inputFeedbackExpiries[lane.index]
                     ? "rhythm-lab-target-input"
                     : ""
@@ -789,7 +789,10 @@ const RhythmLab = () => {
                     ? "rhythm-lab-target-hit"
                     : ""
                 }`}
-              />
+              >
+                <span className="rhythm-lab-target-window-line rhythm-lab-target-window-line-top" />
+                <span className="rhythm-lab-target-window-line rhythm-lab-target-window-line-bottom" />
+              </span>
             ))}
           </div>
 

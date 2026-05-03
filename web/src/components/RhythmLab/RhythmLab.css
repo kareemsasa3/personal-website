@@ -384,6 +384,8 @@
 }
 
 .rhythm-lab-highway {
+  --rhythm-note-width: min(58%, 6.25rem);
+  --rhythm-note-height: clamp(2.2rem, 6vh, 3.3rem);
   position: relative;
   width: min(86vw, 760px);
   height: min(74vh, 760px);
@@ -452,8 +454,8 @@
   position: absolute;
   top: 0;
   left: 50%;
-  width: min(58%, 6.25rem);
-  height: clamp(2.2rem, 6vh, 3.3rem);
+  width: var(--rhythm-note-width);
+  height: var(--rhythm-note-height);
   transform: translate3d(-50%, -50%, 0);
   border: 1px solid rgba(255, 215, 0, 0.9);
   border-radius: 0.45rem;
@@ -464,7 +466,7 @@
   pointer-events: none;
 }
 
-.rhythm-lab-judgment-line {
+.rhythm-lab-target-windows {
   position: absolute;
   top: var(--rhythm-line-y);
   left: 0;
@@ -476,10 +478,18 @@
   pointer-events: none;
 }
 
-.rhythm-lab-judgment-line span {
+.rhythm-lab-target-window {
   position: relative;
   justify-self: center;
-  width: min(58%, 6.25rem);
+  width: var(--rhythm-note-width);
+  height: var(--rhythm-note-height);
+  border-radius: 999px;
+}
+
+.rhythm-lab-target-window-line {
+  position: absolute;
+  left: 0;
+  right: 0;
   height: 2px;
   border-radius: 999px;
   background: rgba(76, 175, 80, 0.5);
@@ -489,19 +499,27 @@
     box-shadow 0.08s ease;
 }
 
-.rhythm-lab-judgment-line .rhythm-lab-target-input {
+.rhythm-lab-target-window-line-top {
+  top: 0;
+}
+
+.rhythm-lab-target-window-line-bottom {
+  bottom: 0;
+}
+
+.rhythm-lab-target-input .rhythm-lab-target-window-line {
   background: rgba(76, 175, 80, 0.78);
   box-shadow: 0 0 14px rgba(76, 175, 80, 0.52);
 }
 
-.rhythm-lab-judgment-line .rhythm-lab-target-hit {
+.rhythm-lab-target-hit .rhythm-lab-target-window-line {
   background: rgba(255, 215, 0, 0.72);
   box-shadow:
     0 0 14px rgba(255, 215, 0, 0.42),
     0 0 10px rgba(76, 175, 80, 0.34);
 }
 
-.rhythm-lab-judgment-line .rhythm-lab-target-hit::after {
+.rhythm-lab-target-hit::after {
   content: "";
   position: absolute;
   left: 50%;
@@ -1001,7 +1019,12 @@
 
   .rhythm-lab-note {
     width: 68%;
-    height: 2.75rem;
+    height: var(--rhythm-note-height);
+  }
+
+  .rhythm-lab-highway {
+    --rhythm-note-width: 68%;
+    --rhythm-note-height: 2.75rem;
   }
 
   .rhythm-lab-summary-panel {
@@ -1074,13 +1097,13 @@
 
 @media (prefers-reduced-motion: reduce) {
   .rhythm-lab-lane,
-  .rhythm-lab-judgment-line span,
+  .rhythm-lab-target-window-line,
   .rhythm-lab-hit-zone,
   .rhythm-lab-primary-action {
     transition: none;
   }
 
-  .rhythm-lab-judgment-line .rhythm-lab-target-hit::after {
+  .rhythm-lab-target-hit::after {
     animation: none;
   }
 

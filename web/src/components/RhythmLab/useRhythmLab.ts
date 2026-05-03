@@ -386,8 +386,7 @@ export const useRhythmLab = (
         .map((note) => ({
           id: note.id,
           lane: note.lane,
-          progress:
-            1 - Math.max(0, note.timeMs - state.elapsedMs) / NOTE_TRAVEL_MS,
+          progress: 1 - (note.timeMs - state.elapsedMs) / NOTE_TRAVEL_MS,
         })),
     [chart.notes, state.completedNotes, state.elapsedMs]
   );
