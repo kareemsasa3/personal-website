@@ -76,10 +76,11 @@ const RhythmLab = () => {
   const [activeChartMode, setActiveChartMode] =
     useState<ActiveChartMode>("starter");
   const [recordedChart, setRecordedChart] = useState<RhythmChart | null>(null);
-  const [recordingNotes, setRecordingNotes] = useState<ChartNote[]>([]);
+  const [recordingCount, setRecordingCount] = useState(0);
   const [isRecording, setIsRecording] = useState(false);
   const recordingNotesRef = useRef<ChartNote[]>([]);
   const recordingSequenceRef = useRef(0);
+  const lastRecordedByLaneRef = useRef<Partial<Record<LaneIndex, number>>>({});
   const activeChart =
     activeChartMode === "recorded" && recordedChart
       ? recordedChart
@@ -158,6 +159,13 @@ const RhythmLab = () => {
     requestAnimationFrame(() => gameRef.current?.focus());
   }, []);
 
+  const resetRecordingDraft = useCallback(() => {
+    recordingNotesRef.current = [];
+    recordingSequenceRef.current = 0;
+    lastRecordedByLaneRef.current = {};
+    setRecordingCount(0);
+  }, []);
+
   const startGame = useCallback(async () => {
     const canPlay = await playFromStart();
     if (!canPlay) return;
@@ -182,15 +190,13 @@ const RhythmLab = () => {
   }, [focusGame, resumePlayback]);
 
   const clearRecordedChart = useCallback(() => {
-    recordingNotesRef.current = [];
-    recordingSequenceRef.current = 0;
-    setRecordingNotes([]);
+    resetRecordingDraft();
     setRecordedChart(null);
     setActiveChartMode("starter");
     setIsRecording(false);
     setVisibleJudgment(null);
     resetGame();
-  }, [resetGame]);
+  }, [resetGame, resetRecordingDraft]);
 
   const handleAudioFileChange = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
@@ -209,22 +215,21 @@ const RhythmLab = () => {
     const canPlay = await playFromStart();
     if (!canPlay) return;
 
-    recordingNotesRef.current = [];
-    recordingSequenceRef.current = 0;
-    setRecordingNotes([]);
+    resetRecordingDraft();
     setRecordedChart(null);
     setActiveChartMode("starter");
     setIsRecording(true);
     setVisibleJudgment(null);
     resetGame();
     focusGame();
-  }, [focusGame, hasSelectedFile, playFromStart, resetGame]);
+  }, [focusGame, hasSelectedFile, playFromStart, resetGame, resetRecordingDraft]);
 
   const stopRecording = useCallback(() => {
     if (!isRecording) return;
 
     pausePlayback();
     const nextChart = createRecordedChart(recordingNotesRef.current);
+    setRecordingCount(recordingNotesRef.current.length);
     setRecordedChart(nextChart);
     setActiveChartMode("recorded");
     setIsRecording(false);
@@ -314,13 +319,11 @@ const RhythmLab = () => {
       if (isRecording) {
         const audio = audioRef.current;
         const timeMs = audio ? Math.round(audio.currentTime * 1000) : 0;
-        const lastSameLaneNote = [...recordingNotesRef.current]
-          .reverse()
-          .find((note) => note.lane === lane);
+        const lastSameLaneNoteMs = lastRecordedByLaneRef.current[lane];
 
         if (
-          lastSameLaneNote &&
-          Math.abs(timeMs - lastSameLaneNote.timeMs) <= RECORDING_DEDUPE_MS
+          lastSameLaneNoteMs !== undefined &&
+          Math.abs(timeMs - lastSameLaneNoteMs) <= RECORDING_DEDUPE_MS
         ) {
           return;
         }
@@ -335,8 +338,9 @@ const RhythmLab = () => {
           timeMs,
         };
 
-        recordingNotesRef.current = [...recordingNotesRef.current, note];
-        setRecordingNotes(recordingNotesRef.current);
+        recordingNotesRef.current.push(note);
+        lastRecordedByLaneRef.current[lane] = timeMs;
+        setRecordingCount(recordingNotesRef.current.length);
         showHitFeedback(lane);
         return;
       }
@@ -445,12 +449,16 @@ const RhythmLab = () => {
     "--rhythm-line-y": `${RHYTHM_LINE_PERCENT}%`,
   } as CSSProperties;
   const chartModeLabel = isRecording
-    ? `Recording mode - ${recordingNotes.length} taps`
+    ? `Recording mode - ${recordingCount} taps`
     : activeChartMode === "recorded" && recordedChart
       ? `Recorded chart - ${recordedChart.notes.length} notes`
       : hasSelectedFile
         ? "Starter chart - local audio clock"
         : "Starter chart - silent static clock";
+  const isActiveSession = phase === "playing" || isRecording;
+  const activeChartModeLabel =
+    activeChartMode === "recorded" && recordedChart ? "Recorded" : "Starter";
+  const activeAudioLabel = fileName ?? "Local audio";
 
   useEffect(() => {
     if (phase === "complete") {
@@ -479,111 +487,163 @@ const RhythmLab = () => {
   return (
     <div
       ref={gameRef}
-      className={`rhythm-lab ${isRecording ? "rhythm-lab-recording" : ""}`}
+      className={`rhythm-lab ${isRecording ? "rhythm-lab-recording" : ""} ${
+        isActiveSession ? "rhythm-lab-active-session" : ""
+      }`}
       tabIndex={0}
       aria-label="Rhythm Lab three lane timing prototype"
     >
       <header className="rhythm-lab-header">
         <div className="rhythm-lab-header-copy">
-          <p className="rhythm-lab-eyebrow">Interaction Systems Experiment</p>
-          <div className="rhythm-lab-title-row">
-            <Link className="rhythm-lab-back-link" to="/games">
-              Games
-            </Link>
-            <h1>Rhythm Lab</h1>
-          </div>
-          <div className="rhythm-lab-audio-panel">
-            <label className="rhythm-lab-audio-picker">
-              <span>Local audio</span>
-              <input
-                className="rhythm-lab-audio-input"
-                type="file"
-                accept="audio/*"
-                aria-label="Choose local audio file"
-                onChange={handleAudioFileChange}
-              />
-              <span className="rhythm-lab-audio-picker-button" aria-hidden="true">
-                Choose file
-              </span>
-            </label>
-            <div className="rhythm-lab-audio-details" aria-live="polite">
-              <span
-                className="rhythm-lab-audio-filename"
-                title={fileName ?? "No audio selected"}
-                aria-label={fileName ?? "No audio selected"}
-              >
-                {fileName ? fileName : "No audio selected"}
-              </span>
-              <small>Local only. Not uploaded or stored.</small>
-              {audioError && (
-                <small className="rhythm-lab-audio-error">{audioError}</small>
-              )}
-            </div>
-            {isPausedAfterVisibilityChange && phase === "playing" && (
-              <button
-                className="rhythm-lab-audio-resume"
-                type="button"
-                onClick={resumeAudio}
-              >
-                Resume audio
-              </button>
-            )}
-            {hasSelectedFile && (
-              <div
-                className="rhythm-lab-recording-controls"
-                aria-label="Chart recording controls"
-              >
-                <button
-                  className="rhythm-lab-chart-mode-button"
-                  type="button"
-                  aria-pressed={activeChartMode === "starter"}
-                  disabled={isRecording}
-                  onClick={() => selectActiveChartMode("starter")}
+          {isActiveSession ? (
+            <div
+              className="rhythm-lab-active-bar"
+              aria-label="Active session controls"
+            >
+              <Link className="rhythm-lab-back-link" to="/games">
+                Games
+              </Link>
+              <div className="rhythm-lab-active-context" aria-live="polite">
+                <span
+                  className="rhythm-lab-active-filename"
+                  title={activeAudioLabel}
+                  aria-label={activeAudioLabel}
                 >
-                  Starter chart
-                </button>
-                {recordedChart && (
+                  {activeAudioLabel}
+                </span>
+                <span className="rhythm-lab-active-chip rhythm-lab-active-chart">
+                  {activeChartModeLabel}
+                </span>
+                <span
+                  className={`rhythm-lab-active-chip rhythm-lab-active-status ${
+                    isRecording ? "rhythm-lab-active-chip-recording" : ""
+                  }`}
+                >
+                  {isRecording ? `${recordingCount} taps` : "Playing"}
+                </span>
+              </div>
+              <div className="rhythm-lab-active-actions">
+                {isPausedAfterVisibilityChange && phase === "playing" && (
                   <button
-                    className="rhythm-lab-chart-mode-button"
+                    className="rhythm-lab-compact-action"
                     type="button"
-                    aria-pressed={activeChartMode === "recorded"}
-                    disabled={isRecording}
-                    onClick={() => selectActiveChartMode("recorded")}
+                    onClick={resumeAudio}
                   >
-                    Recorded chart
+                    Resume
                   </button>
                 )}
                 {isRecording ? (
                   <button
-                    className="rhythm-lab-record-button rhythm-lab-record-button-active"
+                    className="rhythm-lab-compact-action rhythm-lab-compact-action-danger"
                     type="button"
                     onClick={stopRecording}
                   >
-                    Stop recording
+                    Stop
                   </button>
                 ) : (
                   <button
-                    className="rhythm-lab-record-button"
+                    className="rhythm-lab-compact-action"
                     type="button"
                     onClick={() => {
-                      void startRecording();
+                      void restartGame();
                     }}
                   >
-                    Record chart
-                  </button>
-                )}
-                {recordedChart && !isRecording && (
-                  <button
-                    className="rhythm-lab-clear-recording"
-                    type="button"
-                    onClick={clearRecordedChart}
-                  >
-                    Clear
+                    Restart
                   </button>
                 )}
               </div>
-            )}
-          </div>
+            </div>
+          ) : (
+            <>
+              <p className="rhythm-lab-eyebrow">
+                Interaction Systems Experiment
+              </p>
+              <div className="rhythm-lab-title-row">
+                <Link className="rhythm-lab-back-link" to="/games">
+                  Games
+                </Link>
+                <h1>Rhythm Lab</h1>
+              </div>
+              <div className="rhythm-lab-audio-panel">
+                <label className="rhythm-lab-audio-picker">
+                  <span>Local audio</span>
+                  <input
+                    className="rhythm-lab-audio-input"
+                    type="file"
+                    accept="audio/*"
+                    aria-label="Choose local audio file"
+                    onChange={handleAudioFileChange}
+                  />
+                  <span
+                    className="rhythm-lab-audio-picker-button"
+                    aria-hidden="true"
+                  >
+                    Choose file
+                  </span>
+                </label>
+                <div className="rhythm-lab-audio-details" aria-live="polite">
+                  <span
+                    className="rhythm-lab-audio-filename"
+                    title={fileName ?? "No audio selected"}
+                    aria-label={fileName ?? "No audio selected"}
+                  >
+                    {fileName ? fileName : "No audio selected"}
+                  </span>
+                  <small>Local only. Not uploaded or stored.</small>
+                  {audioError && (
+                    <small className="rhythm-lab-audio-error">
+                      {audioError}
+                    </small>
+                  )}
+                </div>
+                {hasSelectedFile && (
+                  <div
+                    className="rhythm-lab-recording-controls"
+                    aria-label="Chart recording controls"
+                  >
+                    <button
+                      className="rhythm-lab-chart-mode-button"
+                      type="button"
+                      aria-pressed={activeChartMode === "starter"}
+                      disabled={isRecording}
+                      onClick={() => selectActiveChartMode("starter")}
+                    >
+                      Starter chart
+                    </button>
+                    {recordedChart && (
+                      <button
+                        className="rhythm-lab-chart-mode-button"
+                        type="button"
+                        aria-pressed={activeChartMode === "recorded"}
+                        disabled={isRecording}
+                        onClick={() => selectActiveChartMode("recorded")}
+                      >
+                        Recorded chart
+                      </button>
+                    )}
+                    <button
+                      className="rhythm-lab-record-button"
+                      type="button"
+                      onClick={() => {
+                        void startRecording();
+                      }}
+                    >
+                      Record chart
+                    </button>
+                    {recordedChart && (
+                      <button
+                        className="rhythm-lab-clear-recording"
+                        type="button"
+                        onClick={clearRecordedChart}
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
         </div>
         <div className="rhythm-lab-hud" aria-live="polite">
           <span>Score {score}</span>
@@ -615,16 +675,18 @@ const RhythmLab = () => {
                   .map((note) => (
                     <span
                       key={note.id}
-                      className="rhythm-lab-note"
+                      className="rhythm-lab-note-motion"
                       style={{
-                        top: `${
+                        "--rhythm-note-y": `${
                           Math.min(
                             note.progress,
                             NOTE_OVERSHOOT_MULTIPLIER
                           ) * RHYTHM_LINE_PERCENT
                         }%`,
-                      }}
-                    />
+                      } as CSSProperties}
+                    >
+                      <span className="rhythm-lab-note" />
+                    </span>
                   ))}
               </div>
             ))}
@@ -669,7 +731,7 @@ const RhythmLab = () => {
                 className="rhythm-lab-status-readout rhythm-lab-status-recording"
               >
                 <span>Recording</span>
-                <small>{recordingNotes.length} taps</small>
+                <small>{recordingCount} taps</small>
               </div>
             ) : (
               phase === "ready" && (
