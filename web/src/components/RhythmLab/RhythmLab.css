@@ -1,5 +1,7 @@
 .rhythm-lab {
   width: 100%;
+  min-width: 0;
+  max-width: 100%;
   min-height: 100vh;
   min-height: 100dvh;
   padding: clamp(0.75rem, 2vw, 1.5rem);
@@ -377,6 +379,7 @@
 }
 
 .rhythm-lab-stage {
+  min-width: 0;
   min-height: 0;
   display: flex;
   align-items: center;
@@ -391,6 +394,7 @@
   height: min(74vh, 760px);
   height: min(74dvh, 760px);
   min-height: 440px;
+  box-sizing: border-box;
   overflow: hidden;
   border: 1px solid rgba(76, 175, 80, 0.55);
   border-radius: 0.65rem;
@@ -700,16 +704,20 @@
   align-items: center;
   justify-content: center;
   padding: 1rem;
+  box-sizing: border-box;
   background: rgba(0, 0, 0, 0.68);
   backdrop-filter: blur(3px);
 }
 
 .rhythm-lab-overlay-panel {
   width: min(100%, 25rem);
+  min-width: 0;
+  max-width: 100%;
   padding: 1.25rem;
   border: 1px solid rgba(76, 175, 80, 0.55);
   border-radius: 0.65rem;
   background: rgba(0, 0, 0, 0.78);
+  box-sizing: border-box;
   text-align: center;
   box-shadow: 0 0 24px rgba(76, 175, 80, 0.18);
 }
@@ -720,6 +728,7 @@
   color: rgba(255, 255, 255, 0.72);
   font-size: 0.88rem;
   line-height: 1.5;
+  overflow-wrap: anywhere;
 }
 
 .rhythm-lab-overlay-panel h2 {
@@ -972,7 +981,10 @@
 
   .rhythm-lab-hud {
     justify-content: stretch;
+    width: 100%;
+    min-width: 0;
     max-width: none;
+    box-sizing: border-box;
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 0.4rem;
@@ -989,18 +1001,27 @@
     font-size: 0.7rem;
   }
 
+  .rhythm-lab-stage {
+    align-items: stretch;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
   .rhythm-lab-highway {
-    width: min(100%, 430px);
-    height: calc(100vh - 13.5rem);
-    height: calc(100dvh - 13.5rem);
-    min-height: 360px;
+    width: 100%;
+    max-width: 430px;
+    height: 100%;
+    max-height: 100%;
+    min-width: 0;
+    min-height: 0;
     border-radius: 0.5rem;
   }
 
   .rhythm-lab-active-session .rhythm-lab-highway {
-    height: calc(100vh - 7rem);
-    height: calc(100dvh - 7rem);
-    min-height: min(430px, calc(100dvh - 7rem));
+    height: 100%;
+    max-height: 100%;
+    min-height: 0;
   }
 
   .rhythm-lab-hit-zones {
@@ -1067,9 +1088,8 @@
 
 @media (max-width: 380px) {
   .rhythm-lab-highway {
-    height: calc(100vh - 13rem);
-    height: calc(100dvh - 13rem);
-    min-height: 340px;
+    height: 100%;
+    min-height: 0;
   }
 
   .rhythm-lab-active-bar {
@@ -1085,9 +1105,8 @@
   }
 
   .rhythm-lab-active-session .rhythm-lab-highway {
-    height: calc(100vh - 6.5rem);
-    height: calc(100dvh - 6.5rem);
-    min-height: min(360px, calc(100dvh - 6.5rem));
+    height: 100%;
+    min-height: 0;
   }
 
   .rhythm-lab-hit-zone {
