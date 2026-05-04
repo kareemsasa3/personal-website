@@ -130,6 +130,9 @@ export const createChartPreference = (
 export const createStoredChartId = (songId: string) =>
   `recorded-${encodeURIComponent(songId)}-${Date.now()}`;
 
+export const createImportedChartId = (songId: string) =>
+  `imported-${encodeURIComponent(songId)}-${Date.now()}`;
+
 const createRunId = (chartId: string) =>
   `run-${encodeURIComponent(chartId)}-${Date.now()}`;
 

@@ -23,6 +23,7 @@ interface ChartControlsProps {
   onCancelRename: () => void;
   onSaveRename: () => void;
   onDeleteChart: () => void;
+  onImportChart: () => void;
   onExportChart: () => void;
   onChartNameChange: (name: string) => void;
 }
@@ -45,6 +46,7 @@ const ChartControls = ({
   onCancelRename,
   onSaveRename,
   onDeleteChart,
+  onImportChart,
   onExportChart,
   onChartNameChange,
 }: ChartControlsProps) => (
@@ -103,6 +105,13 @@ const ChartControls = ({
       onClick={onStartRecording}
     >
       Record chart
+    </button>
+    <button
+      className="rhythm-lab-record-button"
+      type="button"
+      onClick={onImportChart}
+    >
+      Import chart
     </button>
     {hasSelectedRecordedChart && (
       <div

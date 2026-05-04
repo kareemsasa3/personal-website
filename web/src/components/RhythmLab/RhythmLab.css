@@ -2025,3 +2025,20 @@
 .rhythm-lab-delete-dialog-copy p:last-child {
   margin-bottom: 0;
 }
+
+.rhythm-lab-hidden-file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.rhythm-lab-import-status {
+  margin: 0.35rem 0 0;
+  color: rgba(255, 183, 77, 0.85);
+  font-size: 0.82rem;
+  line-height: 1.4;
+}

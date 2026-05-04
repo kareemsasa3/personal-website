@@ -27,11 +27,17 @@ import RhythmHighway from "./RhythmHighway";
 import RunAnalyticsPanel from "./RunAnalyticsPanel";
 import RunHistoryPanel from "./RunHistoryPanel";
 import {
+  type RhythmLabChartExportV1,
   createChartExportPayload,
   createChartExportFilename,
   downloadJsonFile,
 } from "./chartExport";
+import {
+  parseRhythmLabChartExportFile,
+  doesExportedSongMatchActiveSong,
+} from "./chartImport";
 import DeleteChartDialog from "./DeleteChartDialog";
+import ImportChartMismatchDialog from "./ImportChartMismatchDialog";
 import RunSummaryPanel from "./RunSummaryPanel";
 import SongControls from "./SongControls";
 import {
@@ -84,7 +90,11 @@ const RhythmLab = () => {
   const [chartPendingDelete, setChartPendingDelete] =
     useState<RhythmLabChart | null>(null);
   const gameRef = useRef<HTMLDivElement>(null);
+  const importFileInputRef = useRef<HTMLInputElement>(null);
   const judgmentReadoutTimeoutRef = useRef<number | null>(null);
+  const [pendingImportPayload, setPendingImportPayload] =
+    useState<RhythmLabChartExportV1 | null>(null);
+  const [importStatus, setImportStatus] = useState<string | null>(null);
 
   const getDb = useCallback(async () => {
     if (dbRef.current) return dbRef.current;
@@ -145,6 +155,7 @@ const RhythmLab = () => {
     cancelChartRename,
     saveChartRename,
     deleteSelectedChart,
+    importChart,
     saveRecordedChart,
     resetChartManagement,
     setRecordedChart,
@@ -453,8 +464,8 @@ const RhythmLab = () => {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      // Let the delete-chart dialog handle its own keyboard events.
-      if (chartPendingDelete) return;
+      // Let modal dialogs handle their own keyboard events.
+      if (chartPendingDelete || pendingImportPayload) return;
 
       if (event.key === "Escape") {
         event.preventDefault();
@@ -500,7 +511,7 @@ const RhythmLab = () => {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [chartPendingDelete, handleLaneInput, isRecording, pauseRun, phase, restartGame, resumeRun]);
+  }, [chartPendingDelete, handleLaneInput, isRecording, pauseRun, pendingImportPayload, phase, restartGame, resumeRun]);
 
   const confirmDeleteChart = useCallback(() => {
     if (!chartPendingDelete) return;
@@ -525,6 +536,82 @@ const RhythmLab = () => {
     );
     downloadJsonFile(filename, payload);
   }, [activeSong, selectedRecordedChart]);
+
+  const completeImport = useCallback(
+    async (payload: RhythmLabChartExportV1) => {
+      try {
+        const label = await importChart(payload);
+        setImportStatus(`Imported \u201c${label}\u201d`);
+        focusGame();
+      } catch (error) {
+        setImportStatus(
+          error instanceof Error
+            ? error.message
+            : "Chart could not be imported."
+        );
+      }
+    },
+    [focusGame, importChart]
+  );
+
+  const handleImportFileSelected = useCallback(
+    async (event: ChangeEvent<HTMLInputElement>) => {
+      const file = event.currentTarget.files?.[0];
+      event.currentTarget.value = "";
+
+      if (!file) return;
+
+      if (!activeSong) {
+        setImportStatus("Select a song before importing a chart.");
+        return;
+      }
+
+      setImportStatus(null);
+
+      const payload = await parseRhythmLabChartExportFile(file);
+      if (!payload) {
+        setImportStatus("This is not a valid Rhythm Lab chart export.");
+        return;
+      }
+
+      if (payload.chart.notes.length === 0) {
+        setImportStatus("This chart export has no valid notes.");
+        return;
+      }
+
+      if (
+        payload.song &&
+        !doesExportedSongMatchActiveSong(payload.song, activeSong)
+      ) {
+        setPendingImportPayload(payload);
+        return;
+      }
+
+      void completeImport(payload);
+    },
+    [activeSong, completeImport]
+  );
+
+  const triggerImportFilePicker = useCallback(() => {
+    if (!activeSong) {
+      setImportStatus("Select a song before importing a chart.");
+      return;
+    }
+
+    setImportStatus(null);
+    importFileInputRef.current?.click();
+  }, [activeSong]);
+
+  const confirmMismatchImport = useCallback(() => {
+    if (!pendingImportPayload) return;
+    const payload = pendingImportPayload;
+    setPendingImportPayload(null);
+    void completeImport(payload);
+  }, [completeImport, pendingImportPayload]);
+
+  const cancelMismatchImport = useCallback(() => {
+    setPendingImportPayload(null);
+  }, []);
 
   const handleLanePointerDown = (
     event: PointerEvent<HTMLButtonElement>,
@@ -706,9 +793,26 @@ const RhythmLab = () => {
                               setChartPendingDelete(selectedRecordedChart);
                             }
                           }}
+                          onImportChart={triggerImportFilePicker}
                           onExportChart={exportSelectedChart}
                           onChartNameChange={setChartNameDraft}
                         />
+                      )}
+                      <input
+                        ref={importFileInputRef}
+                        type="file"
+                        accept=".json,.rhythm-chart.json,application/json"
+                        className="rhythm-lab-hidden-file-input"
+                        tabIndex={-1}
+                        aria-hidden="true"
+                        onChange={(event) => {
+                          void handleImportFileSelected(event);
+                        }}
+                      />
+                      {importStatus && (
+                        <p className="rhythm-lab-import-status" role="status">
+                          {importStatus}
+                        </p>
                       )}
                     </>
                   )}
@@ -793,6 +897,17 @@ const RhythmLab = () => {
           noteCount={chartPendingDelete.notes.length}
           onCancel={cancelDeleteChart}
           onConfirm={confirmDeleteChart}
+        />
+      )}
+
+      {pendingImportPayload && (
+        <ImportChartMismatchDialog
+          exportedSongTitle={
+            pendingImportPayload.song?.title ?? "Unknown song"
+          }
+          currentSongTitle={activeSong?.title ?? "Unknown song"}
+          onCancel={cancelMismatchImport}
+          onConfirm={confirmMismatchImport}
         />
       )}
     </div>

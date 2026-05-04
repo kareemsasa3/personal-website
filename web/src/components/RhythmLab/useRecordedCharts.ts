@@ -12,7 +12,9 @@ import {
 import type { RhythmLabChart } from "./library/types";
 import {
   type ActiveChartMode,
+  CHART_NAME_MAX_LENGTH,
   createChartPreference,
+  createImportedChartId,
   createStoredChartId,
   DEFAULT_SCROLL_SPEED,
   formatRecordedChartName,
@@ -20,6 +22,12 @@ import {
   sortRecordedChartsNewestFirst,
   toRuntimeChart,
 } from "./helpers";
+import type { RhythmLabChartExportV1 } from "./chartExport";
+import {
+  createImportedChartLabel,
+  normalizeImportedChartNotes,
+} from "./chartImport";
+import type { RhythmLabChartDifficulty } from "./library/types";
 
 interface UseRecordedChartsParams {
   getDb: () => Promise<IDBDatabase>;
@@ -82,7 +90,7 @@ export const useRecordedCharts = ({
         (chart) =>
           chart.id === recordedChart.id &&
           chart.songId === activeSongId &&
-          chart.source === "recorded"
+          (chart.source === "recorded" || chart.source === "imported")
       ) ?? null
     );
   }, [activeChartMode, activeSongId, recordedChart, recordedCharts]);
@@ -231,7 +239,8 @@ export const useRecordedCharts = ({
       !activeSongId ||
       !selectedRecordedChart ||
       selectedRecordedChart.songId !== activeSongId ||
-      selectedRecordedChart.source !== "recorded" ||
+      (selectedRecordedChart.source !== "recorded" &&
+        selectedRecordedChart.source !== "imported") ||
       pendingChartAction
     ) {
       return;
@@ -257,7 +266,8 @@ export const useRecordedCharts = ({
       if (
         !updatedChart ||
         updatedChart.songId !== activeSongId ||
-        updatedChart.source !== "recorded" ||
+        (updatedChart.source !== "recorded" &&
+          updatedChart.source !== "imported") ||
         activeSongIdRef.current !== activeSongId
       ) {
         throw new Error("Recorded chart was not available.");
@@ -292,7 +302,8 @@ export const useRecordedCharts = ({
       !activeSongId ||
       !selectedRecordedChart ||
       selectedRecordedChart.songId !== activeSongId ||
-      selectedRecordedChart.source !== "recorded" ||
+      (selectedRecordedChart.source !== "recorded" &&
+        selectedRecordedChart.source !== "imported") ||
       pendingChartAction
     ) {
       return;
@@ -312,7 +323,8 @@ export const useRecordedCharts = ({
       if (
         !deletedChart ||
         deletedChart.songId !== activeSongId ||
-        deletedChart.source !== "recorded" ||
+        (deletedChart.source !== "recorded" &&
+          deletedChart.source !== "imported") ||
         activeSongIdRef.current !== activeSongId
       ) {
         throw new Error("Recorded chart was not available.");
@@ -428,6 +440,78 @@ export const useRecordedCharts = ({
     [activeSongId, getDb, recordedCharts.length]
   );
 
+  const importChart = useCallback(
+    async (payload: RhythmLabChartExportV1): Promise<string> => {
+      if (!activeSongId) {
+        throw new Error("Select a song before importing a chart.");
+      }
+
+      const notes = normalizeImportedChartNotes(payload.chart.notes);
+      if (notes.length === 0) {
+        throw new Error("This chart export has no valid notes.");
+      }
+
+      const existingLabels = recordedCharts.map((chart) => chart.name);
+      const label = createImportedChartLabel(
+        payload.chart.label.slice(0, CHART_NAME_MAX_LENGTH),
+        existingLabels
+      );
+
+      const validDifficulties: Set<string> = new Set([
+        "starter",
+        "easy",
+        "normal",
+        "hard",
+        "custom",
+      ]);
+      const difficulty: RhythmLabChartDifficulty = validDifficulties.has(
+        payload.chart.difficulty
+      )
+        ? (payload.chart.difficulty as RhythmLabChartDifficulty)
+        : "custom";
+
+      const now = new Date().toISOString();
+      const storedChart: RhythmLabChart = {
+        id: createImportedChartId(activeSongId),
+        songId: activeSongId,
+        name: label,
+        difficulty,
+        scrollSpeed: payload.chart.scrollSpeed,
+        durationMs:
+          payload.chart.durationMs > 0
+            ? payload.chart.durationMs
+            : notes[notes.length - 1].timeMs + 1800,
+        notes,
+        source: "imported",
+        createdAt: now,
+        updatedAt: now,
+      };
+
+      const db = await getDb();
+      const savedChart = await saveChart(db, storedChart);
+      const preferences = await getPreferences(db);
+      await savePreferences(
+        db,
+        createChartPreference(activeSongId, savedChart.id, preferences)
+      );
+
+      setRecordedCharts((currentCharts) =>
+        sortRecordedChartsNewestFirst([
+          savedChart,
+          ...currentCharts.filter((chart) => chart.id !== savedChart.id),
+        ])
+      );
+      setRecordedChart(toRuntimeChart(savedChart));
+      setActiveChartMode("recorded");
+      resetChartManagement();
+      setChartStorageError(null);
+      resetGame();
+
+      return savedChart.name;
+    },
+    [activeSongId, getDb, recordedCharts, resetChartManagement, resetGame]
+  );
+
   // Chart-loading effect
   useEffect(() => {
     const requestId = chartLoadRequestIdRef.current + 1;
@@ -508,6 +592,7 @@ export const useRecordedCharts = ({
     cancelChartRename,
     saveChartRename,
     deleteSelectedChart,
+    importChart,
     saveRecordedChart,
     setRecordedChart,
     setRecordedCharts,
