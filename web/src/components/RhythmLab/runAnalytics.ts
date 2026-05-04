@@ -1,4 +1,5 @@
 import type { RunHistoryEntry } from "./helpers";
+import type { RhythmLabChart } from "./library/types";
 
 export interface RunAnalytics {
   totalRuns: number;
@@ -21,9 +22,10 @@ export interface RunTrendPoint {
   completed: boolean;
 }
 
-export interface SongAnalytics {
-  songId: string;
+export interface ChartGroupAnalytics {
+  groupKey: string;
   songTitle: string;
+  chartLabel: string;
   attempts: number;
   completedAttempts: number;
   bestCompletedScore: number | null;
@@ -32,6 +34,24 @@ export interface SongAnalytics {
   latestScore: number;
   improvement: number | null;
 }
+
+/** Stable grouping key: song ID + chart ID. */
+export const getRunChartKey = (entry: RunHistoryEntry): string => {
+  const songId = entry.songSnapshot?.id ?? "unknown-song";
+  const chartId = entry.chartSnapshot?.id ?? entry.runId;
+  return `${songId}:${chartId}`;
+};
+
+/** Resolve the display title for a history entry, preferring current chart name. */
+export const resolveChartLabel = (
+  entry: RunHistoryEntry,
+  chartsById: Map<string, RhythmLabChart>
+): string => {
+  const currentChart = entry.chartSnapshot?.id
+    ? chartsById.get(entry.chartSnapshot.id)
+    : undefined;
+  return currentChart?.name ?? entry.chartSnapshot?.label ?? "Unknown chart";
+};
 
 export const getRunAnalytics = (
   history: RunHistoryEntry[]
@@ -93,7 +113,7 @@ export const getRunTrendPoints = (
       runNumber: index + 1,
       playedAtMs: entry.playedAtMs,
       songTitle:
-        entry.songSnapshot?.title ?? entry.chartLabel ?? "Untitled chart",
+        entry.songSnapshot?.title ?? entry.chartSnapshot?.label ?? "Untitled",
       score: entry.score,
       accuracyPercent: entry.accuracyPercent,
       maxCombo: entry.maxCombo,
@@ -101,18 +121,22 @@ export const getRunTrendPoints = (
       completed: entry.endReason === "completed",
     }));
 
-export const getSongAnalytics = (
-  history: RunHistoryEntry[]
-): SongAnalytics[] => {
-  const groups: Record<string, RunHistoryEntry[]> = {};
+/** Group runs by song+chart pair, resolving current chart names via chartsById. */
+export const getChartGroupAnalytics = (
+  history: RunHistoryEntry[],
+  chartsById: Map<string, RhythmLabChart>
+): ChartGroupAnalytics[] => {
+  const groups = new Map<string, RunHistoryEntry[]>();
 
   for (const entry of history) {
-    const key = entry.songSnapshot?.id ?? entry.chartLabel ?? "unknown";
-    (groups[key] ??= []).push(entry);
+    const key = getRunChartKey(entry);
+    const existing = groups.get(key) ?? [];
+    existing.push(entry);
+    groups.set(key, existing);
   }
 
-  return Object.entries(groups)
-    .map(([songId, entries]) => {
+  return [...groups.entries()]
+    .map(([groupKey, entries]) => {
       const sorted = [...entries].sort(
         (a, b) => a.playedAtMs - b.playedAtMs
       );
@@ -123,8 +147,14 @@ export const getSongAnalytics = (
         (entry) => entry.notesJudged > 0
       );
 
+      const representative = sorted[0];
+      const songTitle =
+        representative.songSnapshot?.title ?? "Unknown song";
+      const chartLabel = resolveChartLabel(representative, chartsById);
+
       const bestCompletedScore = completed.reduce<number | null>(
-        (best, entry) => (best === null || entry.score > best ? entry.score : best),
+        (best, entry) =>
+          best === null || entry.score > best ? entry.score : best,
         null
       );
 
@@ -145,20 +175,19 @@ export const getSongAnalytics = (
           : 0;
 
       const firstCompleted = completed[0] ?? null;
-      const lastCompleted = completed.length > 1
-        ? completed[completed.length - 1]
-        : null;
+      const lastCompleted =
+        completed.length > 1
+          ? completed[completed.length - 1]
+          : null;
       const improvement =
         firstCompleted && lastCompleted
           ? lastCompleted.score - firstCompleted.score
           : null;
 
       return {
-        songId,
-        songTitle:
-          sorted[0].songSnapshot?.title ??
-          sorted[0].chartLabel ??
-          "Untitled chart",
+        groupKey,
+        songTitle,
+        chartLabel,
         attempts: entries.length,
         completedAttempts: completed.length,
         bestCompletedScore,

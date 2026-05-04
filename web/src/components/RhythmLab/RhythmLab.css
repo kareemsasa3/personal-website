@@ -649,6 +649,21 @@
   white-space: nowrap;
 }
 
+.rhythm-lab-run-history-entry-chart {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.2rem;
+  color: rgba(255, 255, 255, 0.56);
+  font-size: 0.65rem;
+  font-weight: 700;
+}
+
+.rhythm-lab-run-history-entry-notes {
+  color: rgba(255, 255, 255, 0.38);
+  font-size: 0.6rem;
+}
+
 .rhythm-lab-run-history-entry-stats {
   display: flex;
   align-items: center;

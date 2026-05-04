@@ -6,6 +6,7 @@ import {
   loadRunHistory,
   saveRunHistory,
   clearRunHistory as clearStorage,
+  type RunHistoryChartSnapshot,
   type RunHistoryEntry,
   type RhythmRunSummary,
 } from "./helpers";
@@ -16,6 +17,7 @@ interface UseRunHistoryParams {
   isRecording: boolean;
   runSummary: RhythmRunSummary;
   activeSong: RhythmLabSong | null;
+  activeChartSnapshot: RunHistoryChartSnapshot | null;
 }
 
 const RUN_HISTORY_MAX_ENTRIES = 100;
@@ -26,6 +28,7 @@ export const useRunHistory = ({
   isRecording,
   runSummary,
   activeSong,
+  activeChartSnapshot,
 }: UseRunHistoryParams) => {
   const [history, setHistory] = useState<RunHistoryEntry[]>(() =>
     loadRunHistory()
@@ -42,7 +45,12 @@ export const useRunHistory = ({
       ? { id: activeSong.id, title: activeSong.title || activeSong.filename }
       : null;
 
-    const entry = createRunHistoryEntry(currentRunId, runSummary, songSnapshot);
+    const entry = createRunHistoryEntry({
+      runId: currentRunId,
+      summary: runSummary,
+      songSnapshot,
+      chartSnapshot: activeChartSnapshot,
+    });
 
     setHistory((previous) => {
       const next = [
@@ -52,7 +60,7 @@ export const useRunHistory = ({
       saveRunHistory(next);
       return next;
     });
-  }, [activeSong, currentRunId, isRecording, phase, runSummary]);
+  }, [activeChartSnapshot, activeSong, currentRunId, isRecording, phase, runSummary]);
 
   useEffect(() => {
     if (phase === "playing") {

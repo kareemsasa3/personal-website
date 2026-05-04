@@ -1,6 +1,7 @@
 import type { LaneIndex, NoteJudgment, RhythmChart, RunEndReason } from "./types";
 import type {
   RhythmLabChart,
+  RhythmLabChartSource,
   RhythmLabPreferences,
   RhythmLabRun,
   RhythmLabSong,
@@ -246,12 +247,24 @@ export const createRunRecord = (
 // Run History — localStorage persistence
 // ---------------------------------------------------------------------------
 
+export interface RunHistorySongSnapshot {
+  id: string;
+  title: string;
+}
+
+export interface RunHistoryChartSnapshot {
+  id: string;
+  label: string;
+  source: RhythmLabChartSource | "starter";
+  noteCount: number;
+}
+
 export interface RunHistoryEntry {
-  schemaVersion: 1;
+  schemaVersion: 2;
   runId: string;
   playedAtMs: number;
-  songSnapshot: { id: string; title: string } | null;
-  chartLabel: string;
+  songSnapshot: RunHistorySongSnapshot | null;
+  chartSnapshot: RunHistoryChartSnapshot | null;
   endReason: "completed" | "ended_early";
   score: number;
   maxCombo: number;
@@ -270,19 +283,46 @@ export interface RunHistoryEntry {
 const RUN_HISTORY_STORAGE_KEY = "rhythmLab.runHistory.v1";
 const RUN_HISTORY_MAX_ENTRIES = 100;
 
-const isRunHistoryEntry = (value: unknown): value is RunHistoryEntry => {
-  if (!value || typeof value !== "object") return false;
+const hasRequiredRunFields = (
+  entry: Record<string, unknown>
+): boolean =>
+  typeof entry.runId === "string" &&
+  typeof entry.playedAtMs === "number" &&
+  typeof entry.score === "number" &&
+  typeof entry.accuracyPercent === "number" &&
+  (entry.endReason === "completed" || entry.endReason === "ended_early");
 
-  const entry = value as Partial<RunHistoryEntry>;
+/** Migrate a v1 entry (has chartLabel, no chartSnapshot) to v2. */
+const migrateV1Entry = (
+  raw: Record<string, unknown>
+): RunHistoryEntry | null => {
+  if (!hasRequiredRunFields(raw)) return null;
 
-  return (
-    entry.schemaVersion === 1 &&
-    typeof entry.runId === "string" &&
-    typeof entry.playedAtMs === "number" &&
-    typeof entry.score === "number" &&
-    typeof entry.accuracyPercent === "number" &&
-    (entry.endReason === "completed" || entry.endReason === "ended_early")
-  );
+  const { chartLabel: _dropped, schemaVersion: _v, ...rest } = raw;
+
+  return {
+    ...rest,
+    schemaVersion: 2,
+    chartSnapshot: null,
+  } as unknown as RunHistoryEntry;
+};
+
+const parseRunHistoryEntry = (value: unknown): RunHistoryEntry | null => {
+  if (!value || typeof value !== "object") return null;
+
+  const raw = value as Record<string, unknown>;
+
+  if (raw.schemaVersion === 2) {
+    return hasRequiredRunFields(raw)
+      ? (raw as unknown as RunHistoryEntry)
+      : null;
+  }
+
+  if (raw.schemaVersion === 1) {
+    return migrateV1Entry(raw);
+  }
+
+  return null;
 };
 
 export const loadRunHistory = (): RunHistoryEntry[] => {
@@ -294,7 +334,8 @@ export const loadRunHistory = (): RunHistoryEntry[] => {
     if (!Array.isArray(parsed)) return [];
 
     return parsed
-      .filter(isRunHistoryEntry)
+      .map(parseRunHistoryEntry)
+      .filter((entry): entry is RunHistoryEntry => entry !== null)
       .sort((a, b) => b.playedAtMs - a.playedAtMs)
       .slice(0, RUN_HISTORY_MAX_ENTRIES);
   } catch {
@@ -321,22 +362,25 @@ export const clearRunHistory = (): void => {
   }
 };
 
-export const createRunHistoryEntry = (
-  runId: string,
-  summary: RhythmRunSummary,
-  songSnapshot: { id: string; title: string } | null
-): RunHistoryEntry => {
+export const createRunHistoryEntry = (params: {
+  runId: string;
+  summary: RhythmRunSummary;
+  songSnapshot: RunHistorySongSnapshot | null;
+  chartSnapshot: RunHistoryChartSnapshot | null;
+}): RunHistoryEntry => {
+  const { runId, summary, songSnapshot, chartSnapshot } = params;
+
   const completionPercent =
     summary.chartDurationMs > 0
       ? Math.round((summary.endedAtMs / summary.chartDurationMs) * 100)
       : 0;
 
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     runId,
     playedAtMs: Date.now(),
     songSnapshot,
-    chartLabel: summary.chartLabel,
+    chartSnapshot,
     endReason: summary.endReason,
     score: summary.score,
     maxCombo: summary.maxCombo,

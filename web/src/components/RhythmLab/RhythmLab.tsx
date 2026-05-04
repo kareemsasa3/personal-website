@@ -33,6 +33,7 @@ import {
   formatScore,
   JUDGMENT_READOUT_MS,
   keyToLane,
+  type RunHistoryChartSnapshot,
 } from "./helpers";
 import { useChartRuns } from "./useChartRuns";
 import { useLaneFeedback } from "./useLaneFeedback";
@@ -236,12 +237,24 @@ const RhythmLab = () => {
       ? importedSongs.find((song) => song.id === activeSongId) ?? null
       : null;
 
+  const activeChartSnapshot = useMemo<RunHistoryChartSnapshot | null>(() => {
+    if (!activeChart) return null;
+
+    return {
+      id: activeChart.id,
+      label: activeChart.title,
+      source: selectedRecordedChart?.source ?? activeChartMode,
+      noteCount: activeChart.notes.length,
+    };
+  }, [activeChart, activeChartMode, selectedRecordedChart?.source]);
+
   const { history, clearHistory } = useRunHistory({
     phase,
     currentRunId,
     isRecording,
     runSummary,
     activeSong,
+    activeChartSnapshot,
   });
 
   const startGame = useCallback(async () => {
@@ -662,12 +675,16 @@ const RhythmLab = () => {
                   {setupTab === "history" && (
                     <RunHistoryPanel
                       history={history}
+                      recordedCharts={recordedCharts}
                       onClearHistory={clearHistory}
                     />
                   )}
 
                   {setupTab === "analytics" && (
-                    <RunAnalyticsPanel history={history} />
+                    <RunAnalyticsPanel
+                      history={history}
+                      recordedCharts={recordedCharts}
+                    />
                   )}
                 </div>
             </>

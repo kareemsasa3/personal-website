@@ -4,14 +4,16 @@ import {
   formatScore,
   type RunHistoryEntry,
 } from "./helpers";
+import type { RhythmLabChart } from "./library/types";
 import {
   getRunAnalytics,
-  getSongAnalytics,
-  type SongAnalytics,
+  getChartGroupAnalytics,
+  type ChartGroupAnalytics,
 } from "./runAnalytics";
 
 interface RunAnalyticsPanelProps {
   history: RunHistoryEntry[];
+  recordedCharts: RhythmLabChart[];
 }
 
 const formatPlayTime = (ms: number): string => {
@@ -23,43 +25,59 @@ const formatPlayTime = (ms: number): string => {
   return `${hours}h ${minutes}m`;
 };
 
-const SongRow = ({ song }: { song: SongAnalytics }) => (
+const ChartGroupRow = ({ group }: { group: ChartGroupAnalytics }) => (
   <div className="rhythm-lab-analytics-song">
     <div className="rhythm-lab-analytics-song-header">
-      <span className="rhythm-lab-analytics-song-title">{song.songTitle}</span>
+      <span className="rhythm-lab-analytics-song-title">
+        {group.songTitle} — {group.chartLabel}
+      </span>
       <span className="rhythm-lab-analytics-song-attempts">
-        {song.completedAttempts}/{song.attempts} completed
+        {group.completedAttempts}/{group.attempts} completed
       </span>
     </div>
     <div className="rhythm-lab-analytics-song-stats">
-      {song.bestCompletedScore !== null && (
-        <span>Best {formatScore(song.bestCompletedScore)}</span>
+      {group.bestCompletedScore !== null && (
+        <span>Best {formatScore(group.bestCompletedScore)}</span>
       )}
-      {song.bestCompletedAccuracy !== null && (
-        <span>{formatPercent(song.bestCompletedAccuracy)}</span>
+      {group.bestCompletedAccuracy !== null && (
+        <span>{formatPercent(group.bestCompletedAccuracy)}</span>
       )}
-      <span>Avg {formatPercent(song.averageAccuracy)}</span>
-      {song.improvement !== null && (
+      <span>Avg {formatPercent(group.averageAccuracy)}</span>
+      {group.improvement !== null && (
         <span
           className={
-            song.improvement > 0
+            group.improvement > 0
               ? "rhythm-lab-analytics-positive"
-              : song.improvement < 0
+              : group.improvement < 0
                 ? "rhythm-lab-analytics-negative"
                 : ""
           }
         >
-          {song.improvement > 0 ? "+" : ""}
-          {formatScore(song.improvement)}
+          {group.improvement > 0 ? "+" : ""}
+          {formatScore(group.improvement)}
         </span>
       )}
     </div>
   </div>
 );
 
-const RunAnalyticsPanel = ({ history }: RunAnalyticsPanelProps) => {
+const RunAnalyticsPanel = ({
+  history,
+  recordedCharts,
+}: RunAnalyticsPanelProps) => {
+  const chartsById = useMemo(() => {
+    const map = new Map<string, RhythmLabChart>();
+    for (const chart of recordedCharts) {
+      map.set(chart.id, chart);
+    }
+    return map;
+  }, [recordedCharts]);
+
   const analytics = useMemo(() => getRunAnalytics(history), [history]);
-  const songAnalytics = useMemo(() => getSongAnalytics(history), [history]);
+  const chartGroups = useMemo(
+    () => getChartGroupAnalytics(history, chartsById),
+    [history, chartsById]
+  );
 
   if (history.length === 0) {
     return (
@@ -112,13 +130,13 @@ const RunAnalyticsPanel = ({ history }: RunAnalyticsPanelProps) => {
         </div>
       </div>
 
-      {songAnalytics.length > 0 && (
+      {chartGroups.length > 0 && (
         <div className="rhythm-lab-analytics-songs">
           <h3 className="rhythm-lab-analytics-section-title">
-            Per-song stats
+            Per-chart stats
           </h3>
-          {songAnalytics.map((song) => (
-            <SongRow key={song.songId} song={song} />
+          {chartGroups.map((group) => (
+            <ChartGroupRow key={group.groupKey} group={group} />
           ))}
         </div>
       )}

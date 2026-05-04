@@ -1,7 +1,10 @@
+import { useMemo } from "react";
 import { formatPercent, formatScore, type RunHistoryEntry } from "./helpers";
+import type { RhythmLabChart } from "./library/types";
 
 interface RunHistoryPanelProps {
   history: RunHistoryEntry[];
+  recordedCharts: RhythmLabChart[];
   onClearHistory: () => void;
 }
 
@@ -19,8 +22,17 @@ const formatTimestamp = (ms: number): string => {
 
 const RunHistoryPanel = ({
   history,
+  recordedCharts,
   onClearHistory,
 }: RunHistoryPanelProps) => {
+  const chartsById = useMemo(() => {
+    const map = new Map<string, RhythmLabChart>();
+    for (const chart of recordedCharts) {
+      map.set(chart.id, chart);
+    }
+    return map;
+  }, [recordedCharts]);
+
   if (history.length === 0) {
     return (
       <div className="rhythm-lab-run-history">
@@ -34,6 +46,18 @@ const RunHistoryPanel = ({
       <div className="rhythm-lab-run-history-list" role="list">
         {history.map((entry) => {
           const isPartial = entry.endReason === "ended_early";
+          const songTitle =
+            entry.songSnapshot?.title ?? "Unknown song";
+
+          const currentChart = entry.chartSnapshot?.id
+            ? chartsById.get(entry.chartSnapshot.id)
+            : undefined;
+          const currentLabel = currentChart?.name;
+          const snapshotLabel = entry.chartSnapshot?.label;
+          const chartLabel =
+            currentLabel ?? snapshotLabel ?? "Unknown chart";
+          const noteCount =
+            entry.chartSnapshot?.noteCount ?? entry.totalChartNotes;
 
           return (
             <div
@@ -47,10 +71,16 @@ const RunHistoryPanel = ({
             >
               <div className="rhythm-lab-run-history-entry-header">
                 <span className="rhythm-lab-run-history-entry-song">
-                  {entry.songSnapshot?.title ?? "Unknown song"}
+                  {songTitle}
                 </span>
                 <span className="rhythm-lab-run-history-entry-time">
                   {formatTimestamp(entry.playedAtMs)}
+                </span>
+              </div>
+              <div className="rhythm-lab-run-history-entry-chart">
+                <span>{chartLabel}</span>
+                <span className="rhythm-lab-run-history-entry-notes">
+                  {noteCount} notes
                 </span>
               </div>
               <div className="rhythm-lab-run-history-entry-stats">
