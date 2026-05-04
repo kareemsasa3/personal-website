@@ -6,6 +6,7 @@
     padding: var(--spacing-lg);
     width: 100%;
     max-width: 400px;
+    box-sizing: border-box;
     backdrop-filter: blur(10px);
     transition: transform var(--transition-normal),
         box-shadow var(--transition-normal),
@@ -70,6 +71,24 @@
     font-weight: 700;
     text-shadow: 0 0 10px var(--terminal-primary, #4CAF50);
     font-family: var(--terminal-font, 'Courier New', 'Monaco', 'Menlo', monospace);
+}
+
+.game-card-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    max-width: 100%;
+    margin: 0 0 var(--spacing-sm);
+    padding: 4px 10px;
+    border: 1px solid rgba(0, 255, 0, 0.55);
+    border-radius: 999px;
+    color: var(--terminal-primary, #4CAF50);
+    background: rgba(0, 255, 0, 0.08);
+    font-family: var(--terminal-font, 'Courier New', 'Monaco', 'Menlo', monospace);
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1.2;
+    text-transform: uppercase;
 }
 
 .game-card p {
@@ -152,6 +171,170 @@
     50% {
         opacity: 1;
         transform: scale(1.1);
+    }
+}
+
+.spider-preview {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 10px;
+    width: min(240px, 92%);
+    height: 112px;
+    padding: 14px 12px;
+    border-radius: var(--border-radius-md);
+    background:
+        linear-gradient(135deg, rgba(0, 255, 0, 0.08), transparent 45%),
+        rgba(0, 0, 0, 0.28);
+}
+
+.spider-column,
+.spider-stock {
+    position: relative;
+    width: 34px;
+    height: 86px;
+}
+
+.spider-column-tall {
+    height: 96px;
+}
+
+.spider-stock {
+    margin-left: 2px;
+}
+
+.spider-card {
+    position: absolute;
+    left: 0;
+    width: 34px;
+    height: 48px;
+    border-radius: 5px;
+    border: 1px solid rgba(0, 255, 0, 0.5);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.28);
+}
+
+.spider-card:nth-child(1) {
+    top: 0;
+}
+
+.spider-card:nth-child(2) {
+    top: 16px;
+}
+
+.spider-card:nth-child(3) {
+    top: 32px;
+}
+
+.spider-card:nth-child(4) {
+    top: 48px;
+}
+
+.spider-card-back {
+    background:
+        repeating-linear-gradient(
+            45deg,
+            rgba(0, 255, 0, 0.18) 0 4px,
+            rgba(0, 0, 0, 0.35) 4px 8px
+        ),
+        rgba(0, 0, 0, 0.48);
+}
+
+.spider-card-face {
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding: 5px;
+    color: rgba(0, 255, 0, 0.9);
+    background: rgba(235, 245, 235, 0.9);
+    font-family: var(--terminal-font, 'Courier New', 'Monaco', 'Menlo', monospace);
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.spider-stock .spider-card:nth-child(1) {
+    top: 10px;
+    left: 0;
+}
+
+.spider-stock .spider-card:nth-child(2) {
+    top: 16px;
+    left: 6px;
+}
+
+.rhythm-preview {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: min(230px, 92%);
+    height: 112px;
+    border-radius: var(--border-radius-md);
+    background:
+        linear-gradient(to bottom, rgba(0, 255, 0, 0.1), transparent 60%),
+        rgba(0, 0, 0, 0.32);
+    overflow: hidden;
+}
+
+.rhythm-lane {
+    position: relative;
+    border-left: 1px solid rgba(0, 255, 0, 0.18);
+}
+
+.rhythm-lane:first-child {
+    border-left: 0;
+}
+
+.rhythm-lane::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, transparent, rgba(0, 255, 0, 0.08));
+}
+
+.rhythm-target-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 24px;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.68);
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.45);
+}
+
+.rhythm-note {
+    position: absolute;
+    left: 50%;
+    width: 26px;
+    height: 12px;
+    border-radius: 4px;
+    background: var(--terminal-primary, #4CAF50);
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+    transform: translateX(-50%);
+    animation: rhythmPreviewDrift 2.8s ease-in-out infinite;
+}
+
+.rhythm-note-one {
+    top: 18px;
+    animation-delay: 0s;
+}
+
+.rhythm-note-two {
+    top: 46px;
+    animation-delay: 0.35s;
+}
+
+.rhythm-note-three {
+    top: 74px;
+    animation-delay: 0.7s;
+}
+
+@keyframes rhythmPreviewDrift {
+    0%, 100% {
+        transform: translateX(-50%) translateY(0);
+    }
+
+    50% {
+        transform: translateX(-50%) translateY(8px);
     }
 }
 
@@ -241,6 +424,31 @@
         height: 80px;
     }
 
+    .spider-preview,
+    .rhythm-preview {
+        height: 92px;
+    }
+
+    .spider-preview {
+        gap: 7px;
+        width: min(205px, 96%);
+        padding: 11px 9px;
+    }
+
+    .spider-column,
+    .spider-stock {
+        width: 29px;
+    }
+
+    .spider-card {
+        width: 29px;
+        height: 42px;
+    }
+
+    .rhythm-preview {
+        width: min(200px, 96%);
+    }
+
     .game-card h3 {
         font-size: 1.3rem;
     }
@@ -268,6 +476,68 @@
     .snake-preview {
         width: 120px;
         height: 60px;
+    }
+
+    .spider-preview,
+    .rhythm-preview {
+        height: 78px;
+    }
+
+    .spider-preview {
+        gap: 5px;
+        width: min(175px, 96%);
+        padding: 9px 7px;
+    }
+
+    .spider-column,
+    .spider-stock {
+        width: 24px;
+        height: 64px;
+    }
+
+    .spider-card {
+        width: 24px;
+        height: 35px;
+        border-radius: 4px;
+    }
+
+    .spider-card:nth-child(2) {
+        top: 12px;
+    }
+
+    .spider-card:nth-child(3) {
+        top: 24px;
+    }
+
+    .spider-card:nth-child(4) {
+        top: 36px;
+    }
+
+    .spider-card-face {
+        padding: 4px;
+        font-size: 0.7rem;
+    }
+
+    .spider-stock .spider-card:nth-child(1) {
+        top: 8px;
+    }
+
+    .spider-stock .spider-card:nth-child(2) {
+        top: 13px;
+        left: 5px;
+    }
+
+    .rhythm-preview {
+        width: min(170px, 96%);
+    }
+
+    .rhythm-note {
+        width: 22px;
+        height: 10px;
+    }
+
+    .rhythm-target-line {
+        bottom: 18px;
     }
 
     .game-card h3 {
@@ -303,7 +573,8 @@
     .game-card,
     .play-button,
     .snake-segment-preview,
-    .food-preview {
+    .food-preview,
+    .rhythm-note {
         transition: none;
         animation: none;
     }

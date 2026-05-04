@@ -1,0 +1,2044 @@
+.rhythm-lab {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: clamp(0.75rem, 2vw, 1.5rem);
+  box-sizing: border-box;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: clamp(0.75rem, 1.6vw, 1.25rem);
+  color: var(--text-color, #ffffff);
+  font-family: var(--terminal-font, "Courier New", Monaco, monospace);
+  outline: none;
+  overflow: hidden;
+}
+
+.rhythm-lab-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  width: min(100%, 1040px);
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  margin: 0 auto;
+}
+
+.rhythm-lab-header-copy {
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.rhythm-lab-eyebrow {
+  margin: 0 0 0.25rem;
+  color: var(--terminal-primary, #4caf50);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.rhythm-lab-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.rhythm-lab-back-link {
+  flex: 0 0 auto;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid rgba(76, 175, 80, 0.5);
+  border-radius: 0.35rem;
+  background: rgba(0, 0, 0, 0.48);
+  color: var(--terminal-primary, #4caf50);
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1;
+  text-decoration: none;
+  text-transform: uppercase;
+  box-shadow: 0 0 10px rgba(76, 175, 80, 0.14);
+}
+
+.rhythm-lab-back-link:hover,
+.rhythm-lab-back-link:focus-visible {
+  border-color: rgba(76, 175, 80, 0.8);
+  background: rgba(76, 175, 80, 0.12);
+  outline: none;
+}
+
+.rhythm-lab h1 {
+  margin: 0;
+  color: var(--terminal-primary, #4caf50);
+  font-size: clamp(1.6rem, 3vw, 2.6rem);
+  line-height: 1;
+  text-shadow: 0 0 14px rgba(76, 175, 80, 0.5);
+}
+
+.rhythm-lab audio {
+  display: none;
+}
+
+.rhythm-lab-audio-panel {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  width: 100%;
+  min-width: 0;
+  max-width: min(100%, 34rem);
+  margin-top: 0.65rem;
+}
+
+.rhythm-lab-audio-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  position: relative;
+  flex: 0 0 auto;
+  max-width: 100%;
+  min-height: 2.2rem;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid rgba(76, 175, 80, 0.42);
+  border-radius: 0.4rem;
+  background: rgba(0, 0, 0, 0.52);
+  box-sizing: border-box;
+  color: var(--terminal-primary, #4caf50);
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.rhythm-lab-audio-picker:focus-within {
+  border-color: rgba(76, 175, 80, 0.8);
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.18);
+}
+
+.rhythm-lab-audio-picker span {
+  flex: 0 0 auto;
+}
+
+.rhythm-lab-audio-input {
+  min-width: 0;
+  max-width: 13rem;
+  color: rgba(255, 255, 255, 0.78);
+  font-family: inherit;
+  font-size: 0.75rem;
+}
+
+.rhythm-lab-audio-input::file-selector-button {
+  margin-right: 0.55rem;
+  border: 1px solid rgba(76, 175, 80, 0.52);
+  border-radius: 0.32rem;
+  background: rgba(76, 175, 80, 0.14);
+  color: var(--terminal-primary, #4caf50);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.rhythm-lab-audio-picker-button {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(76, 175, 80, 0.52);
+  border-radius: 0.32rem;
+  padding: 0.25rem 0.45rem;
+  background: rgba(76, 175, 80, 0.14);
+  color: var(--terminal-primary, #4caf50);
+  font-size: 0.72rem;
+  font-weight: 800;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.rhythm-lab-audio-details {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 11rem;
+  min-width: 0;
+  max-width: min(100%, 20rem);
+  box-sizing: border-box;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.rhythm-lab-audio-details-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.rhythm-lab-audio-filename {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  color: rgba(255, 255, 255, 0.86);
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rhythm-lab-audio-details small {
+  color: rgba(255, 255, 255, 0.58);
+}
+
+.rhythm-lab-audio-details .rhythm-lab-audio-error {
+  color: #ff8a96;
+}
+
+.rhythm-lab-preview-button {
+  flex: 0 0 auto;
+  padding: 0.15rem 0.4rem;
+  border: 1px solid rgba(76, 175, 80, 0.32);
+  border-radius: 0.28rem;
+  background: transparent;
+  color: var(--terminal-primary, #4caf50);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  line-height: 1.3;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.rhythm-lab-preview-button:hover,
+.rhythm-lab-preview-button:focus-visible {
+  border-color: rgba(76, 175, 80, 0.62);
+  background: rgba(76, 175, 80, 0.1);
+  outline: none;
+}
+
+.rhythm-lab-preview-button-active {
+  border-color: rgba(255, 215, 0, 0.42);
+  color: #ffe58a;
+}
+
+.rhythm-lab-preview-button-active:hover,
+.rhythm-lab-preview-button-active:focus-visible {
+  border-color: rgba(255, 215, 0, 0.62);
+  background: rgba(255, 215, 0, 0.1);
+}
+
+.rhythm-lab-song-selector {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  flex: 1 1 16rem;
+  gap: 0.4rem;
+  min-width: min(100%, 14rem);
+  max-width: min(100%, 22rem);
+  min-height: 2.2rem;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid rgba(76, 175, 80, 0.42);
+  border-radius: 0.4rem;
+  background: rgba(0, 0, 0, 0.52);
+  box-sizing: border-box;
+  color: rgba(255, 255, 255, 0.74);
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.rhythm-lab-song-selector-label {
+  color: var(--terminal-primary, #4caf50);
+  white-space: nowrap;
+}
+
+.rhythm-lab-song-selector-trigger {
+  min-width: 0;
+  width: 100%;
+  padding: 0.18rem 0.35rem;
+  border: 1px solid rgba(76, 175, 80, 0.32);
+  border-radius: 0.28rem;
+  background: rgba(0, 0, 0, 0.56);
+  color: rgba(255, 255, 255, 0.86);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.68rem;
+  line-height: 1.2;
+  text-align: left;
+  text-transform: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rhythm-lab-song-selector-trigger:hover,
+.rhythm-lab-song-selector-trigger:focus-visible {
+  border-color: rgba(76, 175, 80, 0.62);
+  outline: none;
+}
+
+.rhythm-lab-song-selector-trigger[aria-expanded="true"] {
+  border-color: rgba(76, 175, 80, 0.72);
+  background: rgba(76, 175, 80, 0.08);
+}
+
+.rhythm-lab-song-list {
+  position: absolute;
+  top: calc(100% + 0.3rem);
+  left: -1px;
+  right: -1px;
+  z-index: 20;
+  max-height: 14rem;
+  margin: 0;
+  padding: 0.25rem;
+  border: 1px solid rgba(76, 175, 80, 0.48);
+  border-radius: 0.36rem;
+  background: rgba(8, 8, 8, 0.96);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.rhythm-lab-song-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.38rem 0.4rem;
+  border: none;
+  border-radius: 0.24rem;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.78);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 600;
+  line-height: 1.25;
+  text-align: left;
+  text-transform: none;
+}
+
+.rhythm-lab-song-option:hover,
+.rhythm-lab-song-option:focus-visible {
+  background: rgba(76, 175, 80, 0.14);
+  outline: none;
+}
+
+.rhythm-lab-song-option-active {
+  color: var(--terminal-primary, #4caf50);
+}
+
+.rhythm-lab-song-option-active::before {
+  content: "\25B8";
+  flex: 0 0 auto;
+  margin-right: -0.2rem;
+  font-size: 0.58rem;
+}
+
+.rhythm-lab-song-option-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rhythm-lab-song-option-meta {
+  flex: 0 0 auto;
+  color: rgba(255, 255, 255, 0.42);
+  font-size: 0.6rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.rhythm-lab-audio-resume {
+  min-height: 2.15rem;
+  padding: 0.35rem 0.55rem;
+  border: 1px solid rgba(255, 215, 0, 0.7);
+  border-radius: 0.4rem;
+  background: rgba(255, 215, 0, 0.12);
+  box-sizing: border-box;
+  color: #ffe58a;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.rhythm-lab-recording-controls {
+  display: flex;
+  align-items: center;
+  flex: 1 1 100%;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.rhythm-lab-chart-mode-button,
+.rhythm-lab-record-button,
+.rhythm-lab-chart-management-button {
+  min-height: 2rem;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid rgba(76, 175, 80, 0.42);
+  border-radius: 0.36rem;
+  background: rgba(0, 0, 0, 0.48);
+  color: rgba(255, 255, 255, 0.74);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.7rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.rhythm-lab-chart-mode-button[aria-pressed="true"] {
+  border-color: rgba(76, 175, 80, 0.78);
+  background: rgba(76, 175, 80, 0.18);
+  color: var(--terminal-primary, #4caf50);
+}
+
+.rhythm-lab-chart-mode-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.rhythm-lab-chart-selector {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  flex: 1 1 18rem;
+  gap: 0.4rem;
+  min-width: min(100%, 14rem);
+  min-height: 2rem;
+  max-width: 100%;
+  padding: 0.28rem 0.45rem;
+  border: 1px solid rgba(76, 175, 80, 0.42);
+  border-radius: 0.36rem;
+  background: rgba(0, 0, 0, 0.48);
+  box-sizing: border-box;
+  color: rgba(255, 255, 255, 0.74);
+  font-size: 0.7rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.rhythm-lab-chart-selector span {
+  color: var(--terminal-primary, #4caf50);
+  white-space: nowrap;
+}
+
+.rhythm-lab-chart-selector select {
+  min-width: 0;
+  width: 100%;
+  border: 1px solid rgba(76, 175, 80, 0.32);
+  border-radius: 0.28rem;
+  background: rgba(0, 0, 0, 0.56);
+  color: rgba(255, 255, 255, 0.86);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.68rem;
+  line-height: 1.2;
+  text-transform: none;
+}
+
+.rhythm-lab-chart-selector select:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.rhythm-lab-chart-empty {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+  padding: 0.35rem 0.5rem;
+  border: 1px dashed rgba(76, 175, 80, 0.32);
+  border-radius: 0.36rem;
+  background: rgba(0, 0, 0, 0.28);
+  box-sizing: border-box;
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 0.7rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.rhythm-lab-chart-best {
+  display: inline-flex;
+  align-items: center;
+  flex: 1 1 14rem;
+  min-width: min(100%, 10rem);
+  max-width: 100%;
+  min-height: 2rem;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid rgba(255, 215, 0, 0.26);
+  border-radius: 0.36rem;
+  background: rgba(255, 215, 0, 0.08);
+  box-sizing: border-box;
+  color: #ffe58a;
+  font-size: 0.7rem;
+  font-weight: 900;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+  text-transform: uppercase;
+}
+
+.rhythm-lab-record-button {
+  border-color: rgba(255, 215, 0, 0.62);
+  color: #ffe58a;
+}
+
+.rhythm-lab-record-button-active {
+  border-color: rgba(255, 111, 125, 0.8);
+  background: rgba(255, 111, 125, 0.16);
+  color: #ffb8c0;
+}
+
+.rhythm-lab-chart-management {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 1 auto;
+  gap: 0.35rem;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.rhythm-lab-chart-management-button {
+  color: rgba(255, 255, 255, 0.68);
+}
+
+.rhythm-lab-chart-management-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.rhythm-lab-chart-management-danger {
+  border-color: rgba(255, 111, 125, 0.6);
+  color: #ffb8c0;
+}
+
+.rhythm-lab-chart-name-input {
+  min-width: 7rem;
+  max-width: min(100%, 14rem);
+  min-height: 2rem;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid rgba(76, 175, 80, 0.42);
+  border-radius: 0.36rem;
+  background: rgba(0, 0, 0, 0.56);
+  box-sizing: border-box;
+  color: rgba(255, 255, 255, 0.86);
+  font: inherit;
+  font-size: 0.7rem;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.rhythm-lab-chart-name-input:focus {
+  border-color: rgba(76, 175, 80, 0.8);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.18);
+}
+
+/* Panel Tabs */
+
+.rhythm-lab-panel-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.35rem;
+  flex: 1 1 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.rhythm-lab-panel-tabs button {
+  border: 1px solid rgba(76, 175, 80, 0.45);
+  border-radius: 0.36rem;
+  background: rgba(0, 0, 0, 0.65);
+  color: var(--terminal-primary, #4caf50);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.03em;
+  padding: 0.45rem 0.5rem;
+  text-transform: uppercase;
+}
+
+.rhythm-lab-panel-tabs button:hover,
+.rhythm-lab-panel-tabs button:focus-visible {
+  border-color: rgba(76, 175, 80, 0.72);
+  background: rgba(76, 175, 80, 0.1);
+  outline: none;
+}
+
+.rhythm-lab-panel-tabs button.is-active {
+  border-color: rgba(76, 175, 80, 0.9);
+  background: rgba(76, 175, 80, 0.18);
+}
+
+/* Run History */
+
+.rhythm-lab-run-history {
+  flex: 1 1 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.rhythm-lab-run-history-empty,
+.rhythm-lab-analytics-empty {
+  margin: 0;
+  padding: 0.65rem 0.5rem;
+  color: rgba(255, 255, 255, 0.42);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.rhythm-lab-run-history-list {
+  max-height: 16rem;
+  padding: 0.25rem;
+  border: 1px solid rgba(76, 175, 80, 0.28);
+  border-radius: 0.36rem;
+  background: rgba(0, 0, 0, 0.52);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.rhythm-lab-run-history-entry {
+  padding: 0.5rem;
+  border-bottom: 1px solid rgba(76, 175, 80, 0.12);
+}
+
+.rhythm-lab-run-history-entry:last-child {
+  border-bottom: none;
+}
+
+.rhythm-lab-run-history-entry-partial {
+  opacity: 0.82;
+}
+
+.rhythm-lab-run-history-entry-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.rhythm-lab-run-history-entry-song {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rhythm-lab-run-history-entry-time {
+  flex: 0 0 auto;
+  color: rgba(255, 255, 255, 0.42);
+  font-size: 0.6rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.rhythm-lab-run-history-entry-chart {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.2rem;
+  color: rgba(255, 255, 255, 0.56);
+  font-size: 0.65rem;
+  font-weight: 700;
+}
+
+.rhythm-lab-run-history-entry-notes {
+  color: rgba(255, 255, 255, 0.38);
+  font-size: 0.6rem;
+}
+
+.rhythm-lab-run-history-entry-stats {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.rhythm-lab-run-history-entry-badge {
+  padding: 0.08rem 0.3rem;
+  border-radius: 0.2rem;
+  background: rgba(255, 183, 77, 0.18);
+  color: #ffcc80;
+  font-size: 0.58rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.rhythm-lab-run-history-entry-badge-complete {
+  background: rgba(76, 175, 80, 0.18);
+  color: var(--terminal-primary, #4caf50);
+}
+
+.rhythm-lab-run-history-clear {
+  display: block;
+  width: 100%;
+  margin-top: 0.35rem;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid rgba(255, 111, 125, 0.32);
+  border-radius: 0.36rem;
+  background: transparent;
+  color: #ffb8c0;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.62rem;
+  font-weight: 900;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.rhythm-lab-run-history-clear:hover,
+.rhythm-lab-run-history-clear:focus-visible {
+  border-color: rgba(255, 111, 125, 0.62);
+  background: rgba(255, 111, 125, 0.08);
+  outline: none;
+}
+
+/* Run Analytics */
+
+.rhythm-lab-analytics {
+  flex: 1 1 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.rhythm-lab-analytics-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(7rem, 1fr));
+  gap: 0.4rem;
+}
+
+.rhythm-lab-analytics-card {
+  padding: 0.5rem 0.55rem;
+  border: 1px solid rgba(76, 175, 80, 0.28);
+  border-radius: 0.36rem;
+  background: rgba(0, 0, 0, 0.52);
+}
+
+.rhythm-lab-analytics-card dt {
+  margin: 0 0 0.2rem;
+  color: rgba(255, 255, 255, 0.52);
+  font-size: 0.6rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.rhythm-lab-analytics-card dd {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.92rem;
+  font-weight: 900;
+}
+
+.rhythm-lab-analytics-songs {
+  margin-top: 0.5rem;
+  padding: 0.35rem;
+  border: 1px solid rgba(76, 175, 80, 0.28);
+  border-radius: 0.36rem;
+  background: rgba(0, 0, 0, 0.52);
+}
+
+.rhythm-lab-analytics-section-title {
+  margin: 0 0 0.35rem;
+  padding: 0 0.15rem;
+  color: rgba(255, 255, 255, 0.52);
+  font-size: 0.6rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.rhythm-lab-analytics-song {
+  padding: 0.45rem 0.4rem;
+  border-bottom: 1px solid rgba(76, 175, 80, 0.12);
+}
+
+.rhythm-lab-analytics-song:last-child {
+  border-bottom: none;
+}
+
+.rhythm-lab-analytics-song-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.2rem;
+}
+
+.rhythm-lab-analytics-song-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rhythm-lab-analytics-song-attempts {
+  flex: 0 0 auto;
+  color: rgba(255, 255, 255, 0.42);
+  font-size: 0.6rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.rhythm-lab-analytics-song-stats {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.rhythm-lab-analytics-positive {
+  color: var(--terminal-primary, #4caf50);
+}
+
+.rhythm-lab-analytics-negative {
+  color: #ffb8c0;
+}
+
+.rhythm-lab-hud {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  max-width: 28rem;
+}
+
+.rhythm-lab-hud span {
+  min-width: 6.75rem;
+  padding: 0.45rem 0.65rem;
+  border: 1px solid rgba(76, 175, 80, 0.45);
+  border-radius: 0.4rem;
+  background: rgba(0, 0, 0, 0.55);
+  color: var(--terminal-primary, #4caf50);
+  text-align: center;
+  font-weight: 700;
+  box-shadow: 0 0 10px rgba(76, 175, 80, 0.16);
+}
+
+.rhythm-lab-active-session {
+  gap: clamp(0.45rem, 1.2vw, 0.85rem);
+}
+
+.rhythm-lab-active-session .rhythm-lab-header {
+  align-items: center;
+}
+
+.rhythm-lab-active-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  width: 100%;
+  min-width: 0;
+}
+
+.rhythm-lab-active-context {
+  display: flex;
+  align-items: center;
+  flex: 1 1 auto;
+  gap: 0.35rem;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.rhythm-lab-active-filename,
+.rhythm-lab-active-chip,
+.rhythm-lab-compact-action {
+  min-height: 1.9rem;
+  border: 1px solid rgba(76, 175, 80, 0.42);
+  border-radius: 0.36rem;
+  background: rgba(0, 0, 0, 0.48);
+  box-sizing: border-box;
+  font-size: 0.72rem;
+  font-weight: 900;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.rhythm-lab-active-filename {
+  display: block;
+  flex: 1 1 auto;
+  min-width: 4rem;
+  max-width: 16rem;
+  overflow: hidden;
+  padding: 0.58rem 0.55rem 0.35rem;
+  color: rgba(255, 255, 255, 0.78);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rhythm-lab-active-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  padding: 0.35rem 0.5rem;
+  color: var(--terminal-primary, #4caf50);
+}
+
+.rhythm-lab-active-chip-recording {
+  border-color: rgba(255, 111, 125, 0.6);
+  color: #ffb8c0;
+}
+
+.rhythm-lab-active-actions {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: 0.35rem;
+}
+
+.rhythm-lab-compact-action {
+  padding: 0.35rem 0.55rem;
+  color: var(--terminal-primary, #4caf50);
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.rhythm-lab-compact-action:hover,
+.rhythm-lab-compact-action:focus-visible {
+  border-color: rgba(76, 175, 80, 0.78);
+  background: rgba(76, 175, 80, 0.13);
+  outline: none;
+}
+
+.rhythm-lab-compact-action-danger {
+  border-color: rgba(255, 111, 125, 0.68);
+  color: #ffb8c0;
+}
+
+.rhythm-lab-compact-action-danger:hover,
+.rhythm-lab-compact-action-danger:focus-visible {
+  border-color: rgba(255, 111, 125, 0.86);
+  background: rgba(255, 111, 125, 0.14);
+}
+
+.rhythm-lab-stage {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rhythm-lab-highway {
+  --rhythm-note-width: min(58%, 6.25rem);
+  --rhythm-note-height: clamp(2.2rem, 6vh, 3.3rem);
+  position: relative;
+  width: min(86vw, 760px);
+  height: min(74vh, 760px);
+  height: min(74dvh, 760px);
+  min-height: 440px;
+  box-sizing: border-box;
+  overflow: hidden;
+  border: 1px solid rgba(76, 175, 80, 0.55);
+  border-radius: 0.65rem;
+  background:
+    linear-gradient(180deg, rgba(12, 18, 12, 0.92), rgba(0, 0, 0, 0.94)),
+    repeating-linear-gradient(
+      0deg,
+      rgba(76, 175, 80, 0.08) 0,
+      rgba(76, 175, 80, 0.08) 1px,
+      transparent 1px,
+      transparent 42px
+    );
+  box-shadow:
+    inset 0 0 34px rgba(76, 175, 80, 0.12),
+    0 18px 44px rgba(0, 0, 0, 0.38);
+}
+
+.rhythm-lab-highway::before,
+.rhythm-lab-highway::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.12s ease;
+}
+
+.rhythm-lab-highway::before {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(76, 175, 80, 0.035),
+      rgba(255, 215, 0, 0.05)
+    ),
+    radial-gradient(
+      circle at 50% var(--rhythm-line-y),
+      rgba(255, 215, 0, 0.11),
+      transparent 38%
+    );
+}
+
+.rhythm-lab-highway::after {
+  inset: 0.15rem;
+  border: 1px solid rgba(255, 215, 0, 0.22);
+  border-radius: 0.5rem;
+  box-shadow:
+    inset 0 0 26px rgba(76, 175, 80, 0.14),
+    inset 0 0 18px rgba(255, 215, 0, 0.08);
+}
+
+.rhythm-lab-hot-streak .rhythm-lab-highway::before {
+  opacity: 1;
+}
+
+.rhythm-lab-hot-streak .rhythm-lab-highway::after {
+  opacity: 0.9;
+}
+
+.rhythm-lab-track {
+  position: absolute;
+  inset: 0 0 0 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.rhythm-lab-lane {
+  position: relative;
+  border-left: 1px solid rgba(76, 175, 80, 0.22);
+}
+
+.rhythm-lab-lane:first-child {
+  border-left: 0;
+}
+
+.rhythm-lab-lane-input {
+  background: rgba(76, 175, 80, 0.045);
+}
+
+.rhythm-lab-lane-label {
+  position: absolute;
+  top: 0.85rem;
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgba(255, 255, 255, 0.42);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.rhythm-lab-note-motion {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  transform: translate3d(0, var(--rhythm-note-y), 0);
+  will-change: transform;
+}
+
+.rhythm-lab-note {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: var(--rhythm-note-width);
+  height: var(--rhythm-note-height);
+  transform: translate3d(-50%, -50%, 0);
+  border: 1px solid rgba(255, 215, 0, 0.9);
+  border-radius: 0.45rem;
+  background: linear-gradient(180deg, #ffe58a, #f4b83c);
+  box-shadow:
+    0 0 18px rgba(255, 215, 0, 0.55),
+    inset 0 0 10px rgba(255, 255, 255, 0.35);
+  pointer-events: none;
+}
+
+.rhythm-lab-target-windows {
+  position: absolute;
+  top: var(--rhythm-line-y);
+  left: 0;
+  right: 0;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.rhythm-lab-target-window {
+  position: relative;
+  justify-self: center;
+  width: var(--rhythm-note-width);
+  height: var(--rhythm-note-height);
+  border-radius: 999px;
+}
+
+.rhythm-lab-target-window::before {
+  content: "";
+  position: absolute;
+  inset: -0.35rem 0;
+  border-radius: 999px;
+  background: rgba(255, 215, 0, 0.1);
+  filter: blur(0.42rem);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.12s ease;
+}
+
+.rhythm-lab-hot-streak .rhythm-lab-target-window::before {
+  opacity: 0.62;
+}
+
+.rhythm-lab-target-window-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  border-radius: 999px;
+  background: rgba(76, 175, 80, 0.5);
+  box-shadow: 0 0 10px rgba(76, 175, 80, 0.36);
+  transition:
+    background-color 0.08s ease,
+    box-shadow 0.08s ease;
+}
+
+.rhythm-lab-target-window-line-top {
+  top: 0;
+}
+
+.rhythm-lab-target-window-line-bottom {
+  bottom: 0;
+}
+
+.rhythm-lab-target-input .rhythm-lab-target-window-line {
+  background: rgba(76, 175, 80, 0.78);
+  box-shadow: 0 0 14px rgba(76, 175, 80, 0.52);
+}
+
+.rhythm-lab-target-hit .rhythm-lab-target-window-line {
+  background: rgba(255, 215, 0, 0.72);
+  box-shadow:
+    0 0 14px rgba(255, 215, 0, 0.42),
+    0 0 10px rgba(76, 175, 80, 0.34);
+}
+
+.rhythm-lab-target-hit::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 3.5rem;
+  aspect-ratio: 1;
+  border: 2px solid rgba(255, 215, 0, 0.72);
+  border-radius: 999px;
+  box-shadow:
+    0 0 10px rgba(255, 215, 0, 0.35),
+    inset 0 0 12px rgba(255, 215, 0, 0.18);
+  transform: translate(-50%, -50%) scale(0.32);
+  opacity: 0;
+  animation: rhythmLabHitBurst 120ms ease-out;
+}
+
+@keyframes rhythmLabHitBurst {
+  0% {
+    opacity: 0.86;
+    transform: translate(-50%, -50%) scale(0.28);
+  }
+
+  55% {
+    opacity: 0.68;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+.rhythm-lab-status {
+  position: absolute;
+  top: calc(var(--rhythm-line-y) - 4.75rem);
+  left: 50%;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 9rem;
+  transform: translateX(-50%);
+  color: rgba(255, 255, 255, 0.76);
+  text-align: center;
+  pointer-events: none;
+}
+
+.rhythm-lab-status-readout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: rhythmLabJudgmentReadout 700ms ease-out forwards;
+  will-change: opacity, transform;
+}
+
+.rhythm-lab-status-ready {
+  animation: none;
+  opacity: 1;
+}
+
+.rhythm-lab-status-recording {
+  animation: none;
+  opacity: 1;
+}
+
+.rhythm-lab-status-readout > span {
+  font-size: clamp(1.35rem, 4vw, 2.5rem);
+  font-weight: 800;
+  text-shadow: 0 0 18px rgba(255, 255, 255, 0.22);
+}
+
+.rhythm-lab-status small {
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 700;
+}
+
+.rhythm-lab-judgment-perfect {
+  color: #ffe58a;
+}
+
+.rhythm-lab-judgment-good {
+  color: #8edbff;
+}
+
+.rhythm-lab-judgment-miss {
+  color: #ff6f7d;
+}
+
+.rhythm-lab-status-recording > span {
+  color: #ffb8c0;
+}
+
+@keyframes rhythmLabJudgmentReadout {
+  0% {
+    opacity: 0;
+    transform: translateY(0.18rem) scale(0.94);
+  }
+
+  18% {
+    opacity: 1;
+    transform: translateY(0) scale(1.04);
+  }
+
+  30% {
+    transform: translateY(0) scale(1);
+  }
+
+  82% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.rhythm-lab-hit-zones {
+  position: absolute;
+  left: 0.75rem;
+  right: 0.75rem;
+  top: var(--rhythm-line-y);
+  bottom: max(0.75rem, env(safe-area-inset-bottom));
+  z-index: 6;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+}
+
+.rhythm-lab-hit-zone {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  min-height: 0;
+  padding: 0.65rem 0.35rem 0.55rem;
+  border: 0;
+  border-left: 1px solid rgba(76, 175, 80, 0.16);
+  border-radius: 0;
+  background: transparent;
+  color: var(--terminal-primary, #4caf50);
+  cursor: pointer;
+  font-weight: 800;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: none;
+  transition:
+    transform 0.08s ease,
+    background-color 0.08s ease,
+    box-shadow 0.08s ease;
+}
+
+.rhythm-lab-hit-zone:first-child {
+  border-left: 0;
+}
+
+.rhythm-lab-hit-zone:active {
+  transform: translateY(1px);
+  background: linear-gradient(180deg, rgba(76, 175, 80, 0.1), transparent);
+  box-shadow: inset 0 1px 0 rgba(76, 175, 80, 0.35);
+}
+
+.rhythm-lab-hit-zone-input {
+  background: linear-gradient(180deg, rgba(76, 175, 80, 0.08), transparent);
+  box-shadow: inset 0 1px 0 rgba(76, 175, 80, 0.32);
+}
+
+.rhythm-lab-hit-zone span {
+  display: block;
+  font-size: clamp(0.72rem, 1.5vw, 0.95rem);
+  line-height: 1.25;
+}
+
+.rhythm-lab-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  box-sizing: border-box;
+  background: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(10px);
+}
+
+.rhythm-lab-overlay-panel {
+  width: min(100%, 25rem);
+  min-width: 0;
+  max-width: 100%;
+  padding: 1.25rem;
+  border: 1px solid rgba(76, 175, 80, 0.55);
+  border-radius: 0.65rem;
+  background: rgba(0, 0, 0, 0.78);
+  box-sizing: border-box;
+  text-align: center;
+  box-shadow: 0 0 24px rgba(76, 175, 80, 0.18);
+}
+
+.rhythm-lab-overlay-panel p,
+.rhythm-lab-overlay-panel span {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.88rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.rhythm-lab-overlay-panel h2 {
+  margin: 0.35rem 0 1rem;
+  color: var(--terminal-primary, #4caf50);
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+}
+
+.rhythm-lab-primary-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 9rem;
+  min-height: 2.75rem;
+  margin: 0 0 1rem;
+  border: 1px solid var(--terminal-primary, #4caf50);
+  border-radius: 0.45rem;
+  background: var(--terminal-primary, #4caf50);
+  color: #000000;
+  cursor: pointer;
+  font-weight: 900;
+  text-transform: uppercase;
+  box-shadow: 0 0 18px rgba(76, 175, 80, 0.35);
+}
+
+.rhythm-lab-primary-action:hover {
+  transform: translateY(-1px);
+}
+
+.rhythm-lab-secondary-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 9rem;
+  min-height: 2.75rem;
+  border: 1px solid rgba(76, 175, 80, 0.52);
+  border-radius: 0.45rem;
+  background: rgba(0, 0, 0, 0.52);
+  color: var(--terminal-primary, #4caf50);
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.rhythm-lab-secondary-action:hover,
+.rhythm-lab-secondary-action:focus-visible {
+  border-color: rgba(76, 175, 80, 0.82);
+  background: rgba(76, 175, 80, 0.12);
+  outline: none;
+}
+
+.rhythm-lab-summary-panel {
+  width: min(100%, 30rem);
+  max-height: min(90%, 34rem);
+  overflow: auto;
+}
+
+.rhythm-lab-pause-panel {
+  width: min(100%, 22rem);
+}
+
+.rhythm-lab-pause-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0 0 1.25rem;
+}
+
+.rhythm-lab-pause-actions .rhythm-lab-primary-action,
+.rhythm-lab-pause-actions .rhythm-lab-secondary-action {
+  margin: 0;
+  width: 100%;
+}
+
+.rhythm-lab-summary-progress {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin: 0 0 1rem;
+}
+
+.rhythm-lab-summary-progress div {
+  min-width: 0;
+  padding: 0.55rem 0.6rem;
+  border: 1px solid rgba(255, 183, 77, 0.32);
+  border-radius: 0.4rem;
+  background: rgba(255, 183, 77, 0.08);
+  text-align: left;
+}
+
+.rhythm-lab-summary-progress dt {
+  margin: 0 0 0.25rem;
+  overflow: hidden;
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 0.66rem;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.rhythm-lab-summary-progress dd {
+  margin: 0;
+  color: #ffcc80;
+  font-size: 0.95rem;
+  font-weight: 900;
+}
+
+.rhythm-lab-summary-score {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0 0 1rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid rgba(76, 175, 80, 0.42);
+  border-radius: 0.45rem;
+  background: rgba(76, 175, 80, 0.1);
+  color: rgba(255, 255, 255, 0.76);
+  text-align: left;
+}
+
+.rhythm-lab-summary-score span {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.rhythm-lab-summary-score strong {
+  color: var(--terminal-primary, #4caf50);
+  font-size: clamp(1.5rem, 4vw, 2.3rem);
+  line-height: 1;
+  text-shadow: 0 0 14px rgba(76, 175, 80, 0.38);
+}
+
+.rhythm-lab-summary-best {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin: 0 0 1rem;
+}
+
+.rhythm-lab-summary-best div {
+  min-width: 0;
+  padding: 0.55rem 0.6rem;
+  border: 1px solid rgba(255, 215, 0, 0.28);
+  border-radius: 0.4rem;
+  background: rgba(255, 215, 0, 0.08);
+  text-align: left;
+}
+
+.rhythm-lab-summary-best dt {
+  margin: 0 0 0.25rem;
+  overflow: hidden;
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 0.66rem;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.rhythm-lab-summary-best dd {
+  margin: 0;
+  color: #ffe58a;
+  font-size: 0.95rem;
+  font-weight: 900;
+}
+
+.rhythm-lab-summary-warning {
+  margin: 0 0 0.75rem;
+  color: #ffb8c0;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.rhythm-lab-summary-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin: 0 0 1rem;
+}
+
+.rhythm-lab-summary-metrics div {
+  min-width: 0;
+  padding: 0.62rem 0.7rem;
+  border: 1px solid rgba(76, 175, 80, 0.28);
+  border-radius: 0.4rem;
+  background: rgba(0, 0, 0, 0.46);
+  text-align: left;
+}
+
+.rhythm-lab-summary-metrics dt {
+  margin: 0 0 0.25rem;
+  overflow: hidden;
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 0.7rem;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.rhythm-lab-summary-metrics dd {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1rem;
+  font-weight: 900;
+}
+
+.rhythm-lab-summary-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin: 0 0 1rem;
+}
+
+.rhythm-lab-summary-actions .rhythm-lab-primary-action {
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .rhythm-lab {
+    padding: 0.75rem 0.65rem max(0.75rem, env(safe-area-inset-bottom));
+    gap: 0.6rem;
+  }
+
+  .rhythm-lab-header {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 0.65rem;
+  }
+
+  .rhythm-lab-active-session {
+    padding-top: 0.45rem;
+    gap: 0.45rem;
+  }
+
+  .rhythm-lab-active-session .rhythm-lab-header {
+    gap: 0.45rem;
+  }
+
+  .rhythm-lab-active-bar {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 0.4rem;
+  }
+
+  .rhythm-lab-active-context {
+    gap: 0.28rem;
+  }
+
+  .rhythm-lab-active-filename,
+  .rhythm-lab-active-chip,
+  .rhythm-lab-compact-action {
+    min-height: 1.75rem;
+    font-size: 0.64rem;
+  }
+
+  .rhythm-lab-active-filename {
+    min-width: 0;
+    max-width: none;
+    padding: 0.53rem 0.45rem 0.32rem;
+  }
+
+  .rhythm-lab-active-chip,
+  .rhythm-lab-compact-action {
+    padding: 0.3rem 0.42rem;
+  }
+
+  .rhythm-lab-active-actions {
+    gap: 0.28rem;
+  }
+
+  .rhythm-lab-eyebrow {
+    font-size: 0.7rem;
+  }
+
+  .rhythm-lab-title-row {
+    gap: 0.55rem;
+  }
+
+  .rhythm-lab-back-link {
+    padding: 0.28rem 0.45rem;
+    font-size: 0.7rem;
+  }
+
+  .rhythm-lab-audio-panel {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
+    gap: 0.45rem;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .rhythm-lab-audio-picker,
+  .rhythm-lab-song-selector,
+  .rhythm-lab-audio-resume {
+    width: 100%;
+  }
+
+  .rhythm-lab-audio-picker {
+    justify-content: space-between;
+  }
+
+  .rhythm-lab-audio-input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .rhythm-lab-audio-picker-button {
+    display: inline-flex;
+  }
+
+  .rhythm-lab-audio-details {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .rhythm-lab-song-selector {
+    max-width: 100%;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
+  }
+
+  .rhythm-lab-song-selector-label {
+    margin-bottom: 0.1rem;
+  }
+
+  .rhythm-lab-recording-controls {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .rhythm-lab-chart-mode-button,
+  .rhythm-lab-record-button,
+  .rhythm-lab-chart-management-button {
+    width: 100%;
+  }
+
+  .rhythm-lab-chart-selector,
+  .rhythm-lab-chart-empty,
+  .rhythm-lab-chart-best,
+  .rhythm-lab-chart-management {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .rhythm-lab-chart-management {
+    display: contents;
+  }
+
+  .rhythm-lab-chart-name-input {
+    grid-column: 1 / -1;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .rhythm-lab-chart-selector {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
+  }
+
+  .rhythm-lab-panel-tabs {
+    grid-column: 1 / -1;
+  }
+
+  .rhythm-lab-panel-tabs button {
+    font-size: 0.66rem;
+    padding: 0.4rem 0.35rem;
+  }
+
+  .rhythm-lab-run-history {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .rhythm-lab-run-history-list {
+    max-height: 12rem;
+  }
+
+  .rhythm-lab-analytics {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .rhythm-lab-analytics-cards {
+    grid-template-columns: repeat(auto-fill, minmax(5.5rem, 1fr));
+  }
+
+  .rhythm-lab-hud {
+    justify-content: stretch;
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    box-sizing: border-box;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.4rem;
+  }
+
+  .rhythm-lab-hud span {
+    min-width: 0;
+    padding: 0.42rem 0.35rem;
+    font-size: 0.78rem;
+  }
+
+  .rhythm-lab-active-session .rhythm-lab-hud span {
+    padding: 0.32rem 0.25rem;
+    font-size: 0.7rem;
+  }
+
+  .rhythm-lab-stage {
+    align-items: stretch;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .rhythm-lab-highway {
+    width: 100%;
+    max-width: 430px;
+    height: 100%;
+    max-height: 100%;
+    min-width: 0;
+    min-height: 0;
+    border-radius: 0.5rem;
+  }
+
+  .rhythm-lab-active-session .rhythm-lab-highway {
+    height: 100%;
+    max-height: 100%;
+    min-height: 0;
+  }
+
+  .rhythm-lab-hit-zones {
+    left: 0.55rem;
+    right: 0.55rem;
+  }
+
+  .rhythm-lab-hit-zone {
+    padding-bottom: 0.7rem;
+  }
+
+  .rhythm-lab-lane-label {
+    top: 0.55rem;
+    font-size: 0.68rem;
+  }
+
+  .rhythm-lab-note {
+    width: 68%;
+    height: var(--rhythm-note-height);
+  }
+
+  .rhythm-lab-highway {
+    --rhythm-note-width: 68%;
+    --rhythm-note-height: 2.75rem;
+  }
+
+  .rhythm-lab-summary-panel {
+    max-height: min(92%, 37rem);
+    padding: 1rem;
+  }
+
+  .rhythm-lab-summary-score {
+    padding: 0.65rem 0.7rem;
+  }
+
+  .rhythm-lab-summary-metrics {
+    gap: 0.42rem;
+  }
+
+  .rhythm-lab-summary-best {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.42rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .rhythm-lab-summary-best div {
+    padding: 0.5rem 0.58rem;
+  }
+
+  .rhythm-lab-summary-best dt {
+    font-size: 0.62rem;
+  }
+
+  .rhythm-lab-summary-best dd {
+    font-size: 0.88rem;
+  }
+
+  .rhythm-lab-summary-metrics div {
+    padding: 0.55rem 0.58rem;
+  }
+
+  .rhythm-lab-summary-metrics dt {
+    font-size: 0.62rem;
+  }
+
+  .rhythm-lab-summary-metrics dd {
+    font-size: 0.88rem;
+  }
+
+  .rhythm-lab-summary-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.5rem;
+  }
+
+  .rhythm-lab-summary-actions .rhythm-lab-primary-action,
+  .rhythm-lab-summary-actions .rhythm-lab-secondary-action {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 380px) {
+  .rhythm-lab-highway {
+    height: 100%;
+    min-height: 0;
+  }
+
+  .rhythm-lab-active-bar {
+    gap: 0.32rem;
+  }
+
+  .rhythm-lab-active-status {
+    display: none;
+  }
+
+  .rhythm-lab-active-chip-recording {
+    display: inline-flex;
+  }
+
+  .rhythm-lab-active-session .rhythm-lab-highway {
+    height: 100%;
+    min-height: 0;
+  }
+
+  .rhythm-lab-hit-zone {
+    padding-bottom: 0.6rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rhythm-lab-highway::before,
+  .rhythm-lab-highway::after,
+  .rhythm-lab-target-window::before,
+  .rhythm-lab-target-window-line,
+  .rhythm-lab-hit-zone,
+  .rhythm-lab-primary-action {
+    transition: none;
+  }
+
+  .rhythm-lab-target-hit::after {
+    animation: none;
+  }
+
+  .rhythm-lab-status-readout {
+    animation: none;
+  }
+}
+
+/* ── Delete chart confirmation modal ── */
+
+.rhythm-lab-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  box-sizing: border-box;
+  background: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(10px);
+}
+
+.rhythm-lab-delete-dialog {
+  width: min(28rem, 100%);
+  min-width: 0;
+  max-width: 100%;
+  padding: 1.25rem;
+  border: 1px solid rgba(255, 183, 77, 0.55);
+  border-radius: 0.65rem;
+  background: rgba(0, 0, 0, 0.88);
+  box-sizing: border-box;
+  text-align: center;
+  box-shadow: 0 0 24px rgba(255, 183, 77, 0.18);
+}
+
+.rhythm-lab-modal-kicker {
+  display: block;
+  margin: 0 0 0.25rem;
+  color: rgba(255, 183, 77, 0.85);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.rhythm-lab-delete-dialog h2 {
+  margin: 0.35rem 0 0.75rem;
+  color: rgba(255, 255, 255, 0.92);
+  font-size: clamp(1.2rem, 3vw, 1.6rem);
+  overflow-wrap: anywhere;
+}
+
+.rhythm-lab-delete-dialog-meta {
+  margin: 0 0 0.75rem;
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.rhythm-lab-delete-dialog-copy {
+  margin: 0 0 1.25rem;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.rhythm-lab-delete-dialog-actions {
+  display: flex;
+  gap: 0.65rem;
+  justify-content: center;
+}
+
+.rhythm-lab-danger-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 9rem;
+  min-height: 2.75rem;
+  border: 1px solid #d32f2f;
+  border-radius: 0.45rem;
+  background: #d32f2f;
+  color: #ffffff;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 900;
+  text-transform: uppercase;
+  box-shadow: 0 0 14px rgba(211, 47, 47, 0.3);
+}
+
+.rhythm-lab-danger-button:hover {
+  background: #e53935;
+  border-color: #e53935;
+  transform: translateY(-1px);
+}
+
+.rhythm-lab-danger-button:focus-visible {
+  outline: 2px solid rgba(255, 183, 77, 0.8);
+  outline-offset: 2px;
+}
+
+.rhythm-lab-clear-history-dialog {
+  border-color: rgba(255, 193, 7, 0.75);
+}
+
+.rhythm-lab-delete-dialog-copy p {
+  margin: 0 0 0.5rem;
+}
+
+.rhythm-lab-delete-dialog-copy p:last-child {
+  margin-bottom: 0;
+}
+
+.rhythm-lab-hidden-file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.rhythm-lab-import-status {
+  margin: 0.35rem 0 0;
+  color: rgba(255, 183, 77, 0.85);
+  font-size: 0.82rem;
+  line-height: 1.4;
+}

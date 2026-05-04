@@ -1,10 +1,13 @@
+export type GamePreviewType = "snake" | "spider" | "rhythm-lab" | "placeholder";
+
 export interface GameData {
   id: string;
   title: string;
   description: string;
   path: string;
-  previewType: string;
+  previewType: GamePreviewType;
   isAvailable: boolean;
+  modeLabel?: string;
 }
 
 export const gamesData: GameData[] = [
@@ -24,6 +27,16 @@ export const gamesData: GameData[] = [
     previewType: "spider",
     isAvailable: true,
   },
+  {
+    id: "rhythm-lab",
+    title: "Rhythm Lab",
+    description:
+      "Three-lane timing prototype for input windows, chart data, and mobile rhythm ergonomics.",
+    path: "/games/rhythm-lab",
+    previewType: "rhythm-lab",
+    isAvailable: true,
+    modeLabel: "Fullscreen prototype",
+  },
   // Future games will be added here
   // Example:
   // {
@@ -31,7 +44,7 @@ export const gamesData: GameData[] = [
   //   title: 'Tetris',
   //   description: 'Classic block-stacking puzzle game',
   //   path: '/games/tetris',
-  //   previewType: 'tetris',
+  //   previewType: 'placeholder',
   //   isAvailable: false,
   // },
 ];

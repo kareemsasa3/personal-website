@@ -89,6 +89,14 @@ const staticRouteMetadata: RouteMetadata[] = [
     sitemap: { changefreq: "monthly", priority: "0.3" },
   },
   {
+    path: "/games/rhythm-lab",
+    title: "Rhythm Lab - Kareem Sasa",
+    description:
+      "A three-lane rhythm interaction prototype focused on timing windows, chart playback, real-time input, and mobile ergonomics.",
+    canonicalPath: "/games/rhythm-lab",
+    sitemap: { changefreq: "monthly", priority: "0.3" },
+  },
+  {
     path: "/terminal",
     title: "Terminal - Kareem Sasa",
     description:

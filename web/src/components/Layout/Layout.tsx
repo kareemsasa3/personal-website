@@ -9,14 +9,6 @@ import { PageLoader } from "../common";
 import ErrorBoundary from "../common/ErrorBoundary";
 import { useLayoutContext } from "../../contexts/LayoutContext";
 import { useNavigationMode } from "../../contexts/NavigationModeContext";
-import {
-  DEFAULT_IMAGE_ALT,
-  DEFAULT_IMAGE_URL,
-  SITE_URL,
-  defaultRouteMetadata,
-  routeMetadataByPath,
-} from "../../data/routeMetadata";
-import { getStructuredDataJson } from "../../data/structuredData";
 import "./Layout.css";
 
 const pageVariants = {
@@ -71,49 +63,6 @@ const Layout = () => {
       hasMarkedAppReady.current = true;
     }
   }, [isLoading]);
-
-  useEffect(() => {
-    const meta = routeMetadataByPath[location.pathname] || defaultRouteMetadata;
-    const canonicalUrl = `${SITE_URL}${meta.canonicalPath}`;
-
-    if (document.title !== meta.title) document.title = meta.title;
-
-    const setMetaContent = (selector: string, content: string) => {
-      const element = document.querySelector<HTMLMetaElement>(selector);
-      if (element && element.content !== content) {
-        element.content = content;
-      }
-    };
-
-    const canonicalElement = document.querySelector<HTMLLinkElement>(
-      'link[rel="canonical"]'
-    );
-    if (canonicalElement && canonicalElement.href !== canonicalUrl) {
-      canonicalElement.href = canonicalUrl;
-    }
-
-    setMetaContent('meta[name="description"]', meta.description);
-    setMetaContent('meta[property="og:title"]', meta.title);
-    setMetaContent('meta[property="og:description"]', meta.description);
-    setMetaContent('meta[property="og:url"]', canonicalUrl);
-    setMetaContent('meta[property="og:image"]', DEFAULT_IMAGE_URL);
-    setMetaContent('meta[property="og:image:alt"]', DEFAULT_IMAGE_ALT);
-    setMetaContent('meta[name="twitter:title"]', meta.title);
-    setMetaContent('meta[name="twitter:description"]', meta.description);
-    setMetaContent('meta[name="twitter:image"]', DEFAULT_IMAGE_URL);
-    setMetaContent('meta[name="twitter:image:alt"]', DEFAULT_IMAGE_ALT);
-
-    const structuredDataElement = document.querySelector<HTMLScriptElement>(
-      'script[type="application/ld+json"][data-site-structured-data="true"]'
-    );
-    const structuredDataJson = getStructuredDataJson(location.pathname);
-    if (
-      structuredDataElement &&
-      structuredDataElement.textContent !== structuredDataJson
-    ) {
-      structuredDataElement.textContent = structuredDataJson;
-    }
-  }, [location.pathname]);
 
   return (
     // Use a simple fragment, or a div with NO positioning/transform styles

@@ -226,7 +226,7 @@ const createGamesGraph = () =>
   ]);
 
 const createGameDetailGraph = (
-  canonicalPath: "/games/snake" | "/games/spider",
+  canonicalPath: "/games/snake" | "/games/spider" | "/games/rhythm-lab",
   gameName: string
 ) =>
   graph([
@@ -262,6 +262,9 @@ const createDefaultRouteGraph = (pathname: string) => {
   }
   if (canonicalPath === "/games/spider") {
     return createGameDetailGraph("/games/spider", "Spider Solitaire");
+  }
+  if (canonicalPath === "/games/rhythm-lab") {
+    return createGameDetailGraph("/games/rhythm-lab", "Rhythm Lab");
   }
   if (canonicalPath === "/terminal") return createTerminalGraph();
 
