@@ -233,6 +233,7 @@
 }
 
 .rhythm-lab-song-selector {
+  position: relative;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
@@ -252,14 +253,15 @@
   text-transform: uppercase;
 }
 
-.rhythm-lab-song-selector span {
+.rhythm-lab-song-selector-label {
   color: var(--terminal-primary, #4caf50);
   white-space: nowrap;
 }
 
-.rhythm-lab-song-selector select {
+.rhythm-lab-song-selector-trigger {
   min-width: 0;
   width: 100%;
+  padding: 0.18rem 0.35rem;
   border: 1px solid rgba(76, 175, 80, 0.32);
   border-radius: 0.28rem;
   background: rgba(0, 0, 0, 0.56);
@@ -268,12 +270,91 @@
   font: inherit;
   font-size: 0.68rem;
   line-height: 1.2;
+  text-align: left;
+  text-transform: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rhythm-lab-song-selector-trigger:hover,
+.rhythm-lab-song-selector-trigger:focus-visible {
+  border-color: rgba(76, 175, 80, 0.62);
+  outline: none;
+}
+
+.rhythm-lab-song-selector-trigger[aria-expanded="true"] {
+  border-color: rgba(76, 175, 80, 0.72);
+  background: rgba(76, 175, 80, 0.08);
+}
+
+.rhythm-lab-song-list {
+  position: absolute;
+  top: calc(100% + 0.3rem);
+  left: -1px;
+  right: -1px;
+  z-index: 20;
+  max-height: 14rem;
+  margin: 0;
+  padding: 0.25rem;
+  border: 1px solid rgba(76, 175, 80, 0.48);
+  border-radius: 0.36rem;
+  background: rgba(8, 8, 8, 0.96);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.rhythm-lab-song-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.38rem 0.4rem;
+  border: none;
+  border-radius: 0.24rem;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.78);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 600;
+  line-height: 1.25;
+  text-align: left;
   text-transform: none;
 }
 
-.rhythm-lab-song-selector select:disabled {
-  cursor: not-allowed;
-  opacity: 0.58;
+.rhythm-lab-song-option:hover,
+.rhythm-lab-song-option:focus-visible {
+  background: rgba(76, 175, 80, 0.14);
+  outline: none;
+}
+
+.rhythm-lab-song-option-active {
+  color: var(--terminal-primary, #4caf50);
+}
+
+.rhythm-lab-song-option-active::before {
+  content: "\25B8";
+  flex: 0 0 auto;
+  margin-right: -0.2rem;
+  font-size: 0.58rem;
+}
+
+.rhythm-lab-song-option-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rhythm-lab-song-option-meta {
+  flex: 0 0 auto;
+  color: rgba(255, 255, 255, 0.42);
+  font-size: 0.6rem;
+  font-weight: 800;
+  white-space: nowrap;
 }
 
 .rhythm-lab-audio-resume {
@@ -1273,6 +1354,10 @@
     max-width: 100%;
     grid-template-columns: minmax(0, 1fr);
     align-items: stretch;
+  }
+
+  .rhythm-lab-song-selector-label {
+    margin-bottom: 0.1rem;
   }
 
   .rhythm-lab-recording-controls {

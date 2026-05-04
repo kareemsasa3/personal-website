@@ -1,7 +1,7 @@
-import type { ChangeEvent } from "react";
+import { type ChangeEvent, useCallback, useEffect, useRef, useState } from "react";
 import type { GamePhase } from "./types";
 import type { RhythmLabSong } from "./library/types";
-import { formatSongOptionLabel } from "./helpers";
+import { formatSongOptionLabel, formatSongTimestamp } from "./helpers";
 
 interface SongControlsProps {
   fileName: string | null;
@@ -20,6 +20,8 @@ interface SongControlsProps {
   onStopPreview: () => void;
 }
 
+const SONG_LIST_ID = "rhythm-lab-song-list";
+
 const SongControls = ({
   fileName,
   importedSongs,
@@ -28,81 +30,142 @@ const SongControls = ({
   chartStorageError,
   runStorageError,
   phase,
-  isRecording,
   hasSelectedFile,
   isPreviewing,
   onFileChange,
   onSongSelect,
   onStartPreview,
   onStopPreview,
-}: SongControlsProps) => (
-  <>
-    <label className="rhythm-lab-audio-picker">
-      <span>Local audio</span>
-      <input
-        className="rhythm-lab-audio-input"
-        type="file"
-        accept="audio/*"
-        aria-label="Choose local audio file"
-        onChange={onFileChange}
-      />
-      <span className="rhythm-lab-audio-picker-button" aria-hidden="true">
-        Choose file
-      </span>
-    </label>
-    {importedSongs.length > 0 && (
-      <label
-        className="rhythm-lab-song-selector"
-        aria-label="Imported song selector"
-      >
-        <span>Saved songs</span>
-        <select
-          value={activeSongId ?? ""}
-          disabled={isRecording}
-          onChange={(event) => onSongSelect(event.currentTarget.value)}
-        >
-          <option value="" disabled>
-            Select song
-          </option>
-          {importedSongs.map((song) => (
-            <option key={song.id} value={song.id}>
-              {formatSongOptionLabel(song)}
-            </option>
-          ))}
-        </select>
-      </label>
-    )}
-    <div className="rhythm-lab-audio-details" aria-live="polite">
-      <span className="rhythm-lab-audio-details-row">
-        <span
-          className="rhythm-lab-audio-filename"
-          title={fileName ?? "No audio selected"}
-          aria-label={fileName ?? "No audio selected"}
-        >
-          {fileName ? fileName : "No audio selected"}
+}: SongControlsProps) => {
+  const [isPickerOpen, setIsPickerOpen] = useState(false);
+  const pickerRef = useRef<HTMLDivElement>(null);
+
+  const closePicker = useCallback(() => setIsPickerOpen(false), []);
+
+  useEffect(() => {
+    if (!isPickerOpen) return;
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (
+        pickerRef.current &&
+        !pickerRef.current.contains(event.target as Node)
+      ) {
+        setIsPickerOpen(false);
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsPickerOpen(false);
+      }
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isPickerOpen]);
+
+  const activeSong = activeSongId
+    ? importedSongs.find((song) => song.id === activeSongId)
+    : null;
+  const triggerLabel = activeSong
+    ? formatSongOptionLabel(activeSong)
+    : "Select song";
+
+  return (
+    <>
+      <label className="rhythm-lab-audio-picker">
+        <span>Local audio</span>
+        <input
+          className="rhythm-lab-audio-input"
+          type="file"
+          accept="audio/*"
+          aria-label="Choose local audio file"
+          onChange={onFileChange}
+        />
+        <span className="rhythm-lab-audio-picker-button" aria-hidden="true">
+          Choose file
         </span>
-        {hasSelectedFile && (
+      </label>
+      {importedSongs.length > 0 && (
+        <div className="rhythm-lab-song-selector" ref={pickerRef}>
+          <span className="rhythm-lab-song-selector-label">Saved songs</span>
           <button
-            className={`rhythm-lab-preview-button${isPreviewing ? " rhythm-lab-preview-button-active" : ""}`}
+            className="rhythm-lab-song-selector-trigger"
             type="button"
-            onClick={isPreviewing ? onStopPreview : onStartPreview}
+            aria-expanded={isPickerOpen}
+            aria-haspopup="listbox"
+            aria-controls={isPickerOpen ? SONG_LIST_ID : undefined}
+            onClick={() => setIsPickerOpen((open) => !open)}
           >
-            {isPreviewing ? "\u25A0 Stop" : "\u25B6 Preview"}
+            {triggerLabel}
           </button>
+          {isPickerOpen && (
+            <div
+              id={SONG_LIST_ID}
+              className="rhythm-lab-song-list"
+              role="listbox"
+              aria-label="Saved songs"
+            >
+              {importedSongs.map((song) => (
+                <button
+                  key={song.id}
+                  className={`rhythm-lab-song-option${song.id === activeSongId ? " rhythm-lab-song-option-active" : ""}`}
+                  role="option"
+                  aria-selected={song.id === activeSongId}
+                  type="button"
+                  onClick={() => {
+                    onSongSelect(song.id);
+                    closePicker();
+                  }}
+                >
+                  <span className="rhythm-lab-song-option-title">
+                    {song.title || song.filename}
+                  </span>
+                  <span className="rhythm-lab-song-option-meta">
+                    {formatSongTimestamp(song.importedAt)}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+      <div className="rhythm-lab-audio-details" aria-live="polite">
+        <span className="rhythm-lab-audio-details-row">
+          <span
+            className="rhythm-lab-audio-filename"
+            title={fileName ?? "No audio selected"}
+            aria-label={fileName ?? "No audio selected"}
+          >
+            {fileName ? fileName : "No audio selected"}
+          </span>
+          {hasSelectedFile && (
+            <button
+              className={`rhythm-lab-preview-button${isPreviewing ? " rhythm-lab-preview-button-active" : ""}`}
+              type="button"
+              onClick={isPreviewing ? onStopPreview : onStartPreview}
+            >
+              {isPreviewing ? "\u25A0 Stop" : "\u25B6 Preview"}
+            </button>
+          )}
+        </span>
+        <small>Stored locally in this browser. Not uploaded.</small>
+        {audioError && (
+          <small className="rhythm-lab-audio-error">{audioError}</small>
         )}
-      </span>
-      <small>Stored locally in this browser. Not uploaded.</small>
-      {audioError && (
-        <small className="rhythm-lab-audio-error">{audioError}</small>
-      )}
-      {chartStorageError && (
-        <small className="rhythm-lab-audio-error">{chartStorageError}</small>
-      )}
-      {runStorageError && phase !== "complete" && (
-        <small className="rhythm-lab-audio-error">{runStorageError}</small>
-      )}
-    </div>
-  </>
-);
+        {chartStorageError && (
+          <small className="rhythm-lab-audio-error">{chartStorageError}</small>
+        )}
+        {runStorageError && phase !== "complete" && (
+          <small className="rhythm-lab-audio-error">{runStorageError}</small>
+        )}
+      </div>
+    </>
+  );
+};
 
 export default SongControls;

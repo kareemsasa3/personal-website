@@ -88,7 +88,7 @@ export const formatChartOptionLabel = (chart: RhythmLabChart) => {
   )}`;
 };
 
-const formatSongTimestamp = (timestamp: string) => {
+export const formatSongTimestamp = (timestamp: string) => {
   const date = new Date(timestamp);
   if (Number.isNaN(date.getTime())) return "imported";
 
