@@ -16,6 +16,7 @@ import {
 
 type SetupTab = "setup" | "history" | "analytics";
 import { openRhythmLabDb } from "./library/rhythmLabDb";
+import type { RhythmLabChart } from "./library/types";
 import { useLocalAudioFile } from "./useLocalAudioFile";
 import { useRhythmLab } from "./useRhythmLab";
 import ActiveSessionHeader from "./ActiveSessionHeader";
@@ -25,6 +26,7 @@ import ReadyCheckPanel from "./ReadyCheckPanel";
 import RhythmHighway from "./RhythmHighway";
 import RunAnalyticsPanel from "./RunAnalyticsPanel";
 import RunHistoryPanel from "./RunHistoryPanel";
+import DeleteChartDialog from "./DeleteChartDialog";
 import RunSummaryPanel from "./RunSummaryPanel";
 import SongControls from "./SongControls";
 import {
@@ -74,6 +76,8 @@ const RhythmLab = () => {
   const dbRef = useRef<IDBDatabase | null>(null);
   const [visibleJudgment, setVisibleJudgment] =
     useState<NoteJudgment | null>(null);
+  const [chartPendingDelete, setChartPendingDelete] =
+    useState<RhythmLabChart | null>(null);
   const gameRef = useRef<HTMLDivElement>(null);
   const judgmentReadoutTimeoutRef = useRef<number | null>(null);
 
@@ -444,6 +448,9 @@ const RhythmLab = () => {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
+      // Let the delete-chart dialog handle its own keyboard events.
+      if (chartPendingDelete) return;
+
       if (event.key === "Escape") {
         event.preventDefault();
         if (phase === "playing" && !isRecording) {
@@ -488,7 +495,17 @@ const RhythmLab = () => {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handleLaneInput, isRecording, pauseRun, phase, restartGame, resumeRun]);
+  }, [chartPendingDelete, handleLaneInput, isRecording, pauseRun, phase, restartGame, resumeRun]);
+
+  const confirmDeleteChart = useCallback(() => {
+    if (!chartPendingDelete) return;
+    setChartPendingDelete(null);
+    void deleteSelectedChart();
+  }, [chartPendingDelete, deleteSelectedChart]);
+
+  const cancelDeleteChart = useCallback(() => {
+    setChartPendingDelete(null);
+  }, []);
 
   const handleLanePointerDown = (
     event: PointerEvent<HTMLButtonElement>,
@@ -665,7 +682,11 @@ const RhythmLab = () => {
                           onBeginRename={beginChartRename}
                           onCancelRename={cancelChartRename}
                           onSaveRename={saveChartRename}
-                          onDeleteChart={deleteSelectedChart}
+                          onDeleteChart={() => {
+                            if (selectedRecordedChart) {
+                              setChartPendingDelete(selectedRecordedChart);
+                            }
+                          }}
                           onChartNameChange={setChartNameDraft}
                         />
                       )}
@@ -744,6 +765,16 @@ const RhythmLab = () => {
           )}
         </RhythmHighway>
       </main>
+
+      {chartPendingDelete && (
+        <DeleteChartDialog
+          chartName={chartPendingDelete.name}
+          songTitle={activeSong?.title}
+          noteCount={chartPendingDelete.notes.length}
+          onCancel={cancelDeleteChart}
+          onConfirm={confirmDeleteChart}
+        />
+      )}
     </div>
   );
 };

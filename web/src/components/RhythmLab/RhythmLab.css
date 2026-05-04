@@ -1921,3 +1921,96 @@
     animation: none;
   }
 }
+
+/* ── Delete chart confirmation modal ── */
+
+.rhythm-lab-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  box-sizing: border-box;
+  background: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(10px);
+}
+
+.rhythm-lab-delete-dialog {
+  width: min(28rem, 100%);
+  min-width: 0;
+  max-width: 100%;
+  padding: 1.25rem;
+  border: 1px solid rgba(255, 183, 77, 0.55);
+  border-radius: 0.65rem;
+  background: rgba(0, 0, 0, 0.88);
+  box-sizing: border-box;
+  text-align: center;
+  box-shadow: 0 0 24px rgba(255, 183, 77, 0.18);
+}
+
+.rhythm-lab-modal-kicker {
+  display: block;
+  margin: 0 0 0.25rem;
+  color: rgba(255, 183, 77, 0.85);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.rhythm-lab-delete-dialog h2 {
+  margin: 0.35rem 0 0.75rem;
+  color: rgba(255, 255, 255, 0.92);
+  font-size: clamp(1.2rem, 3vw, 1.6rem);
+  overflow-wrap: anywhere;
+}
+
+.rhythm-lab-delete-dialog-meta {
+  margin: 0 0 0.75rem;
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.rhythm-lab-delete-dialog-copy {
+  margin: 0 0 1.25rem;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.rhythm-lab-delete-dialog-actions {
+  display: flex;
+  gap: 0.65rem;
+  justify-content: center;
+}
+
+.rhythm-lab-danger-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 9rem;
+  min-height: 2.75rem;
+  border: 1px solid #d32f2f;
+  border-radius: 0.45rem;
+  background: #d32f2f;
+  color: #ffffff;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 900;
+  text-transform: uppercase;
+  box-shadow: 0 0 14px rgba(211, 47, 47, 0.3);
+}
+
+.rhythm-lab-danger-button:hover {
+  background: #e53935;
+  border-color: #e53935;
+  transform: translateY(-1px);
+}
+
+.rhythm-lab-danger-button:focus-visible {
+  outline: 2px solid rgba(255, 183, 77, 0.8);
+  outline-offset: 2px;
+}

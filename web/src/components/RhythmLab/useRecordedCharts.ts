@@ -298,11 +298,6 @@ export const useRecordedCharts = ({
       return;
     }
 
-    const shouldDelete = window.confirm(
-      `Delete "${selectedRecordedChart.name}"? Saved runs for this chart will also be deleted.`
-    );
-    if (!shouldDelete) return;
-
     setPendingChartAction("delete");
     pausePlayback();
     cancelRecording();
