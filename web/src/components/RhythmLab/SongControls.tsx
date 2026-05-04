@@ -12,8 +12,12 @@ interface SongControlsProps {
   runStorageError: string | null;
   phase: GamePhase;
   isRecording: boolean;
+  hasSelectedFile: boolean;
+  isPreviewing: boolean;
   onFileChange: (event: ChangeEvent<HTMLInputElement>) => void;
   onSongSelect: (songId: string) => void;
+  onStartPreview: () => void;
+  onStopPreview: () => void;
 }
 
 const SongControls = ({
@@ -25,8 +29,12 @@ const SongControls = ({
   runStorageError,
   phase,
   isRecording,
+  hasSelectedFile,
+  isPreviewing,
   onFileChange,
   onSongSelect,
+  onStartPreview,
+  onStopPreview,
 }: SongControlsProps) => (
   <>
     <label className="rhythm-lab-audio-picker">
@@ -65,12 +73,23 @@ const SongControls = ({
       </label>
     )}
     <div className="rhythm-lab-audio-details" aria-live="polite">
-      <span
-        className="rhythm-lab-audio-filename"
-        title={fileName ?? "No audio selected"}
-        aria-label={fileName ?? "No audio selected"}
-      >
-        {fileName ? fileName : "No audio selected"}
+      <span className="rhythm-lab-audio-details-row">
+        <span
+          className="rhythm-lab-audio-filename"
+          title={fileName ?? "No audio selected"}
+          aria-label={fileName ?? "No audio selected"}
+        >
+          {fileName ? fileName : "No audio selected"}
+        </span>
+        {hasSelectedFile && (
+          <button
+            className={`rhythm-lab-preview-button${isPreviewing ? " rhythm-lab-preview-button-active" : ""}`}
+            type="button"
+            onClick={isPreviewing ? onStopPreview : onStartPreview}
+          >
+            {isPreviewing ? "\u25A0 Stop" : "\u25B6 Preview"}
+          </button>
+        )}
       </span>
       <small>Stored locally in this browser. Not uploaded.</small>
       {audioError && (

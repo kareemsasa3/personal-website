@@ -40,6 +40,7 @@ const RhythmLab = () => {
     fileName,
     error: audioError,
     hasSelectedFile,
+    isPreviewing,
     isPausedAfterVisibilityChange,
     handleFileChange,
     selectSong,
@@ -48,6 +49,8 @@ const RhythmLab = () => {
     pausePlayback,
     getElapsedMs,
     isPlaybackComplete,
+    startPreview,
+    stopPreview,
   } = useLocalAudioFile();
   const {
     isRecording,
@@ -224,6 +227,7 @@ const RhythmLab = () => {
 
   const handleAudioFileChange = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
+      stopPreview();
       pausePlayback();
       resetGame();
       resetChartRuntimeForSongChange();
@@ -236,6 +240,7 @@ const RhythmLab = () => {
       pausePlayback,
       resetChartRuntimeForSongChange,
       resetGame,
+      stopPreview,
     ]
   );
 
@@ -243,6 +248,7 @@ const RhythmLab = () => {
     (songId: string) => {
       if (!songId || songId === activeSongId) return;
 
+      stopPreview();
       pausePlayback();
       resetChartRuntimeForSongChange();
       void selectSong(songId);
@@ -254,6 +260,7 @@ const RhythmLab = () => {
       pausePlayback,
       resetChartRuntimeForSongChange,
       selectSong,
+      stopPreview,
     ]
   );
 
@@ -483,8 +490,14 @@ const RhythmLab = () => {
                   runStorageError={runStorageError}
                   phase={phase}
                   isRecording={isRecording}
+                  hasSelectedFile={hasSelectedFile}
+                  isPreviewing={isPreviewing}
                   onFileChange={handleAudioFileChange}
                   onSongSelect={handleSongSelect}
+                  onStartPreview={() => {
+                    void startPreview();
+                  }}
+                  onStopPreview={stopPreview}
                 />
                 {hasSelectedFile && (
                   <ChartControls

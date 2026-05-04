@@ -46,6 +46,7 @@ export const useLocalAudioFile = () => {
   const dbRef = useRef<IDBDatabase | null>(null);
   const objectUrlRef = useRef<string | null>(null);
   const hasSelectedFileRef = useRef(false);
+  const isPreviewingRef = useRef(false);
   const restoreRequestIdRef = useRef(0);
   const isMountedRef = useRef(true);
   const [activeSongId, setActiveSongId] = useState<string | null>(null);
@@ -53,6 +54,7 @@ export const useLocalAudioFile = () => {
   const [importedSongs, setImportedSongs] = useState<RhythmLabSong[]>([]);
   const [fileName, setFileName] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isPreviewing, setIsPreviewing] = useState(false);
   const [isPausedAfterVisibilityChange, setIsPausedAfterVisibilityChange] =
     useState(false);
 
@@ -279,6 +281,9 @@ export const useLocalAudioFile = () => {
     const audio = audioRef.current;
     if (!audio || !hasSelectedFileRef.current) return true;
 
+    isPreviewingRef.current = false;
+    setIsPreviewing(false);
+
     try {
       audio.pause();
       audio.currentTime = 0;
@@ -321,6 +326,29 @@ export const useLocalAudioFile = () => {
     return Boolean(audio?.ended);
   }, []);
 
+  const startPreview = useCallback(async () => {
+    const audio = audioRef.current;
+    if (!audio || !hasSelectedFileRef.current) return;
+
+    try {
+      audio.pause();
+      audio.currentTime = 0;
+      await audio.play();
+      isPreviewingRef.current = true;
+      setIsPreviewing(true);
+      setError(null);
+      setIsPausedAfterVisibilityChange(false);
+    } catch {
+      setError("Audio playback was blocked. Try again.");
+    }
+  }, []);
+
+  const stopPreview = useCallback(() => {
+    isPreviewingRef.current = false;
+    setIsPreviewing(false);
+    audioRef.current?.pause();
+  }, []);
+
   useEffect(() => {
     isMountedRef.current = true;
 
@@ -329,7 +357,13 @@ export const useLocalAudioFile = () => {
       if (!document.hidden || !audio || audio.paused) return;
 
       audio.pause();
-      setIsPausedAfterVisibilityChange(true);
+
+      if (isPreviewingRef.current) {
+        isPreviewingRef.current = false;
+        setIsPreviewing(false);
+      } else {
+        setIsPausedAfterVisibilityChange(true);
+      }
     };
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
@@ -338,6 +372,21 @@ export const useLocalAudioFile = () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, []);
+
+  useEffect(() => {
+    if (!isPreviewing) return;
+
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const handleEnded = () => {
+      isPreviewingRef.current = false;
+      setIsPreviewing(false);
+    };
+
+    audio.addEventListener("ended", handleEnded);
+    return () => audio.removeEventListener("ended", handleEnded);
+  }, [isPreviewing]);
 
   useEffect(() => {
     const restoreRequestId = restoreRequestIdRef.current + 1;
@@ -414,6 +463,7 @@ export const useLocalAudioFile = () => {
     fileName,
     error,
     hasSelectedFile: Boolean(fileName),
+    isPreviewing,
     isPausedAfterVisibilityChange,
     handleFileChange,
     selectSong,
@@ -422,5 +472,7 @@ export const useLocalAudioFile = () => {
     pausePlayback,
     getElapsedMs,
     isPlaybackComplete,
+    startPreview,
+    stopPreview,
   };
 };

@@ -172,11 +172,16 @@
   line-height: 1.35;
 }
 
+.rhythm-lab-audio-details-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
 .rhythm-lab-audio-filename {
   display: block;
-  width: 100%;
   min-width: 0;
-  max-width: 100%;
   overflow: hidden;
   color: rgba(255, 255, 255, 0.86);
   font-weight: 800;
@@ -190,6 +195,41 @@
 
 .rhythm-lab-audio-details .rhythm-lab-audio-error {
   color: #ff8a96;
+}
+
+.rhythm-lab-preview-button {
+  flex: 0 0 auto;
+  padding: 0.15rem 0.4rem;
+  border: 1px solid rgba(76, 175, 80, 0.32);
+  border-radius: 0.28rem;
+  background: transparent;
+  color: var(--terminal-primary, #4caf50);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  line-height: 1.3;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.rhythm-lab-preview-button:hover,
+.rhythm-lab-preview-button:focus-visible {
+  border-color: rgba(76, 175, 80, 0.62);
+  background: rgba(76, 175, 80, 0.1);
+  outline: none;
+}
+
+.rhythm-lab-preview-button-active {
+  border-color: rgba(255, 215, 0, 0.42);
+  color: #ffe58a;
+}
+
+.rhythm-lab-preview-button-active:hover,
+.rhythm-lab-preview-button-active:focus-visible {
+  border-color: rgba(255, 215, 0, 0.62);
+  background: rgba(255, 215, 0, 0.1);
 }
 
 .rhythm-lab-song-selector {
