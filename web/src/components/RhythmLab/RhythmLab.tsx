@@ -12,6 +12,7 @@ import { type LaneIndex, type NoteJudgment } from "./types";
 import { openRhythmLabDb } from "./library/rhythmLabDb";
 import { useLocalAudioFile } from "./useLocalAudioFile";
 import { useRhythmLab } from "./useRhythmLab";
+import ActiveSessionHeader from "./ActiveSessionHeader";
 import ReadyCheckPanel from "./ReadyCheckPanel";
 import RhythmHighway from "./RhythmHighway";
 import RunSummaryPanel from "./RunSummaryPanel";
@@ -401,7 +402,6 @@ const RhythmLab = () => {
   const isHotStreak = phase === "playing" && combo >= 10;
   const activeChartModeLabel =
     activeChartMode === "recorded" && recordedChart ? "Recorded" : "Starter";
-  const activeAudioLabel = fileName ?? "Local audio";
   const chartBestLabel = bestRun
     ? `${
         activeChartMode === "starter" ? "Starter best (global)" : "Best"
@@ -450,63 +450,19 @@ const RhythmLab = () => {
       <header className="rhythm-lab-header">
         <div className="rhythm-lab-header-copy">
           {isActiveSession ? (
-            <div
-              className="rhythm-lab-active-bar"
-              aria-label="Active session controls"
-            >
-              <Link className="rhythm-lab-back-link" to="/games">
-                Games
-              </Link>
-              <div className="rhythm-lab-active-context" aria-live="polite">
-                <span
-                  className="rhythm-lab-active-filename"
-                  title={activeAudioLabel}
-                  aria-label={activeAudioLabel}
-                >
-                  {activeAudioLabel}
-                </span>
-                <span className="rhythm-lab-active-chip rhythm-lab-active-chart">
-                  {activeChartModeLabel}
-                </span>
-                <span
-                  className={`rhythm-lab-active-chip rhythm-lab-active-status ${
-                    isRecording ? "rhythm-lab-active-chip-recording" : ""
-                  }`}
-                >
-                  {isRecording ? `${recordingCount} taps` : "Playing"}
-                </span>
-              </div>
-              <div className="rhythm-lab-active-actions">
-                {isPausedAfterVisibilityChange && phase === "playing" && (
-                  <button
-                    className="rhythm-lab-compact-action"
-                    type="button"
-                    onClick={resumeAudio}
-                  >
-                    Resume
-                  </button>
-                )}
-                {isRecording ? (
-                  <button
-                    className="rhythm-lab-compact-action rhythm-lab-compact-action-danger"
-                    type="button"
-                    onClick={stopRecording}
-                  >
-                    Stop
-                  </button>
-                ) : (
-                  <button
-                    className="rhythm-lab-compact-action"
-                    type="button"
-                    onClick={() => {
-                      void restartGame();
-                    }}
-                  >
-                    Restart
-                  </button>
-                )}
-              </div>
-            </div>
+            <ActiveSessionHeader
+              fileName={fileName}
+              activeChartModeLabel={activeChartModeLabel}
+              isRecording={isRecording}
+              recordingCount={recordingCount}
+              isPausedAfterVisibilityChange={isPausedAfterVisibilityChange}
+              phase={phase}
+              onResume={resumeAudio}
+              onRestart={() => {
+                void restartGame();
+              }}
+              onStopRecording={stopRecording}
+            />
           ) : (
             <>
               <p className="rhythm-lab-eyebrow">
