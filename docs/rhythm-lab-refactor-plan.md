@@ -388,7 +388,36 @@ Run after every commit:
 
 ---
 
-## 8. Anti-Goals
+## 8. Future Refinement: useRecordedCharts Decomposition
+
+`useRecordedCharts` (Step 7) is the new complexity center at ~520 lines with 10 params, 24 return values, and a ref-backed callback bridge to break a circular dependency with `useRhythmLab`/`useChartRuns`. This is an acceptable intermediate state, but it mixes two concerns:
+
+1. **Chart persistence** — load, save, rename, delete, preference sync
+2. **App flow orchestration** — activeChartMode, fallback to Starter, resetGame/resetRuns/cancelRecording coordination
+
+A future refinement could split it into two layers:
+
+### `useRecordedChartLibrary` (persistence)
+- Load charts for song
+- Save recorded chart
+- Rename chart
+- Delete chart
+- Persist activeChartId preference
+- Storage error state
+
+### `useActiveChartController` (orchestration)
+- `activeChartMode` state
+- Selected chart / fallback to Starter
+- Mode switching with game/recording/run reset coordination
+- Chart name draft / rename UI state
+
+This separation would eliminate the circular dependency: `useRecordedChartLibrary` would have no game/run dependencies, and `useActiveChartController` would sit above both the library and the game hooks.
+
+Not in scope for this refactor. Capture here for future consideration.
+
+---
+
+## 9. Anti-Goals
 
 - **No redesign**: UI layout, colors, and class names stay exactly as-is.
 - **No new features**: No new gameplay mechanics, no new UI elements, no new settings.
