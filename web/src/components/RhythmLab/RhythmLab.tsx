@@ -9,46 +9,29 @@ import {
   type PointerEvent,
 } from "react";
 import { Link } from "react-router-dom";
-import { starterChart } from "./rhythmCharts";
-import { type LaneIndex, type NoteJudgment, type RhythmChart } from "./types";
-import {
-  deleteChart,
-  getChartsForSong,
-  getPreferences,
-  openRhythmLabDb,
-  saveChart,
-  savePreferences,
-  updateChartName,
-} from "./library/rhythmLabDb";
-import type { RhythmLabChart } from "./library/types";
+import { type LaneIndex, type NoteJudgment } from "./types";
+import { openRhythmLabDb } from "./library/rhythmLabDb";
 import { useLocalAudioFile } from "./useLocalAudioFile";
 import { useRhythmLab } from "./useRhythmLab";
 import ReadyCheckPanel from "./ReadyCheckPanel";
 import RunSummaryPanel from "./RunSummaryPanel";
 import {
-  type ActiveChartMode,
   CHART_NAME_MAX_LENGTH,
-  createChartPreference,
   createRunSummary,
-  createStoredChartId,
-  DEFAULT_SCROLL_SPEED,
   formatChartOptionLabel,
   formatPercent,
-  formatRecordedChartName,
   formatScore,
   formatSongOptionLabel,
   JUDGMENT_READOUT_MS,
   keyToLane,
   lanes,
-  normalizeChartName,
   NOTE_OVERSHOOT_MULTIPLIER,
   RHYTHM_LINE_PERCENT,
-  sortRecordedChartsNewestFirst,
-  toRuntimeChart,
 } from "./helpers";
 import { useChartRuns } from "./useChartRuns";
 import { useLaneFeedback } from "./useLaneFeedback";
 import { useRecordingSession } from "./useRecordingSession";
+import { useRecordedCharts } from "./useRecordedCharts";
 import "./RhythmLab.css";
 
 const RhythmLab = () => {
@@ -69,18 +52,6 @@ const RhythmLab = () => {
     getElapsedMs,
     isPlaybackComplete,
   } = useLocalAudioFile();
-  const [activeChartMode, setActiveChartMode] =
-    useState<ActiveChartMode>("starter");
-  const [recordedChart, setRecordedChart] = useState<RhythmChart | null>(null);
-  const [recordedCharts, setRecordedCharts] = useState<RhythmLabChart[]>([]);
-  const [chartStorageError, setChartStorageError] = useState<string | null>(
-    null
-  );
-  const [chartNameDraft, setChartNameDraft] = useState("");
-  const [isRenamingChart, setIsRenamingChart] = useState(false);
-  const [pendingChartAction, setPendingChartAction] = useState<
-    "rename" | "delete" | null
-  >(null);
   const {
     isRecording,
     recordingCount,
@@ -90,31 +61,27 @@ const RhythmLab = () => {
     recordLaneTap,
   } = useRecordingSession({ audioRef, fileName, getElapsedMs });
   const dbRef = useRef<IDBDatabase | null>(null);
-  const activeSongIdRef = useRef(activeSongId);
-  const chartLoadRequestIdRef = useRef(0);
-  const activeChart =
-    activeChartMode === "recorded" && recordedChart
-      ? recordedChart
-      : starterChart;
-  const currentRunContextKey = [
-    activeChartMode,
-    activeSongId ?? "songless",
-    activeChart.id,
-  ].join(":");
-  const selectedRecordedChart = useMemo(() => {
-    if (activeChartMode !== "recorded" || !recordedChart || !activeSongId) {
-      return null;
-    }
+  const [visibleJudgment, setVisibleJudgment] =
+    useState<NoteJudgment | null>(null);
+  const gameRef = useRef<HTMLDivElement>(null);
+  const judgmentReadoutTimeoutRef = useRef<number | null>(null);
 
-    return (
-      recordedCharts.find(
-        (chart) =>
-          chart.id === recordedChart.id &&
-          chart.songId === activeSongId &&
-          chart.source === "recorded"
-      ) ?? null
-    );
-  }, [activeChartMode, activeSongId, recordedChart, recordedCharts]);
+  const getDb = useCallback(async () => {
+    if (dbRef.current) return dbRef.current;
+
+    const db = await openRhythmLabDb();
+    dbRef.current = db;
+    return db;
+  }, []);
+
+  const focusGame = useCallback(() => {
+    requestAnimationFrame(() => gameRef.current?.focus());
+  }, []);
+
+  const onClearJudgment = useCallback(() => {
+    setVisibleJudgment(null);
+  }, []);
+
   const rhythmClock = useMemo(
     () =>
       hasSelectedFile
@@ -125,6 +92,57 @@ const RhythmLab = () => {
         : undefined,
     [getElapsedMs, hasSelectedFile, isPlaybackComplete]
   );
+
+  // Stable callback refs for breaking circular dependencies between hooks.
+  // useRecordedCharts needs resetGame (from useRhythmLab) and resetRuns (from
+  // useChartRuns), but both of those hooks depend on values from useRecordedCharts.
+  // These refs are updated after each hook call and are only invoked in callbacks
+  // and effects, never during render.
+  const resetGameRef = useRef<() => void>(() => {});
+  const resetRunsRef = useRef<() => void>(() => {});
+  const resetGameStable = useCallback(() => {
+    resetGameRef.current();
+  }, []);
+  const resetRunsStable = useCallback(() => {
+    resetRunsRef.current();
+  }, []);
+
+  const {
+    activeChart,
+    activeChartMode,
+    recordedChart,
+    recordedCharts,
+    chartStorageError,
+    selectedRecordedChart,
+    currentRunContextKey,
+    chartNameDraft,
+    isRenamingChart,
+    pendingChartAction,
+    selectRecordedChart,
+    selectActiveChartMode,
+    resetChartRuntimeForSongChange,
+    beginChartRename,
+    cancelChartRename,
+    saveChartRename,
+    deleteSelectedChart,
+    saveRecordedChart,
+    resetChartManagement,
+    setRecordedChart,
+    setActiveChartMode,
+    setChartNameDraft,
+  } = useRecordedCharts({
+    getDb,
+    activeSongId,
+    activeSongRevision,
+    resetGame: resetGameStable,
+    pausePlayback,
+    focusGame,
+    cancelRecording,
+    resetRuns: resetRunsStable,
+    isRecording,
+    onClearJudgment,
+  });
+
   const game = useRhythmLab(activeChart, rhythmClock);
   const {
     phase,
@@ -140,24 +158,16 @@ const RhythmLab = () => {
     restartGame: beginRestart,
     hitLane,
   } = game;
+
+  // Update the ref so useRecordedCharts callbacks use the real resetGame
+  resetGameRef.current = resetGame;
+
   const {
     inputFeedbackExpiries,
     hitFeedbackExpiries,
     showInputFeedback,
     showHitFeedback,
   } = useLaneFeedback();
-  const [visibleJudgment, setVisibleJudgment] =
-    useState<NoteJudgment | null>(null);
-  const gameRef = useRef<HTMLDivElement>(null);
-  const judgmentReadoutTimeoutRef = useRef<number | null>(null);
-
-  const getDb = useCallback(async () => {
-    if (dbRef.current) return dbRef.current;
-
-    const db = await openRhythmLabDb();
-    dbRef.current = db;
-    return db;
-  }, []);
 
   const summaryChartLabel =
     activeChartMode === "recorded" && recordedChart
@@ -167,6 +177,7 @@ const RhythmLab = () => {
     () => createRunSummary(summaryChartLabel, score, maxCombo, judgments),
     [judgments, maxCombo, score, summaryChartLabel]
   );
+
   const { bestRun, isBestRunLoaded, runStorageError, resetRuns } =
     useChartRuns({
       getDb,
@@ -182,46 +193,7 @@ const RhythmLab = () => {
       judgmentsLength: judgments.length,
       lastJudgedAtMs: lastJudgment?.judgedAtMs,
     });
-
-  useEffect(() => {
-    activeSongIdRef.current = activeSongId;
-  }, [activeSongId]);
-
-  useEffect(() => {
-    if (!selectedRecordedChart) {
-      setChartNameDraft("");
-      setIsRenamingChart(false);
-      return;
-    }
-
-    if (!isRenamingChart) {
-      setChartNameDraft(selectedRecordedChart.name);
-    }
-  }, [isRenamingChart, selectedRecordedChart]);
-
-  const saveActiveChartPreference = useCallback(
-    async (nextActiveChartId: string | null) => {
-      if (!activeSongId) return;
-
-      const db = await getDb();
-      const preferences = await getPreferences(db);
-      await savePreferences(
-        db,
-        createChartPreference(activeSongId, nextActiveChartId, preferences)
-      );
-    },
-    [activeSongId, getDb]
-  );
-
-  const focusGame = useCallback(() => {
-    requestAnimationFrame(() => gameRef.current?.focus());
-  }, []);
-
-  const resetChartManagement = useCallback(() => {
-    setChartNameDraft("");
-    setIsRenamingChart(false);
-    setPendingChartAction(null);
-  }, []);
+  resetRunsRef.current = resetRuns;
 
   const startGame = useCallback(async () => {
     const canPlay = await playFromStart();
@@ -253,66 +225,11 @@ const RhythmLab = () => {
     focusGame();
   }, [focusGame, pausePlayback, resetGame]);
 
-  const resetChartRuntimeForSongChange = useCallback(() => {
-    cancelRecording();
-    resetChartManagement();
-    setRecordedChart(null);
-    setActiveChartMode("starter");
-    setVisibleJudgment(null);
-    setChartStorageError(null);
-    resetRuns();
-    resetGame();
-  }, [cancelRecording, resetChartManagement, resetGame, resetRuns]);
-
-  const selectRecordedChart = useCallback(
-    (chartId: string) => {
-      const selectedChart =
-        recordedCharts.find((chart) => chart.id === chartId) ??
-        recordedCharts[0] ??
-        null;
-
-      pausePlayback();
-      resetChartManagement();
-      cancelRecording();
-      setVisibleJudgment(null);
-      resetGame();
-      focusGame();
-
-      if (!selectedChart) {
-        setRecordedChart(null);
-        setActiveChartMode("starter");
-        void saveActiveChartPreference(null).catch(() => {
-          setChartStorageError("Chart selection could not be saved.");
-        });
-        return;
-      }
-
-      setRecordedChart(toRuntimeChart(selectedChart));
-      setActiveChartMode("recorded");
-      void saveActiveChartPreference(selectedChart.id)
-        .then(() => setChartStorageError(null))
-        .catch(() => {
-          setChartStorageError("Chart selection could not be saved.");
-        });
-    },
-    [
-      cancelRecording,
-      focusGame,
-      pausePlayback,
-      recordedCharts,
-      resetChartManagement,
-      resetGame,
-      saveActiveChartPreference,
-    ]
-  );
-
   const handleAudioFileChange = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
       pausePlayback();
       resetGame();
       resetChartRuntimeForSongChange();
-      setRecordedCharts([]);
-      setChartStorageError(null);
       handleFileChange(event);
       focusGame();
     },
@@ -331,7 +248,6 @@ const RhythmLab = () => {
 
       pausePlayback();
       resetChartRuntimeForSongChange();
-      setRecordedCharts([]);
       void selectSong(songId);
       focusGame();
     },
@@ -364,6 +280,8 @@ const RhythmLab = () => {
     playFromStart,
     resetChartManagement,
     resetGame,
+    setActiveChartMode,
+    setRecordedChart,
   ]);
 
   const stopRecording = useCallback(() => {
@@ -371,266 +289,18 @@ const RhythmLab = () => {
 
     pausePlayback();
     const nextChart = finalizeRecording();
-    setRecordedChart(nextChart);
-    setActiveChartMode("recorded");
     setVisibleJudgment(null);
     resetGame();
     focusGame();
-
-    if (!activeSongId) {
-      setChartStorageError(
-        "Recorded chart is available for this session only."
-      );
-      return;
-    }
-
-    const saveRecordedChart = async () => {
-      const db = await getDb();
-      const preferences = await getPreferences(db);
-      const now = new Date().toISOString();
-      const storedChart: RhythmLabChart = {
-        id: createStoredChartId(activeSongId),
-        songId: activeSongId,
-        name: formatRecordedChartName(recordedCharts.length),
-        difficulty: "custom",
-        scrollSpeed:
-          preferences?.defaultScrollSpeed ?? DEFAULT_SCROLL_SPEED,
-        durationMs: nextChart.durationMs,
-        notes: nextChart.notes,
-        source: "recorded",
-        createdAt: now,
-        updatedAt: now,
-      };
-      const savedChart = await saveChart(db, storedChart);
-
-      await savePreferences(
-        db,
-        createChartPreference(activeSongId, savedChart.id, preferences)
-      );
-
-      setRecordedCharts((currentCharts) => [
-        savedChart,
-        ...currentCharts.filter((chart) => chart.id !== savedChart.id),
-      ]);
-      setRecordedChart(toRuntimeChart(savedChart));
-      setChartStorageError(null);
-    };
-
-    void saveRecordedChart().catch(() => {
-      setChartStorageError(
-        "Recorded chart could not be saved. It is available for this session only."
-      );
-    });
+    saveRecordedChart(nextChart);
   }, [
-    activeSongId,
     finalizeRecording,
     focusGame,
-    getDb,
     isRecording,
     pausePlayback,
-    recordedCharts.length,
     resetGame,
+    saveRecordedChart,
   ]);
-
-  const beginChartRename = useCallback(() => {
-    if (!selectedRecordedChart || isRecording || pendingChartAction) return;
-
-    setChartNameDraft(selectedRecordedChart.name);
-    setIsRenamingChart(true);
-    setChartStorageError(null);
-  }, [isRecording, pendingChartAction, selectedRecordedChart]);
-
-  const cancelChartRename = useCallback(() => {
-    setChartNameDraft(selectedRecordedChart?.name ?? "");
-    setIsRenamingChart(false);
-  }, [selectedRecordedChart]);
-
-  const saveChartRename = useCallback(async () => {
-    if (
-      !activeSongId ||
-      !selectedRecordedChart ||
-      selectedRecordedChart.songId !== activeSongId ||
-      selectedRecordedChart.source !== "recorded" ||
-      pendingChartAction
-    ) {
-      return;
-    }
-
-    const nextName = normalizeChartName(chartNameDraft);
-    if (!nextName || nextName === selectedRecordedChart.name) {
-      setChartNameDraft(selectedRecordedChart.name);
-      setIsRenamingChart(false);
-      return;
-    }
-
-    setPendingChartAction("rename");
-
-    try {
-      const db = await getDb();
-      const updatedChart = await updateChartName(
-        db,
-        selectedRecordedChart.id,
-        nextName
-      );
-
-      if (
-        !updatedChart ||
-        updatedChart.songId !== activeSongId ||
-        updatedChart.source !== "recorded" ||
-        activeSongIdRef.current !== activeSongId
-      ) {
-        throw new Error("Recorded chart was not available.");
-      }
-
-      setRecordedCharts((currentCharts) =>
-        sortRecordedChartsNewestFirst(
-          currentCharts.map((chart) =>
-            chart.id === updatedChart.id ? updatedChart : chart
-          )
-        )
-      );
-      setRecordedChart(toRuntimeChart(updatedChart));
-      setChartNameDraft(updatedChart.name);
-      setIsRenamingChart(false);
-      setChartStorageError(null);
-    } catch {
-      setChartStorageError("Chart name could not be saved.");
-    } finally {
-      setPendingChartAction(null);
-    }
-  }, [
-    activeSongId,
-    chartNameDraft,
-    getDb,
-    pendingChartAction,
-    selectedRecordedChart,
-  ]);
-
-  const deleteSelectedChart = useCallback(async () => {
-    if (
-      !activeSongId ||
-      !selectedRecordedChart ||
-      selectedRecordedChart.songId !== activeSongId ||
-      selectedRecordedChart.source !== "recorded" ||
-      pendingChartAction
-    ) {
-      return;
-    }
-
-    const shouldDelete = window.confirm(
-      `Delete "${selectedRecordedChart.name}"? Saved runs for this chart will also be deleted.`
-    );
-    if (!shouldDelete) return;
-
-    setPendingChartAction("delete");
-    pausePlayback();
-    cancelRecording();
-    setVisibleJudgment(null);
-    resetRuns();
-    resetGame();
-
-    try {
-      const db = await getDb();
-      const deletedChart = await deleteChart(db, selectedRecordedChart.id);
-
-      if (
-        !deletedChart ||
-        deletedChart.songId !== activeSongId ||
-        deletedChart.source !== "recorded" ||
-        activeSongIdRef.current !== activeSongId
-      ) {
-        throw new Error("Recorded chart was not available.");
-      }
-
-      const nextCharts = recordedCharts.filter(
-        (chart) =>
-          chart.id !== selectedRecordedChart.id && chart.songId === activeSongId
-      );
-      const nextSelectedChart = nextCharts[0] ?? null;
-
-      setRecordedCharts(nextCharts);
-      resetChartManagement();
-
-      if (nextSelectedChart) {
-        setRecordedChart(toRuntimeChart(nextSelectedChart));
-        setActiveChartMode("recorded");
-      } else {
-        setRecordedChart(null);
-        setActiveChartMode("starter");
-      }
-
-      try {
-        const preferences = await getPreferences(db);
-        await savePreferences(
-          db,
-          createChartPreference(
-            activeSongId,
-            nextSelectedChart?.id ?? null,
-            preferences
-          )
-        );
-        setChartStorageError(null);
-      } catch {
-        setChartStorageError(
-          "Chart was deleted, but chart selection could not be saved."
-        );
-      }
-
-      focusGame();
-    } catch {
-      setChartStorageError(
-        "Chart could not be deleted. Local selection remains usable."
-      );
-    } finally {
-      setPendingChartAction(null);
-    }
-  }, [
-    activeSongId,
-    cancelRecording,
-    focusGame,
-    getDb,
-    pausePlayback,
-    pendingChartAction,
-    recordedCharts,
-    resetChartManagement,
-    resetGame,
-    resetRuns,
-    selectedRecordedChart,
-  ]);
-
-  const selectActiveChartMode = useCallback(
-    (mode: ActiveChartMode) => {
-      if (mode === "recorded") {
-        const chartId = recordedChart?.id ?? recordedCharts[0]?.id;
-        if (chartId) selectRecordedChart(chartId);
-        return;
-      }
-
-      pausePlayback();
-      resetChartManagement();
-      cancelRecording();
-      setActiveChartMode(mode);
-      setVisibleJudgment(null);
-      resetGame();
-      focusGame();
-      void saveActiveChartPreference(null)
-        .then(() => setChartStorageError(null))
-        .catch(() => {
-          setChartStorageError("Chart selection could not be saved.");
-        });
-    },
-    [
-      cancelRecording,
-      focusGame,
-      pausePlayback,
-      recordedChart,
-      recordedCharts,
-      resetChartManagement,
-      resetGame,
-      saveActiveChartPreference,
-      selectRecordedChart,
-    ]
-  );
 
   const handleLaneInput = useCallback(
     (lane: LaneIndex) => {
@@ -663,67 +333,6 @@ const RhythmLab = () => {
     },
     []
   );
-
-  useEffect(() => {
-    const requestId = chartLoadRequestIdRef.current + 1;
-    chartLoadRequestIdRef.current = requestId;
-
-    if (!activeSongId) {
-      setRecordedCharts([]);
-      setRecordedChart(null);
-      setActiveChartMode("starter");
-      setChartStorageError(null);
-      return;
-    }
-
-    setRecordedCharts([]);
-    setRecordedChart(null);
-    setActiveChartMode("starter");
-
-    const loadRecordedCharts = async () => {
-      const db = await getDb();
-      const preferences = await getPreferences(db);
-      const charts = await getChartsForSong(db, activeSongId);
-
-      if (requestId !== chartLoadRequestIdRef.current) return;
-
-      setRecordedCharts(charts);
-
-      const selectedChart =
-        charts.find((chart) => chart.id === preferences?.activeChartId) ??
-        charts[0] ??
-        null;
-
-      if (!selectedChart) {
-        setActiveChartMode("starter");
-        setChartStorageError(null);
-        return;
-      }
-
-      setRecordedChart(toRuntimeChart(selectedChart));
-      setActiveChartMode("recorded");
-      resetGame();
-      setChartStorageError(null);
-
-      if (preferences?.activeChartId !== selectedChart.id) {
-        await savePreferences(
-          db,
-          createChartPreference(activeSongId, selectedChart.id, preferences)
-        );
-      }
-    };
-
-    void loadRecordedCharts().catch(() => {
-      if (requestId !== chartLoadRequestIdRef.current) return;
-
-      setRecordedCharts([]);
-      setRecordedChart(null);
-      setActiveChartMode("starter");
-      setChartStorageError(
-        "Saved charts could not be loaded. Recording still works for this session."
-      );
-    });
-  }, [activeSongId, activeSongRevision, getDb, resetGame]);
 
   useEffect(() => {
     if (judgmentReadoutTimeoutRef.current) {
