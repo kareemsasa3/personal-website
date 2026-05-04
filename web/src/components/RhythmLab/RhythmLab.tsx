@@ -13,14 +13,13 @@ import { openRhythmLabDb } from "./library/rhythmLabDb";
 import { useLocalAudioFile } from "./useLocalAudioFile";
 import { useRhythmLab } from "./useRhythmLab";
 import ActiveSessionHeader from "./ActiveSessionHeader";
+import ChartControls from "./ChartControls";
 import ReadyCheckPanel from "./ReadyCheckPanel";
 import RhythmHighway from "./RhythmHighway";
 import RunSummaryPanel from "./RunSummaryPanel";
 import SongControls from "./SongControls";
 import {
-  CHART_NAME_MAX_LENGTH,
   createRunSummary,
-  formatChartOptionLabel,
   formatPercent,
   formatScore,
   JUDGMENT_READOUT_MS,
@@ -488,141 +487,30 @@ const RhythmLab = () => {
                   onSongSelect={handleSongSelect}
                 />
                 {hasSelectedFile && (
-                  <div
-                    className="rhythm-lab-recording-controls"
-                    aria-label="Chart recording controls"
-                  >
-                    <button
-                      className="rhythm-lab-chart-mode-button"
-                      type="button"
-                      aria-pressed={activeChartMode === "starter"}
-                      disabled={isRecording}
-                      onClick={() => selectActiveChartMode("starter")}
-                    >
-                      Starter chart
-                    </button>
-                    {recordedCharts.length > 0 ? (
-                      <label
-                        className="rhythm-lab-chart-selector"
-                        aria-label="Recorded chart selector"
-                      >
-                        <span>Recorded chart</span>
-                        <select
-                          value={
-                            activeChartMode === "recorded"
-                              ? recordedChart?.id ?? ""
-                              : ""
-                          }
-                          disabled={isRecording}
-                          onChange={(event) =>
-                            selectRecordedChart(event.currentTarget.value)
-                          }
-                        >
-                          <option value="" disabled>
-                            Select chart
-                          </option>
-                          {recordedCharts.map((chart) => (
-                            <option key={chart.id} value={chart.id}>
-                              {formatChartOptionLabel(chart)}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                    ) : (
-                      activeSongId && (
-                        <span className="rhythm-lab-chart-empty">
-                          No recorded charts
-                        </span>
-                      )
-                    )}
-                    <span
-                      className="rhythm-lab-chart-best"
-                      aria-label={`Selected chart best stats: ${chartBestLabel}`}
-                    >
-                      {chartBestLabel}
-                    </span>
-                    <button
-                      className="rhythm-lab-record-button"
-                      type="button"
-                      onClick={() => {
-                        void startRecording();
-                      }}
-                    >
-                      Record chart
-                    </button>
-                    {selectedRecordedChart && (
-                      <div
-                        className="rhythm-lab-chart-management"
-                        aria-label="Recorded chart management"
-                      >
-                        {isRenamingChart ? (
-                          <>
-                            <input
-                              className="rhythm-lab-chart-name-input"
-                              type="text"
-                              aria-label="Recorded chart name"
-                              value={chartNameDraft}
-                              maxLength={CHART_NAME_MAX_LENGTH}
-                              disabled={pendingChartAction !== null}
-                              onChange={(event) =>
-                                setChartNameDraft(event.currentTarget.value)
-                              }
-                              onKeyDown={(event) => {
-                                if (event.key === "Enter") {
-                                  event.preventDefault();
-                                  void saveChartRename();
-                                }
-
-                                if (event.key === "Escape") {
-                                  event.preventDefault();
-                                  cancelChartRename();
-                                }
-                              }}
-                            />
-                            <button
-                              className="rhythm-lab-chart-management-button"
-                              type="button"
-                              disabled={pendingChartAction !== null}
-                              onClick={() => {
-                                void saveChartRename();
-                              }}
-                            >
-                              Save
-                            </button>
-                            <button
-                              className="rhythm-lab-chart-management-button"
-                              type="button"
-                              disabled={pendingChartAction !== null}
-                              onClick={cancelChartRename}
-                            >
-                              Cancel
-                            </button>
-                          </>
-                        ) : (
-                          <>
-                            <button
-                              className="rhythm-lab-chart-management-button"
-                              type="button"
-                              disabled={pendingChartAction !== null}
-                              onClick={beginChartRename}
-                            >
-                              Rename
-                            </button>
-                            <button
-                              className="rhythm-lab-chart-management-button rhythm-lab-chart-management-danger"
-                              type="button"
-                              disabled={pendingChartAction !== null}
-                              onClick={() => {
-                                void deleteSelectedChart();
-                              }}
-                            >
-                              Delete
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    )}
-                  </div>
+                  <ChartControls
+                    activeChartMode={activeChartMode}
+                    recordedChartId={recordedChart?.id ?? null}
+                    recordedCharts={recordedCharts}
+                    activeSongId={activeSongId}
+                    chartBestLabel={chartBestLabel}
+                    hasSelectedRecordedChart={selectedRecordedChart !== null}
+                    isRecording={isRecording}
+                    isRenamingChart={isRenamingChart}
+                    chartNameDraft={chartNameDraft}
+                    pendingChartAction={pendingChartAction}
+                    onSelectStarterMode={() =>
+                      selectActiveChartMode("starter")
+                    }
+                    onSelectRecordedChart={selectRecordedChart}
+                    onStartRecording={() => {
+                      void startRecording();
+                    }}
+                    onBeginRename={beginChartRename}
+                    onCancelRename={cancelChartRename}
+                    onSaveRename={saveChartRename}
+                    onDeleteChart={deleteSelectedChart}
+                    onChartNameChange={setChartNameDraft}
+                  />
                 )}
               </div>
             </>
