@@ -26,6 +26,11 @@ import ReadyCheckPanel from "./ReadyCheckPanel";
 import RhythmHighway from "./RhythmHighway";
 import RunAnalyticsPanel from "./RunAnalyticsPanel";
 import RunHistoryPanel from "./RunHistoryPanel";
+import {
+  createChartExportPayload,
+  createChartExportFilename,
+  downloadJsonFile,
+} from "./chartExport";
 import DeleteChartDialog from "./DeleteChartDialog";
 import RunSummaryPanel from "./RunSummaryPanel";
 import SongControls from "./SongControls";
@@ -507,6 +512,20 @@ const RhythmLab = () => {
     setChartPendingDelete(null);
   }, []);
 
+  const exportSelectedChart = useCallback(() => {
+    if (!selectedRecordedChart) return;
+
+    const payload = createChartExportPayload(
+      selectedRecordedChart,
+      activeSong
+    );
+    const filename = createChartExportFilename(
+      activeSong?.title,
+      selectedRecordedChart.name
+    );
+    downloadJsonFile(filename, payload);
+  }, [activeSong, selectedRecordedChart]);
+
   const handleLanePointerDown = (
     event: PointerEvent<HTMLButtonElement>,
     lane: LaneIndex
@@ -687,6 +706,7 @@ const RhythmLab = () => {
                               setChartPendingDelete(selectedRecordedChart);
                             }
                           }}
+                          onExportChart={exportSelectedChart}
                           onChartNameChange={setChartNameDraft}
                         />
                       )}

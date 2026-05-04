@@ -23,6 +23,7 @@ interface ChartControlsProps {
   onCancelRename: () => void;
   onSaveRename: () => void;
   onDeleteChart: () => void;
+  onExportChart: () => void;
   onChartNameChange: (name: string) => void;
 }
 
@@ -44,6 +45,7 @@ const ChartControls = ({
   onCancelRename,
   onSaveRename,
   onDeleteChart,
+  onExportChart,
   onChartNameChange,
 }: ChartControlsProps) => (
   <div
@@ -159,6 +161,14 @@ const ChartControls = ({
               onClick={onBeginRename}
             >
               Rename
+            </button>
+            <button
+              className="rhythm-lab-chart-management-button"
+              type="button"
+              disabled={pendingChartAction !== null}
+              onClick={onExportChart}
+            >
+              Export
             </button>
             <button
               className="rhythm-lab-chart-management-button rhythm-lab-chart-management-danger"
