@@ -1,6 +1,7 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { formatPercent, formatScore, type RunHistoryEntry } from "./helpers";
 import type { RhythmLabChart } from "./library/types";
+import ClearRunHistoryDialog from "./ClearRunHistoryDialog";
 
 interface RunHistoryPanelProps {
   history: RunHistoryEntry[];
@@ -25,6 +26,8 @@ const RunHistoryPanel = ({
   recordedCharts,
   onClearHistory,
 }: RunHistoryPanelProps) => {
+  const [isClearDialogOpen, setIsClearDialogOpen] = useState(false);
+
   const chartsById = useMemo(() => {
     const map = new Map<string, RhythmLabChart>();
     for (const chart of recordedCharts) {
@@ -104,10 +107,20 @@ const RunHistoryPanel = ({
       <button
         className="rhythm-lab-run-history-clear"
         type="button"
-        onClick={onClearHistory}
+        onClick={() => setIsClearDialogOpen(true)}
       >
         Clear history
       </button>
+      {isClearDialogOpen && (
+        <ClearRunHistoryDialog
+          runCount={history.length}
+          onCancel={() => setIsClearDialogOpen(false)}
+          onConfirm={() => {
+            onClearHistory();
+            setIsClearDialogOpen(false);
+          }}
+        />
+      )}
     </div>
   );
 };

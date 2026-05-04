@@ -2014,3 +2014,15 @@
   outline: 2px solid rgba(255, 183, 77, 0.8);
   outline-offset: 2px;
 }
+
+.rhythm-lab-clear-history-dialog {
+  border-color: rgba(255, 193, 7, 0.75);
+}
+
+.rhythm-lab-delete-dialog-copy p {
+  margin: 0 0 0.5rem;
+}
+
+.rhythm-lab-delete-dialog-copy p:last-child {
+  margin-bottom: 0;
+}
