@@ -36,7 +36,6 @@ import {
   type ActiveChartMode,
   CHART_NAME_MAX_LENGTH,
   createChartPreference,
-  createLaneFeedbackTimers,
   createRunRecord,
   createRunSummary,
   createStoredChartId,
@@ -47,13 +46,8 @@ import {
   formatScore,
   formatSongOptionLabel,
   getBestRun,
-  HIT_FEEDBACK_MS,
-  INPUT_FEEDBACK_MS,
   JUDGMENT_READOUT_MS,
   keyToLane,
-  type LaneFeedbackExpiries,
-  type LaneFeedbackTimers,
-  laneIndexes,
   lanes,
   normalizeChartName,
   NOTE_OVERSHOOT_MULTIPLIER,
@@ -64,6 +58,7 @@ import {
   sortRecordedChartsNewestFirst,
   toRuntimeChart,
 } from "./helpers";
+import { useLaneFeedback } from "./useLaneFeedback";
 import "./RhythmLab.css";
 
 const RhythmLab = () => {
@@ -164,19 +159,15 @@ const RhythmLab = () => {
     restartGame: beginRestart,
     hitLane,
   } = game;
-  const [inputFeedbackExpiries, setInputFeedbackExpiries] =
-    useState<LaneFeedbackExpiries>({});
-  const [hitFeedbackExpiries, setHitFeedbackExpiries] =
-    useState<LaneFeedbackExpiries>({});
+  const {
+    inputFeedbackExpiries,
+    hitFeedbackExpiries,
+    showInputFeedback,
+    showHitFeedback,
+  } = useLaneFeedback();
   const [visibleJudgment, setVisibleJudgment] =
     useState<NoteJudgment | null>(null);
   const gameRef = useRef<HTMLDivElement>(null);
-  const inputFeedbackTimeoutRefs = useRef<LaneFeedbackTimers>(
-    createLaneFeedbackTimers()
-  );
-  const hitFeedbackTimeoutRefs = useRef<LaneFeedbackTimers>(
-    createLaneFeedbackTimers()
-  );
   const judgmentReadoutTimeoutRef = useRef<number | null>(null);
 
   const getDb = useCallback(async () => {
@@ -681,60 +672,6 @@ const RhythmLab = () => {
     ]
   );
 
-  const showInputFeedback = useCallback((lane: LaneIndex) => {
-    const expiresAt = performance.now() + INPUT_FEEDBACK_MS;
-
-    setInputFeedbackExpiries((currentExpiries) => ({
-      ...currentExpiries,
-      [lane]: expiresAt,
-    }));
-
-    const currentTimeout = inputFeedbackTimeoutRefs.current[lane];
-    if (currentTimeout) {
-      window.clearTimeout(currentTimeout);
-    }
-
-    inputFeedbackTimeoutRefs.current[lane] = window.setTimeout(() => {
-      setInputFeedbackExpiries((currentExpiries) => {
-        if ((currentExpiries[lane] ?? 0) > expiresAt) {
-          return currentExpiries;
-        }
-
-        const nextExpiries = { ...currentExpiries };
-        delete nextExpiries[lane];
-        return nextExpiries;
-      });
-      inputFeedbackTimeoutRefs.current[lane] = null;
-    }, INPUT_FEEDBACK_MS);
-  }, []);
-
-  const showHitFeedback = useCallback((lane: LaneIndex) => {
-    const expiresAt = performance.now() + HIT_FEEDBACK_MS;
-
-    setHitFeedbackExpiries((currentExpiries) => ({
-      ...currentExpiries,
-      [lane]: expiresAt,
-    }));
-
-    const currentTimeout = hitFeedbackTimeoutRefs.current[lane];
-    if (currentTimeout) {
-      window.clearTimeout(currentTimeout);
-    }
-
-    hitFeedbackTimeoutRefs.current[lane] = window.setTimeout(() => {
-      setHitFeedbackExpiries((currentExpiries) => {
-        if ((currentExpiries[lane] ?? 0) > expiresAt) {
-          return currentExpiries;
-        }
-
-        const nextExpiries = { ...currentExpiries };
-        delete nextExpiries[lane];
-        return nextExpiries;
-      });
-      hitFeedbackTimeoutRefs.current[lane] = null;
-    }, HIT_FEEDBACK_MS);
-  }, []);
-
   const handleLaneInput = useCallback(
     (lane: LaneIndex) => {
       showInputFeedback(lane);
@@ -779,18 +716,6 @@ const RhythmLab = () => {
 
   useEffect(
     () => () => {
-      laneIndexes.forEach((lane) => {
-        const inputTimeout = inputFeedbackTimeoutRefs.current[lane];
-        if (inputTimeout) {
-          window.clearTimeout(inputTimeout);
-        }
-
-        const hitTimeout = hitFeedbackTimeoutRefs.current[lane];
-        if (hitTimeout) {
-          window.clearTimeout(hitTimeout);
-        }
-      });
-
       if (judgmentReadoutTimeoutRef.current) {
         window.clearTimeout(judgmentReadoutTimeoutRef.current);
       }
