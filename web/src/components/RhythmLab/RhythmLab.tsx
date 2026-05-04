@@ -8,7 +8,13 @@ import {
   type PointerEvent,
 } from "react";
 import { Link } from "react-router-dom";
-import { type LaneIndex, type NoteJudgment, type RunEndReason } from "./types";
+import {
+  type LaneIndex,
+  type NoteJudgment,
+  type RunEndReason,
+} from "./types";
+
+type SetupTab = "setup" | "history" | "analytics";
 import { openRhythmLabDb } from "./library/rhythmLabDb";
 import { useLocalAudioFile } from "./useLocalAudioFile";
 import { useRhythmLab } from "./useRhythmLab";
@@ -17,6 +23,7 @@ import ChartControls from "./ChartControls";
 import PauseMenu from "./PauseMenu";
 import ReadyCheckPanel from "./ReadyCheckPanel";
 import RhythmHighway from "./RhythmHighway";
+import RunAnalyticsPanel from "./RunAnalyticsPanel";
 import RunHistoryPanel from "./RunHistoryPanel";
 import RunSummaryPanel from "./RunSummaryPanel";
 import SongControls from "./SongControls";
@@ -167,6 +174,7 @@ const RhythmLab = () => {
     hitLane,
   } = game;
   const [endReason, setEndReason] = useState<RunEndReason>("completed");
+  const [setupTab, setSetupTab] = useState<SetupTab>("setup");
 
   // Update the ref so useRecordedCharts callbacks use the real resetGame
   resetGameRef.current = resetGame;
@@ -566,55 +574,102 @@ const RhythmLab = () => {
                 <h1>Rhythm Lab</h1>
               </div>
               <div className="rhythm-lab-audio-panel">
-                <SongControls
-                  fileName={fileName}
-                  importedSongs={importedSongs}
-                  activeSongId={activeSongId}
-                  audioError={audioError}
-                  chartStorageError={chartStorageError}
-                  runStorageError={runStorageError}
-                  phase={phase}
-                  isRecording={isRecording}
-                  hasSelectedFile={hasSelectedFile}
-                  isPreviewing={isPreviewing}
-                  onFileChange={handleAudioFileChange}
-                  onSongSelect={handleSongSelect}
-                  onStartPreview={() => {
-                    void startPreview();
-                  }}
-                  onStopPreview={stopPreview}
-                />
-                {hasSelectedFile && (
-                  <ChartControls
-                    activeChartMode={activeChartMode}
-                    recordedChartId={recordedChart?.id ?? null}
-                    recordedCharts={recordedCharts}
-                    activeSongId={activeSongId}
-                    chartBestLabel={chartBestLabel}
-                    hasSelectedRecordedChart={selectedRecordedChart !== null}
-                    isRecording={isRecording}
-                    isRenamingChart={isRenamingChart}
-                    chartNameDraft={chartNameDraft}
-                    pendingChartAction={pendingChartAction}
-                    onSelectStarterMode={() =>
-                      selectActiveChartMode("starter")
-                    }
-                    onSelectRecordedChart={selectRecordedChart}
-                    onStartRecording={() => {
-                      void startRecording();
-                    }}
-                    onBeginRename={beginChartRename}
-                    onCancelRename={cancelChartRename}
-                    onSaveRename={saveChartRename}
-                    onDeleteChart={deleteSelectedChart}
-                    onChartNameChange={setChartNameDraft}
-                  />
-                )}
-                <RunHistoryPanel
-                  history={history}
-                  onClearHistory={clearHistory}
-                />
-              </div>
+                  <div
+                    className="rhythm-lab-panel-tabs"
+                    role="tablist"
+                    aria-label="Rhythm Lab panels"
+                  >
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={setupTab === "setup"}
+                      className={setupTab === "setup" ? "is-active" : ""}
+                      onClick={() => setSetupTab("setup")}
+                    >
+                      Setup
+                    </button>
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={setupTab === "history"}
+                      className={setupTab === "history" ? "is-active" : ""}
+                      onClick={() => setSetupTab("history")}
+                    >
+                      History
+                    </button>
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={setupTab === "analytics"}
+                      className={setupTab === "analytics" ? "is-active" : ""}
+                      onClick={() => setSetupTab("analytics")}
+                    >
+                      Analytics
+                    </button>
+                  </div>
+
+                  {setupTab === "setup" && (
+                    <>
+                      <SongControls
+                        fileName={fileName}
+                        importedSongs={importedSongs}
+                        activeSongId={activeSongId}
+                        audioError={audioError}
+                        chartStorageError={chartStorageError}
+                        runStorageError={runStorageError}
+                        phase={phase}
+                        isRecording={isRecording}
+                        hasSelectedFile={hasSelectedFile}
+                        isPreviewing={isPreviewing}
+                        onFileChange={handleAudioFileChange}
+                        onSongSelect={handleSongSelect}
+                        onStartPreview={() => {
+                          void startPreview();
+                        }}
+                        onStopPreview={stopPreview}
+                      />
+                      {hasSelectedFile && (
+                        <ChartControls
+                          activeChartMode={activeChartMode}
+                          recordedChartId={recordedChart?.id ?? null}
+                          recordedCharts={recordedCharts}
+                          activeSongId={activeSongId}
+                          chartBestLabel={chartBestLabel}
+                          hasSelectedRecordedChart={
+                            selectedRecordedChart !== null
+                          }
+                          isRecording={isRecording}
+                          isRenamingChart={isRenamingChart}
+                          chartNameDraft={chartNameDraft}
+                          pendingChartAction={pendingChartAction}
+                          onSelectStarterMode={() =>
+                            selectActiveChartMode("starter")
+                          }
+                          onSelectRecordedChart={selectRecordedChart}
+                          onStartRecording={() => {
+                            void startRecording();
+                          }}
+                          onBeginRename={beginChartRename}
+                          onCancelRename={cancelChartRename}
+                          onSaveRename={saveChartRename}
+                          onDeleteChart={deleteSelectedChart}
+                          onChartNameChange={setChartNameDraft}
+                        />
+                      )}
+                    </>
+                  )}
+
+                  {setupTab === "history" && (
+                    <RunHistoryPanel
+                      history={history}
+                      onClearHistory={clearHistory}
+                    />
+                  )}
+
+                  {setupTab === "analytics" && (
+                    <RunAnalyticsPanel history={history} />
+                  )}
+                </div>
             </>
           )}
         </div>

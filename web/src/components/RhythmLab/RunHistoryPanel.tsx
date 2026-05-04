@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { formatPercent, formatScore, type RunHistoryEntry } from "./helpers";
 
 interface RunHistoryPanelProps {
@@ -22,72 +21,63 @@ const RunHistoryPanel = ({
   history,
   onClearHistory,
 }: RunHistoryPanelProps) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-
-  if (history.length === 0) return null;
+  if (history.length === 0) {
+    return (
+      <div className="rhythm-lab-run-history">
+        <p className="rhythm-lab-run-history-empty">No runs yet</p>
+      </div>
+    );
+  }
 
   return (
     <div className="rhythm-lab-run-history">
-      <button
-        className="rhythm-lab-run-history-toggle"
-        type="button"
-        aria-expanded={isExpanded}
-        onClick={() => setIsExpanded((open) => !open)}
-      >
-        <span>Run history</span>
-        <span className="rhythm-lab-run-history-count">{history.length}</span>
-      </button>
-      {isExpanded && (
-        <>
-          <div className="rhythm-lab-run-history-list" role="list">
-            {history.map((entry) => {
-              const isPartial = entry.endReason === "ended_early";
+      <div className="rhythm-lab-run-history-list" role="list">
+        {history.map((entry) => {
+          const isPartial = entry.endReason === "ended_early";
 
-              return (
-                <div
-                  key={entry.runId}
-                  className={`rhythm-lab-run-history-entry${
-                    isPartial
-                      ? " rhythm-lab-run-history-entry-partial"
-                      : ""
-                  }`}
-                  role="listitem"
-                >
-                  <div className="rhythm-lab-run-history-entry-header">
-                    <span className="rhythm-lab-run-history-entry-song">
-                      {entry.songSnapshot?.title ?? "Unknown song"}
-                    </span>
-                    <span className="rhythm-lab-run-history-entry-time">
-                      {formatTimestamp(entry.playedAtMs)}
-                    </span>
-                  </div>
-                  <div className="rhythm-lab-run-history-entry-stats">
-                    <span>{formatScore(entry.score)}</span>
-                    <span>{formatPercent(entry.accuracyPercent)}</span>
-                    <span>Combo {entry.maxCombo}</span>
-                    {isPartial ? (
-                      <span className="rhythm-lab-run-history-entry-badge">
-                        Ended Early &middot; {entry.completionPercent}%
-                      </span>
-                    ) : (
-                      <span className="rhythm-lab-run-history-entry-badge rhythm-lab-run-history-entry-badge-complete">
-                        Full
-                      </span>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          <button
-            className="rhythm-lab-run-history-clear"
-            type="button"
-            onClick={onClearHistory}
-          >
-            Clear history
-          </button>
-        </>
-      )}
+          return (
+            <div
+              key={entry.runId}
+              className={`rhythm-lab-run-history-entry${
+                isPartial
+                  ? " rhythm-lab-run-history-entry-partial"
+                  : ""
+              }`}
+              role="listitem"
+            >
+              <div className="rhythm-lab-run-history-entry-header">
+                <span className="rhythm-lab-run-history-entry-song">
+                  {entry.songSnapshot?.title ?? "Unknown song"}
+                </span>
+                <span className="rhythm-lab-run-history-entry-time">
+                  {formatTimestamp(entry.playedAtMs)}
+                </span>
+              </div>
+              <div className="rhythm-lab-run-history-entry-stats">
+                <span>{formatScore(entry.score)}</span>
+                <span>{formatPercent(entry.accuracyPercent)}</span>
+                <span>Combo {entry.maxCombo}</span>
+                {isPartial ? (
+                  <span className="rhythm-lab-run-history-entry-badge">
+                    Ended Early &middot; {entry.completionPercent}%
+                  </span>
+                ) : (
+                  <span className="rhythm-lab-run-history-entry-badge rhythm-lab-run-history-entry-badge-complete">
+                    Full
+                  </span>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <button
+        className="rhythm-lab-run-history-clear"
+        type="button"
+        onClick={onClearHistory}
+      >
+        Clear history
+      </button>
     </div>
   );
 };
