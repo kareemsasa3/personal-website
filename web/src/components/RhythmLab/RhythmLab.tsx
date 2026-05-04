@@ -30,6 +30,7 @@ import {
 import type { RhythmLabChart, RhythmLabRun } from "./library/types";
 import { useLocalAudioFile } from "./useLocalAudioFile";
 import { useRhythmLab } from "./useRhythmLab";
+import ReadyCheckPanel from "./ReadyCheckPanel";
 import RunSummaryPanel from "./RunSummaryPanel";
 import {
   type ActiveChartMode,
@@ -1470,24 +1471,13 @@ const RhythmLab = () => {
           </div>
 
           {phase === "ready" && !isRecording && (
-            <div className="rhythm-lab-overlay">
-              <div className="rhythm-lab-overlay-panel">
-                <p>
-                  {chart.title} - {chartModeLabel}
-                </p>
-                <h2>Ready Check</h2>
-                <button
-                  className="rhythm-lab-primary-action"
-                  type="button"
-                  onClick={() => {
-                    void startGame();
-                  }}
-                >
-                  Start
-                </button>
-                <span>A/S/D | J/K/L | Arrow keys | tap zones</span>
-              </div>
-            </div>
+            <ReadyCheckPanel
+              chartTitle={chart.title}
+              chartModeLabel={chartModeLabel}
+              onStart={() => {
+                void startGame();
+              }}
+            />
           )}
 
           {phase === "complete" && !isRecording && (
