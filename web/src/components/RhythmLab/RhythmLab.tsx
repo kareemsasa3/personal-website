@@ -16,13 +16,13 @@ import ActiveSessionHeader from "./ActiveSessionHeader";
 import ReadyCheckPanel from "./ReadyCheckPanel";
 import RhythmHighway from "./RhythmHighway";
 import RunSummaryPanel from "./RunSummaryPanel";
+import SongControls from "./SongControls";
 import {
   CHART_NAME_MAX_LENGTH,
   createRunSummary,
   formatChartOptionLabel,
   formatPercent,
   formatScore,
-  formatSongOptionLabel,
   JUDGMENT_READOUT_MS,
   keyToLane,
 } from "./helpers";
@@ -475,71 +475,18 @@ const RhythmLab = () => {
                 <h1>Rhythm Lab</h1>
               </div>
               <div className="rhythm-lab-audio-panel">
-                <label className="rhythm-lab-audio-picker">
-                  <span>Local audio</span>
-                  <input
-                    className="rhythm-lab-audio-input"
-                    type="file"
-                    accept="audio/*"
-                    aria-label="Choose local audio file"
-                    onChange={handleAudioFileChange}
-                  />
-                  <span
-                    className="rhythm-lab-audio-picker-button"
-                    aria-hidden="true"
-                  >
-                    Choose file
-                  </span>
-                </label>
-                {importedSongs.length > 0 && (
-                  <label
-                    className="rhythm-lab-song-selector"
-                    aria-label="Imported song selector"
-                  >
-                    <span>Saved songs</span>
-                    <select
-                      value={activeSongId ?? ""}
-                      disabled={isRecording}
-                      onChange={(event) =>
-                        handleSongSelect(event.currentTarget.value)
-                      }
-                    >
-                      <option value="" disabled>
-                        Select song
-                      </option>
-                      {importedSongs.map((song) => (
-                        <option key={song.id} value={song.id}>
-                          {formatSongOptionLabel(song)}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                )}
-                <div className="rhythm-lab-audio-details" aria-live="polite">
-                  <span
-                    className="rhythm-lab-audio-filename"
-                    title={fileName ?? "No audio selected"}
-                    aria-label={fileName ?? "No audio selected"}
-                  >
-                    {fileName ? fileName : "No audio selected"}
-                  </span>
-                  <small>Stored locally in this browser. Not uploaded.</small>
-                  {audioError && (
-                    <small className="rhythm-lab-audio-error">
-                      {audioError}
-                    </small>
-                  )}
-                  {chartStorageError && (
-                    <small className="rhythm-lab-audio-error">
-                      {chartStorageError}
-                    </small>
-                  )}
-                  {runStorageError && phase !== "complete" && (
-                    <small className="rhythm-lab-audio-error">
-                      {runStorageError}
-                    </small>
-                  )}
-                </div>
+                <SongControls
+                  fileName={fileName}
+                  importedSongs={importedSongs}
+                  activeSongId={activeSongId}
+                  audioError={audioError}
+                  chartStorageError={chartStorageError}
+                  runStorageError={runStorageError}
+                  phase={phase}
+                  isRecording={isRecording}
+                  onFileChange={handleAudioFileChange}
+                  onSongSelect={handleSongSelect}
+                />
                 {hasSelectedFile && (
                   <div
                     className="rhythm-lab-recording-controls"

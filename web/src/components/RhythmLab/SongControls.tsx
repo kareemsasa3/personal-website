@@ -1,0 +1,89 @@
+import type { ChangeEvent } from "react";
+import type { GamePhase } from "./types";
+import type { RhythmLabSong } from "./library/types";
+import { formatSongOptionLabel } from "./helpers";
+
+interface SongControlsProps {
+  fileName: string | null;
+  importedSongs: RhythmLabSong[];
+  activeSongId: string | null;
+  audioError: string | null;
+  chartStorageError: string | null;
+  runStorageError: string | null;
+  phase: GamePhase;
+  isRecording: boolean;
+  onFileChange: (event: ChangeEvent<HTMLInputElement>) => void;
+  onSongSelect: (songId: string) => void;
+}
+
+const SongControls = ({
+  fileName,
+  importedSongs,
+  activeSongId,
+  audioError,
+  chartStorageError,
+  runStorageError,
+  phase,
+  isRecording,
+  onFileChange,
+  onSongSelect,
+}: SongControlsProps) => (
+  <>
+    <label className="rhythm-lab-audio-picker">
+      <span>Local audio</span>
+      <input
+        className="rhythm-lab-audio-input"
+        type="file"
+        accept="audio/*"
+        aria-label="Choose local audio file"
+        onChange={onFileChange}
+      />
+      <span className="rhythm-lab-audio-picker-button" aria-hidden="true">
+        Choose file
+      </span>
+    </label>
+    {importedSongs.length > 0 && (
+      <label
+        className="rhythm-lab-song-selector"
+        aria-label="Imported song selector"
+      >
+        <span>Saved songs</span>
+        <select
+          value={activeSongId ?? ""}
+          disabled={isRecording}
+          onChange={(event) => onSongSelect(event.currentTarget.value)}
+        >
+          <option value="" disabled>
+            Select song
+          </option>
+          {importedSongs.map((song) => (
+            <option key={song.id} value={song.id}>
+              {formatSongOptionLabel(song)}
+            </option>
+          ))}
+        </select>
+      </label>
+    )}
+    <div className="rhythm-lab-audio-details" aria-live="polite">
+      <span
+        className="rhythm-lab-audio-filename"
+        title={fileName ?? "No audio selected"}
+        aria-label={fileName ?? "No audio selected"}
+      >
+        {fileName ? fileName : "No audio selected"}
+      </span>
+      <small>Stored locally in this browser. Not uploaded.</small>
+      {audioError && (
+        <small className="rhythm-lab-audio-error">{audioError}</small>
+      )}
+      {chartStorageError && (
+        <small className="rhythm-lab-audio-error">{chartStorageError}</small>
+      )}
+      {runStorageError && phase !== "complete" && (
+        <small className="rhythm-lab-audio-error">{runStorageError}</small>
+      )}
+    </div>
+  </>
+);
+
+export default SongControls;
