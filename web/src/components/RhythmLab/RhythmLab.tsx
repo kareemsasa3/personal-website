@@ -15,14 +15,12 @@ import {
   deleteChart,
   getChartsForSong,
   getPreferences,
-  getRunsForChart,
   openRhythmLabDb,
   saveChart,
   savePreferences,
-  saveRun,
   updateChartName,
 } from "./library/rhythmLabDb";
-import type { RhythmLabChart, RhythmLabRun } from "./library/types";
+import type { RhythmLabChart } from "./library/types";
 import { useLocalAudioFile } from "./useLocalAudioFile";
 import { useRhythmLab } from "./useRhythmLab";
 import ReadyCheckPanel from "./ReadyCheckPanel";
@@ -31,7 +29,6 @@ import {
   type ActiveChartMode,
   CHART_NAME_MAX_LENGTH,
   createChartPreference,
-  createRunRecord,
   createRunSummary,
   createStoredChartId,
   DEFAULT_SCROLL_SPEED,
@@ -40,7 +37,6 @@ import {
   formatRecordedChartName,
   formatScore,
   formatSongOptionLabel,
-  getBestRun,
   JUDGMENT_READOUT_MS,
   keyToLane,
   lanes,
@@ -50,6 +46,7 @@ import {
   sortRecordedChartsNewestFirst,
   toRuntimeChart,
 } from "./helpers";
+import { useChartRuns } from "./useChartRuns";
 import { useLaneFeedback } from "./useLaneFeedback";
 import { useRecordingSession } from "./useRecordingSession";
 import "./RhythmLab.css";
@@ -84,8 +81,6 @@ const RhythmLab = () => {
   const [pendingChartAction, setPendingChartAction] = useState<
     "rename" | "delete" | null
   >(null);
-  const [chartRuns, setChartRuns] = useState<RhythmLabRun[]>([]);
-  const [runStorageError, setRunStorageError] = useState<string | null>(null);
   const {
     isRecording,
     recordingCount,
@@ -97,8 +92,6 @@ const RhythmLab = () => {
   const dbRef = useRef<IDBDatabase | null>(null);
   const activeSongIdRef = useRef(activeSongId);
   const chartLoadRequestIdRef = useRef(0);
-  const runLoadRequestIdRef = useRef(0);
-  const completedRunSaveKeyRef = useRef<string | null>(null);
   const activeChart =
     activeChartMode === "recorded" && recordedChart
       ? recordedChart
@@ -122,14 +115,6 @@ const RhythmLab = () => {
       ) ?? null
     );
   }, [activeChartMode, activeSongId, recordedChart, recordedCharts]);
-  const [loadedRunContextKey, setLoadedRunContextKey] = useState<string | null>(
-    null
-  );
-  const isBestRunLoaded = loadedRunContextKey === currentRunContextKey;
-  const bestRun = useMemo(
-    () => (isBestRunLoaded ? getBestRun(chartRuns) : null),
-    [chartRuns, isBestRunLoaded]
-  );
   const rhythmClock = useMemo(
     () =>
       hasSelectedFile
@@ -173,6 +158,30 @@ const RhythmLab = () => {
     dbRef.current = db;
     return db;
   }, []);
+
+  const summaryChartLabel =
+    activeChartMode === "recorded" && recordedChart
+      ? "Recorded Chart"
+      : "Starter Chart";
+  const runSummary = useMemo(
+    () => createRunSummary(summaryChartLabel, score, maxCombo, judgments),
+    [judgments, maxCombo, score, summaryChartLabel]
+  );
+  const { bestRun, isBestRunLoaded, runStorageError, resetRuns } =
+    useChartRuns({
+      getDb,
+      activeChartId: activeChart.id,
+      currentRunContextKey,
+      activeChartMode,
+      activeSongId,
+      phase,
+      isRecording,
+      runSummary,
+      score,
+      maxCombo,
+      judgmentsLength: judgments.length,
+      lastJudgedAtMs: lastJudgment?.judgedAtMs,
+    });
 
   useEffect(() => {
     activeSongIdRef.current = activeSongId;
@@ -251,12 +260,9 @@ const RhythmLab = () => {
     setActiveChartMode("starter");
     setVisibleJudgment(null);
     setChartStorageError(null);
-    setChartRuns([]);
-    setLoadedRunContextKey(null);
-    setRunStorageError(null);
-    runLoadRequestIdRef.current += 1;
+    resetRuns();
     resetGame();
-  }, [cancelRecording, resetChartManagement, resetGame]);
+  }, [cancelRecording, resetChartManagement, resetGame, resetRuns]);
 
   const selectRecordedChart = useCallback(
     (chartId: string) => {
@@ -520,11 +526,7 @@ const RhythmLab = () => {
     pausePlayback();
     cancelRecording();
     setVisibleJudgment(null);
-    setChartRuns([]);
-    setLoadedRunContextKey(null);
-    setRunStorageError(null);
-    completedRunSaveKeyRef.current = null;
-    runLoadRequestIdRef.current += 1;
+    resetRuns();
     resetGame();
 
     try {
@@ -592,6 +594,7 @@ const RhythmLab = () => {
     recordedCharts,
     resetChartManagement,
     resetGame,
+    resetRuns,
     selectedRecordedChart,
   ]);
 
@@ -721,103 +724,6 @@ const RhythmLab = () => {
       );
     });
   }, [activeSongId, activeSongRevision, getDb, resetGame]);
-
-  const summaryChartLabel =
-    activeChartMode === "recorded" && recordedChart
-      ? "Recorded Chart"
-      : "Starter Chart";
-  const runSummary = useMemo(
-    () => createRunSummary(summaryChartLabel, score, maxCombo, judgments),
-    [judgments, maxCombo, score, summaryChartLabel]
-  );
-
-  useEffect(() => {
-    const requestId = runLoadRequestIdRef.current + 1;
-    runLoadRequestIdRef.current = requestId;
-    setChartRuns([]);
-    setLoadedRunContextKey(null);
-    setRunStorageError(null);
-
-    const loadChartRuns = async () => {
-      const db = await getDb();
-      const runs = await getRunsForChart(db, activeChart.id);
-
-      if (requestId !== runLoadRequestIdRef.current) return;
-
-      setChartRuns(runs);
-      setLoadedRunContextKey(currentRunContextKey);
-      setRunStorageError(null);
-    };
-
-    void loadChartRuns().catch(() => {
-      if (requestId !== runLoadRequestIdRef.current) return;
-
-      setChartRuns([]);
-      setLoadedRunContextKey(currentRunContextKey);
-      setRunStorageError("Best stats could not be loaded.");
-    });
-  }, [activeChart.id, currentRunContextKey, getDb]);
-
-  useEffect(() => {
-    if (phase !== "complete" || isRecording) {
-      completedRunSaveKeyRef.current = null;
-      return;
-    }
-
-    const completionKey = [
-      activeChart.id,
-      activeSongId ?? "songless",
-      score,
-      maxCombo,
-      judgments.length,
-      lastJudgment?.judgedAtMs ?? "no-judgment",
-    ].join(":");
-
-    if (completedRunSaveKeyRef.current === completionKey) return;
-    completedRunSaveKeyRef.current = completionKey;
-
-    const saveCompletedRun = async () => {
-      const db = await getDb();
-      const songId =
-        activeChartMode === "recorded" ? activeSongId : null;
-      const run = await saveRun(
-        db,
-        createRunRecord(activeChart.id, songId, runSummary)
-      );
-      const runs = await getRunsForChart(db, activeChart.id);
-
-      if (completedRunSaveKeyRef.current !== completionKey) return;
-
-      setChartRuns(
-        runs.some((currentRun) => currentRun.id === run.id)
-          ? runs
-          : [run, ...runs]
-      );
-      setLoadedRunContextKey(currentRunContextKey);
-      setRunStorageError(null);
-    };
-
-    void saveCompletedRun().catch(() => {
-      if (completedRunSaveKeyRef.current !== completionKey) return;
-
-      setRunStorageError(
-        "Run result could not be saved. Your summary is still available."
-      );
-    });
-  }, [
-    activeChart.id,
-    activeChartMode,
-    activeSongId,
-    currentRunContextKey,
-    getDb,
-    isRecording,
-    judgments.length,
-    lastJudgment?.judgedAtMs,
-    maxCombo,
-    phase,
-    runSummary,
-    score,
-  ]);
 
   useEffect(() => {
     if (judgmentReadoutTimeoutRef.current) {
