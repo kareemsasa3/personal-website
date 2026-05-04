@@ -9,6 +9,10 @@
   align-items: stretch;
   justify-content: stretch;
   overflow: hidden;
+  color-scheme: dark;
+  background: #0d0d0d;
+  --terminal-primary: #4caf50;
+  --text-color: #ffffff;
 }
 
 .rhythm-lab-page .rhythm-lab {
