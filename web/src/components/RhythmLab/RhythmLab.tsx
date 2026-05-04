@@ -8,12 +8,13 @@ import {
   type PointerEvent,
 } from "react";
 import { Link } from "react-router-dom";
-import { type LaneIndex, type NoteJudgment } from "./types";
+import { type LaneIndex, type NoteJudgment, type RunEndReason } from "./types";
 import { openRhythmLabDb } from "./library/rhythmLabDb";
 import { useLocalAudioFile } from "./useLocalAudioFile";
 import { useRhythmLab } from "./useRhythmLab";
 import ActiveSessionHeader from "./ActiveSessionHeader";
 import ChartControls from "./ChartControls";
+import PauseMenu from "./PauseMenu";
 import ReadyCheckPanel from "./ReadyCheckPanel";
 import RhythmHighway from "./RhythmHighway";
 import RunSummaryPanel from "./RunSummaryPanel";
@@ -146,6 +147,7 @@ const RhythmLab = () => {
   const game = useRhythmLab(activeChart, rhythmClock);
   const {
     phase,
+    elapsedMs,
     score,
     combo,
     maxCombo,
@@ -156,8 +158,12 @@ const RhythmLab = () => {
     startGame: beginGame,
     resetGame,
     restartGame: beginRestart,
+    pauseGame,
+    resumeGame,
+    endGameEarly,
     hitLane,
   } = game;
+  const [endReason, setEndReason] = useState<RunEndReason>("completed");
 
   // Update the ref so useRecordedCharts callbacks use the real resetGame
   resetGameRef.current = resetGame;
@@ -174,8 +180,27 @@ const RhythmLab = () => {
       ? "Recorded Chart"
       : "Starter Chart";
   const runSummary = useMemo(
-    () => createRunSummary(summaryChartLabel, score, maxCombo, judgments),
-    [judgments, maxCombo, score, summaryChartLabel]
+    () =>
+      createRunSummary(
+        summaryChartLabel,
+        endReason,
+        elapsedMs,
+        chart.durationMs,
+        chart.notes.length,
+        score,
+        maxCombo,
+        judgments
+      ),
+    [
+      chart.durationMs,
+      chart.notes.length,
+      elapsedMs,
+      endReason,
+      judgments,
+      maxCombo,
+      score,
+      summaryChartLabel,
+    ]
   );
 
   const { bestRun, isBestRunLoaded, runStorageError, resetRuns } =
@@ -199,6 +224,7 @@ const RhythmLab = () => {
     const canPlay = await playFromStart();
     if (!canPlay) return;
 
+    setEndReason("completed");
     beginGame();
     focusGame();
   }, [beginGame, focusGame, playFromStart]);
@@ -207,6 +233,7 @@ const RhythmLab = () => {
     const canPlay = await playFromStart();
     if (!canPlay) return;
 
+    setEndReason("completed");
     beginRestart();
     focusGame();
   }, [beginRestart, focusGame, playFromStart]);
@@ -217,6 +244,25 @@ const RhythmLab = () => {
       focusGame();
     }
   }, [focusGame, resumePlayback]);
+
+  const pauseRun = useCallback(() => {
+    pausePlayback();
+    pauseGame();
+  }, [pausePlayback, pauseGame]);
+
+  const resumeRun = useCallback(async () => {
+    const canPlay = await resumePlayback();
+    if (!canPlay) return;
+
+    resumeGame();
+    focusGame();
+  }, [focusGame, resumeGame, resumePlayback]);
+
+  const endRunEarly = useCallback(() => {
+    pausePlayback();
+    setEndReason("ended_early");
+    endGameEarly();
+  }, [endGameEarly, pausePlayback]);
 
   const returnToSetup = useCallback(() => {
     pausePlayback();
@@ -361,6 +407,27 @@ const RhythmLab = () => {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        if (phase === "playing" && !isRecording) {
+          pauseRun();
+        } else if (phase === "paused") {
+          void resumeRun();
+        }
+        return;
+      }
+
+      // Let focused interactive elements handle Enter/Space natively
+      // so pause-menu buttons, links, and form controls remain accessible.
+      if (
+        (event.key === "Enter" || event.key === " ") &&
+        (event.target as HTMLElement | null)?.closest(
+          "button, a, input, textarea, select"
+        )
+      ) {
+        return;
+      }
+
       const lane = keyToLane[event.key.toLowerCase()];
 
       if (lane !== undefined) {
@@ -374,6 +441,7 @@ const RhythmLab = () => {
       if (
         (event.key === "Enter" || event.key === " ") &&
         phase !== "playing" &&
+        phase !== "paused" &&
         !isRecording
       ) {
         event.preventDefault();
@@ -383,7 +451,7 @@ const RhythmLab = () => {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handleLaneInput, isRecording, phase, restartGame]);
+  }, [handleLaneInput, isRecording, pauseRun, phase, restartGame, resumeRun]);
 
   const handleLanePointerDown = (
     event: PointerEvent<HTMLButtonElement>,
@@ -404,7 +472,7 @@ const RhythmLab = () => {
       : hasSelectedFile
         ? "Starter chart - local audio clock"
         : "Starter chart - silent static clock";
-  const isActiveSession = phase === "playing" || isRecording;
+  const isActiveSession = phase === "playing" || phase === "paused" || isRecording;
   const isHotStreak = phase === "playing" && combo >= 10;
   const activeChartModeLabel =
     activeChartMode === "recorded" && recordedChart ? "Recorded" : "Starter";
@@ -463,6 +531,7 @@ const RhythmLab = () => {
               recordingCount={recordingCount}
               isPausedAfterVisibilityChange={isPausedAfterVisibilityChange}
               phase={phase}
+              onPause={pauseRun}
               onResume={resumeAudio}
               onRestart={() => {
                 void restartGame();
@@ -555,6 +624,18 @@ const RhythmLab = () => {
               onStart={() => {
                 void startGame();
               }}
+            />
+          )}
+
+          {phase === "paused" && !isRecording && (
+            <PauseMenu
+              onResume={() => {
+                void resumeRun();
+              }}
+              onRestart={() => {
+                void restartGame();
+              }}
+              onEndSong={endRunEarly}
             />
           )}
 

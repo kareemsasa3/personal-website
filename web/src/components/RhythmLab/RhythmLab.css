@@ -1128,6 +1128,57 @@
   overflow: auto;
 }
 
+.rhythm-lab-pause-panel {
+  width: min(100%, 22rem);
+}
+
+.rhythm-lab-pause-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0 0 1.25rem;
+}
+
+.rhythm-lab-pause-actions .rhythm-lab-primary-action,
+.rhythm-lab-pause-actions .rhythm-lab-secondary-action {
+  margin: 0;
+  width: 100%;
+}
+
+.rhythm-lab-summary-progress {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin: 0 0 1rem;
+}
+
+.rhythm-lab-summary-progress div {
+  min-width: 0;
+  padding: 0.55rem 0.6rem;
+  border: 1px solid rgba(255, 183, 77, 0.32);
+  border-radius: 0.4rem;
+  background: rgba(255, 183, 77, 0.08);
+  text-align: left;
+}
+
+.rhythm-lab-summary-progress dt {
+  margin: 0 0 0.25rem;
+  overflow: hidden;
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 0.66rem;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.rhythm-lab-summary-progress dd {
+  margin: 0;
+  color: #ffcc80;
+  font-size: 0.95rem;
+  font-weight: 900;
+}
+
 .rhythm-lab-summary-score {
   display: flex;
   align-items: baseline;

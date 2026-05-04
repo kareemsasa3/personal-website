@@ -36,7 +36,10 @@ type RhythmLabAction =
   | { type: "START" }
   | { type: "RESET" }
   | { type: "TICK"; elapsedMs: number; isClockComplete: boolean }
-  | { type: "HIT_LANE"; lane: LaneIndex; elapsedMs: number };
+  | { type: "HIT_LANE"; lane: LaneIndex; elapsedMs: number }
+  | { type: "PAUSE"; elapsedMs: number }
+  | { type: "RESUME" }
+  | { type: "END_EARLY"; elapsedMs: number };
 
 interface RhythmLabClockOptions {
   getElapsedMs?: () => number;
@@ -218,6 +221,67 @@ const createRhythmReducer =
         };
       }
 
+      case "PAUSE": {
+        if (state.phase !== "playing") return state;
+
+        return {
+          ...state,
+          phase: "paused",
+          elapsedMs: action.elapsedMs,
+        };
+      }
+
+      case "RESUME": {
+        if (state.phase !== "paused") return state;
+
+        return {
+          ...state,
+          phase: "playing",
+        };
+      }
+
+      case "END_EARLY": {
+        if (state.phase !== "playing" && state.phase !== "paused") return state;
+
+        // Final auto-miss pass: only count notes whose judgment window
+        // has fully passed before the exit timestamp.
+        let completedNotes = state.completedNotes;
+        let combo = state.combo;
+        const missedJudgments: NoteMissJudgment[] = [];
+
+        chart.notes.forEach((note) => {
+          if (completedNotes[note.id]) return;
+          if (action.elapsedMs - note.timeMs <= MISS_WINDOW_MS) return;
+
+          if (completedNotes === state.completedNotes) {
+            completedNotes = { ...state.completedNotes };
+          }
+
+          const judgment: NoteMissJudgment = {
+            kind: "note-miss",
+            rating: "Miss",
+            lane: note.lane,
+            noteId: note.id,
+            judgedAtMs: action.elapsedMs,
+            deltaMs: null,
+          };
+          missedJudgments.push(judgment);
+          completedNotes[note.id] = judgment;
+          combo = 0;
+        });
+
+        return {
+          ...state,
+          phase: "complete",
+          elapsedMs: action.elapsedMs,
+          combo,
+          judgments: missedJudgments.length
+            ? [...state.judgments, ...missedJudgments]
+            : state.judgments,
+          completedNotes,
+        };
+      }
+
       default:
         return state;
     }
@@ -232,6 +296,7 @@ export const useRhythmLab = (
   const animationFrameRef = useRef<number | null>(null);
   const startedAtRef = useRef<number>(0);
   const hiddenAtRef = useRef<number | null>(null);
+  const pausedAtRef = useRef<number | null>(null);
   const stateRef = useRef(state);
   const pendingHitNoteIdsRef = useRef<Set<string>>(new Set());
 
@@ -276,6 +341,7 @@ export const useRhythmLab = (
     }
     startedAtRef.current = 0;
     hiddenAtRef.current = null;
+    pausedAtRef.current = null;
     dispatch({ type: "RESET" });
   }, []);
 
@@ -284,6 +350,7 @@ export const useRhythmLab = (
       cancelAnimationFrame(animationFrameRef.current);
       animationFrameRef.current = null;
     }
+    pausedAtRef.current = null;
     if (!usesExternalClock) {
       startedAtRef.current = performance.now();
       hiddenAtRef.current = document.hidden ? performance.now() : null;
@@ -293,6 +360,48 @@ export const useRhythmLab = (
     }
     dispatch({ type: "START" });
   }, [usesExternalClock]);
+
+  const pauseGame = useCallback(() => {
+    if (stateRef.current.phase !== "playing") return;
+
+    const elapsedMs = readElapsedMs();
+
+    if (!usesExternalClock) {
+      pausedAtRef.current = performance.now();
+    }
+
+    dispatch({ type: "PAUSE", elapsedMs });
+  }, [readElapsedMs, usesExternalClock]);
+
+  const resumeGame = useCallback(() => {
+    if (stateRef.current.phase !== "paused") return;
+
+    if (!usesExternalClock && pausedAtRef.current !== null) {
+      startedAtRef.current += performance.now() - pausedAtRef.current;
+      pausedAtRef.current = null;
+    }
+
+    dispatch({ type: "RESUME" });
+  }, [usesExternalClock]);
+
+  const endGameEarly = useCallback(() => {
+    const currentPhase = stateRef.current.phase;
+    if (currentPhase !== "playing" && currentPhase !== "paused") return;
+
+    const elapsedMs =
+      currentPhase === "paused"
+        ? stateRef.current.elapsedMs
+        : readElapsedMs();
+
+    pausedAtRef.current = null;
+
+    if (animationFrameRef.current !== null) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
+
+    dispatch({ type: "END_EARLY", elapsedMs });
+  }, [readElapsedMs]);
 
   const hitLane = useCallback((lane: LaneIndex): NoteJudgment | null => {
     if (stateRef.current.phase !== "playing") return null;
@@ -400,6 +509,9 @@ export const useRhythmLab = (
     startGame,
     resetGame,
     restartGame,
+    pauseGame,
+    resumeGame,
+    endGameEarly,
     hitLane,
   };
 };

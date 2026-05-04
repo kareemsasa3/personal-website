@@ -1,6 +1,8 @@
 export type LaneIndex = 0 | 1 | 2;
 
-export type GamePhase = "ready" | "playing" | "complete";
+export type GamePhase = "ready" | "playing" | "paused" | "complete";
+
+export type RunEndReason = "completed" | "ended_early";
 
 export type JudgmentRating = "Perfect" | "Good" | "Miss";
 

@@ -1,5 +1,10 @@
 import type { RhythmLabRun } from "./library/types";
-import { formatDelta, formatPercent, type RhythmRunSummary } from "./helpers";
+import {
+  formatDelta,
+  formatDurationMs,
+  formatPercent,
+  type RhythmRunSummary,
+} from "./helpers";
 
 interface RunSummaryPanelProps {
   runSummary: RhythmRunSummary;
@@ -15,15 +20,39 @@ const RunSummaryPanel = ({
   runStorageError,
   onRestart,
   onReturnToSetup,
-}: RunSummaryPanelProps) => (
-  <div className="rhythm-lab-overlay">
-    <div className="rhythm-lab-overlay-panel rhythm-lab-summary-panel">
-      <p>{runSummary.chartLabel}</p>
-      <h2>Run Summary</h2>
-      <div className="rhythm-lab-summary-score">
-        <span>Final score</span>
-        <strong>{runSummary.score}</strong>
-      </div>
+}: RunSummaryPanelProps) => {
+  const isEarlyExit = runSummary.endReason === "ended_early";
+  const completionPercent =
+    runSummary.totalChartNotes > 0
+      ? Math.round(
+          (runSummary.notesPlayed / runSummary.totalChartNotes) * 100
+        )
+      : 100;
+
+  return (
+    <div className="rhythm-lab-overlay">
+      <div className="rhythm-lab-overlay-panel rhythm-lab-summary-panel">
+        <p>{runSummary.chartLabel}</p>
+        <h2>{isEarlyExit ? "Ended Early" : "Run Summary"}</h2>
+        {isEarlyExit && (
+          <dl className="rhythm-lab-summary-progress">
+            <div>
+              <dt>Played</dt>
+              <dd>
+                {formatDurationMs(runSummary.endedAtMs)} /{" "}
+                {formatDurationMs(runSummary.chartDurationMs)}
+              </dd>
+            </div>
+            <div>
+              <dt>Completion</dt>
+              <dd>{completionPercent}%</dd>
+            </div>
+          </dl>
+        )}
+        <div className="rhythm-lab-summary-score">
+          <span>{isEarlyExit ? "Score" : "Final score"}</span>
+          <strong>{runSummary.score}</strong>
+        </div>
       <dl className="rhythm-lab-summary-best">
         <div>
           <dt>Best score</dt>
@@ -96,6 +125,7 @@ const RunSummaryPanel = ({
       <span>A/S/D | J/K/L | Arrow keys | tap zones</span>
     </div>
   </div>
-);
+  );
+};
 
 export default RunSummaryPanel;

@@ -8,6 +8,7 @@ interface ActiveSessionHeaderProps {
   recordingCount: number;
   isPausedAfterVisibilityChange: boolean;
   phase: GamePhase;
+  onPause: () => void;
   onResume: () => void;
   onRestart: () => void;
   onStopRecording: () => void;
@@ -20,6 +21,7 @@ const ActiveSessionHeader = ({
   recordingCount,
   isPausedAfterVisibilityChange,
   phase,
+  onPause,
   onResume,
   onRestart,
   onStopRecording,
@@ -72,13 +74,24 @@ const ActiveSessionHeader = ({
             Stop
           </button>
         ) : (
-          <button
-            className="rhythm-lab-compact-action"
-            type="button"
-            onClick={onRestart}
-          >
-            Restart
-          </button>
+          <>
+            {phase === "playing" && !isPausedAfterVisibilityChange && (
+              <button
+                className="rhythm-lab-compact-action"
+                type="button"
+                onClick={onPause}
+              >
+                Pause
+              </button>
+            )}
+            <button
+              className="rhythm-lab-compact-action"
+              type="button"
+              onClick={onRestart}
+            >
+              Restart
+            </button>
+          </>
         )}
       </div>
     </div>

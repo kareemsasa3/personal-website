@@ -1,4 +1,4 @@
-import type { LaneIndex, NoteJudgment, RhythmChart } from "./types";
+import type { LaneIndex, NoteJudgment, RhythmChart, RunEndReason } from "./types";
 import type {
   RhythmLabChart,
   RhythmLabPreferences,
@@ -50,6 +50,11 @@ export type ActiveChartMode = "starter" | "recorded";
 
 export interface RhythmRunSummary {
   chartLabel: string;
+  endReason: RunEndReason;
+  endedAtMs: number;
+  chartDurationMs: number;
+  totalChartNotes: number;
+  notesPlayed: number;
   score: number;
   maxCombo: number;
   perfectCount: number;
@@ -65,6 +70,13 @@ export interface RhythmRunSummary {
 type BestRun = RhythmLabRun | null;
 
 export const formatPercent = (value: number) => `${value.toFixed(1)}%`;
+
+export const formatDurationMs = (ms: number) => {
+  const totalSeconds = Math.floor(Math.max(0, ms) / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${String(seconds).padStart(2, "0")}`;
+};
 
 export const formatDelta = (value: number | null) =>
   value === null ? "N/A" : `${Math.round(value)}ms`;
@@ -153,6 +165,10 @@ export const getBestRun = (runs: RhythmLabRun[]): BestRun =>
 
 export const createRunSummary = (
   chartLabel: string,
+  endReason: RunEndReason,
+  endedAtMs: number,
+  chartDurationMs: number,
+  totalChartNotes: number,
   score: number,
   maxCombo: number,
   judgments: NoteJudgment[]
@@ -187,6 +203,11 @@ export const createRunSummary = (
 
   return {
     chartLabel,
+    endReason,
+    endedAtMs,
+    chartDurationMs,
+    totalChartNotes,
+    notesPlayed: noteBackedJudgments.length,
     score,
     maxCombo,
     perfectCount,
