@@ -241,3 +241,114 @@ export const createRunRecord = (
   lateCount: summary.lateCount,
   playedAt: new Date().toISOString(),
 });
+
+// ---------------------------------------------------------------------------
+// Run History — localStorage persistence
+// ---------------------------------------------------------------------------
+
+export interface RunHistoryEntry {
+  schemaVersion: 1;
+  runId: string;
+  playedAtMs: number;
+  songSnapshot: { id: string; title: string } | null;
+  chartLabel: string;
+  endReason: "completed" | "ended_early";
+  score: number;
+  maxCombo: number;
+  accuracyPercent: number;
+  perfectCount: number;
+  goodCount: number;
+  missCount: number;
+  notesPlayed: number;
+  notesJudged: number;
+  totalChartNotes: number;
+  endedAtMs: number;
+  chartDurationMs: number;
+  completionPercent: number;
+}
+
+const RUN_HISTORY_STORAGE_KEY = "rhythmLab.runHistory.v1";
+const RUN_HISTORY_MAX_ENTRIES = 100;
+
+const isRunHistoryEntry = (value: unknown): value is RunHistoryEntry => {
+  if (!value || typeof value !== "object") return false;
+
+  const entry = value as Partial<RunHistoryEntry>;
+
+  return (
+    entry.schemaVersion === 1 &&
+    typeof entry.runId === "string" &&
+    typeof entry.playedAtMs === "number" &&
+    typeof entry.score === "number" &&
+    typeof entry.accuracyPercent === "number" &&
+    (entry.endReason === "completed" || entry.endReason === "ended_early")
+  );
+};
+
+export const loadRunHistory = (): RunHistoryEntry[] => {
+  try {
+    const raw = localStorage.getItem(RUN_HISTORY_STORAGE_KEY);
+    if (!raw) return [];
+
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+
+    return parsed
+      .filter(isRunHistoryEntry)
+      .sort((a, b) => b.playedAtMs - a.playedAtMs)
+      .slice(0, RUN_HISTORY_MAX_ENTRIES);
+  } catch {
+    return [];
+  }
+};
+
+export const saveRunHistory = (entries: RunHistoryEntry[]): void => {
+  try {
+    localStorage.setItem(
+      RUN_HISTORY_STORAGE_KEY,
+      JSON.stringify(entries.slice(0, RUN_HISTORY_MAX_ENTRIES))
+    );
+  } catch {
+    // Silently fail — quota exceeded or storage unavailable.
+  }
+};
+
+export const clearRunHistory = (): void => {
+  try {
+    localStorage.removeItem(RUN_HISTORY_STORAGE_KEY);
+  } catch {
+    // Silently fail.
+  }
+};
+
+export const createRunHistoryEntry = (
+  runId: string,
+  summary: RhythmRunSummary,
+  songSnapshot: { id: string; title: string } | null
+): RunHistoryEntry => {
+  const completionPercent =
+    summary.chartDurationMs > 0
+      ? Math.round((summary.endedAtMs / summary.chartDurationMs) * 100)
+      : 0;
+
+  return {
+    schemaVersion: 1,
+    runId,
+    playedAtMs: Date.now(),
+    songSnapshot,
+    chartLabel: summary.chartLabel,
+    endReason: summary.endReason,
+    score: summary.score,
+    maxCombo: summary.maxCombo,
+    accuracyPercent: summary.accuracyPercent,
+    perfectCount: summary.perfectCount,
+    goodCount: summary.goodCount,
+    missCount: summary.missCount,
+    notesPlayed: summary.notesPlayed,
+    notesJudged: summary.perfectCount + summary.goodCount + summary.missCount,
+    totalChartNotes: summary.totalChartNotes,
+    endedAtMs: summary.endedAtMs,
+    chartDurationMs: summary.chartDurationMs,
+    completionPercent,
+  };
+};

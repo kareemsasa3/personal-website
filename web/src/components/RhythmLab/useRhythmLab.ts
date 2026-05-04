@@ -23,6 +23,7 @@ type HitCandidate = {
 
 interface RhythmLabState {
   phase: GamePhase;
+  currentRunId: string | null;
   elapsedMs: number;
   score: number;
   combo: number;
@@ -46,8 +47,16 @@ interface RhythmLabClockOptions {
   isClockComplete?: () => boolean;
 }
 
+const createRunId = (): string => {
+  if (globalThis.crypto?.randomUUID) {
+    return globalThis.crypto.randomUUID();
+  }
+  return `run-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+};
+
 const initialState: RhythmLabState = {
   phase: "ready",
+  currentRunId: null,
   elapsedMs: 0,
   score: 0,
   combo: 0,
@@ -135,6 +144,7 @@ const createRhythmReducer =
         return {
           ...initialState,
           phase: "playing",
+          currentRunId: createRunId(),
         };
 
       case "RESET":

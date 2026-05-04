@@ -17,6 +17,7 @@ import ChartControls from "./ChartControls";
 import PauseMenu from "./PauseMenu";
 import ReadyCheckPanel from "./ReadyCheckPanel";
 import RhythmHighway from "./RhythmHighway";
+import RunHistoryPanel from "./RunHistoryPanel";
 import RunSummaryPanel from "./RunSummaryPanel";
 import SongControls from "./SongControls";
 import {
@@ -30,6 +31,7 @@ import { useChartRuns } from "./useChartRuns";
 import { useLaneFeedback } from "./useLaneFeedback";
 import { useRecordingSession } from "./useRecordingSession";
 import { useRecordedCharts } from "./useRecordedCharts";
+import { useRunHistory } from "./useRunHistory";
 import "./RhythmLab.css";
 
 const RhythmLab = () => {
@@ -147,6 +149,7 @@ const RhythmLab = () => {
   const game = useRhythmLab(activeChart, rhythmClock);
   const {
     phase,
+    currentRunId,
     elapsedMs,
     score,
     combo,
@@ -219,6 +222,19 @@ const RhythmLab = () => {
       lastJudgedAtMs: lastJudgment?.judgedAtMs,
     });
   resetRunsRef.current = resetRuns;
+
+  const activeSong =
+    activeSongId
+      ? importedSongs.find((song) => song.id === activeSongId) ?? null
+      : null;
+
+  const { history, clearHistory } = useRunHistory({
+    phase,
+    currentRunId,
+    isRecording,
+    runSummary,
+    activeSong,
+  });
 
   const startGame = useCallback(async () => {
     const canPlay = await playFromStart();
@@ -594,6 +610,10 @@ const RhythmLab = () => {
                     onChartNameChange={setChartNameDraft}
                   />
                 )}
+                <RunHistoryPanel
+                  history={history}
+                  onClearHistory={clearHistory}
+                />
               </div>
             </>
           )}
