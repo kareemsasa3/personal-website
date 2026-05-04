@@ -10,12 +10,7 @@ import {
 } from "react";
 import { Link } from "react-router-dom";
 import { starterChart } from "./rhythmCharts";
-import {
-  type ChartNote,
-  type LaneIndex,
-  type NoteJudgment,
-  type RhythmChart,
-} from "./types";
+import { type LaneIndex, type NoteJudgment, type RhythmChart } from "./types";
 import {
   deleteChart,
   getChartsForSong,
@@ -51,14 +46,12 @@ import {
   lanes,
   normalizeChartName,
   NOTE_OVERSHOOT_MULTIPLIER,
-  RECORDED_CHART_BPM,
-  RECORDED_CHART_TAIL_MS,
-  RECORDING_DEDUPE_MS,
   RHYTHM_LINE_PERCENT,
   sortRecordedChartsNewestFirst,
   toRuntimeChart,
 } from "./helpers";
 import { useLaneFeedback } from "./useLaneFeedback";
+import { useRecordingSession } from "./useRecordingSession";
 import "./RhythmLab.css";
 
 const RhythmLab = () => {
@@ -93,11 +86,14 @@ const RhythmLab = () => {
   >(null);
   const [chartRuns, setChartRuns] = useState<RhythmLabRun[]>([]);
   const [runStorageError, setRunStorageError] = useState<string | null>(null);
-  const [recordingCount, setRecordingCount] = useState(0);
-  const [isRecording, setIsRecording] = useState(false);
-  const recordingNotesRef = useRef<ChartNote[]>([]);
-  const recordingSequenceRef = useRef(0);
-  const lastRecordedByLaneRef = useRef<Partial<Record<LaneIndex, number>>>({});
+  const {
+    isRecording,
+    recordingCount,
+    beginRecording,
+    stopRecording: finalizeRecording,
+    cancelRecording,
+    recordLaneTap,
+  } = useRecordingSession({ audioRef, fileName, getElapsedMs });
   const dbRef = useRef<IDBDatabase | null>(null);
   const activeSongIdRef = useRef(activeSongId);
   const chartLoadRequestIdRef = useRef(0);
@@ -208,46 +204,8 @@ const RhythmLab = () => {
     [activeSongId, getDb]
   );
 
-  const createRecordedChart = useCallback(
-    (notes: ChartNote[]): RhythmChart => {
-      const sortedNotes = [...notes].sort(
-        (first, second) => first.timeMs - second.timeMs
-      );
-      const audio = audioRef.current;
-      const audioDurationMs =
-        audio && Number.isFinite(audio.duration)
-          ? Math.round(audio.duration * 1000)
-          : 0;
-      const lastNoteMs = sortedNotes.length
-        ? sortedNotes[sortedNotes.length - 1].timeMs
-        : 0;
-      const durationMs = Math.max(
-        audioDurationMs,
-        Math.round(getElapsedMs()),
-        lastNoteMs + RECORDED_CHART_TAIL_MS,
-        1000
-      );
-
-      return {
-        id: `recorded-${fileName ?? "local-audio"}`,
-        title: "Recorded Chart",
-        bpm: RECORDED_CHART_BPM,
-        durationMs,
-        notes: sortedNotes,
-      };
-    },
-    [audioRef, fileName, getElapsedMs]
-  );
-
   const focusGame = useCallback(() => {
     requestAnimationFrame(() => gameRef.current?.focus());
-  }, []);
-
-  const resetRecordingDraft = useCallback(() => {
-    recordingNotesRef.current = [];
-    recordingSequenceRef.current = 0;
-    lastRecordedByLaneRef.current = {};
-    setRecordingCount(0);
   }, []);
 
   const resetChartManagement = useCallback(() => {
@@ -287,11 +245,10 @@ const RhythmLab = () => {
   }, [focusGame, pausePlayback, resetGame]);
 
   const resetChartRuntimeForSongChange = useCallback(() => {
-    resetRecordingDraft();
+    cancelRecording();
     resetChartManagement();
     setRecordedChart(null);
     setActiveChartMode("starter");
-    setIsRecording(false);
     setVisibleJudgment(null);
     setChartStorageError(null);
     setChartRuns([]);
@@ -299,7 +256,7 @@ const RhythmLab = () => {
     setRunStorageError(null);
     runLoadRequestIdRef.current += 1;
     resetGame();
-  }, [resetChartManagement, resetGame, resetRecordingDraft]);
+  }, [cancelRecording, resetChartManagement, resetGame]);
 
   const selectRecordedChart = useCallback(
     (chartId: string) => {
@@ -310,7 +267,7 @@ const RhythmLab = () => {
 
       pausePlayback();
       resetChartManagement();
-      setIsRecording(false);
+      cancelRecording();
       setVisibleJudgment(null);
       resetGame();
       focusGame();
@@ -333,6 +290,7 @@ const RhythmLab = () => {
         });
     },
     [
+      cancelRecording,
       focusGame,
       pausePlayback,
       recordedCharts,
@@ -386,32 +344,29 @@ const RhythmLab = () => {
     const canPlay = await playFromStart();
     if (!canPlay) return;
 
-    resetRecordingDraft();
+    beginRecording();
     resetChartManagement();
     setRecordedChart(null);
     setActiveChartMode("starter");
-    setIsRecording(true);
     setVisibleJudgment(null);
     resetGame();
     focusGame();
   }, [
+    beginRecording,
     focusGame,
     hasSelectedFile,
     playFromStart,
     resetChartManagement,
     resetGame,
-    resetRecordingDraft,
   ]);
 
   const stopRecording = useCallback(() => {
     if (!isRecording) return;
 
     pausePlayback();
-    const nextChart = createRecordedChart(recordingNotesRef.current);
-    setRecordingCount(recordingNotesRef.current.length);
+    const nextChart = finalizeRecording();
     setRecordedChart(nextChart);
     setActiveChartMode("recorded");
-    setIsRecording(false);
     setVisibleJudgment(null);
     resetGame();
     focusGame();
@@ -462,7 +417,7 @@ const RhythmLab = () => {
     });
   }, [
     activeSongId,
-    createRecordedChart,
+    finalizeRecording,
     focusGame,
     getDb,
     isRecording,
@@ -563,7 +518,7 @@ const RhythmLab = () => {
 
     setPendingChartAction("delete");
     pausePlayback();
-    setIsRecording(false);
+    cancelRecording();
     setVisibleJudgment(null);
     setChartRuns([]);
     setLoadedRunContextKey(null);
@@ -629,6 +584,7 @@ const RhythmLab = () => {
     }
   }, [
     activeSongId,
+    cancelRecording,
     focusGame,
     getDb,
     pausePlayback,
@@ -649,7 +605,7 @@ const RhythmLab = () => {
 
       pausePlayback();
       resetChartManagement();
-      setIsRecording(false);
+      cancelRecording();
       setActiveChartMode(mode);
       setVisibleJudgment(null);
       resetGame();
@@ -661,6 +617,7 @@ const RhythmLab = () => {
         });
     },
     [
+      cancelRecording,
       focusGame,
       pausePlayback,
       recordedChart,
@@ -677,31 +634,9 @@ const RhythmLab = () => {
       showInputFeedback(lane);
 
       if (isRecording) {
-        const audio = audioRef.current;
-        const timeMs = audio ? Math.round(audio.currentTime * 1000) : 0;
-        const lastSameLaneNoteMs = lastRecordedByLaneRef.current[lane];
-
-        if (
-          lastSameLaneNoteMs !== undefined &&
-          Math.abs(timeMs - lastSameLaneNoteMs) <= RECORDING_DEDUPE_MS
-        ) {
-          return;
+        if (recordLaneTap(lane)) {
+          showHitFeedback(lane);
         }
-
-        recordingSequenceRef.current += 1;
-        const note: ChartNote = {
-          id: `recorded-${String(recordingSequenceRef.current).padStart(
-            4,
-            "0"
-          )}-l${lane}`,
-          lane,
-          timeMs,
-        };
-
-        recordingNotesRef.current.push(note);
-        lastRecordedByLaneRef.current[lane] = timeMs;
-        setRecordingCount(recordingNotesRef.current.length);
-        showHitFeedback(lane);
         return;
       }
 
@@ -711,7 +646,7 @@ const RhythmLab = () => {
         showHitFeedback(judgment.lane);
       }
     },
-    [audioRef, hitLane, isRecording, showHitFeedback, showInputFeedback]
+    [hitLane, isRecording, recordLaneTap, showHitFeedback, showInputFeedback]
   );
 
   useEffect(
