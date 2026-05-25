@@ -26,22 +26,22 @@
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://kareemsasa.dev/games</loc>
+    <loc>https://kareemsasa.dev/simulations</loc>
     <changefreq>monthly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://kareemsasa.dev/games/snake</loc>
+    <loc>https://kareemsasa.dev/simulations/snake</loc>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://kareemsasa.dev/games/spider</loc>
+    <loc>https://kareemsasa.dev/simulations/spider</loc>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://kareemsasa.dev/games/rhythm-lab</loc>
+    <loc>https://kareemsasa.dev/simulations/rhythm-lab</loc>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>

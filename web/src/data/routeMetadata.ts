@@ -65,35 +65,35 @@ const staticRouteMetadata: RouteMetadata[] = [
     sitemap: { changefreq: "monthly", priority: "0.4" },
   },
   {
-    path: "/games",
-    title: "Games & Experiments - Kareem Sasa",
+    path: "/simulations",
+    title: "Simulations - Kareem Sasa",
     description:
-      "Interactive experiments, gameplay ideas, and frontend exploration outside the main portfolio proof path.",
-    canonicalPath: "/games",
+      "Interactive systems exploring state, rules, feedback loops, and emergent behavior — built to model, visualize, and stress real dynamics.",
+    canonicalPath: "/simulations",
     sitemap: { changefreq: "monthly", priority: "0.4" },
   },
   {
-    path: "/games/snake",
-    title: "Snake Game - Kareem Sasa",
+    path: "/simulations/snake",
+    title: "Snake - Kareem Sasa",
     description:
-      "A browser-based Snake implementation from the games and experiments section of Kareem Sasa's portfolio.",
-    canonicalPath: "/games/snake",
+      "Discrete grid simulation with wrap-around topology, state-driven growth mechanics, and collision detection.",
+    canonicalPath: "/simulations/snake",
     sitemap: { changefreq: "monthly", priority: "0.3" },
   },
   {
-    path: "/games/spider",
+    path: "/simulations/spider",
     title: "Spider Solitaire - Kareem Sasa",
     description:
-      "A browser-based Spider Solitaire implementation from the games and experiments section of Kareem Sasa's portfolio.",
-    canonicalPath: "/games/spider",
+      "Constraint-based card sequencing system with tableau state management, multi-column drag validation, and completion detection.",
+    canonicalPath: "/simulations/spider",
     sitemap: { changefreq: "monthly", priority: "0.3" },
   },
   {
-    path: "/games/rhythm-lab",
+    path: "/simulations/rhythm-lab",
     title: "Rhythm Lab - Kareem Sasa",
     description:
-      "A three-lane rhythm interaction prototype focused on timing windows, chart playback, real-time input, and mobile ergonomics.",
-    canonicalPath: "/games/rhythm-lab",
+      "Three-lane input timing system with chart authoring, recording sessions, real-time feedback scoring, and run analytics.",
+    canonicalPath: "/simulations/rhythm-lab",
     sitemap: { changefreq: "monthly", priority: "0.3" },
   },
   {

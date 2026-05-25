@@ -54,22 +54,28 @@
       "description": "Background behind the work: the experiences and turning points that shaped how Kareem Sasa approaches software engineering."
     },
     {
-      "path": "/games",
-      "url": "https://kareemsasa.dev/games",
-      "title": "Games & Experiments - Kareem Sasa",
-      "description": "Interactive experiments, gameplay ideas, and frontend exploration outside the main portfolio proof path."
+      "path": "/simulations",
+      "url": "https://kareemsasa.dev/simulations",
+      "title": "Simulations - Kareem Sasa",
+      "description": "Interactive systems exploring state, rules, feedback loops, and emergent behavior — built to model, visualize, and stress real dynamics."
     },
     {
-      "path": "/games/snake",
-      "url": "https://kareemsasa.dev/games/snake",
-      "title": "Snake Game - Kareem Sasa",
-      "description": "A browser-based Snake implementation from the games and experiments section of Kareem Sasa's portfolio."
+      "path": "/simulations/snake",
+      "url": "https://kareemsasa.dev/simulations/snake",
+      "title": "Snake - Kareem Sasa",
+      "description": "Discrete grid simulation with wrap-around topology, state-driven growth mechanics, and collision detection."
     },
     {
-      "path": "/games/spider",
-      "url": "https://kareemsasa.dev/games/spider",
+      "path": "/simulations/spider",
+      "url": "https://kareemsasa.dev/simulations/spider",
       "title": "Spider Solitaire - Kareem Sasa",
-      "description": "A browser-based Spider Solitaire implementation from the games and experiments section of Kareem Sasa's portfolio."
+      "description": "Constraint-based card sequencing system with tableau state management, multi-column drag validation, and completion detection."
+    },
+    {
+      "path": "/simulations/rhythm-lab",
+      "url": "https://kareemsasa.dev/simulations/rhythm-lab",
+      "title": "Rhythm Lab - Kareem Sasa",
+      "description": "Three-lane input timing system with chart authoring, recording sessions, real-time feedback scoring, and run analytics."
     },
     {
       "path": "/terminal",
@@ -122,8 +128,8 @@
       "label": "Journey"
     },
     {
-      "path": "/games",
-      "label": "Games"
+      "path": "/simulations",
+      "label": "Simulations"
     }
   ],
   "summary": {

@@ -1,17 +1,20 @@
 import { Link } from "react-router-dom";
-import { GameData } from "../../data/gamesData";
-import "./GameCard.css";
+import { SimulationData } from "../../data/simulationsData";
+import "./SimulationCard.css";
 
-interface GameCardProps extends GameData {
+interface SimulationCardProps extends SimulationData {
   isComingSoon?: boolean;
 }
 
-const GameCard: React.FC<GameCardProps> = ({
+const SimulationCard: React.FC<SimulationCardProps> = ({
   title,
   description,
   path,
   previewType,
   modeLabel,
+  statusLabel,
+  externalUrl,
+  isAvailable,
   isComingSoon = false,
 }) => {
   const renderPreview = () => {
@@ -70,35 +73,65 @@ const GameCard: React.FC<GameCardProps> = ({
         );
       case "placeholder":
       default:
-        return <div className="placeholder">🎮</div>;
+        return <div className="placeholder">🔬</div>;
     }
   };
 
-  if (isComingSoon) {
+  if (isComingSoon || !isAvailable) {
     return (
-      <div className="game-card coming-soon">
-        <div className="game-card-content">
+      <div className="simulation-card coming-soon">
+        <div className="simulation-card-content">
           <h3>{title}</h3>
+          {statusLabel ? (
+            <div className="simulation-card-badge">{statusLabel}</div>
+          ) : null}
           <p>{description}</p>
-          <div className="game-preview">
-            <div className="placeholder">🎮</div>
-          </div>
+          <div className="simulation-preview">{renderPreview()}</div>
         </div>
       </div>
     );
   }
 
+  if (externalUrl) {
+    return (
+      <a
+        href={externalUrl}
+        target="_blank"
+        rel="noreferrer"
+        className="simulation-card"
+      >
+        <div className="simulation-card-content">
+          <h3>{title}</h3>
+          {modeLabel ? (
+            <div className="simulation-card-badge">{modeLabel}</div>
+          ) : null}
+          {statusLabel ? (
+            <div className="simulation-card-badge">{statusLabel}</div>
+          ) : null}
+          <p>{description}</p>
+          <div className="simulation-preview">{renderPreview()}</div>
+          <div className="launch-button">Launch</div>
+        </div>
+      </a>
+    );
+  }
+
   return (
-    <Link to={path} className="game-card">
-      <div className="game-card-content">
+    <Link to={path} className="simulation-card">
+      <div className="simulation-card-content">
         <h3>{title}</h3>
-        {modeLabel ? <div className="game-card-badge">{modeLabel}</div> : null}
+        {modeLabel ? (
+          <div className="simulation-card-badge">{modeLabel}</div>
+        ) : null}
+        {statusLabel ? (
+          <div className="simulation-card-badge">{statusLabel}</div>
+        ) : null}
         <p>{description}</p>
-        <div className="game-preview">{renderPreview()}</div>
-        <div className="play-button">Play Now</div>
+        <div className="simulation-preview">{renderPreview()}</div>
+        <div className="launch-button">Launch</div>
       </div>
     </Link>
   );
 };
 
-export default GameCard;
+export default SimulationCard;

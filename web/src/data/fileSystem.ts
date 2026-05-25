@@ -203,12 +203,12 @@ export const fileSystem: FileSystemItem[] = [
   },
 
   {
-    name: "games",
+    name: "simulations",
     type: "directory",
     permissions: "drwxr-xr-x",
     size: "4096",
     date: "Dec 15 10:30",
-    route: "/games",
+    route: "/simulations",
     children: [
       {
         name: "snake",
@@ -216,7 +216,7 @@ export const fileSystem: FileSystemItem[] = [
         permissions: "drwxr-xr-x",
         size: "4096",
         date: "Dec 15 10:30",
-        route: "/games/snake",
+        route: "/simulations/snake",
         children: [],
       },
       {
@@ -225,7 +225,7 @@ export const fileSystem: FileSystemItem[] = [
         permissions: "drwxr-xr-x",
         size: "4096",
         date: "Dec 15 10:30",
-        route: "/games/spider",
+        route: "/simulations/spider",
         children: [],
       },
     ],

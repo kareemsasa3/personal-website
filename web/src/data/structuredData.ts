@@ -215,27 +215,27 @@ const createExperienceGraph = () =>
     ]),
   ]);
 
-const createGamesGraph = () =>
+const createSimulationsGraph = () =>
   graph([
     ...baseEntries(),
-    createWebPageEntry("/games"),
-    createBreadcrumbList("/games", [
+    createWebPageEntry("/simulations"),
+    createBreadcrumbList("/simulations", [
       { name: "Home", path: "/" },
-      { name: "Games", path: "/games" },
+      { name: "Simulations", path: "/simulations" },
     ]),
   ]);
 
-const createGameDetailGraph = (
-  canonicalPath: "/games/snake" | "/games/spider" | "/games/rhythm-lab",
-  gameName: string
+const createSimulationDetailGraph = (
+  canonicalPath: "/simulations/snake" | "/simulations/spider" | "/simulations/rhythm-lab",
+  simulationName: string
 ) =>
   graph([
     ...baseEntries(),
     createWebPageEntry(canonicalPath),
     createBreadcrumbList(canonicalPath, [
       { name: "Home", path: "/" },
-      { name: "Games", path: "/games" },
-      { name: gameName, path: canonicalPath },
+      { name: "Simulations", path: "/simulations" },
+      { name: simulationName, path: canonicalPath },
     ]),
   ]);
 
@@ -256,15 +256,15 @@ const createDefaultRouteGraph = (pathname: string) => {
   if (canonicalPath === "/projects") return createProjectsGraph();
   if (canonicalPath === "/case-studies") return createCaseStudiesIndexGraph();
   if (canonicalPath === "/experience") return createExperienceGraph();
-  if (canonicalPath === "/games") return createGamesGraph();
-  if (canonicalPath === "/games/snake") {
-    return createGameDetailGraph("/games/snake", "Snake");
+  if (canonicalPath === "/simulations") return createSimulationsGraph();
+  if (canonicalPath === "/simulations/snake") {
+    return createSimulationDetailGraph("/simulations/snake", "Snake");
   }
-  if (canonicalPath === "/games/spider") {
-    return createGameDetailGraph("/games/spider", "Spider Solitaire");
+  if (canonicalPath === "/simulations/spider") {
+    return createSimulationDetailGraph("/simulations/spider", "Spider Solitaire");
   }
-  if (canonicalPath === "/games/rhythm-lab") {
-    return createGameDetailGraph("/games/rhythm-lab", "Rhythm Lab");
+  if (canonicalPath === "/simulations/rhythm-lab") {
+    return createSimulationDetailGraph("/simulations/rhythm-lab", "Rhythm Lab");
   }
   if (canonicalPath === "/terminal") return createTerminalGraph();
 

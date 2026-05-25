@@ -138,7 +138,7 @@ const Projects = lazyWithMinTime(() => import("../pages/Projects"), 700);
 ### Component-Specific Considerations
 - **Simple Pages**: 300-400ms (Contact, Info)
 - **Standard Pages**: 500ms (Home, Work, Education)
-- **Complex Pages**: 600-700ms (Projects, Games)
+- **Complex Pages**: 600-700ms (Projects, Simulations)
 
 ## Testing Recommendations
 

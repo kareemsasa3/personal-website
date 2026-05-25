@@ -704,8 +704,8 @@ const RhythmLab = () => {
                 Interaction Systems Experiment
               </p>
               <div className="rhythm-lab-title-row">
-                <Link className="rhythm-lab-back-link" to="/games">
-                  Games
+                <Link className="rhythm-lab-back-link" to="/simulations">
+                  Simulations
                 </Link>
                 <h1>Rhythm Lab</h1>
               </div>

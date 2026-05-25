@@ -375,7 +375,7 @@ select {
   /* NO height, min-height, or margin rules here! It inherits its size. */
 }
 
-.page-content.game-page {
+.page-content.simulation-page {
   margin-top: 60px;
   /* Remove hardcoded height - let layout handle this */
 }

@@ -25,9 +25,10 @@ Public portfolio, project archive, case-study surface, and professional contact 
 - [Case Studies - Kareem Sasa](https://kareemsasa.dev/case-studies): Engineering case studies documenting system architecture, constraints, and implementation decisions across flagship projects.
 - [Experience - Kareem Sasa](https://kareemsasa.dev/experience): Professional experience across consulting, platform modernization, frontend stabilization, and backend architecture for business-critical software.
 - [Engineering Journey - Kareem Sasa](https://kareemsasa.dev/journey): Background behind the work: the experiences and turning points that shaped how Kareem Sasa approaches software engineering.
-- [Games & Experiments - Kareem Sasa](https://kareemsasa.dev/games): Interactive experiments, gameplay ideas, and frontend exploration outside the main portfolio proof path.
-- [Snake Game - Kareem Sasa](https://kareemsasa.dev/games/snake): A browser-based Snake implementation from the games and experiments section of Kareem Sasa's portfolio.
-- [Spider Solitaire - Kareem Sasa](https://kareemsasa.dev/games/spider): A browser-based Spider Solitaire implementation from the games and experiments section of Kareem Sasa's portfolio.
+- [Simulations - Kareem Sasa](https://kareemsasa.dev/simulations): Interactive systems exploring state, rules, feedback loops, and emergent behavior — built to model, visualize, and stress real dynamics.
+- [Snake - Kareem Sasa](https://kareemsasa.dev/simulations/snake): Discrete grid simulation with wrap-around topology, state-driven growth mechanics, and collision detection.
+- [Spider Solitaire - Kareem Sasa](https://kareemsasa.dev/simulations/spider): Constraint-based card sequencing system with tableau state management, multi-column drag validation, and completion detection.
+- [Rhythm Lab - Kareem Sasa](https://kareemsasa.dev/simulations/rhythm-lab): Three-lane input timing system with chart authoring, recording sessions, real-time feedback scoring, and run analytics.
 - [Terminal - Kareem Sasa](https://kareemsasa.dev/terminal): An interactive terminal layer for exploring portfolio content, projects, and work history through a command-driven interface.
 - [Aether Case Study - Kareem Sasa](https://kareemsasa.dev/case-studies/aether): Low-latency Linux audio infrastructure that publishes live acoustic state through shared memory for cross-process consumers.
 - [Erebus OS Case Study - Kareem Sasa](https://kareemsasa.dev/case-studies/erebus): Event-driven Linux coordination layer that records system context, infers higher-level state, and makes troubleshooting replayable.

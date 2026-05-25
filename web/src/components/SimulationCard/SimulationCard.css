@@ -1,5 +1,5 @@
-/* GameCard - Terminal Matrix Theme */
-.game-card {
+/* SimulationCard - Terminal Matrix Theme */
+.simulation-card {
     background: var(--card-background);
     border: 2px solid var(--border-color);
     border-radius: var(--border-radius-lg);
@@ -23,7 +23,7 @@
     box-shadow: 0 2px 8px var(--shadow-color);
 }
 
-.game-card::before {
+.simulation-card::before {
     content: '';
     position: absolute;
     top: 0;
@@ -34,18 +34,18 @@
     transition: left 0.5s ease;
 }
 
-.game-card:hover {
+.simulation-card:hover {
     transform: translateY(-5px) scale(1.02);
     box-shadow: 0 10px 30px rgba(0, 255, 0, 0.3), 0 8px 25px var(--shadow-color);
     border-color: var(--terminal-primary, #4CAF50);
     background: transparent;
 }
 
-.game-card:hover::before {
+.simulation-card:hover::before {
     left: 100%;
 }
 
-.game-card:focus {
+.simulation-card:focus {
     transform: translateY(-5px) scale(1.02);
     box-shadow: 0 10px 30px rgba(0, 255, 0, 0.3), 0 8px 25px var(--shadow-color);
     border-color: var(--terminal-primary, #4CAF50);
@@ -53,17 +53,17 @@
     outline: none;
 }
 
-.game-card:focus::before {
+.simulation-card:focus::before {
     left: 100%;
 }
 
-.game-card-content {
+.simulation-card-content {
     text-align: center;
     position: relative;
     z-index: 1;
 }
 
-.game-card h3 {
+.simulation-card h3 {
     color: var(--terminal-primary, #4CAF50);
     font-size: 1.5rem;
     margin-bottom: var(--spacing-sm);
@@ -73,7 +73,7 @@
     font-family: var(--terminal-font, 'Courier New', 'Monaco', 'Menlo', monospace);
 }
 
-.game-card-badge {
+.simulation-card-badge {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -91,7 +91,7 @@
     text-transform: uppercase;
 }
 
-.game-card p {
+.simulation-card p {
     color: var(--terminal-text-light, #ffffff);
     text-align: center;
     margin-bottom: var(--spacing-lg);
@@ -100,7 +100,7 @@
     transition: color 0.3s ease;
 }
 
-.game-preview {
+.simulation-preview {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -338,7 +338,7 @@
     }
 }
 
-.play-button {
+.launch-button {
     position: relative;
     z-index: 1;
     overflow: hidden;
@@ -355,7 +355,7 @@
     box-shadow: 0 4px 12px var(--shadow-color);
 }
 
-.play-button::before {
+.launch-button::before {
     content: '';
     position: absolute;
     top: 0;
@@ -368,20 +368,20 @@
     z-index: -1;
 }
 
-.game-card:hover .play-button::before {
+.simulation-card:hover .launch-button::before {
     opacity: 1;
 }
 
-.game-card:hover .play-button {
+.simulation-card:hover .launch-button {
     transform: scale(1.05);
     box-shadow: 0 6px 20px rgba(0, 255, 0, 0.4), 0 4px 12px var(--shadow-color);
 }
 
-.game-card:focus .play-button::before {
+.simulation-card:focus .launch-button::before {
     opacity: 1;
 }
 
-.game-card:focus .play-button {
+.simulation-card:focus .launch-button {
     transform: scale(1.05);
     box-shadow: 0 6px 20px rgba(0, 255, 0, 0.4), 0 4px 12px var(--shadow-color);
 }
@@ -410,12 +410,12 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
-    .game-card {
+    .simulation-card {
         max-width: 100%;
         padding: var(--spacing-md);
     }
 
-    .game-preview {
+    .simulation-preview {
         height: 120px;
     }
 
@@ -449,26 +449,26 @@
         width: min(200px, 96%);
     }
 
-    .game-card h3 {
+    .simulation-card h3 {
         font-size: 1.3rem;
     }
 
-    .game-card p {
+    .simulation-card p {
         font-size: 0.9rem;
     }
 
-    .play-button {
+    .launch-button {
         padding: 10px 20px;
         font-size: 1rem;
     }
 }
 
 @media (max-width: 480px) {
-    .game-card {
+    .simulation-card {
         padding: var(--spacing-sm);
     }
 
-    .game-preview {
+    .simulation-preview {
         height: 100px;
         margin-bottom: var(--spacing-md);
     }
@@ -540,17 +540,17 @@
         bottom: 18px;
     }
 
-    .game-card h3 {
+    .simulation-card h3 {
         font-size: 1.2rem;
         margin-bottom: var(--spacing-xs);
     }
 
-    .game-card p {
+    .simulation-card p {
         font-size: 0.85rem;
         margin-bottom: var(--spacing-md);
     }
 
-    .play-button {
+    .launch-button {
         padding: 8px 16px;
         font-size: 0.9rem;
     }
@@ -558,11 +558,11 @@
 
 /* High contrast mode support */
 @media (prefers-contrast: high) {
-    .game-card {
+    .simulation-card {
         border: 2px solid var(--terminal-primary, #4CAF50);
     }
 
-    .play-button {
+    .launch-button {
         border: 2px solid white;
     }
 }
@@ -570,8 +570,8 @@
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
 
-    .game-card,
-    .play-button,
+    .simulation-card,
+    .launch-button,
     .snake-segment-preview,
     .food-preview,
     .rhythm-note {
@@ -579,13 +579,13 @@
         animation: none;
     }
 
-    .game-card:hover,
-    .game-card:focus {
+    .simulation-card:hover,
+    .simulation-card:focus {
         transform: none;
     }
 
-    .game-card:hover .play-button,
-    .game-card:focus .play-button {
+    .simulation-card:hover .launch-button,
+    .simulation-card:focus .launch-button {
         transform: none;
     }
 }

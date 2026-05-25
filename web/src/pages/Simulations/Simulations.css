@@ -1,10 +1,10 @@
-/* Terminal Matrix Theme for Games Page */
+/* Terminal Matrix Theme for Simulations Page */
 :root {
     --terminal-primary: #4CAF50;
     --terminal-font: 'Courier New', 'Monaco', 'Menlo', monospace;
 }
 
-/* Light theme overrides for Games page */
+/* Light theme overrides for Simulations page */
 [data-theme="light"] {
     --terminal-primary: #007a00;
     --terminal-text-light: #2c2c2c;
@@ -14,7 +14,7 @@
     --terminal-header-bg: #f5f5f5;
 }
 
-.games-container {
+.simulations-container {
     width: 100%;
     max-width: 1400px;
     margin: 0 auto;
@@ -22,14 +22,14 @@
     font-family: var(--terminal-font);
 }
 
-.games-header {
+.simulations-header {
     text-align: center;
     padding: 1rem 0;
     background: transparent;
     margin-bottom: 2rem;
 }
 
-.games-title {
+.simulations-title {
     font-size: 3rem;
     font-weight: 700;
     color: var(--terminal-primary, #4CAF50);
@@ -37,7 +37,7 @@
     text-shadow: 0 0 10px var(--terminal-primary, #4CAF50);
 }
 
-.games-subtitle {
+.simulations-subtitle {
     font-size: 1.2rem;
     color: var(--terminal-text-light, #ffffff);
     margin: 0;
@@ -47,7 +47,7 @@
     transition: color 0.3s ease;
 }
 
-.games-grid {
+.simulations-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
     gap: var(--spacing-xl);
@@ -57,57 +57,57 @@
 
 /* Responsive Design */
 @media (max-width: 1024px) {
-    .games-container {
+    .simulations-container {
         max-width: 1100px;
     }
 
-    .games-title {
+    .simulations-title {
         font-size: 2.5rem;
     }
 }
 
 @media (max-width: 768px) {
-    .games-container {
+    .simulations-container {
         width: min(100%, calc(100vw - (var(--spacing-sm) * 2)));
         max-width: 100%;
         padding: 0 1rem;
     }
 
-    .games-grid {
+    .simulations-grid {
         grid-template-columns: 1fr;
         gap: var(--spacing-lg);
     }
 
-    .games-title {
+    .simulations-title {
         font-size: 2rem;
         margin-bottom: var(--spacing-md);
     }
 
-    .games-subtitle {
+    .simulations-subtitle {
         font-size: 1rem;
     }
 }
 
 @media (max-width: 480px) {
-    .games-container {
+    .simulations-container {
         width: min(100%, calc(100vw - (var(--spacing-sm) * 4)));
         padding: 0;
     }
 
-    .games-header {
+    .simulations-header {
         margin-bottom: 1.5rem;
         padding: 1rem 0;
     }
 
-    .games-title {
+    .simulations-title {
         font-size: 1.75rem;
     }
 
-    .games-subtitle {
+    .simulations-subtitle {
         font-size: 0.9rem;
     }
 
-    .games-grid {
+    .simulations-grid {
         gap: var(--spacing-md);
     }
 }

@@ -11,9 +11,9 @@ This repository contains a frontend-only personal website and the Docker/nginx i
 - `web/` is the website application: React 18, Vite, TypeScript, React Router, Framer Motion, Font Awesome, and CSS modules/files by feature.
 - `web/src/App.tsx` wires the route tree through `react-router-dom` and wraps routes with `AppProviders` and `Layout`.
 - `web/src/routes/index.tsx` defines the public route table and lazy-loads pages with `lazyWithMinTime`.
-- `web/src/pages/` contains route/page implementations such as `Home`, `Projects`, `CaseStudies`, individual case studies, `Work`/`Experience`, `Games`, and `Terminal`.
-- `web/src/components/` contains shared UI and feature components, including layout, navigation, terminal, project/work details, games, backgrounds, and settings.
-- `web/src/data/` contains site content, navigation, route metadata, structured data, case studies, projects, work experience, games data, terminal file-system data, and related content models.
+- `web/src/pages/` contains route/page implementations such as `Home`, `Projects`, `CaseStudies`, individual case studies, `Work`/`Experience`, `Simulations`, and `Terminal`.
+- `web/src/components/` contains shared UI and feature components, including layout, navigation, terminal, project/work details, simulations, backgrounds, and settings.
+- `web/src/data/` contains site content, navigation, route metadata, structured data, case studies, projects, work experience, simulations data, terminal file-system data, and related content models.
 - `web/src/contexts/`, `web/src/hooks/`, `web/src/providers/`, `web/src/utils/`, and `web/src/types/` contain shared application state, helpers, and types.
 - `web/src/index.css`, `web/src/App.css`, `web/src/styles/components.css`, and feature CSS files provide styling. The current visual language is a dark, terminal/Matrix-inspired portfolio with responsive route pages.
 - `infrastructure/` contains Docker Compose, nginx, SSL, production, and optional monitoring support. Production serves the built frontend behind nginx; there is no active backend API, database, queue, or session service.
@@ -73,7 +73,7 @@ Infrastructure commands are documented in `README.md` and `infrastructure/README
 - SEO, canonical paths, sitemap route metadata, and social image constants live in `web/src/data/routeMetadata.ts`.
 - JSON-LD structured data lives in `web/src/data/structuredData.ts`.
 - Case study content lives in `web/src/data/caseStudies.ts` and renders through page/component code under `web/src/pages/CaseStudies`, `web/src/pages/CaseStudy*`, and `web/src/components/CaseStudyPage`.
-- Project, work, games, journey, terminal, and virtual file-system content are centralized under `web/src/data/`.
+- Project, work, simulations, journey, terminal, and virtual file-system content are centralized under `web/src/data/`.
 - Shared layout and navigation components live under `web/src/components/Layout` and `web/src/components/Navigation`.
 - The terminal experience uses `web/src/components/Terminal`, terminal hooks in `web/src/hooks/`, and terminal-related types/data under `web/src/types` and `web/src/data`.
 - Build output is configured in `web/vite.config.ts`; route fallback shells and generated sitemap behavior are also handled there.

@@ -1,5 +1,6 @@
 import React from "react";
 import { Terminal } from "../components/Terminal";
+import GamesRedirect from "../components/GamesRedirect";
 import { lazyWithMinTime } from "../utils/lazyWithMinTime";
 
 // Helper for route object typing
@@ -22,7 +23,7 @@ const CaseStudyErebus = lazyWithMinTime(
 const CaseStudyArachne = lazyWithMinTime(
   () => import("../pages/CaseStudyArachne")
 );
-const Games = lazyWithMinTime(() => import("../pages/Games"));
+const Simulations = lazyWithMinTime(() => import("../pages/Simulations"));
 const SnakeGame = lazyWithMinTime(() => import("../pages/SnakeGame"));
 const SpiderSolitaire = lazyWithMinTime(() => import("../pages/SpiderSolitaire"));
 const RhythmLab = lazyWithMinTime(() => import("../pages/RhythmLab"), 0);
@@ -47,9 +48,9 @@ const routes: AppRoute[] = [
     path: "case-studies/arachne",
     element: React.createElement(CaseStudyArachne),
   },
-  { path: "games", element: React.createElement(Games) },
-  { path: "games/snake", element: React.createElement(SnakeGame) },
-  { path: "games/spider", element: React.createElement(SpiderSolitaire) },
+  { path: "simulations", element: React.createElement(Simulations) },
+  { path: "simulations/snake", element: React.createElement(SnakeGame) },
+  { path: "simulations/spider", element: React.createElement(SpiderSolitaire) },
   { path: "experience", element: React.createElement(Work) },
   { path: "work", element: React.createElement(Work) },
   { path: "journey", element: React.createElement(Journey) },
@@ -58,13 +59,17 @@ const routes: AppRoute[] = [
     path: "terminal",
     element: React.createElement(Terminal, { isIntro: false }),
   },
+
+  // Legacy /games redirects — preserve subpaths
+  { path: "games", element: React.createElement(GamesRedirect) },
+  { path: "games/*", element: React.createElement(GamesRedirect) },
 ];
 
 export const mainRoutes: AppRoute[] = routes;
 
 // Immersive routes bypass the standard site Layout shell.
 export const immersiveRoutes: AppRoute[] = [
-  { path: "games/rhythm-lab", element: React.createElement(RhythmLab) },
+  { path: "simulations/rhythm-lab", element: React.createElement(RhythmLab) },
 ];
 
 // Default and catch-all routes

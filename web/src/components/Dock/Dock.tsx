@@ -44,14 +44,14 @@ function DockContent(
   const { isSettingsOpen, toggleSettings } = useSettings();
   const { width: windowWidth } = useWindowSize();
   const isMobile = windowWidth <= 768;
-  const isGameRoute = location.pathname.includes("/games/");
+  const isGameRoute = location.pathname.includes("/simulations/");
 
   // Mobile-specific presentation adjustments
   const effectiveMagnification = isMobile ? 0 : magnification;
   const effectiveDockSize = isMobile ? Math.min(dockSize, 36) : dockSize;
   const dockItems = useMemo(() => {
     if (!isGameRoute) return navItems;
-    return navItems.filter((item) => item.path === "/games");
+    return navItems.filter((item) => item.path === "/simulations");
   }, [isGameRoute]);
 
   return (

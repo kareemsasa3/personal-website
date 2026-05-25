@@ -3,7 +3,7 @@ import {
   faFolderOpen,
   faBriefcase,
   faRoute,
-  faGamepad,
+  faCubes,
   faTerminal,
   faBookOpen,
 } from "@fortawesome/free-solid-svg-icons";
@@ -22,7 +22,7 @@ const baseNavItems: SiteNavItem[] = [
   { path: "/experience", label: "Experience", icon: faBriefcase },
   { path: "/terminal", label: "Terminal", icon: faTerminal },
   { path: "/journey", label: "Journey", icon: faRoute },
-  { path: "/games", label: "Games", icon: faGamepad },
+  { path: "/simulations", label: "Simulations", icon: faCubes },
 ];
 
 export const navItems = baseNavItems;

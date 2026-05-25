@@ -9,12 +9,12 @@ interface MainContentProps {
 
 const MainContent: React.FC<MainContentProps> = ({ children }) => {
   const location = useLocation();
-  const isGamePage = location.pathname.includes("/games/");
+  const isGamePage = location.pathname.includes("/simulations/");
 
   return (
     <div className="main-content">
       <Logo />
-      <div className={`page-content ${isGamePage ? "game-page" : ""}`}>
+      <div className={`page-content ${isGamePage ? "simulation-page" : ""}`}>
         {children}
       </div>
     </div>

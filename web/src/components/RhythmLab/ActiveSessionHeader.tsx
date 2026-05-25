@@ -33,8 +33,8 @@ const ActiveSessionHeader = ({
       className="rhythm-lab-active-bar"
       aria-label="Active session controls"
     >
-      <Link className="rhythm-lab-back-link" to="/games">
-        Games
+      <Link className="rhythm-lab-back-link" to="/simulations">
+        Simulations
       </Link>
       <div className="rhythm-lab-active-context" aria-live="polite">
         <span

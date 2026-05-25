@@ -110,9 +110,9 @@ const main = async () => {
   const arachneCaseStudy = await readBuildFile("case-studies/arachne/index.html");
   const erebusCaseStudy = await readBuildFile("case-studies/erebus/index.html");
   const experience = await readBuildFile("experience/index.html");
-  const games = await readBuildFile("games/index.html");
-  const snake = await readBuildFile("games/snake/index.html");
-  const spider = await readBuildFile("games/spider/index.html");
+  const simulations = await readBuildFile("simulations/index.html");
+  const snake = await readBuildFile("simulations/snake/index.html");
+  const spider = await readBuildFile("simulations/spider/index.html");
   const terminal = await readBuildFile("terminal/index.html");
   const sitemap = await readBuildFile("sitemap.xml");
 
@@ -171,9 +171,9 @@ const main = async () => {
     { html: arachneCaseStudy, path: "/case-studies/arachne" },
     { html: erebusCaseStudy, path: "/case-studies/erebus" },
     { html: experience, path: "/experience" },
-    { html: games, path: "/games" },
-    { html: snake, path: "/games/snake" },
-    { html: spider, path: "/games/spider" },
+    { html: simulations, path: "/simulations" },
+    { html: snake, path: "/simulations/snake" },
+    { html: spider, path: "/simulations/spider" },
     { html: terminal, path: "/terminal" },
   ];
 
@@ -198,15 +198,15 @@ const main = async () => {
     "Home",
     "Experience",
   ]);
-  assertBreadcrumb(structuredDataNodes(games), "/games", ["Home", "Games"]);
-  assertBreadcrumb(structuredDataNodes(snake), "/games/snake", [
+  assertBreadcrumb(structuredDataNodes(simulations), "/simulations", ["Home", "Simulations"]);
+  assertBreadcrumb(structuredDataNodes(snake), "/simulations/snake", [
     "Home",
-    "Games",
+    "Simulations",
     "Snake",
   ]);
-  assertBreadcrumb(structuredDataNodes(spider), "/games/spider", [
+  assertBreadcrumb(structuredDataNodes(spider), "/simulations/spider", [
     "Home",
-    "Games",
+    "Simulations",
     "Spider Solitaire",
   ]);
   assertBreadcrumb(structuredDataNodes(terminal), "/terminal", [

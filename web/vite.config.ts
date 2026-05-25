@@ -183,10 +183,10 @@ const primaryRouteShellPaths = [
   "/projects",
   "/experience",
   "/journey",
-  "/games",
-  "/games/snake",
-  "/games/spider",
-  "/games/rhythm-lab",
+  "/simulations",
+  "/simulations/snake",
+  "/simulations/spider",
+  "/simulations/rhythm-lab",
   "/terminal",
 ] as const;
 
@@ -225,45 +225,45 @@ const primaryRouteShellDetails: Record<
       "The page connects technical interests, operating principles, and portfolio direction.",
     ],
   },
-  "/games": {
-    eyebrow: "Interactive Experiments",
-    heading: "Games & Experiments",
+  "/simulations": {
+    eyebrow: "Interactive Systems",
+    heading: "Simulations",
     highlights: [
-      "Browser games and interactive frontend experiments outside the main portfolio proof path.",
-      "Known game routes include Snake, Spider Solitaire, and Rhythm Lab.",
+      "Interactive systems exploring state, rules, feedback loops, and emergent behavior.",
+      "Includes Traffic Simulator, Rhythm Lab, Snake, and Spider Solitaire.",
     ],
     links: [
-      { label: "Open Snake", href: "/games/snake" },
-      { label: "Open Spider Solitaire", href: "/games/spider" },
-      { label: "Open Rhythm Lab", href: "/games/rhythm-lab" },
+      { label: "Open Snake", href: "/simulations/snake" },
+      { label: "Open Spider Solitaire", href: "/simulations/spider" },
+      { label: "Open Rhythm Lab", href: "/simulations/rhythm-lab" },
     ],
   },
-  "/games/snake": {
-    eyebrow: "Browser Game",
-    heading: "Snake Game",
+  "/simulations/snake": {
+    eyebrow: "Interactive System",
+    heading: "Snake",
     highlights: [
-      "A browser-based Snake implementation from the games and experiments section.",
-      "The interactive game loads through the React application when JavaScript is available.",
+      "Discrete grid simulation with wrap-around topology, state-driven growth, and collision detection.",
+      "The interactive system loads through the React application when JavaScript is available.",
     ],
-    links: [{ label: "Back to games", href: "/games" }],
+    links: [{ label: "Back to simulations", href: "/simulations" }],
   },
-  "/games/spider": {
-    eyebrow: "Browser Game",
+  "/simulations/spider": {
+    eyebrow: "Interactive System",
     heading: "Spider Solitaire",
     highlights: [
-      "A browser-based Spider Solitaire implementation from the games and experiments section.",
-      "The interactive card game loads through the React application when JavaScript is available.",
+      "Constraint-based card sequencing system with tableau state management and completion detection.",
+      "The interactive system loads through the React application when JavaScript is available.",
     ],
-    links: [{ label: "Back to games", href: "/games" }],
+    links: [{ label: "Back to simulations", href: "/simulations" }],
   },
-  "/games/rhythm-lab": {
-    eyebrow: "Interaction Prototype",
+  "/simulations/rhythm-lab": {
+    eyebrow: "Interactive System",
     heading: "Rhythm Lab",
     highlights: [
-      "A three-lane rhythm interaction prototype focused on timing windows and chart playback.",
-      "The interactive experiment loads through the React application when JavaScript is available.",
+      "Three-lane input timing system with chart authoring, real-time feedback scoring, and run analytics.",
+      "The interactive system loads through the React application when JavaScript is available.",
     ],
-    links: [{ label: "Back to games", href: "/games" }],
+    links: [{ label: "Back to simulations", href: "/simulations" }],
   },
   "/terminal": {
     eyebrow: "Command Interface",
