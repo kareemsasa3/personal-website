@@ -664,17 +664,28 @@ export default defineConfig(({ command, mode }) => {
       chunkSizeWarningLimit: 1000, // Increase warning limit to 1MB
       rollupOptions: {
         output: {
-          manualChunks: {
-            // Vendor chunks
-            "router-vendor": ["react-router-dom"],
-            "animation-vendor": ["framer-motion"],
-            "ui-vendor": [
-              "react-icons",
-              "@fortawesome/free-solid-svg-icons",
-              "@fortawesome/react-fontawesome",
-            ],
-            "syntax-vendor": ["prismjs"],
-            // Note: add a utils chunk here only when needed to avoid empty chunks
+          // Vite 8 (Rolldown) only accepts the function form of manualChunks.
+          manualChunks(id) {
+            if (!id.includes("node_modules")) {
+              return undefined;
+            }
+            if (id.includes("react-router")) {
+              return "router-vendor";
+            }
+            if (id.includes("framer-motion")) {
+              return "animation-vendor";
+            }
+            if (
+              id.includes("react-icons") ||
+              id.includes("@fortawesome/free-solid-svg-icons") ||
+              id.includes("@fortawesome/react-fontawesome")
+            ) {
+              return "ui-vendor";
+            }
+            if (id.includes("prismjs")) {
+              return "syntax-vendor";
+            }
+            return undefined;
           },
         },
       },
