@@ -682,9 +682,6 @@ export default defineConfig(({ command, mode }) => {
             ) {
               return "ui-vendor";
             }
-            if (id.includes("prismjs")) {
-              return "syntax-vendor";
-            }
             return undefined;
           },
         },
