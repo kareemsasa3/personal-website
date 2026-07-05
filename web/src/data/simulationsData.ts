@@ -1,4 +1,9 @@
-export type SimulationPreviewType = "snake" | "spider" | "rhythm-lab" | "placeholder";
+export type SimulationPreviewType =
+  | "snake"
+  | "spider"
+  | "rhythm-lab"
+  | "annals"
+  | "placeholder";
 
 export interface SimulationData {
   id: string;
@@ -20,7 +25,7 @@ export const simulationsData: SimulationData[] = [
     description:
       "Deterministic dynastic chronicle where houses inherit grain, grudges, and consequences across generations. Tests whether attachment can emerge from history alone.",
     path: "/simulations/annals",
-    previewType: "placeholder",
+    previewType: "annals",
     isAvailable: true,
     modeLabel: "Interactive prototype",
   },

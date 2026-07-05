@@ -205,9 +205,8 @@ export default function Annals() {
   };
 
   return (
-    <div className="annals-page min-h-screen bg-stone-100 text-stone-900 font-serif"
-         style={{ backgroundImage: "radial-gradient(circle at 20% 10%, #f5f1e8, #e7e0d2)" }}>
-      <div className="max-w-5xl mx-auto px-5 py-8">
+    <div className="annals-page page-content text-stone-900 font-serif">
+      <div className="annals-sheet max-w-5xl mx-auto px-5 py-8">
 
         {/* masthead */}
         <header className="border-b-2 border-stone-800 pb-3 mb-4">

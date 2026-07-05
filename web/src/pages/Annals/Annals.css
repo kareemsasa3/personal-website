@@ -1,8 +1,23 @@
 
 .annals-page {
-  min-height: 100vh;
+  background: transparent;
   color: #1c1917;
+  color-scheme: light;
   font-family: Georgia, Cambria, "Times New Roman", Times, serif;
+}
+
+/* The page wrapper stays transparent so the site backdrop shows through;
+   the ledger carries its own parchment surface and stays legible on the
+   dark and light site themes alike. */
+.annals-sheet {
+  background: radial-gradient(
+    circle at 20% 10%,
+    rgba(245, 241, 232, 0.97),
+    rgba(231, 224, 210, 0.97)
+  );
+  border: 1px solid rgba(68, 64, 60, 0.35);
+  border-radius: var(--border-radius-md, 8px);
+  box-shadow: 0 8px 24px var(--shadow-color, rgba(0, 0, 0, 0.3));
 }
 
 .annals-page * {
@@ -22,7 +37,6 @@
   cursor: not-allowed;
 }
 
-.annals-page .min-h-screen { min-height: 100vh; }
 .annals-page .max-w-5xl { max-width: 64rem; }
 .annals-page .mx-auto { margin-left: auto; margin-right: auto; }
 
@@ -57,9 +71,11 @@
 .annals-page .p-4 { padding: 1rem; }
 .annals-page .px-2 { padding-left: 0.5rem; padding-right: 0.5rem; }
 .annals-page .px-3 { padding-left: 0.75rem; padding-right: 0.75rem; }
+.annals-page .px-4 { padding-left: 1rem; padding-right: 1rem; }
 .annals-page .px-5 { padding-left: 1.25rem; padding-right: 1.25rem; }
 .annals-page .py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
 .annals-page .py-1\.5 { padding-top: 0.375rem; padding-bottom: 0.375rem; }
+.annals-page .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
 .annals-page .py-8 { padding-top: 2rem; padding-bottom: 2rem; }
 .annals-page .pb-3 { padding-bottom: 0.75rem; }
 .annals-page .pt-2 { padding-top: 0.5rem; }
@@ -118,7 +134,11 @@
 .annals-page .text-stone-900 { color: #1c1917; }
 .annals-page .text-yellow-700 { color: #a16207; }
 .annals-page .text-yellow-800 { color: #854d0e; }
+.annals-page .text-yellow-900 { color: #713f12; }
 .annals-page .text-amber-800 { color: #92400e; }
+.annals-page .text-emerald-700 { color: #047857; }
+.annals-page .text-emerald-800 { color: #065f46; }
+.annals-page .text-sky-800 { color: #075985; }
 .annals-page .text-red-700 { color: #b91c1c; }
 .annals-page .text-red-800 { color: #991b1b; }
 .annals-page .text-red-900 { color: #7f1d1d; }
@@ -149,6 +169,7 @@
 .annals-page .text-\[13px\] { font-size: 13px; }
 .annals-page .text-4xl { font-size: 2.25rem; line-height: 2.5rem; }
 .annals-page .text-5xl { font-size: 3rem; line-height: 1; }
+.annals-page .text-left { text-align: left; }
 .annals-page .text-right { text-align: right; }
 
 .annals-page .leading-none { line-height: 1; }

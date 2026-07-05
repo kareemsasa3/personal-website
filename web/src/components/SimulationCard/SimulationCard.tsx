@@ -71,6 +71,17 @@ const SimulationCard: React.FC<SimulationCardProps> = ({
             <div className="rhythm-target-line"></div>
           </div>
         );
+      case "annals":
+        return (
+          <div className="annals-preview" aria-hidden="true">
+            <div className="annals-preview-masthead"></div>
+            <div className="annals-preview-line"></div>
+            <div className="annals-preview-line annals-preview-line-hand"></div>
+            <div className="annals-preview-line"></div>
+            <div className="annals-preview-line annals-preview-line-death"></div>
+            <div className="annals-preview-line"></div>
+          </div>
+        );
       case "placeholder":
       default:
         return <div className="placeholder">🔬</div>;

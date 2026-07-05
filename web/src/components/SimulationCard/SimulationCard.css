@@ -338,6 +338,59 @@
     }
 }
 
+.annals-preview {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    width: min(230px, 92%);
+    padding: 14px 16px;
+    border-radius: var(--border-radius-md);
+    background: linear-gradient(160deg, #f5f1e8, #e7e0d2);
+    border: 1px solid rgba(68, 64, 60, 0.35);
+}
+
+.annals-preview-masthead {
+    width: 100%;
+    height: 16px;
+    border-bottom: 2px solid #44403c;
+    background: linear-gradient(#44403c, #44403c) no-repeat left top / 58% 10px;
+    margin-bottom: 2px;
+}
+
+.annals-preview-line {
+    height: 5px;
+    border-radius: 2px;
+    background: #a8a29e;
+}
+
+.annals-preview-line:nth-child(2) {
+    width: 88%;
+}
+
+.annals-preview-line:nth-child(3) {
+    width: 64%;
+}
+
+.annals-preview-line:nth-child(4) {
+    width: 78%;
+}
+
+.annals-preview-line:nth-child(5) {
+    width: 70%;
+}
+
+.annals-preview-line:nth-child(6) {
+    width: 42%;
+}
+
+.annals-preview-line-hand {
+    background: #ca8a04;
+}
+
+.annals-preview-line-death {
+    background: #b91c1c;
+}
+
 .launch-button {
     position: relative;
     z-index: 1;
@@ -529,6 +582,22 @@
 
     .rhythm-preview {
         width: min(170px, 96%);
+    }
+
+    .annals-preview {
+        width: min(175px, 96%);
+        gap: 6px;
+        padding: 9px 12px;
+    }
+
+    .annals-preview-masthead {
+        height: 12px;
+        background-size: 58% 7px;
+        margin-bottom: 0;
+    }
+
+    .annals-preview-line {
+        height: 4px;
     }
 
     .rhythm-note {
