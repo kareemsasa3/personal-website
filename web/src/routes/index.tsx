@@ -24,7 +24,7 @@ const CaseStudyArachne = lazyWithMinTime(
   () => import("../pages/CaseStudyArachne")
 );
 const Simulations = lazyWithMinTime(() => import("../pages/Simulations"));
-const Annals = lazyWithMinTime(() => import("../pages/Annals"));
+const Annals = lazyWithMinTime(() => import("../pages/Annals"), 0);
 const SnakeGame = lazyWithMinTime(() => import("../pages/SnakeGame"));
 const SpiderSolitaire = lazyWithMinTime(() => import("../pages/SpiderSolitaire"));
 const RhythmLab = lazyWithMinTime(() => import("../pages/RhythmLab"), 0);
