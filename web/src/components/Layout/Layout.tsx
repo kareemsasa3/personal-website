@@ -1,4 +1,4 @@
-import { Outlet, useLocation } from "react-router-dom";
+import { useLocation, useOutlet } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Suspense, useMemo, useState, useEffect, useRef } from "react";
 import AppBackground from "../AppBackground/AppBackground";
@@ -32,6 +32,21 @@ const pageTransition = {
   duration: 0.4, // Slightly longer duration to allow sections to settle
 };
 
+// Bright, sheet-style pages flicker hard against the dark loader interstitial
+// (dark loader → bright sheet is a large luminance swing), so they skip the
+// forced loader and go straight through the page transition instead.
+const LOADER_EXEMPT_PATHS = new Set(["/simulations/annals"]);
+
+// AnimatePresence keeps the exiting wrapper mounted while it animates out, but
+// a live <Outlet /> inside it would already render the incoming route. Capture
+// the outlet at mount so each wrapper stays pinned to the page it was created
+// for.
+const FrozenOutlet = () => {
+  const outlet = useOutlet();
+  const [frozenOutlet] = useState(outlet);
+  return frozenOutlet;
+};
+
 const Layout = () => {
   const location = useLocation();
   const { mainContentAreaRef } = useLayoutContext();
@@ -45,6 +60,12 @@ const Layout = () => {
 
   // Show loading state on route change
   useEffect(() => {
+    if (LOADER_EXEMPT_PATHS.has(location.pathname)) {
+      setIsLoading(false);
+      isInitialLoad.current = false;
+      return;
+    }
+
     setIsLoading(true);
     const minimumLoadDuration = isInitialLoad.current ? 300 : 500;
 
@@ -95,7 +116,7 @@ const Layout = () => {
                   style={{ width: "100%", minHeight: "100%" }}
                 >
                   <Suspense fallback={<PageLoader />}>
-                    <Outlet />
+                    <FrozenOutlet />
                   </Suspense>
                 </motion.div>
               </AnimatePresence>

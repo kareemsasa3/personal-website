@@ -1,8 +1,15 @@
+import { useEffect } from "react";
 import { simulationsData } from "../../data/simulationsData";
 import SimulationCard from "../../components/SimulationCard";
 import "./Simulations.css";
 
 const Simulations = () => {
+  // Annals opens without the loader interstitial, so its chunk must already
+  // be in the module cache for the page transition to stay seamless.
+  useEffect(() => {
+    void import("../Annals");
+  }, []);
+
   return (
     <div className="page-content">
       <div className="simulations-container">
