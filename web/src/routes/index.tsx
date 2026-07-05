@@ -24,6 +24,7 @@ const CaseStudyArachne = lazyWithMinTime(
   () => import("../pages/CaseStudyArachne")
 );
 const Simulations = lazyWithMinTime(() => import("../pages/Simulations"));
+const Annals = lazyWithMinTime(() => import("../pages/Annals"));
 const SnakeGame = lazyWithMinTime(() => import("../pages/SnakeGame"));
 const SpiderSolitaire = lazyWithMinTime(() => import("../pages/SpiderSolitaire"));
 const RhythmLab = lazyWithMinTime(() => import("../pages/RhythmLab"), 0);
@@ -49,6 +50,7 @@ const routes: AppRoute[] = [
     element: React.createElement(CaseStudyArachne),
   },
   { path: "simulations", element: React.createElement(Simulations) },
+  { path: "simulations/annals", element: React.createElement(Annals) },
   { path: "simulations/snake", element: React.createElement(SnakeGame) },
   { path: "simulations/spider", element: React.createElement(SpiderSolitaire) },
   { path: "experience", element: React.createElement(Work) },

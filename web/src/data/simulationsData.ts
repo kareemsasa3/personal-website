@@ -15,6 +15,16 @@ export interface SimulationData {
 
 export const simulationsData: SimulationData[] = [
   {
+    id: "annals",
+    title: "The Annals",
+    description:
+      "Deterministic dynastic chronicle where houses inherit grain, grudges, and consequences across generations. Tests whether attachment can emerge from history alone.",
+    path: "/simulations/annals",
+    previewType: "placeholder",
+    isAvailable: true,
+    modeLabel: "Interactive prototype",
+  },
+  {
     id: "traffic-simulator",
     title: "Traffic Simulator",
     description:
