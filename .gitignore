@@ -59,3 +59,7 @@ build/
 web/.vite
 docs/audits/*
 docs/private/*
+
+# Private article working/source artifacts
+docs/articles/*.drafting-notes.md
+docs/articles/Bottlenecks don’t disappear.pdf
