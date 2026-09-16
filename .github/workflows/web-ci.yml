@@ -36,6 +36,10 @@ jobs:
         working-directory: web
         run: npm ci
 
+      - name: Audit npm dependencies
+        working-directory: web
+        run: npm audit --audit-level=high
+
       - name: Lint
         working-directory: web
         run: npm run lint
