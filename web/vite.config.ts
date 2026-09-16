@@ -5,6 +5,7 @@ import * as os from "node:os";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { caseStudiesData } from "./src/data/caseStudies";
+import { articlesData, articleBySlug } from "./src/data/generated/articles";
 import {
   DEFAULT_IMAGE_ALT,
   DEFAULT_IMAGE_URL,
@@ -446,6 +447,100 @@ const renderCaseStudyBody = (slug: string) => {
   `;
 };
 
+const renderWritingIndexBody = () => `
+  <main class="route-fallback" aria-label="Writing overview">
+    <p class="route-fallback__eyebrow">Long-form</p>
+    <h1 class="route-fallback__title">Writing</h1>
+    <p class="route-fallback__summary">
+      Essays and field notes on constraints, coordination, and systems that can explain themselves. Each piece is published with its sources and the record of how its claims were verified.
+    </p>
+
+    <section class="route-fallback__section" aria-labelledby="writing-list-title">
+      <h2 id="writing-list-title">Published Writing</h2>
+      <div class="route-fallback__grid">
+        ${articlesData
+          .map(
+            (article) => `
+              <article class="route-fallback__card">
+                <p class="route-fallback__eyebrow">${escapeHtml(
+                  article.kind === "essay" ? "Essay" : "Field Note"
+                )}</p>
+                <h3>${escapeHtml(article.title)}</h3>
+                <p>${escapeHtml(article.description)}</p>
+                <p>${escapeHtml(article.published)} · ${article.readingMinutes} min read</p>
+                <a class="route-fallback__card-link" href="/writing/${escapeHtml(
+                  article.slug
+                )}">Read article</a>
+              </article>
+            `
+          )
+          .join("")}
+      </div>
+    </section>
+  </main>
+`;
+
+const renderArticleBody = (slug: string) => {
+  const article = articleBySlug[slug];
+
+  if (!article) {
+    throw new Error(`Missing article data for slug: ${slug}`);
+  }
+
+  // Article HTML is injected unescaped. See the trust-boundary note in
+  // src/data/generated/articles.ts: the source is first-party markdown
+  // converted at build time, with no user input anywhere in the path.
+  return `
+    <main class="route-fallback" aria-label="${escapeHtml(article.title)}">
+      <p class="route-fallback__breadcrumbs"><a href="/writing">Writing</a> / ${escapeHtml(
+        article.title
+      )}</p>
+      <p class="route-fallback__eyebrow">${escapeHtml(
+        article.kind === "essay" ? "Essay" : "Field Note"
+      )}</p>
+      <h1 class="route-fallback__title">${escapeHtml(article.title)}</h1>
+      ${
+        article.subtitle
+          ? `<p class="route-fallback__summary">${escapeHtml(article.subtitle)}</p>`
+          : ""
+      }
+      <p class="route-fallback__meta">${escapeHtml(
+        article.published
+      )} · ${article.readingMinutes} min read · ${article.wordCount} words</p>
+
+      ${
+        article.toc.length > 0
+          ? `<nav class="route-fallback__toc" aria-label="Article contents">
+              <h2>Contents</h2>
+              <ol>${article.toc
+                .map(
+                  (entry) =>
+                    `<li><a href="#${escapeHtml(entry.id)}">${escapeHtml(
+                      entry.label
+                    )}</a></li>`
+                )
+                .join("")}</ol>
+            </nav>`
+          : ""
+      }
+
+      <section class="route-fallback__section">${article.bodyHtml}</section>
+
+      <section class="route-fallback__section">
+        <h2>Provenance</h2>
+        <h3>Abstract</h3>
+        ${article.provenance.abstractHtml}
+        <h3>Sources (${article.provenance.sourceCount})</h3>
+        ${article.provenance.sourcesHtml}
+        <h3>Fact-check table (${article.provenance.factCheckRowCount})</h3>
+        ${article.provenance.factCheckHtml}
+        <h3>Editorial note: original synthesis</h3>
+        ${article.provenance.editorialNoteHtml}
+      </section>
+    </main>
+  `;
+};
+
 const replaceTag = (html: string, pattern: RegExp, replacement: string) => {
   if (!pattern.test(html)) {
     throw new Error(`Expected pattern not found in HTML: ${pattern}`);
@@ -574,12 +669,18 @@ const staticRouteShellPlugin = (): Plugin => {
   });
 
   const caseStudiesIndexMeta = getRouteMetadata("/case-studies");
+  const writingIndexMeta = getRouteMetadata("/writing");
   const routes: StaticRouteShell[] = [
     ...primaryRoutes,
     routeShellFromMetadata(caseStudiesIndexMeta, renderCaseStudiesIndexBody()),
     ...caseStudiesData.map((caseStudy) => {
       const metadata = getRouteMetadata(`/case-studies/${caseStudy.slug}`);
       return routeShellFromMetadata(metadata, renderCaseStudyBody(caseStudy.slug));
+    }),
+    routeShellFromMetadata(writingIndexMeta, renderWritingIndexBody()),
+    ...articlesData.map((article) => {
+      const metadata = getRouteMetadata(`/writing/${article.slug}`);
+      return routeShellFromMetadata(metadata, renderArticleBody(article.slug));
     }),
   ];
 
