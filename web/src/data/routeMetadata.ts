@@ -1,4 +1,5 @@
 import { caseStudiesData } from "./caseStudies";
+import { articlesData } from "./generated/articles";
 
 export const SITE_URL = "https://kareemsasa.dev";
 export const DEFAULT_IMAGE_URL = `${SITE_URL}/og-image.png`;
@@ -42,6 +43,14 @@ const staticRouteMetadata: RouteMetadata[] = [
       "Engineering case studies documenting system architecture, constraints, and implementation decisions across flagship projects.",
     canonicalPath: "/case-studies",
     sitemap: { changefreq: "weekly", priority: "0.8" },
+  },
+  {
+    path: "/writing",
+    title: "Writing - Kareem Sasa",
+    description:
+      "Long-form essays and field notes on constraints, coordination, and systems that can explain themselves — each published with its sources and verification record.",
+    canonicalPath: "/writing",
+    sitemap: { changefreq: "monthly", priority: "0.8" },
   },
   {
     path: "/experience",
@@ -114,9 +123,18 @@ const caseStudyRouteMetadata: RouteMetadata[] = caseStudiesData.map((caseStudy) 
   sitemap: { changefreq: "monthly", priority: "0.8" },
 }));
 
+const articleRouteMetadata: RouteMetadata[] = articlesData.map((article) => ({
+  path: `/writing/${article.slug}`,
+  title: `${article.title} - Kareem Sasa`,
+  description: article.description,
+  canonicalPath: `/writing/${article.slug}`,
+  sitemap: { changefreq: "monthly", priority: "0.7" },
+}));
+
 export const routeMetadata = [
   ...staticRouteMetadata,
   ...caseStudyRouteMetadata,
+  ...articleRouteMetadata,
 ] as const;
 
 export const defaultRouteMetadata = routeMetadata[0];
