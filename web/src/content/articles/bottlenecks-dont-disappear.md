@@ -1,3 +1,14 @@
+---
+slug: bottlenecks-dont-disappear
+title: Bottlenecks Don't Disappear. They Move.
+subtitle: A field note on constraints, second-order effects, and what stays scarce
+kind: field-note
+published: 2026-09-13
+description: >-
+  Improving a constrained system relocates its bottleneck rather than removing
+  it — and generative AI moved the constraint from production to judgment.
+---
+
 # Bottlenecks Don't Disappear. They Move.
 
 ### A field note on constraints, second-order effects, and what stays scarce
