@@ -4,6 +4,7 @@ import {
   type CaseStudy,
 } from "./caseStudies";
 import { projectsData, type Project } from "./projects";
+import { articlesData, articleBySlug, type Article } from "./generated/articles";
 import { socialContent } from "./siteContent";
 import {
   SITE_URL,
@@ -138,6 +139,19 @@ const createCaseStudyEntry = (caseStudy: CaseStudy): StructuredDataNode => ({
   about: caseStudy.focusAreas,
 });
 
+const createArticleEntry = (article: Article): StructuredDataNode => ({
+  "@type": "Article",
+  "@id": `${SITE_URL}/writing/${article.slug}#article`,
+  headline: article.title,
+  ...(article.subtitle ? { alternativeHeadline: article.subtitle } : {}),
+  description: article.description,
+  datePublished: article.published,
+  wordCount: article.wordCount,
+  url: `${SITE_URL}/writing/${article.slug}`,
+  author: { "@id": PERSON_ID },
+  inLanguage: "en-US",
+});
+
 const baseEntries = () => [createPersonEntry(), createWebSiteEntry()];
 
 const publicProjectEntries = () =>
@@ -205,6 +219,38 @@ const createCaseStudyGraph = (caseStudy: CaseStudy) => {
   ]);
 };
 
+const createWritingIndexGraph = () =>
+  graph([
+    ...baseEntries(),
+    createWebPageEntry("/writing", {
+      type: ["CollectionPage", "WebPage"],
+      hasPart: articlesData.map((article) => ({
+        "@id": `${SITE_URL}/writing/${article.slug}#webpage`,
+      })),
+    }),
+    createBreadcrumbList("/writing", [
+      { name: "Home", path: "/" },
+      { name: "Writing", path: "/writing" },
+    ]),
+  ]);
+
+const createArticleGraph = (article: Article) => {
+  const articlePath = `/writing/${article.slug}`;
+
+  return graph([
+    ...baseEntries(),
+    createWebPageEntry(articlePath, {
+      mainEntity: { "@id": `${SITE_URL}${articlePath}#article` },
+    }),
+    createBreadcrumbList(articlePath, [
+      { name: "Home", path: "/" },
+      { name: "Writing", path: "/writing" },
+      { name: article.title, path: articlePath },
+    ]),
+    createArticleEntry(article),
+  ]);
+};
+
 const createExperienceGraph = () =>
   graph([
     ...baseEntries(),
@@ -255,6 +301,7 @@ const createDefaultRouteGraph = (pathname: string) => {
   if (canonicalPath === "/") return createHomepageGraph();
   if (canonicalPath === "/projects") return createProjectsGraph();
   if (canonicalPath === "/case-studies") return createCaseStudiesIndexGraph();
+  if (canonicalPath === "/writing") return createWritingIndexGraph();
   if (canonicalPath === "/experience") return createExperienceGraph();
   if (canonicalPath === "/simulations") return createSimulationsGraph();
   if (canonicalPath === "/simulations/snake") {
@@ -280,6 +327,16 @@ export const getStructuredDataGraph = (pathname: string) => {
 
     if (caseStudy) {
       return createCaseStudyGraph(caseStudy);
+    }
+  }
+
+  const articleMatch = canonicalPath.match(/^\/writing\/([^/]+)$/);
+
+  if (articleMatch) {
+    const article = articleBySlug[articleMatch[1]];
+
+    if (article) {
+      return createArticleGraph(article);
     }
   }
 

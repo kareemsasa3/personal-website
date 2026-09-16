@@ -1,7 +1,7 @@
 # Writing surface — design
 
 **Date:** 2026-09-13
-**Status:** Approved for implementation planning
+**Status:** Implemented — see `docs/writing-surface-implementation-plan.md`. The two-article inventory in §1, §7, and §10 is superseded: three articles shipped.
 **Scope:** Add a first-class writing surface at `/writing` to the personal website, publishing two completed long-form articles with their provenance material.
 
 ---

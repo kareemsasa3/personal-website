@@ -1,3 +1,14 @@
+---
+slug: the-machine-should-explain-itself
+title: The Machine Should Explain Itself
+subtitle: Operational knowledge for AI agents belongs in the system, not in the agent
+kind: essay
+published: 2026-09-13
+description: >-
+  A three-layer model of what AI agents know, and why operational intent belongs
+  in versioned artifacts rather than in agent memory.
+---
+
 # The Machine Should Explain Itself
 
 ### Operational knowledge for AI agents belongs in the system, not in the agent

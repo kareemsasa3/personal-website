@@ -115,6 +115,20 @@ const main = async () => {
   const spider = await readBuildFile("simulations/spider/index.html");
   const terminal = await readBuildFile("terminal/index.html");
   const sitemap = await readBuildFile("sitemap.xml");
+  const writingIndex = await readBuildFile("writing/index.html");
+  const articleSlugs = [
+    "the-system-gets-a-brake-one-way-or-another",
+    "bottlenecks-dont-disappear",
+    "the-machine-should-explain-itself",
+  ];
+  const articleShells = Object.fromEntries(
+    await Promise.all(
+      articleSlugs.map(async (slug) => [
+        slug,
+        await readBuildFile(`writing/${slug}/index.html`),
+      ])
+    )
+  );
 
   assertIncludes(homepage, '<div id="root"></div>', "homepage shell");
   assertIncludes(
@@ -345,6 +359,114 @@ const main = async () => {
   const sourceMaps = await findFilesByExtension(buildDir, ".map");
   if (sourceMaps.length > 0) {
     throw new Error(`Expected no build sourcemaps, found: ${sourceMaps.join(", ")}`);
+  }
+
+  // 1. The index lists every published article.
+  for (const title of [
+    "The System Gets a Brake One Way or Another",
+    "Bottlenecks Don&#39;t Disappear. They Move.",
+    "The Machine Should Explain Itself",
+  ]) {
+    assertIncludes(writingIndex, title, "writing index article titles");
+  }
+
+  // 2. Each article shell contains distinctive prose from its body, not just
+  //    its title — an empty shell for long-form content would be the worst
+  //    possible regression.
+  const distinctiveProse = {
+    "the-system-gets-a-brake-one-way-or-another":
+      "You are a passenger.",
+    "bottlenecks-dont-disappear":
+      "Consider a line with three serial stages.",
+    "the-machine-should-explain-itself":
+      "A workstation is managed through a Git repository",
+  };
+
+  for (const [slug, prose] of Object.entries(distinctiveProse)) {
+    assertIncludes(articleShells[slug], prose, `${slug} shell body prose`);
+  }
+
+  // 3. Each article shell publishes its provenance.
+  for (const slug of articleSlugs) {
+    for (const heading of [
+      "Abstract",
+      "Sources (",
+      "Fact-check table (",
+      "Editorial note: original synthesis",
+    ]) {
+      assertIncludes(articleShells[slug], heading, `${slug} provenance section`);
+    }
+  }
+
+  // 4. Sitemap covers the index and every article.
+  for (const route of [
+    "https://kareemsasa.dev/writing",
+    "https://kareemsasa.dev/writing/the-system-gets-a-brake-one-way-or-another",
+    "https://kareemsasa.dev/writing/bottlenecks-dont-disappear",
+    "https://kareemsasa.dev/writing/the-machine-should-explain-itself",
+  ]) {
+    assertIncludes(sitemap, `<loc>${route}</loc>`, "sitemap writing routes");
+  }
+
+  // 5. Each article shell carries an Article node whose headline matches.
+  const expectedHeadlines = {
+    "the-system-gets-a-brake-one-way-or-another":
+      "The System Gets a Brake One Way or Another",
+    "bottlenecks-dont-disappear": "Bottlenecks Don't Disappear. They Move.",
+    "the-machine-should-explain-itself": "The Machine Should Explain Itself",
+  };
+
+  for (const [slug, headline] of Object.entries(expectedHeadlines)) {
+    const nodes = structuredDataNodes(articleShells[slug]);
+    const articleNodes = findNodesByType(nodes, "Article");
+
+    if (articleNodes.length !== 1) {
+      throw new Error(
+        `Expected ${slug} JSON-LD to include exactly one Article node`
+      );
+    }
+
+    if (articleNodes[0].headline !== headline) {
+      throw new Error(
+        `Expected ${slug} Article headline to equal ${JSON.stringify(headline)}, got ${JSON.stringify(articleNodes[0].headline)}`
+      );
+    }
+
+    assertWebPage(nodes, `/writing/${slug}`);
+    assertBreadcrumb(nodes, `/writing/${slug}`, ["Home", "Writing", headline]);
+  }
+
+  assertWebPage(structuredDataNodes(writingIndex), "/writing");
+  assertBreadcrumb(structuredDataNodes(writingIndex), "/writing", [
+    "Home",
+    "Writing",
+  ]);
+
+  // 6. Every contents link resolves to a heading in the same document. A TOC
+  //    whose anchors miss their targets is a silently broken control.
+  for (const slug of articleSlugs) {
+    const html = articleShells[slug];
+    const toc = html.match(
+      /<nav class="route-fallback__toc"[\s\S]*?<\/nav>/
+    );
+
+    if (!toc) {
+      throw new Error(`Expected ${slug} shell to include a contents nav`);
+    }
+
+    const anchors = [...toc[0].matchAll(/href="#([^"]+)"/g)].map((m) => m[1]);
+
+    if (anchors.length === 0) {
+      throw new Error(`Expected ${slug} contents nav to include anchors`);
+    }
+
+    for (const anchor of anchors) {
+      if (!html.includes(`id="${anchor}"`)) {
+        throw new Error(
+          `Expected ${slug} shell to include an element with id "${anchor}" targeted by its contents nav`
+        );
+      }
+    }
   }
 
   console.log("Smoke test passed.");
