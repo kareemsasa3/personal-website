@@ -291,12 +291,15 @@ export interface Article {
 
 export const articlesData: Article[] = ${JSON.stringify(articles, null, 2)};
 
+// Seeded with a null-prototype object so a URL slug matching an inherited
+// Object.prototype key ("constructor", "toString", "__proto__", ...) resolves
+// to undefined rather than to a truthy non-article.
 export const articleBySlug: Record<string, Article> = articlesData.reduce<
   Record<string, Article>
 >((articlesBySlug, article) => {
   articlesBySlug[article.slug] = article;
   return articlesBySlug;
-}, {});
+}, Object.create(null) as Record<string, Article>);
 `;
 
 const main = async () => {
