@@ -39,7 +39,7 @@ The design was written on 2026-09-13 against commit `c017768`. The repository wa
 
 | # | Design says | Repository reality | Smallest reconciliation |
 |---|---|---|---|
-| D1 | Two articles (§1, §7, §10) | Three finished articles exist. `docs/articles/the-system-gets-a-brake-one-way-or-another.md` (442 lines, 7,919 body words) is complete and **already conforms to the generator contract**: valid frontmatter with all six fields, H1 matching `title`, `###` subtitle matching `subtitle`, exactly one `## Post-article material`, and exactly the four required provenance headings. | Treat the two-article inventory as stale scope. All three ship in the initial implementation. See §0.3. |
+| D1 | Two articles (§1, §7, §10) | Three finished articles exist. `docs/articles/the-system-gets-a-brake-one-way-or-another.md` (442 lines, 7,918 body words) is complete and **already conforms to the generator contract**: valid frontmatter with all six fields, H1 matching `title`, `###` subtitle matching `subtitle`, exactly one `## Post-article material`, and exactly the four required provenance headings. | Treat the two-article inventory as stale scope. All three ship in the initial implementation. See §0.3. |
 | D2 | "Each article gains YAML frontmatter" (§3.2) | Articles 1 and 2 have **no frontmatter at all**. Article 3 already has it. | Task 2 adds frontmatter to articles 1 and 2 only; article 3's file is moved byte-for-byte. Exact blocks are given in Task 2. |
 | D3 | `marked` and `js-yaml` as pinned devDependencies (§3.4) | `marked` is **absent** from `node_modules`. `js-yaml` is present at **4.3.2**, but only transitively via `eslint → @eslint/eslintrc`. | Task 1 declares both explicitly with exact pins: `marked@18.0.13` (current latest) and `js-yaml@4.3.2`. Pinning js-yaml to the already-hoisted 4.3.2 rather than latest (5.4.2) adds **zero** new packages to the tree. |
 | D4 | Frontmatter parsed with `js-yaml` (§3.4) | **Verified trap:** js-yaml's default schema parses the unquoted `published: 2026-09-16` into a JavaScript `Date`, not a string, which fails the zod `string` check. | Parse with `yaml.load(text, { schema: yaml.JSON_SCHEMA })`. Confirmed against the installed js-yaml 4.3.2: JSON_SCHEMA yields the string `"2026-09-16"` and still folds `>-` blocks correctly. |
@@ -80,11 +80,13 @@ Article #3's measured generator outputs (computed from the source on 2026-09-16,
 
 | Article | kind | words | readingMinutes | TOC entries | sources | fact-check rows |
 |---|---|---|---|---|---|---|
-| `the-machine-should-explain-itself` | essay | 5,861 | 27 | 10 | 10 | 13 |
-| `bottlenecks-dont-disappear` | field-note | 2,933 | 14 | 9 | 7 | 12 |
-| `the-system-gets-a-brake-one-way-or-another` | essay | 7,919 | 36 | 10 | 35 | 35 |
+| `the-machine-should-explain-itself` | essay | 5,860 | 27 | 10 | 10 | 13 |
+| `bottlenecks-dont-disappear` | field-note | 2,932 | 14 | 9 | 7 | 12 |
+| `the-system-gets-a-brake-one-way-or-another` | essay | 7,918 | 36 | 10 | 35 | 35 |
 
 The source and fact-check counts for the first two match the design's §1 table exactly, which confirms the counting rule in Task 3 is the one the design intended.
+
+**Word-count correction (2026-09-16, during Task 2).** The `words` column was corrected down by one for each article — from 5,861 / 2,933 / 7,919 — because the original measurement predated discrepancy **D9**. D9 strips the leading `---` thematic break beneath the subtitle, and that lone token had been counted as a word. The corrected values are what the generator produces. This changes no generator behavior, no article content, and no other expected value; `readingMinutes` is unaffected because the ceiling absorbs the difference.
 
 ### 0.4 Decisions (resolved 2026-09-16)
 
@@ -720,9 +722,9 @@ Run: `cd web && npm run build:articles`
 Expected — exactly these three lines, in this order, matching §0.3's table:
 
 ```
-build-articles: the-system-gets-a-brake-one-way-or-another — 7919 words, 36 min, 10 TOC entries, 35 sources, 35 fact-check rows
-build-articles: bottlenecks-dont-disappear — 2933 words, 14 min, 9 TOC entries, 7 sources, 12 fact-check rows
-build-articles: the-machine-should-explain-itself — 5861 words, 27 min, 10 TOC entries, 10 sources, 13 fact-check rows
+build-articles: the-system-gets-a-brake-one-way-or-another — 7918 words, 36 min, 10 TOC entries, 35 sources, 35 fact-check rows
+build-articles: bottlenecks-dont-disappear — 2932 words, 14 min, 9 TOC entries, 7 sources, 12 fact-check rows
+build-articles: the-machine-should-explain-itself — 5860 words, 27 min, 10 TOC entries, 10 sources, 13 fact-check rows
 ```
 
 A mismatch in the source or fact-check counts for the first two articles means the table-counting rule is wrong — those two values are independently attested by design §1.
