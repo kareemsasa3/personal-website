@@ -7,6 +7,9 @@ published: 2026-09-13
 description: >-
   A three-layer model of what AI agents know, and why operational intent belongs
   in versioned artifacts rather than in agent memory.
+series:
+  name: Agent Systems
+  part: 1
 ---
 
 # The Machine Should Explain Itself

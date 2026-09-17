@@ -482,6 +482,86 @@ const main = async () => {
     }
   }
 
+  // 7. Series affordance. The agent essays declare their reading order on the
+  //    index and in each shell, with previous/next links that resolve to real
+  //    article routes and a matching isPartOf/position in JSON-LD. Articles
+  //    outside the series carry no series label.
+  const SERIES_NAME = "Agent Systems";
+  const seriesMembers = {
+    "the-machine-should-explain-itself": {
+      part: 1,
+      previous: null,
+      next: "the-work-the-agent-stopped-doing",
+    },
+    "the-work-the-agent-stopped-doing": {
+      part: 2,
+      previous: "the-machine-should-explain-itself",
+      next: "what-should-the-agent-have-to-figure-out",
+    },
+    "what-should-the-agent-have-to-figure-out": {
+      part: 3,
+      previous: "the-work-the-agent-stopped-doing",
+      next: null,
+    },
+  };
+  const seriesTotal = Object.keys(seriesMembers).length;
+
+  for (const slug of articleSlugs) {
+    const html = articleShells[slug];
+    const expected = seriesMembers[slug];
+
+    if (!expected) {
+      assertNotIncludes(html, SERIES_NAME, `${slug} series label`);
+      continue;
+    }
+
+    assertIncludes(
+      html,
+      `Part ${expected.part} of ${seriesTotal} in ${SERIES_NAME}`,
+      `${slug} series position`
+    );
+
+    const nav = html.match(
+      /<nav class="route-fallback__series-nav"[\s\S]*?<\/nav>/
+    );
+    if (!nav) {
+      throw new Error(`Expected ${slug} shell to include a series nav`);
+    }
+
+    for (const [label, target] of [
+      ["Previous", expected.previous],
+      ["Next", expected.next],
+    ]) {
+      const linked = target ? nav[0].includes(`href="/writing/${target}"`) : false;
+      if (target && !linked) {
+        throw new Error(
+          `Expected ${slug} series nav to link ${label} to /writing/${target}`
+        );
+      }
+      if (!target && nav[0].includes(`${label}:`)) {
+        throw new Error(`Expected ${slug} series nav to have no ${label} link`);
+      }
+    }
+
+    const [articleNode] = findNodesByType(structuredDataNodes(html), "Article");
+    if (
+      articleNode.isPartOf?.name !== SERIES_NAME ||
+      articleNode.position !== expected.part
+    ) {
+      throw new Error(
+        `Expected ${slug} Article JSON-LD to declare isPartOf ${JSON.stringify(SERIES_NAME)} at position ${expected.part}`
+      );
+    }
+  }
+
+  for (let part = 1; part <= seriesTotal; part += 1) {
+    assertIncludes(
+      writingIndex,
+      `${SERIES_NAME} · Part ${part} of ${seriesTotal}`,
+      "writing index series labels"
+    );
+  }
+
   console.log("Smoke test passed.");
 };
 

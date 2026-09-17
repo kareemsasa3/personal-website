@@ -7,6 +7,9 @@ published: 2026-09-17
 description: >-
   Which reasoning belongs in durable structure and which must stay live: a
   test of standing, reuse, and revisit for the records agents and operators read.
+series:
+  name: Agent Systems
+  part: 3
 ---
 
 # What Should the Agent Have to Figure Out?

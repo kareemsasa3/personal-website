@@ -4,7 +4,11 @@ import {
   articlesData,
   type Article as ArticleData,
 } from "../../data/generated/articles";
-import { KIND_LABELS, formatPublished } from "../../utils/articleFormatting";
+import {
+  KIND_LABELS,
+  formatPublished,
+  formatSeriesPosition,
+} from "../../utils/articleFormatting";
 import "./ArticlePage.css";
 
 const MIN_TOC_ENTRIES = 5;
@@ -45,6 +49,11 @@ const ArticlePage = ({ article }: ArticlePageProps) => {
 
         <header className="article-header">
           <p className="article-eyebrow">{KIND_LABELS[article.kind]}</p>
+          {article.series ? (
+            <p className="article-series">
+              {formatSeriesPosition(article.series)} in {article.series.name}
+            </p>
+          ) : null}
           <h1 className="article-title">{article.title}</h1>
           {article.subtitle ? (
             <p className="article-subtitle">{article.subtitle}</p>
@@ -83,6 +92,32 @@ const ArticlePage = ({ article }: ArticlePageProps) => {
             dangerouslySetInnerHTML={{ __html: article.bodyHtml }}
           />
         </div>
+
+        {article.series ? (
+          <nav
+            className="article-series-nav"
+            aria-label={`${article.series.name} series`}
+          >
+            {article.series.previous ? (
+              <Link
+                to={`/writing/${article.series.previous.slug}`}
+                className="article-series-link"
+              >
+                <span className="article-series-link-label">Previous</span>
+                <span>{article.series.previous.title}</span>
+              </Link>
+            ) : null}
+            {article.series.next ? (
+              <Link
+                to={`/writing/${article.series.next.slug}`}
+                className="article-series-link article-series-link--next"
+              >
+                <span className="article-series-link-label">Next</span>
+                <span>{article.series.next.title}</span>
+              </Link>
+            ) : null}
+          </nav>
+        ) : null}
 
         <section className="article-provenance" aria-labelledby="provenance-title">
           <h2 id="provenance-title">Provenance</h2>

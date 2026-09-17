@@ -57,6 +57,14 @@
   font-size: 0.7rem;
 }
 
+/* Reading-order hint for essays that belong to a sequence. The feed stays
+   newest-first; this only makes the intended order legible on the card. */
+.writing-card-series {
+  margin: -0.3rem 0 0;
+  color: var(--app-text-secondary);
+  font-size: 0.74rem;
+}
+
 .writing-card-subtitle {
   margin: 0;
   color: var(--app-text-secondary);

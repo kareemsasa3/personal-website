@@ -1,7 +1,11 @@
 import { Link } from "react-router-dom";
 import TypeWriterText from "../../components/TypeWriterText";
 import { articlesData } from "../../data/generated/articles";
-import { KIND_LABELS, formatPublished } from "../../utils/articleFormatting";
+import {
+  KIND_LABELS,
+  formatPublished,
+  formatSeriesPosition,
+} from "../../utils/articleFormatting";
 import "./Writing.css";
 
 const Writing = () => {
@@ -28,6 +32,11 @@ const Writing = () => {
               className="writing-card interactive-card"
             >
               <p className="writing-card-eyebrow">{KIND_LABELS[article.kind]}</p>
+              {article.series ? (
+                <p className="writing-card-series">
+                  {article.series.name} · {formatSeriesPosition(article.series)}
+                </p>
+              ) : null}
               <h2>{article.title}</h2>
               {article.subtitle ? (
                 <p className="writing-card-subtitle">{article.subtitle}</p>

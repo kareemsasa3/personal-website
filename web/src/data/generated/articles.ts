@@ -12,6 +12,20 @@ export interface ArticleTocEntry {
   label: string;
 }
 
+export interface ArticleSeriesLink {
+  slug: string;
+  title: string;
+}
+
+export interface ArticleSeries {
+  name: string;
+  slug: string;
+  part: number;
+  total: number;
+  previous: ArticleSeriesLink | null;
+  next: ArticleSeriesLink | null;
+}
+
 export interface ArticleProvenance {
   abstractHtml: string;
   sourcesHtml: string;
@@ -28,6 +42,7 @@ export interface Article {
   kind: "essay" | "field-note";
   published: string;
   description: string;
+  series?: ArticleSeries;
   readingMinutes: number;
   wordCount: number;
   toc: ArticleTocEntry[];
@@ -43,6 +58,20 @@ export const articlesData: Article[] = [
     "kind": "essay",
     "published": "2026-09-17",
     "description": "How durable records of authority, intent, disposition, and provenance shift agent work from reconstructing decisions toward judgment.",
+    "series": {
+      "name": "Agent Systems",
+      "slug": "agent-systems",
+      "part": 2,
+      "total": 3,
+      "previous": {
+        "slug": "the-machine-should-explain-itself",
+        "title": "The Machine Should Explain Itself"
+      },
+      "next": {
+        "slug": "what-should-the-agent-have-to-figure-out",
+        "title": "What Should the Agent Have to Figure Out?"
+      }
+    },
     "readingMinutes": 11,
     "wordCount": 2359,
     "toc": [
@@ -84,6 +113,17 @@ export const articlesData: Article[] = [
     "kind": "essay",
     "published": "2026-09-17",
     "description": "Which reasoning belongs in durable structure and which must stay live: a test of standing, reuse, and revisit for the records agents and operators read.",
+    "series": {
+      "name": "Agent Systems",
+      "slug": "agent-systems",
+      "part": 3,
+      "total": 3,
+      "previous": {
+        "slug": "the-work-the-agent-stopped-doing",
+        "title": "The Work the Agent Stopped Doing"
+      },
+      "next": null
+    },
     "readingMinutes": 14,
     "wordCount": 3078,
     "toc": [
@@ -255,6 +295,17 @@ export const articlesData: Article[] = [
     "kind": "essay",
     "published": "2026-09-13",
     "description": "A three-layer model of what AI agents know, and why operational intent belongs in versioned artifacts rather than in agent memory.",
+    "series": {
+      "name": "Agent Systems",
+      "slug": "agent-systems",
+      "part": 1,
+      "total": 3,
+      "previous": null,
+      "next": {
+        "slug": "the-work-the-agent-stopped-doing",
+        "title": "The Work the Agent Stopped Doing"
+      }
+    },
     "readingMinutes": 27,
     "wordCount": 5860,
     "toc": [

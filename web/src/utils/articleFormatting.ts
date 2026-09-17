@@ -12,3 +12,6 @@ export const formatPublished = (published: string) =>
     day: "numeric",
     timeZone: "UTC",
   });
+
+export const formatSeriesPosition = (series: NonNullable<Article["series"]>) =>
+  `Part ${series.part} of ${series.total}`;

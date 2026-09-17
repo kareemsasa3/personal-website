@@ -23,6 +23,12 @@
   letter-spacing: 0.12em;
 }
 
+.article-series {
+  margin: 0.15rem 0 0;
+  font-size: 0.78rem;
+  color: var(--app-text-secondary);
+}
+
 .article-title {
   margin: 0.4rem 0 0.4rem;
   font-size: clamp(1.6rem, 4vw, 2.4rem);
@@ -208,6 +214,37 @@
 .article-provenance-section .article-prose {
   margin-top: 0.85rem;
   font-size: 0.9rem;
+}
+
+/* Previous/next within a series: the reading order the newest-first feed
+   does not show. Sits directly after the body, before the provenance. */
+.article-series-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--app-border);
+}
+
+.article-series-link {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  max-width: 48%;
+  color: var(--brand-primary);
+  text-decoration: none;
+}
+
+.article-series-link--next {
+  margin-left: auto;
+  text-align: right;
+}
+
+.article-series-link-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--app-text-muted);
 }
 
 .article-footer {

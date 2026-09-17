@@ -465,6 +465,13 @@ const renderWritingIndexBody = () => `
                 <p class="route-fallback__eyebrow">${escapeHtml(
                   article.kind === "essay" ? "Essay" : "Field Note"
                 )}</p>
+                ${
+                  article.series
+                    ? `<p class="route-fallback__meta">${escapeHtml(
+                        article.series.name
+                      )} · Part ${article.series.part} of ${article.series.total}</p>`
+                    : ""
+                }
                 <h3>${escapeHtml(article.title)}</h3>
                 <p>${escapeHtml(article.description)}</p>
                 <p>${escapeHtml(article.published)} · ${article.readingMinutes} min read</p>
@@ -498,6 +505,13 @@ const renderArticleBody = (slug: string) => {
       <p class="route-fallback__eyebrow">${escapeHtml(
         article.kind === "essay" ? "Essay" : "Field Note"
       )}</p>
+      ${
+        article.series
+          ? `<p class="route-fallback__meta">Part ${article.series.part} of ${
+              article.series.total
+            } in ${escapeHtml(article.series.name)}</p>`
+          : ""
+      }
       <h1 class="route-fallback__title">${escapeHtml(article.title)}</h1>
       ${
         article.subtitle
@@ -525,6 +539,26 @@ const renderArticleBody = (slug: string) => {
       }
 
       <section class="route-fallback__section">${article.bodyHtml}</section>
+
+      ${
+        article.series
+          ? `<nav class="route-fallback__series-nav" aria-label="${escapeHtml(
+              article.series.name
+            )} series">${
+              article.series.previous
+                ? `<p><a href="/writing/${escapeHtml(
+                    article.series.previous.slug
+                  )}">Previous: ${escapeHtml(article.series.previous.title)}</a></p>`
+                : ""
+            }${
+              article.series.next
+                ? `<p><a href="/writing/${escapeHtml(
+                    article.series.next.slug
+                  )}">Next: ${escapeHtml(article.series.next.title)}</a></p>`
+                : ""
+            }</nav>`
+          : ""
+      }
 
       <section class="route-fallback__section">
         <h2>Provenance</h2>

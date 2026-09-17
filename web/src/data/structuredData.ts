@@ -150,6 +150,16 @@ const createArticleEntry = (article: Article): StructuredDataNode => ({
   url: `${SITE_URL}/writing/${article.slug}`,
   author: { "@id": PERSON_ID },
   inLanguage: "en-US",
+  ...(article.series
+    ? {
+        isPartOf: {
+          "@type": "CreativeWorkSeries",
+          name: article.series.name,
+          url: `${SITE_URL}/writing`,
+        },
+        position: article.series.part,
+      }
+    : {}),
 });
 
 const baseEntries = () => [createPersonEntry(), createWebSiteEntry()];

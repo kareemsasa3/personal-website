@@ -7,6 +7,9 @@ published: 2026-09-17
 description: >-
   How durable records of authority, intent, disposition, and provenance shift
   agent work from reconstructing decisions toward judgment.
+series:
+  name: Agent Systems
+  part: 2
 ---
 
 # The Work the Agent Stopped Doing

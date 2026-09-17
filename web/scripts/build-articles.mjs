@@ -28,6 +28,15 @@ const frontmatterSchema = z.object({
   kind: z.enum(["essay", "field-note"]),
   published: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "must be an ISO date (YYYY-MM-DD)"),
   description: z.string().min(1).max(160),
+  // Optional membership in a reading sequence. Only name and part are
+  // declared; total and previous/next are resolved across the whole set.
+  series: z
+    .object({
+      name: z.string().min(1),
+      part: z.number().int().positive(),
+    })
+    .strict()
+    .optional(),
 });
 
 const fail = (file, message) => {
@@ -163,6 +172,46 @@ const computeHeadingIds = (headings) => {
   });
 };
 
+// Series are declared per article (name + part) and resolved here across the
+// whole set, so "part N of M" labels and previous/next links are computed once
+// and cannot drift between the index, the article page, and the static shell.
+const resolveSeries = (articles) => {
+  const groups = new Map();
+  for (const article of articles) {
+    if (!article.series) continue;
+    const members = groups.get(article.series.name) ?? [];
+    members.push(article);
+    groups.set(article.series.name, members);
+  }
+
+  for (const [name, members] of groups) {
+    members.sort((left, right) => left.series.part - right.series.part);
+    const parts = members.map((member) => member.series.part);
+    const contiguous = parts.every((part, index) => part === index + 1);
+    if (members.length < 2 || !contiguous) {
+      throw new Error(
+        `build-articles: series "${name}" must number its parts 1..N with no gaps or duplicates (got ${parts.join(", ")})`
+      );
+    }
+
+    const slug = slugifyHeading(name);
+    members.forEach((member, index) => {
+      const previous = members[index - 1];
+      const next = members[index + 1];
+      member.series = {
+        name,
+        slug,
+        part: member.series.part,
+        total: members.length,
+        previous: previous ? { slug: previous.slug, title: previous.title } : null,
+        next: next ? { slug: next.slug, title: next.title } : null,
+      };
+    });
+  }
+
+  return articles;
+};
+
 const wrapTable = {
   table(token) {
     return `<div class="article-table">${Renderer.prototype.table.call(this, token)}</div>\n`;
@@ -266,6 +315,20 @@ export interface ArticleTocEntry {
   label: string;
 }
 
+export interface ArticleSeriesLink {
+  slug: string;
+  title: string;
+}
+
+export interface ArticleSeries {
+  name: string;
+  slug: string;
+  part: number;
+  total: number;
+  previous: ArticleSeriesLink | null;
+  next: ArticleSeriesLink | null;
+}
+
 export interface ArticleProvenance {
   abstractHtml: string;
   sourcesHtml: string;
@@ -282,6 +345,7 @@ export interface Article {
   kind: "essay" | "field-note";
   published: string;
   description: string;
+  series?: ArticleSeries;
   readingMinutes: number;
   wordCount: number;
   toc: ArticleTocEntry[];
@@ -311,7 +375,7 @@ const main = async () => {
     throw new Error(`build-articles: no markdown found in ${contentDir}`);
   }
 
-  const articles = await Promise.all(fileNames.map(buildArticle));
+  const articles = resolveSeries(await Promise.all(fileNames.map(buildArticle)));
 
   // Newest first; slug breaks ties so output is deterministic and drift-free.
   articles.sort((left, right) =>
@@ -327,7 +391,10 @@ const main = async () => {
     console.log(
       `build-articles: ${article.slug} — ${article.wordCount} words, ${article.readingMinutes} min, ` +
         `${article.toc.length} TOC entries, ${article.provenance.sourceCount} sources, ` +
-        `${article.provenance.factCheckRowCount} fact-check rows`
+        `${article.provenance.factCheckRowCount} fact-check rows` +
+        (article.series
+          ? `, ${article.series.name} part ${article.series.part} of ${article.series.total}`
+          : "")
     );
   }
 };
