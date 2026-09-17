@@ -562,6 +562,47 @@ const main = async () => {
     );
   }
 
+  // 8. Index ordering. The feed is newest-first, but a series is placed as one
+  //    unit at its newest member's date and expanded in ascending part order,
+  //    so the index never shows Part 3 above Part 1 and never repeats a member.
+  const indexOrder = [
+    ...writingIndex.matchAll(
+      /class="route-fallback__card-link" href="\/writing\/([^"]+)"/g
+    ),
+  ].map((m) => m[1]);
+
+  const expectedIndexOrder = [
+    "the-machine-should-explain-itself",
+    "the-work-the-agent-stopped-doing",
+    "what-should-the-agent-have-to-figure-out",
+    "the-system-gets-a-brake-one-way-or-another",
+    "bottlenecks-dont-disappear",
+  ];
+  if (JSON.stringify(indexOrder) !== JSON.stringify(expectedIndexOrder)) {
+    throw new Error(
+      `Expected writing index order ${JSON.stringify(expectedIndexOrder)}, got ${JSON.stringify(indexOrder)}`
+    );
+  }
+
+  if (new Set(indexOrder).size !== indexOrder.length) {
+    throw new Error(`Writing index repeats an article: ${indexOrder.join(", ")}`);
+  }
+
+  const memberPositions = Object.keys(seriesMembers)
+    .map((slug) => ({ slug, part: seriesMembers[slug].part, index: indexOrder.indexOf(slug) }))
+    .sort((left, right) => left.index - right.index);
+  memberPositions.forEach((member, offset) => {
+    if (member.index === -1) {
+      throw new Error(`Series member ${member.slug} is missing from the writing index`);
+    }
+    if (member.index !== memberPositions[0].index + offset) {
+      throw new Error(`Series members are not contiguous on the writing index: ${JSON.stringify(memberPositions)}`);
+    }
+    if (member.part !== offset + 1) {
+      throw new Error(`Series members are not in ascending part order on the writing index: ${JSON.stringify(memberPositions)}`);
+    }
+  });
+
   console.log("Smoke test passed.");
 };
 

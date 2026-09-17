@@ -187,8 +187,10 @@ const resolveSeries = (articles) => {
   for (const [name, members] of groups) {
     members.sort((left, right) => left.series.part - right.series.part);
     const parts = members.map((member) => member.series.part);
+    // A one-member series is allowed: it is a sequence whose later parts are
+    // not published yet. Parts must still run 1..N with no gaps or repeats.
     const contiguous = parts.every((part, index) => part === index + 1);
-    if (members.length < 2 || !contiguous) {
+    if (!contiguous) {
       throw new Error(
         `build-articles: series "${name}" must number its parts 1..N with no gaps or duplicates (got ${parts.join(", ")})`
       );
@@ -210,6 +212,42 @@ const resolveSeries = (articles) => {
   }
 
   return articles;
+};
+
+const compareNewestFirst = (left, right) =>
+  left.published === right.published
+    ? left.slug.localeCompare(right.slug)
+    : right.published.localeCompare(left.published);
+
+// Display order for the writing index and every other consumer of
+// articlesData. The feed stays newest-first, but a series is one sortable
+// unit: it is placed at the date of its most recently published member and
+// then expanded into its members in ascending part order, so the index never
+// shows Part 3 above Part 1. Articles outside any series are units of one and
+// keep plain date order. Slug breaks ties so the output is deterministic.
+const orderForIndex = (articles) => {
+  const units = new Map();
+  for (const article of articles) {
+    const key = article.series
+      ? `series:${article.series.slug}`
+      : `article:${article.slug}`;
+    const unit = units.get(key) ?? {
+      published: article.published,
+      slug: article.series ? article.series.slug : article.slug,
+      members: [],
+    };
+    unit.members.push(article);
+    if (article.published > unit.published) unit.published = article.published;
+    units.set(key, unit);
+  }
+
+  return [...units.values()]
+    .sort(compareNewestFirst)
+    .flatMap((unit) =>
+      unit.members.sort(
+        (left, right) => (left.series?.part ?? 0) - (right.series?.part ?? 0)
+      )
+    );
 };
 
 const wrapTable = {
@@ -375,13 +413,8 @@ const main = async () => {
     throw new Error(`build-articles: no markdown found in ${contentDir}`);
   }
 
-  const articles = resolveSeries(await Promise.all(fileNames.map(buildArticle)));
-
-  // Newest first; slug breaks ties so output is deterministic and drift-free.
-  articles.sort((left, right) =>
-    left.published === right.published
-      ? left.slug.localeCompare(right.slug)
-      : right.published.localeCompare(left.published)
+  const articles = orderForIndex(
+    resolveSeries(await Promise.all(fileNames.map(buildArticle)))
   );
 
   await mkdir(outputDir, { recursive: true });
