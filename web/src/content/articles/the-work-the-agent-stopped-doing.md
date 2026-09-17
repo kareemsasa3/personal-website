@@ -1,6 +1,17 @@
+---
+slug: the-work-the-agent-stopped-doing
+title: The Work the Agent Stopped Doing
+subtitle: After durable system structure takes over reconstruction, agent work moves toward judgment
+kind: essay
+published: 2026-09-17
+description: >-
+  How durable records of authority, intent, disposition, and provenance shift
+  agent work from reconstructing decisions toward judgment.
+---
+
 # The Work the Agent Stopped Doing
 
-### What happened after operational knowledge moved out of the conversation
+### After durable system structure takes over reconstruction, agent work moves toward judgment
 
 ---
 
@@ -122,14 +133,6 @@ The record owes that next operator both things: a decision they do not have to r
 
 This operational sequel to *The Machine Should Explain Itself* examines what happened after workstation knowledge became durable and inspectable. Useful audits produced a backlog whose recording convention conflated findings with obligations. Anastasis's September 2026 conversion separated observations from explicit commitments, disposed twelve legacy P2 items, and bounded review around residual recovery risk. The case illustrates how authority, intent, disposition, and provenance make some repeated reconstruction unnecessary while preserving questions that were never settled. It also shows how poorly governed externalization can create new interpretive work. Distributed cognition, Kirsh's external-representation research, and PREMem already explain important parts of the mechanism. The contribution is the governed-infrastructure case, supported by inspected records and a qualitative operator account, not a new theory or a measured performance result.
 
-### Alternative titles
-
-1. What the Next Operator Should Not Have to Rediscover
-2. When the Knowledge System Starts Making Work
-3. Writing It Down Was Only the Beginning
-4. A Finding Is Not a Promise
-5. The Decisions We Stopped Reconstructing
-
 ### Sources
 
 Inspection scope matters: a source's presence here does not imply full-text access or experimental reproduction. External links below were inspected during the review. Repository records were inspected locally; locators are provided without publishing private repository URLs. Anastasis facts describe commit `2c73f67` (September 17, 2026), not a fresh live-host audit. Themis facts describe system authority at `ea680ae`, not inspection of a portfolio instance.
@@ -187,7 +190,7 @@ Inspection scope matters: a source's presence here does not imply full-text acce
 | “Inference burden” is existing language used locally here | PREMem title and argument | VERIFIED | No coinage, priority, validated metric, or standard definition claimed |
 | “Reasoning compression” already names other ML work | ReCUT primary abstract | VERIFIED | Terminology declined; no exhaustive account of its uses claimed |
 
-### Editorial note: original synthesis and corrections
+### Editorial note: original synthesis
 
 **What belongs to prior work.** Distributed cognition supplies the broad analytical perspective. Kirsh directly addresses how external representations alter the work of reasoning, even without new information. PREMem explicitly moves synthesis into memory construction for later reuse. The distinction between retrieving material and reducing subsequent reconstruction is therefore an organizing distinction here, not a claimed discovery.
 

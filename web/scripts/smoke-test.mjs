@@ -117,6 +117,7 @@ const main = async () => {
   const sitemap = await readBuildFile("sitemap.xml");
   const writingIndex = await readBuildFile("writing/index.html");
   const articleSlugs = [
+    "the-work-the-agent-stopped-doing",
     "the-system-gets-a-brake-one-way-or-another",
     "bottlenecks-dont-disappear",
     "the-machine-should-explain-itself",
@@ -363,6 +364,7 @@ const main = async () => {
 
   // 1. The index lists every published article.
   for (const title of [
+    "The Work the Agent Stopped Doing",
     "The System Gets a Brake One Way or Another",
     "Bottlenecks Don&#39;t Disappear. They Move.",
     "The Machine Should Explain Itself",
@@ -374,6 +376,8 @@ const main = async () => {
   //    its title — an empty shell for long-form content would be the worst
   //    possible regression.
   const distinctiveProse = {
+    "the-work-the-agent-stopped-doing":
+      "The agent was doing less archaeology.",
     "the-system-gets-a-brake-one-way-or-another":
       "You are a passenger.",
     "bottlenecks-dont-disappear":
@@ -401,6 +405,7 @@ const main = async () => {
   // 4. Sitemap covers the index and every article.
   for (const route of [
     "https://kareemsasa.dev/writing",
+    "https://kareemsasa.dev/writing/the-work-the-agent-stopped-doing",
     "https://kareemsasa.dev/writing/the-system-gets-a-brake-one-way-or-another",
     "https://kareemsasa.dev/writing/bottlenecks-dont-disappear",
     "https://kareemsasa.dev/writing/the-machine-should-explain-itself",
@@ -410,6 +415,7 @@ const main = async () => {
 
   // 5. Each article shell carries an Article node whose headline matches.
   const expectedHeadlines = {
+    "the-work-the-agent-stopped-doing": "The Work the Agent Stopped Doing",
     "the-system-gets-a-brake-one-way-or-another":
       "The System Gets a Brake One Way or Another",
     "bottlenecks-dont-disappear": "Bottlenecks Don't Disappear. They Move.",
