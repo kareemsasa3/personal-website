@@ -112,6 +112,13 @@
   transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease;
 }
 
+[data-theme="dark"] .featured-projects-section .tech-tag,
+[data-theme="dark"] .case-studies-page .tech-tag {
+  background: #2e7d32;
+  border-color: var(--primary-color);
+  color: var(--app-text);
+}
+
 @media (max-width: 480px) {
   .interactive-card {
     padding: 1rem;
