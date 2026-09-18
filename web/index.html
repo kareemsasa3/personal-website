@@ -128,188 +128,190 @@
       })();
     </script>
     <style>
-      .route-fallback,
-      .homepage-fallback,
-      .homepage-fallback__splash {
+      /*
+        Static route-shell presentation. Every prerendered route (and the
+        homepage) renders inside .route-fallback before React mounts, and it
+        is the entire page for consumers without JavaScript. It flows as a
+        normal, scrollable document; .app-ready hides it once the app mounts.
+      */
+      .route-fallback {
         box-sizing: border-box;
-      }
-
-      .route-fallback,
-      .homepage-fallback {
-        position: fixed;
-        inset: 0;
-        display: grid;
-        place-items: center;
-        padding: 2rem;
-        overflow: hidden;
-        isolation: isolate;
+        min-height: 100vh;
+        margin: 0;
+        padding: 2.5rem 1rem 4rem;
         color: var(--app-text, #f8f9fa);
-        background:
-          radial-gradient(circle at top, color-mix(in srgb, var(--brand-primary-soft, #81c784) 14%, transparent), transparent 42%),
-          linear-gradient(180deg, var(--app-bg-secondary, #2d2d2d) 0%, var(--app-bg, #111111) 100%);
+        background: var(--app-bg, #1a1a1a);
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        line-height: 1.6;
+        overflow-wrap: anywhere;
       }
 
-      .homepage-fallback::before,
-      .homepage-fallback::after {
-        content: "";
-        position: absolute;
-        inset: -12%;
-        pointer-events: none;
+      /* Center every top-level block; later rules only set block margins. */
+      .route-fallback > * {
+        max-width: 48rem;
+        margin-inline: auto;
       }
 
-      .homepage-fallback::before {
-        z-index: 0;
-        background:
-          radial-gradient(circle at 18% 20%, color-mix(in srgb, var(--brand-primary-soft, #81c784) 18%, transparent), transparent 30%),
-          radial-gradient(circle at 82% 28%, color-mix(in srgb, var(--brand-primary, #4caf50) 12%, transparent), transparent 26%),
-          radial-gradient(circle at 50% 82%, color-mix(in srgb, var(--brand-primary-soft, #81c784) 10%, transparent), transparent 24%);
-        opacity: 0.75;
-        animation: fallback-glow-drift 16s ease-in-out infinite alternate;
-        transform: translate3d(0, 0, 0);
+      .route-fallback h1,
+      .route-fallback h2,
+      .route-fallback h3 {
+        line-height: 1.2;
+        letter-spacing: -0.01em;
       }
 
-      .homepage-fallback::after {
-        z-index: 1;
-        inset: 0;
-        background:
-          repeating-linear-gradient(
-            180deg,
-            rgba(255, 255, 255, 0.02) 0,
-            rgba(255, 255, 255, 0.02) 1px,
-            transparent 1px,
-            transparent 8px
-          ),
-          linear-gradient(
-            90deg,
-            transparent 0%,
-            color-mix(in srgb, var(--brand-primary-soft, #81c784) 5%, transparent) 50%,
-            transparent 100%
-          );
-        opacity: 0.22;
-        animation: fallback-scan-shift 18s linear infinite;
+      .route-fallback h2 {
+        margin-block: 0 0.75rem;
+        font-size: 1.35rem;
       }
 
-      .homepage-fallback__splash {
-        position: relative;
-        z-index: 2;
-        width: min(100%, 28rem);
-        min-height: 12rem;
-        padding: 2rem 1.75rem;
-        border: 1px solid color-mix(in srgb, var(--app-border, #495057) 70%, transparent);
-        border-radius: 20px;
-        background: color-mix(in srgb, var(--app-surface, #2d2d2d) 84%, transparent);
-        box-shadow: 0 18px 60px rgba(0, 0, 0, 0.18);
-        text-align: center;
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
+      .route-fallback h3 {
+        margin-block: 0 0.5rem;
+        font-size: 1.1rem;
       }
 
-      .homepage-fallback__eyebrow {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.45rem;
-        margin: 0 0 0.85rem;
-        font-size: 0.75rem;
-        letter-spacing: 0.12em;
+      .route-fallback p,
+      .route-fallback ul,
+      .route-fallback ol {
+        margin-block: 0 0.75rem;
+      }
+
+      .route-fallback ul,
+      .route-fallback ol {
+        padding-left: 1.25rem;
+      }
+
+      .route-fallback li {
+        margin-bottom: 0.35rem;
+      }
+
+      .route-fallback a {
+        color: var(--brand-primary, #4caf50);
+        text-decoration: underline;
+        text-underline-offset: 0.15em;
+      }
+
+      .route-fallback__eyebrow,
+      .route-fallback__breadcrumbs,
+      .route-fallback__meta {
+        margin-block: 0 0.5rem;
+        font-size: 0.8rem;
+        color: var(--app-text-muted, #adb5bd);
+      }
+
+      .route-fallback__eyebrow {
+        letter-spacing: 0.1em;
         text-transform: uppercase;
         font-weight: 600;
         color: var(--brand-primary, #4caf50);
-        opacity: 0.9;
       }
 
-      .homepage-fallback__eyebrow::before {
-        content: ">";
-        color: var(--brand-primary, #4caf50);
-        opacity: 0.85;
-      }
-
-      .homepage-fallback__title {
-        margin: 0;
-        font-size: clamp(2.25rem, 6vw, 3.75rem);
-        line-height: 1.02;
-        letter-spacing: -0.02em;
+      .route-fallback__title {
+        margin-block: 0 0.75rem;
+        font-size: clamp(2rem, 5vw, 2.75rem);
         font-weight: 700;
       }
 
-      .homepage-fallback__divider {
-        width: 72px;
-        height: 2px;
-        margin: 0.9rem auto 0;
-        background: linear-gradient(
-          to right,
-          var(--brand-primary, #4caf50),
-          transparent
-        );
+      .route-fallback__summary {
+        font-size: 1.1rem;
       }
 
-      [data-theme="light"] .homepage-fallback::before {
-        opacity: 0.28;
-        animation: none;
+      .route-fallback__section {
+        margin-top: 2.25rem;
       }
 
-      [data-theme="light"] .homepage-fallback::after {
-        opacity: 0.08;
-        animation: none;
-        background:
-          repeating-linear-gradient(
-            180deg,
-            rgba(0, 0, 0, 0.015) 0,
-            rgba(0, 0, 0, 0.015) 1px,
-            transparent 1px,
-            transparent 10px
-          );
+      .route-fallback__grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+        gap: 1rem;
       }
 
-      @keyframes fallback-glow-drift {
-        0% {
-          transform: translate3d(-1%, -1%, 0) scale(1);
-        }
-
-        50% {
-          transform: translate3d(1.5%, 1%, 0) scale(1.04);
-        }
-
-        100% {
-          transform: translate3d(-0.5%, 2%, 0) scale(1.02);
-        }
+      .route-fallback__card {
+        padding: 1rem 1.1rem;
+        border: 1px solid var(--app-border, #495057);
+        border-radius: 12px;
+        background: var(--app-surface, #2d2d2d);
       }
 
-      @keyframes fallback-scan-shift {
-        0% {
-          background-position: 0 0, 0 0;
-        }
-
-        100% {
-          background-position: 0 24px, 24px 0;
-        }
+      .route-fallback__card > :last-child {
+        margin-bottom: 0;
       }
 
-      @media (prefers-reduced-motion: reduce) {
-        .homepage-fallback::before,
-        .homepage-fallback::after {
-          animation: none;
-        }
+      .route-fallback__meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
       }
 
-      .app-ready .route-fallback,
-      .app-ready .homepage-fallback {
-        display: none;
+      .route-fallback__pill {
+        display: inline-block;
+        padding: 0.1rem 0.55rem;
+        border: 1px solid var(--app-border, #495057);
+        border-radius: 999px;
+        font-size: 0.75rem;
+      }
+
+      .route-fallback__card-link {
+        display: inline-block;
+        margin-top: 0.5rem;
+        margin-right: 0.75rem;
+        font-weight: 600;
+      }
+
+      .route-fallback__label {
+        font-weight: 600;
+      }
+
+      .route-fallback__toc,
+      .route-fallback__series-nav {
+        margin-top: 1.5rem;
+        padding: 1rem 1.1rem;
+        border: 1px solid var(--app-border, #495057);
+        border-radius: 12px;
       }
 
       .route-fallback__toc-list--pre-numbered {
         padding-left: 0;
         list-style: none;
       }
+
+      /* Long-form article bodies: keep media and code inside the column. */
+      .route-fallback img,
+      .route-fallback video {
+        max-width: 100%;
+        height: auto;
+      }
+
+      .route-fallback pre {
+        overflow-x: auto;
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        background: var(--app-surface, #2d2d2d);
+      }
+
+      .route-fallback table {
+        display: block;
+        max-width: 100%;
+        overflow-x: auto;
+        border-collapse: collapse;
+      }
+
+      .route-fallback th,
+      .route-fallback td {
+        padding: 0.4rem 0.6rem;
+        border: 1px solid var(--app-border, #495057);
+        text-align: left;
+        vertical-align: top;
+      }
+
+      .app-ready .route-fallback {
+        display: none;
+      }
     </style>
   </head>
   <body>
-    <main class="route-fallback homepage-fallback" aria-label="Loading site">
-      <div class="homepage-fallback__splash">
-        <p class="homepage-fallback__eyebrow">Systems Engineer</p>
-        <h1 class="homepage-fallback__title">Kareem Sasa</h1>
-        <div class="homepage-fallback__divider" aria-hidden="true"></div>
-      </div>
+    <main class="route-fallback homepage-fallback" aria-label="Site overview">
+      <p class="route-fallback__eyebrow">Systems Engineer</p>
+      <h1 class="route-fallback__title">Kareem Sasa</h1>
     </main>
     <div id="root"></div>
     <div id="portal-root"></div>

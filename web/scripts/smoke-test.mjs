@@ -164,6 +164,35 @@ const main = async () => {
     "active Twitter image metadata"
   );
 
+  // Homepage static shell. Without JavaScript the root must still say who the
+  // site belongs to, name the featured systems, and link to the primary
+  // destinations and public contact channels the hydrated homepage exposes.
+  const homepagePositioning =
+    "Systems engineer building production software for Linux, backend, and infrastructure-heavy products.";
+  assertIncludes(homepage, homepagePositioning, "homepage shell positioning");
+  assertIncludes(homepage, "Featured Systems", "homepage shell featured section");
+  assertNotIncludes(homepage, 'aria-label="Loading site"', "homepage shell aria-label");
+
+  for (const [title, href] of [
+    ["Erebus OS", "/case-studies/erebus"],
+    ["Arachne", "/case-studies/arachne"],
+  ]) {
+    assertIncludes(homepage, `<h3>${title}</h3>`, "homepage shell featured system title");
+    assertIncludes(homepage, `href="${href}"`, "homepage shell featured system link");
+  }
+
+  for (const href of ["/projects", "/case-studies", "/writing", "/experience"]) {
+    assertIncludes(homepage, `href="${href}"`, "homepage shell primary destination");
+  }
+
+  for (const href of [
+    "https://github.com/kareemsasa",
+    "https://linkedin.com/in/kareem-sasa",
+    "mailto:kareemsasa.dev@proton.me",
+  ]) {
+    assertIncludes(homepage, `href="${href}"`, "homepage shell contact link");
+  }
+
   const homepageNodes = structuredDataNodes(homepage);
   assertNodeType(homepageNodes, "ProfilePage", "homepage JSON-LD graph");
   assertNodeType(homepageNodes, "Person", "homepage JSON-LD graph");
@@ -195,6 +224,21 @@ const main = async () => {
 
   for (const route of routeShells) {
     assertWebPage(structuredDataNodes(route.html), route.path);
+  }
+
+  // Every route shell is stamped from the base index template, so the
+  // homepage body must not leak into route-specific shells.
+  for (const route of [
+    ...routeShells,
+    { html: writingIndex, path: "/writing" },
+    {
+      html: articleShells["the-machine-should-explain-itself"],
+      path: "/writing/the-machine-should-explain-itself",
+    },
+  ]) {
+    assertNotIncludes(route.html, homepagePositioning, `${route.path} shell body`);
+    assertNotIncludes(route.html, "Featured Systems", `${route.path} shell body`);
+    assertNotIncludes(route.html, 'class="homepage-fallback', `${route.path} shell body`);
   }
 
   assertBreadcrumb(structuredDataNodes(projects), "/projects", [

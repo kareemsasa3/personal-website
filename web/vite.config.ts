@@ -4,8 +4,13 @@ import react from "@vitejs/plugin-react";
 import * as os from "node:os";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
-import { caseStudiesData } from "./src/data/caseStudies";
+import { caseStudiesData, caseStudyCards } from "./src/data/caseStudies";
 import { projectsData } from "./src/data/projects";
+import {
+  featuredProjectIds,
+  heroContent,
+  socialContent,
+} from "./src/data/siteContent";
 import { articlesData, articleBySlug } from "./src/data/generated/articles";
 import {
   DEFAULT_IMAGE_ALT,
@@ -632,6 +637,85 @@ const renderArticleBody = (slug: string) => {
   `;
 };
 
+// Primary destinations the hydrated homepage reaches through the hero CTAs,
+// the Featured Systems footer, and the global navigation. Descriptions come
+// from route metadata so the shell never carries its own prose.
+const homeDestinationPaths = [
+  { path: "/projects", label: "Projects" },
+  { path: "/case-studies", label: "Case Studies" },
+  { path: "/writing", label: "Writing" },
+  { path: "/experience", label: "Experience" },
+] as const;
+
+const renderHomeBody = () => {
+  // Same selection and join as src/pages/Home/sections/FeaturedProjectsSection.tsx.
+  const featuredSystems = featuredProjectIds.flatMap((id) => {
+    const caseStudy = caseStudyCards.find((entry) => entry.projectId === id);
+    return caseStudy ? [caseStudy] : [];
+  });
+
+  if (featuredSystems.length !== featuredProjectIds.length) {
+    throw new Error("Missing case study card for a featured project id");
+  }
+
+  return `
+    <main class="route-fallback" aria-label="Homepage overview">
+      <p class="route-fallback__eyebrow">Systems Engineer</p>
+      <h1 class="route-fallback__title">${escapeHtml(heroContent.title)}</h1>
+      <p class="route-fallback__summary">${escapeHtml(heroContent.subtitle)}</p>
+
+      <section class="route-fallback__section" aria-labelledby="home-featured-systems-title">
+        <h2 id="home-featured-systems-title">Featured Systems</h2>
+        <div class="route-fallback__grid">
+          ${featuredSystems
+            .map(
+              (caseStudy) => `
+                <article class="route-fallback__card">
+                  <h3>${escapeHtml(caseStudy.title)}</h3>
+                  <div class="route-fallback__meta">
+                    <span class="route-fallback__pill">${escapeHtml(
+                      caseStudy.project.status
+                    )}</span>
+                  </div>
+                  <p>${escapeHtml(caseStudy.shortDescription)}</p>
+                  <a class="route-fallback__card-link" href="/case-studies/${escapeHtml(
+                    caseStudy.slug
+                  )}">Read case study</a>
+                </article>
+              `
+            )
+            .join("")}
+        </div>
+      </section>
+
+      <section class="route-fallback__section route-fallback__link-list" aria-labelledby="home-destinations-title">
+        <h2 id="home-destinations-title">Explore</h2>
+        <ul>
+          ${homeDestinationPaths
+            .map(({ path, label }) => {
+              const metadata = getRouteMetadata(path);
+              return `<li><a href="${escapeHtml(path)}">${escapeHtml(
+                label
+              )}</a>: ${escapeHtml(metadata.description)}</li>`;
+            })
+            .join("")}
+        </ul>
+      </section>
+
+      <section class="route-fallback__section route-fallback__link-list" aria-labelledby="home-contact-title">
+        <h2 id="home-contact-title">${escapeHtml(socialContent.title)}</h2>
+        ${renderLinkList(
+          socialContent.links.map((link) => ({
+            label: link.name,
+            href: link.url,
+            external: !link.url.startsWith("mailto:"),
+          }))
+        )}
+      </section>
+    </main>
+  `;
+};
+
 const replaceTag = (html: string, pattern: RegExp, replacement: string) => {
   if (!pattern.test(html)) {
     throw new Error(`Expected pattern not found in HTML: ${pattern}`);
@@ -720,6 +804,9 @@ const applyRouteShell = (baseHtml: string, route: StaticRouteShell) => {
       )}</script>`,
     },
     {
+      // The base index.html body is the template for every shell, including
+      // "/": its <main class="route-fallback homepage-fallback"> element is
+      // the anchor that each route-specific body replaces.
       pattern: /<main class="route-fallback homepage-fallback"[\s\S]*?<\/main>/,
       replacement: route.bodyHtml,
     },
@@ -759,10 +846,14 @@ const staticRouteShellPlugin = (): Plugin => {
     return routeShellFromMetadata(metadata, renderPrimaryRouteBody(metadata));
   });
 
+  const homeMeta = getRouteMetadata("/");
   const projectsMeta = getRouteMetadata("/projects");
   const caseStudiesIndexMeta = getRouteMetadata("/case-studies");
   const writingIndexMeta = getRouteMetadata("/writing");
   const routes: StaticRouteShell[] = [
+    // "/" resolves to the build root, so this overwrites build/index.html.
+    // closeBundle reads the base template before any shell is written.
+    routeShellFromMetadata(homeMeta, renderHomeBody()),
     ...primaryRoutes,
     routeShellFromMetadata(projectsMeta, renderProjectsBody(projectsMeta)),
     routeShellFromMetadata(caseStudiesIndexMeta, renderCaseStudiesIndexBody()),
