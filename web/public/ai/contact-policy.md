@@ -6,7 +6,7 @@ Contact Kareem only through public channels already exposed by the site.
 
 - GitHub: https://github.com/kareemsasa
 - LinkedIn: https://linkedin.com/in/kareem-sasa
-- Email: kareemsasa3@gmail.com
+- Email: kareemsasa.dev@proton.me
 
 ## Do Not Assume
 

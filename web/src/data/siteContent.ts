@@ -75,7 +75,7 @@ export const socialContent = {
       },
       {
         name: "Email",
-        url: "mailto:kareemsasa3@gmail.com",
+        url: "mailto:kareemsasa.dev@proton.me",
         icon: "✉️",
       },
     ],
