@@ -37,6 +37,9 @@ const ArticlePage = ({ article }: ArticlePageProps) => {
     (entry) => entry.slug !== article.slug
   );
   const showToc = article.toc.length >= MIN_TOC_ENTRIES;
+  const usesNumberedHeadings = article.toc.every((entry) =>
+    /^\d+\.\s/.test(entry.label)
+  );
 
   return (
     <div className="page-content article-page">
@@ -76,7 +79,13 @@ const ArticlePage = ({ article }: ArticlePageProps) => {
             >
               <summary>Contents</summary>
               <nav aria-label="Article contents">
-                <ol>
+                <ol
+                  className={
+                    usesNumberedHeadings
+                      ? "article-toc-list--pre-numbered"
+                      : undefined
+                  }
+                >
                   {article.toc.map((entry) => (
                     <li key={entry.id}>
                       <a href={`#${entry.id}`}>{entry.label}</a>

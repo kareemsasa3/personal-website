@@ -42,6 +42,7 @@ export interface Article {
   kind: "essay" | "field-note";
   published: string;
   description: string;
+  showDescriptionOnCard?: boolean;
   series?: ArticleSeries;
   readingMinutes: number;
   wordCount: number;
@@ -130,6 +131,7 @@ export const articlesData: Article[] = [
     "kind": "essay",
     "published": "2026-09-17",
     "description": "How durable records of authority, intent, disposition, and provenance shift agent work from reconstructing decisions toward judgment.",
+    "showDescriptionOnCard": false,
     "series": {
       "name": "Agent Systems",
       "slug": "agent-systems",

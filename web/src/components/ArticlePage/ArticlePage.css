@@ -162,6 +162,11 @@
   gap: 0.4rem;
 }
 
+.article-toc .article-toc-list--pre-numbered {
+  padding-left: 0;
+  list-style: none;
+}
+
 .article-toc a {
   color: var(--app-text-secondary);
   text-decoration: none;

@@ -28,6 +28,7 @@ const frontmatterSchema = z.object({
   kind: z.enum(["essay", "field-note"]),
   published: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "must be an ISO date (YYYY-MM-DD)"),
   description: z.string().min(1).max(160),
+  showDescriptionOnCard: z.boolean().optional(),
   // Optional membership in a reading sequence. Only name and part are
   // declared; total and previous/next are resolved across the whole set.
   series: z
@@ -383,6 +384,7 @@ export interface Article {
   kind: "essay" | "field-note";
   published: string;
   description: string;
+  showDescriptionOnCard?: boolean;
   series?: ArticleSeries;
   readingMinutes: number;
   wordCount: number;

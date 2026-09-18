@@ -41,7 +41,11 @@ const Writing = () => {
               {article.subtitle ? (
                 <p className="writing-card-subtitle">{article.subtitle}</p>
               ) : null}
-              <p className="writing-card-description">{article.description}</p>
+              {article.showDescriptionOnCard !== false ? (
+                <p className="writing-card-description">
+                  {article.description}
+                </p>
+              ) : null}
               <p className="writing-card-meta">
                 <time dateTime={article.published}>
                   {formatPublished(article.published)}

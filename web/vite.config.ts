@@ -473,7 +473,13 @@ const renderWritingIndexBody = () => `
                     : ""
                 }
                 <h3>${escapeHtml(article.title)}</h3>
-                <p>${escapeHtml(article.description)}</p>
+                ${
+                  article.showDescriptionOnCard !== false
+                    ? `<p>${escapeHtml(article.description)}</p>`
+                    : article.subtitle
+                      ? `<p>${escapeHtml(article.subtitle)}</p>`
+                      : ""
+                }
                 <p>${escapeHtml(article.published)} · ${article.readingMinutes} min read</p>
                 <a class="route-fallback__card-link" href="/writing/${escapeHtml(
                   article.slug
@@ -493,6 +499,10 @@ const renderArticleBody = (slug: string) => {
   if (!article) {
     throw new Error(`Missing article data for slug: ${slug}`);
   }
+
+  const usesNumberedHeadings = article.toc.every((entry) =>
+    /^\d+\.\s/.test(entry.label)
+  );
 
   // Article HTML is injected unescaped. See the trust-boundary note in
   // src/data/generated/articles.ts: the source is first-party markdown
@@ -526,7 +536,11 @@ const renderArticleBody = (slug: string) => {
         article.toc.length > 0
           ? `<nav class="route-fallback__toc" aria-label="Article contents">
               <h2>Contents</h2>
-              <ol>${article.toc
+              <ol${
+                usesNumberedHeadings
+                  ? ' class="route-fallback__toc-list--pre-numbered"'
+                  : ""
+              }>${article.toc
                 .map(
                   (entry) =>
                     `<li><a href="#${escapeHtml(entry.id)}">${escapeHtml(
