@@ -1,0 +1,411 @@
+/*
+========================================
+PROJECT ROSTER
+----------------------------------------
+Single-column roster of every project.
+Each item is a compact summary row with
+an inline disclosure for full detail.
+All selectors are scoped to
+.project-roster__* to avoid colliding
+with globally bundled card/badge styles.
+========================================
+*/
+
+.project-roster {
+    --roster-accent: var(--terminal-primary, #4CAF50);
+    --roster-rule: var(--border-color);
+    --roster-status-live: #51cf66;
+    --roster-status-development: #ffd43b;
+    --roster-status-demo-ready: #74c0fc;
+    --roster-status-completed: #8fa3b8;
+
+    width: 100%;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0;
+    list-style: none;
+    border-bottom: 1px solid var(--roster-rule);
+    font-family: var(--terminal-font, 'Courier New', 'Monaco', 'Menlo', monospace);
+    color: var(--text-color);
+}
+
+.project-roster__sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    border: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+
+.project-roster__item {
+    border-top: 1px solid var(--roster-rule);
+    padding: 1.75rem 1.25rem;
+    transition: background-color 0.25s ease;
+}
+
+.project-roster__item[data-expanded="true"] {
+    margin-block: 0.5rem;
+    background: color-mix(in srgb, var(--app-surface) 45%, transparent);
+    border-radius: 10px;
+    border-top-color: transparent;
+}
+
+.project-roster__article {
+    min-width: 0;
+}
+
+/* Summary row --------------------------------------------------------- */
+
+.project-roster__summary {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+        "meta actions"
+        "title actions"
+        "deck actions";
+    column-gap: 2rem;
+    align-items: start;
+}
+
+.project-roster__meta {
+    grid-area: meta;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem 0.9rem;
+    margin: 0 0 0.55rem;
+    color: var(--text-secondary);
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.project-roster__meta-item {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    min-width: 0;
+}
+
+/* Separator belongs to the preceding item so a wrapped line can never start with one. */
+.project-roster__meta-item:not(:last-child)::after {
+    content: '';
+    display: inline-block;
+    flex: 0 0 auto;
+    width: 3px;
+    height: 3px;
+    margin-left: 0.9rem;
+    border-radius: 999px;
+    background: var(--text-secondary);
+    opacity: 0.6;
+}
+
+.project-roster__meta-item:first-child {
+    color: var(--roster-accent);
+}
+
+.project-roster__status {
+    gap: 0.45rem;
+    text-transform: none;
+    letter-spacing: 0.02em;
+    font-weight: 600;
+    color: var(--text-color);
+    white-space: normal;
+}
+
+.project-roster__status-dot {
+    flex: 0 0 auto;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 999px;
+    background: var(--roster-status-color, var(--text-secondary));
+    box-shadow: 0 0 8px color-mix(in srgb, var(--roster-status-color, transparent) 55%, transparent);
+}
+
+.project-roster__status--live {
+    --roster-status-color: var(--roster-status-live);
+}
+
+.project-roster__status--development,
+.project-roster__status--active-development {
+    --roster-status-color: var(--roster-status-development);
+}
+
+.project-roster__status--demo-ready {
+    --roster-status-color: var(--roster-status-demo-ready);
+}
+
+.project-roster__status--completed {
+    --roster-status-color: var(--roster-status-completed);
+}
+
+.project-roster__title {
+    grid-area: title;
+    margin: 0;
+    color: var(--roster-accent);
+    font-size: 1.45rem;
+    font-weight: 700;
+    line-height: 1.2;
+    text-shadow: 0 0 10px color-mix(in srgb, var(--roster-accent) 55%, transparent);
+    overflow-wrap: anywhere;
+}
+
+.project-roster__deck {
+    grid-area: deck;
+    max-width: 62ch;
+    margin: 0.55rem 0 0;
+    color: var(--text-secondary);
+    font-size: 1rem;
+    line-height: 1.55;
+}
+
+.project-roster__actions {
+    grid-area: actions;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.6rem;
+    min-width: 0;
+}
+
+.project-roster__toggle,
+.project-roster__action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    min-height: 2.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 999px;
+    font-family: inherit;
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.project-roster__toggle {
+    border: 1px solid var(--roster-accent);
+    background: var(--roster-accent);
+    color: var(--terminal-background, #1a1a1a);
+    box-shadow: 0 0 12px color-mix(in srgb, var(--roster-accent) 35%, transparent);
+}
+
+.project-roster__toggle:hover,
+.project-roster__toggle[aria-expanded="true"] {
+    box-shadow: 0 0 18px color-mix(in srgb, var(--roster-accent) 55%, transparent);
+}
+
+.project-roster__toggle-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1rem;
+    font-size: 1rem;
+    line-height: 1;
+}
+
+.project-roster__action {
+    border: 1px solid var(--border-color);
+    background: color-mix(in srgb, var(--app-surface) 80%, transparent);
+    color: var(--text-color);
+}
+
+.project-roster__action:hover {
+    border-color: var(--roster-accent);
+    color: var(--roster-accent);
+}
+
+.project-roster__action--primary {
+    border-color: color-mix(in srgb, var(--roster-accent) 58%, transparent);
+    background: color-mix(in srgb, var(--roster-accent) 16%, transparent);
+    color: var(--roster-accent);
+}
+
+.project-roster__toggle:focus-visible,
+.project-roster__action:focus-visible {
+    outline: 2px solid var(--roster-accent);
+    outline-offset: 3px;
+}
+
+/* Detail panel -------------------------------------------------------- */
+
+.project-roster__detail {
+    margin-top: 1.4rem;
+    padding: 0.25rem 0 0.25rem 1.25rem;
+    border-left: 2px solid var(--roster-accent);
+}
+
+.project-roster__detail:not([hidden]) {
+    animation: project-roster-reveal 0.2s ease-out;
+}
+
+@keyframes project-roster-reveal {
+    from {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.project-roster__description {
+    max-width: 72ch;
+    margin: 0;
+    color: var(--text-color);
+    font-size: 1rem;
+    line-height: 1.65;
+}
+
+.project-roster__detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem 2rem;
+    margin-top: 1.5rem;
+}
+
+.project-roster__detail-section {
+    min-width: 0;
+}
+
+.project-roster__detail-heading {
+    margin: 0 0 0.7rem;
+    color: var(--roster-accent);
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.project-roster__tags,
+.project-roster__points {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.project-roster__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.project-roster__tag {
+    display: inline-flex;
+    max-width: 100%;
+    padding: 0.28rem 0.6rem;
+    border: 1px solid color-mix(in srgb, var(--roster-accent) 55%, transparent);
+    border-radius: 4px;
+    background: color-mix(in srgb, var(--roster-accent) 10%, transparent);
+    color: var(--text-color);
+    font-size: 0.8rem;
+    font-weight: 500;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+}
+
+.project-roster__points {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.project-roster__point {
+    position: relative;
+    padding-left: 1rem;
+    color: var(--text-color);
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.project-roster__point::before {
+    content: '';
+    position: absolute;
+    top: 0.55rem;
+    left: 0;
+    width: 0.35rem;
+    height: 0.35rem;
+    border-radius: 999px;
+    background: var(--roster-accent);
+}
+
+.project-roster__detail-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-top: 1.5rem;
+}
+
+/* Responsive ---------------------------------------------------------- */
+
+@media (max-width: 899px) {
+    .project-roster__summary {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-areas:
+            "meta"
+            "title"
+            "deck"
+            "actions";
+    }
+
+    .project-roster__actions {
+        justify-content: flex-start;
+        margin-top: 1rem;
+    }
+}
+
+@media (max-width: 599px) {
+    .project-roster__item {
+        padding: 1.4rem 0.75rem;
+    }
+
+    .project-roster__item[data-expanded="true"] {
+        padding-inline: 0.75rem;
+    }
+
+    .project-roster__title {
+        font-size: 1.25rem;
+    }
+
+    .project-roster__deck {
+        font-size: 0.95rem;
+    }
+
+    .project-roster__toggle,
+    .project-roster__action {
+        min-height: 44px;
+        padding: 0.6rem 1rem;
+        white-space: normal;
+    }
+
+    .project-roster__detail {
+        padding-left: 0.9rem;
+    }
+
+    .project-roster__detail-grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 1.25rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .project-roster__item,
+    .project-roster__toggle,
+    .project-roster__action {
+        transition: none;
+    }
+
+    .project-roster__detail:not([hidden]) {
+        animation: none;
+    }
+}

@@ -92,7 +92,7 @@ export const fileContents: FileContent[] = [
       "Terminal artifacts are curated summaries. They should stay truthful to the portfolio narrative without pretending to be exact mirrored source files.",
       "",
       "## Current Position In The Portfolio",
-      "Projects and Work are the primary proof surfaces.",
+      "Case Studies are the primary evidence surface; Projects is the complete roster.",
       "The terminal exists to add personality and technical texture after credibility is already established.",
     ],
     description:

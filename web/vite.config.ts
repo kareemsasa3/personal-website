@@ -5,6 +5,7 @@ import * as os from "node:os";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { caseStudiesData } from "./src/data/caseStudies";
+import { projectsData } from "./src/data/projects";
 import { articlesData, articleBySlug } from "./src/data/generated/articles";
 import {
   DEFAULT_IMAGE_ALT,
@@ -181,7 +182,6 @@ ${sitemapRouteMetadata
 `;
 
 const primaryRouteShellPaths = [
-  "/projects",
   "/experience",
   "/journey",
   "/simulations",
@@ -200,15 +200,6 @@ const primaryRouteShellDetails: Record<
     links?: Array<{ label: string; href: string }>;
   }
 > = {
-  "/projects": {
-    eyebrow: "Portfolio Systems",
-    heading: "Projects",
-    highlights: [
-      "Flagship engineering systems across Linux infrastructure, research workflows, and product interfaces.",
-      "Public project entries link to available repositories and case-study proof paths where applicable.",
-    ],
-    links: [{ label: "Read case studies", href: "/case-studies" }],
-  },
   "/experience": {
     eyebrow: "Professional Work",
     heading: "Experience",
@@ -311,6 +302,58 @@ const renderPrimaryRouteBody = (metadata: RouteMetadata) => {
     </main>
   `;
 };
+
+const renderProjectsBody = (metadata: RouteMetadata) => `
+  <main class="route-fallback" aria-label="Projects overview">
+    <p class="route-fallback__eyebrow">Project Roster</p>
+    <h1 class="route-fallback__title">Projects</h1>
+    <p class="route-fallback__summary">${escapeHtml(metadata.description)}</p>
+
+    <section class="route-fallback__section" aria-labelledby="projects-list-title">
+      <h2 id="projects-list-title">All Projects</h2>
+      <div class="route-fallback__grid">
+        ${projectsData
+          .map((project) => {
+            const caseStudy = caseStudiesData.find(
+              (entry) => entry.projectId === project.id
+            );
+
+            return `
+              <article class="route-fallback__card">
+                <h3>${escapeHtml(project.title)}</h3>
+                <div class="route-fallback__meta">
+                  <span class="route-fallback__pill">${escapeHtml(project.category)}</span>
+                  <span class="route-fallback__pill">${escapeHtml(project.date)}</span>
+                  <span class="route-fallback__pill">${escapeHtml(project.status)}</span>
+                </div>
+                <p>${escapeHtml(project.shortDescription)}</p>
+                ${
+                  caseStudy
+                    ? `<a class="route-fallback__card-link" href="/case-studies/${escapeHtml(
+                        caseStudy.slug
+                      )}">Read case study</a>`
+                    : ""
+                }
+                ${
+                  project.githubUrl
+                    ? `<a class="route-fallback__card-link" href="${escapeHtml(
+                        project.githubUrl
+                      )}" target="_blank" rel="noopener noreferrer">View code</a>`
+                    : ""
+                }
+              </article>
+            `;
+          })
+          .join("")}
+      </div>
+    </section>
+
+    <section class="route-fallback__section route-fallback__link-list">
+      <h2>Related Routes</h2>
+      ${renderLinkList([{ label: "Read case studies", href: "/case-studies" }])}
+    </section>
+  </main>
+`;
 
 const renderCaseStudiesIndexBody = () => `
   <main class="route-fallback" aria-label="Case studies overview">
@@ -716,10 +759,12 @@ const staticRouteShellPlugin = (): Plugin => {
     return routeShellFromMetadata(metadata, renderPrimaryRouteBody(metadata));
   });
 
+  const projectsMeta = getRouteMetadata("/projects");
   const caseStudiesIndexMeta = getRouteMetadata("/case-studies");
   const writingIndexMeta = getRouteMetadata("/writing");
   const routes: StaticRouteShell[] = [
     ...primaryRoutes,
+    routeShellFromMetadata(projectsMeta, renderProjectsBody(projectsMeta)),
     routeShellFromMetadata(caseStudiesIndexMeta, renderCaseStudiesIndexBody()),
     ...caseStudiesData.map((caseStudy) => {
       const metadata = getRouteMetadata(`/case-studies/${caseStudy.slug}`);

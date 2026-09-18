@@ -39,7 +39,6 @@
   left: 100%;
 }
 
-.complexity-badge,
 .status-badge {
   display: inline-flex;
   align-items: center;
@@ -59,22 +58,6 @@
   overflow-wrap: normal;
   white-space: nowrap;
   word-break: normal;
-}
-
-.complexity-badge.expert {
-  background: #ff6b6b;
-}
-
-.complexity-badge.advanced {
-  background: #4ecdc4;
-}
-
-.complexity-badge.intermediate {
-  background: #45b7d1;
-}
-
-.complexity-badge.beginner {
-  background: #96ceb4;
 }
 
 .status-badge.live {

@@ -33,11 +33,6 @@ const CaseStudies = () => {
                 </div>
                 <div className="case-study-card-meta">
                   <span
-                    className={`complexity-badge ${caseStudy.project.complexity.toLowerCase()}`}
-                  >
-                    {caseStudy.project.complexity}
-                  </span>
-                  <span
                     className={`status-badge ${caseStudy.project.status.toLowerCase()}`}
                   >
                     {caseStudy.project.status}

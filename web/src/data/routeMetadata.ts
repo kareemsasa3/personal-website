@@ -32,9 +32,9 @@ const staticRouteMetadata: RouteMetadata[] = [
     path: "/projects",
     title: "Projects - Kareem Sasa",
     description:
-      "Flagship systems and backend projects spanning Linux infrastructure, autonomous research workflows, and interactive product engineering.",
+      "Complete roster of Kareem Sasa's systems and tools, with links to case studies documenting problems, constraints, and engineering decisions.",
     canonicalPath: "/projects",
-    sitemap: { changefreq: "weekly", priority: "0.9" },
+    sitemap: { changefreq: "weekly", priority: "0.6" },
   },
   {
     path: "/case-studies",

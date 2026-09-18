@@ -266,6 +266,34 @@ const main = async () => {
     }
   }
 
+  assertIncludes(projects, "Project Roster", "Projects route-shell roster framing");
+  assertIncludes(
+    projects,
+    'id="projects-list-title"',
+    "Projects route-shell roster list"
+  );
+  assertIncludes(
+    projects,
+    "Event-driven Linux coordination layer with replayable system state.",
+    "Projects route-shell short description"
+  );
+  assertNotIncludes(projects, "Flagship", "Projects route-shell flagship framing");
+  assertNotIncludes(projects, "Systems Archive", "Projects route-shell archive framing");
+
+  const aetherSourceCodeEntry = projectsSourceCodeEntries.find((entry) =>
+    String(entry["@id"]).endsWith("#aether")
+  );
+
+  if (
+    !aetherSourceCodeEntry ||
+    aetherSourceCodeEntry.description !==
+      "Real-time audio infrastructure for Linux that publishes live acoustic state through lock-free shared memory for low-latency cross-process consumers."
+  ) {
+    throw new Error(
+      "Expected projects JSON-LD SoftwareSourceCode to carry the full project description"
+    );
+  }
+
   const assertCaseStudySourceShape = (
     html,
     slug,

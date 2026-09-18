@@ -1,19 +1,13 @@
 import { useMemo, useReducer, useCallback } from "react";
-import {
-  projectsData,
-  complexityOrder,
-  COMPLEXITY_LEVELS,
-  STATUSES,
-} from "../../data/projects";
+import { projectsData, STATUSES } from "../../data/projects";
 
 // Define explicit types for better type safety
-type SortByType = "date" | "complexity" | "name" | "category";
-type FilterableKeys = "category" | "complexity" | "status";
+type SortByType = "date" | "name" | "category";
+type FilterableKeys = "category" | "status";
 
 // State interface for better type safety
 interface ProjectsState {
   category: string;
-  complexity: string;
   status: string;
   sortBy: SortByType;
 }
@@ -40,7 +34,6 @@ type ProjectsAction =
 // 1. Define the base filter state first. This is the "source of truth" for filters.
 const initialFilterState = {
   category: "All" as const,
-  complexity: "All" as const,
   status: "All" as const,
 };
 
@@ -53,7 +46,6 @@ const initialState: ProjectsState = {
 // Sort options constant to avoid repetition
 const SORT_OPTIONS = [
   { value: "date" as const, label: "Date (Newest)" },
-  { value: "complexity" as const, label: "Complexity" },
   { value: "name" as const, label: "Name" },
   { value: "category" as const, label: "Category" },
 ] as const;
@@ -87,16 +79,12 @@ function projectsReducer(
 
 export function useProjects() {
   const [state, dispatch] = useReducer(projectsReducer, initialState);
-  const { category, complexity, status, sortBy } = state;
+  const { category, status, sortBy } = state;
 
-  // Get unique categories, complexities, and statuses
+  // Get unique categories and statuses
   const categories = useMemo(() => {
     const cats = [...new Set(projectsData.map((p) => p.category))];
     return ["All", ...cats];
-  }, []);
-
-  const complexities = useMemo(() => {
-    return ["All", ...COMPLEXITY_LEVELS];
   }, []);
 
   const statuses = useMemo(() => {
@@ -113,11 +101,6 @@ export function useProjects() {
   }, []);
 
   // Memoize stat card calculations
-  const expertProjectCount = useMemo(
-    () => projectsData.filter((p) => p.complexity === "Expert").length,
-    []
-  );
-
   const liveProjectCount = useMemo(
     () => projectsData.filter((p) => p.status === "Live").length,
     []
@@ -139,10 +122,8 @@ export function useProjects() {
   const filteredAndSortedProjects = useMemo(() => {
     const filtered = projectsData.filter((project) => {
       const categoryMatch = category === "All" || project.category === category;
-      const complexityMatch =
-        complexity === "All" || project.complexity === complexity;
       const statusMatch = status === "All" || project.status === status;
-      return categoryMatch && complexityMatch && statusMatch;
+      return categoryMatch && statusMatch;
     });
 
     // Create a new sorted array instead of mutating
@@ -150,8 +131,6 @@ export function useProjects() {
       switch (sortBy) {
         case "date":
           return new Date(b.date).getTime() - new Date(a.date).getTime();
-        case "complexity":
-          return complexityOrder[b.complexity] - complexityOrder[a.complexity];
         case "name":
           return a.title.localeCompare(b.title);
         case "category":
@@ -160,7 +139,7 @@ export function useProjects() {
           return 0;
       }
     });
-  }, [category, complexity, status, sortBy]);
+  }, [category, status, sortBy]);
 
   // Event handlers using useCallback for performance
   const handleFilterChange = useCallback(
@@ -176,13 +155,6 @@ export function useProjects() {
 
   const handleShowAllProjects = useCallback(() => {
     dispatch({ type: "RESET_FILTERS" });
-  }, []);
-
-  const handleShowExpertProjects = useCallback(() => {
-    dispatch({
-      type: "APPLY_QUICK_FILTER",
-      payload: { filterName: "complexity", value: "Expert" },
-    });
   }, []);
 
   const handleShowLiveProjects = useCallback(() => {
@@ -201,20 +173,18 @@ export function useProjects() {
 
   return {
     // Grouped state for better organization
-    state: { category, complexity, status, sortBy },
+    state: { category, status, sortBy },
 
     // Grouped data for derived values
     data: {
       filteredAndSortedProjects,
       categories,
-      complexities,
       statuses,
       allTechnologies,
     },
 
     // Grouped statistics
     stats: {
-      expertProjectCount,
       liveProjectCount,
       techProjectCounts,
     },
@@ -224,7 +194,6 @@ export function useProjects() {
       handleFilterChange,
       handleSortChange,
       handleShowAllProjects,
-      handleShowExpertProjects,
       handleShowLiveProjects,
     },
 

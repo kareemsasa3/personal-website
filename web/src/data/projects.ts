@@ -1,10 +1,4 @@
 // Configuration constants for better type safety and maintainability
-export const COMPLEXITY_LEVELS = [
-  "Beginner",
-  "Intermediate",
-  "Advanced",
-  "Expert",
-] as const;
 export const STATUSES = [
   "Live",
   "Development",
@@ -20,26 +14,15 @@ export const CATEGORIES = [
   "Portfolio",
 ] as const;
 
-// Complexity order for sorting
-export const complexityOrder: Record<
-  (typeof COMPLEXITY_LEVELS)[number],
-  number
-> = {
-  Expert: 4,
-  Advanced: 3,
-  Intermediate: 2,
-  Beginner: 1,
-};
-
 export interface Project {
   id: string;
   category: (typeof CATEGORIES)[number];
   date: string;
   title: string;
   description: string;
+  shortDescription: string;
   techStack: string[];
   features: string[];
-  complexity: (typeof COMPLEXITY_LEVELS)[number];
   status: (typeof STATUSES)[number];
   url: string;
   githubUrl?: string;
@@ -56,6 +39,8 @@ export const projectsData: Project[] = [
     title: "Erebus OS",
     description:
       "Event-driven coordination layer for Linux that captures system context, tracks inferred state, and turns reactive troubleshooting into auditable operational understanding.",
+    shortDescription:
+      "Event-driven Linux coordination layer with replayable system state.",
     techStack: ["Python", "SQLite", "systemd", "FTS5", "Wayland", "D-Bus"],
     features: [
       "Real-time system emitters (GPU, network, window focus, screen lock)",
@@ -64,7 +49,6 @@ export const projectsData: Project[] = [
       "Full-text search over system event history",
       "Append-only audit log with replay determinism",
     ],
-    complexity: "Expert",
     status: "Active development",
     url: "#",
     highlights: [
@@ -80,6 +64,8 @@ export const projectsData: Project[] = [
     title: "Aether",
     description:
       "Real-time audio infrastructure for Linux that publishes live acoustic state through lock-free shared memory for low-latency cross-process consumers.",
+    shortDescription:
+      "PipeWire audio analysis exposed to cross-process consumers through shared memory.",
     techStack: ["Python", "PipeWire", "Shared Memory", "OpenRGB", "systemd"],
     features: [
       "Lock-free IPC via memory-mapped files",
@@ -88,7 +74,6 @@ export const projectsData: Project[] = [
       "300+ LED hardware sync via OpenRGB",
       "15+ visualization styles",
     ],
-    complexity: "Expert",
     status: "Completed",
     url: "https://github.com/kareemsasa3/aether",
     githubUrl: "https://github.com/kareemsasa3/aether",
@@ -105,6 +90,8 @@ export const projectsData: Project[] = [
     title: "Arachne",
     description:
       "Autonomous web research platform that searches, scrapes, versions, indexes, and synthesizes web content through a production-oriented Go and Next.js pipeline.",
+    shortDescription:
+      "Search-to-synthesis web research pipeline in Go and Next.js.",
     techStack: ["Go", "Next.js", "SQLite FTS5", "Redis", "Docker", "Chromedp"],
     features: [
       "Search → scrape → index → AI synthesis pipeline",
@@ -113,7 +100,6 @@ export const projectsData: Project[] = [
       "Microservices architecture with submodules",
       "Prometheus metrics and health monitoring",
     ],
-    complexity: "Expert",
     status: "Completed",
     url: "https://github.com/kareemsasa3/arachne",
     githubUrl: "https://github.com/kareemsasa3/arachne",
@@ -130,6 +116,8 @@ export const projectsData: Project[] = [
     title: "Personal Website",
     description:
       "Interactive developer portfolio built in React and TypeScript to present projects, work history, and systems thinking through a distinctive UI.",
+    shortDescription:
+      "This site: a React and TypeScript portfolio with a terminal interface.",
     techStack: ["React 18", "TypeScript", "Vite", "Framer Motion"],
     features: [
       "Terminal emulator with virtual filesystem",
@@ -137,7 +125,6 @@ export const projectsData: Project[] = [
       "Lazy loading with minimum display time",
       "Responsive design with theme support",
     ],
-    complexity: "Advanced",
     status: "Live",
     url: "https://github.com/kareemsasa3/personal-website",
     githubUrl: "https://github.com/kareemsasa3/personal-website",
@@ -154,6 +141,8 @@ export const projectsData: Project[] = [
     title: "Mnemosyne",
     description:
       "Source-first documentation and traceability system for mapping documented events, rules, oversight, and source-reported claims without asserting conclusions.",
+    shortDescription:
+      "Source-first traceability model for documented events, rules, and claims.",
     techStack: ["Python", "JSON Schema", "React", "Traceability", "Data Modeling"],
     features: [
       "Source-first event and claim modeling",
@@ -161,7 +150,6 @@ export const projectsData: Project[] = [
       "Read-only React projection viewer",
       "Anti-bleed boundaries between context and evidence",
     ],
-    complexity: "Advanced",
     status: "Active development",
     url: "#",
     highlights: [
@@ -177,6 +165,8 @@ export const projectsData: Project[] = [
     title: "kctl",
     description:
       "Local control plane for running staged, verifiable AI-assisted development workflows across repositories.",
+    shortDescription:
+      "Plans, runs, and verifies AI-assisted development work as logged stages.",
     techStack: ["Python", "Developer Tooling", "Automation", "CI", "Agent Workflows"],
     features: [
       "YAML execution plans for staged development runs",
@@ -184,7 +174,6 @@ export const projectsData: Project[] = [
       "Durable run logs and structured artifacts",
       "Multi-repository workflow coordination",
     ],
-    complexity: "Advanced",
     status: "Active development",
     url: "https://github.com/kareemsasa/kctl",
     githubUrl: "https://github.com/kareemsasa/kctl",
@@ -201,6 +190,8 @@ export const projectsData: Project[] = [
     title: "Operating System Audit",
     description:
       "Read-only OS snapshot and diff tool for detecting configuration, network, identity, persistence, and execution drift.",
+    shortDescription:
+      "Read-only OS snapshot and diff tool for detecting system drift.",
     techStack: ["Go", "Bash", "Security", "Systems", "CLI"],
     features: [
       "Read-only operating system snapshots",
@@ -208,7 +199,6 @@ export const projectsData: Project[] = [
       "Configuration, network, identity, and persistence checks",
       "Cross-platform CLI with embedded collectors",
     ],
-    complexity: "Advanced",
     status: "Demo-ready",
     url: "https://github.com/kareemsasa/operating-system-audit",
     githubUrl: "https://github.com/kareemsasa/operating-system-audit",
