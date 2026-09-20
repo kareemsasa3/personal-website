@@ -920,6 +920,9 @@ export default defineConfig(({ command, mode }) => {
   const hmrClientPort = resolveOptionalPort(
     env.HMR_CLIENT_PORT?.trim() || env.VITE_HMR_CLIENT_PORT?.trim()
   );
+  const allowedHosts = env.ALLOWED_HOSTS?.split(",")
+    .map((host) => host.trim())
+    .filter(Boolean);
 
   return {
     plugins:
@@ -932,6 +935,7 @@ export default defineConfig(({ command, mode }) => {
             port: devPort,
             strictPort: true,
             host: devHost, // Allow external connections
+            allowedHosts,
             open: true,
             hmr: {
               protocol: "ws",
