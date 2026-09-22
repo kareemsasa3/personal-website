@@ -573,6 +573,11 @@ const main = async () => {
     "what-should-the-agent-have-to-figure-out": {
       part: 3,
       previous: "the-work-the-agent-stopped-doing",
+      next: "the-centaur-era",
+    },
+    "the-centaur-era": {
+      part: 4,
+      previous: "what-should-the-agent-have-to-figure-out",
       next: null,
     },
   };
@@ -647,6 +652,7 @@ const main = async () => {
     "the-machine-should-explain-itself",
     "the-work-the-agent-stopped-doing",
     "what-should-the-agent-have-to-figure-out",
+    "the-centaur-era",
     "the-system-gets-a-brake-one-way-or-another",
     "bottlenecks-dont-disappear",
   ];
