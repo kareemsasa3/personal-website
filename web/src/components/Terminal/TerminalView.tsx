@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useLayoutEffect } from "react";
 import { AnimatePresence } from "framer-motion";
 import TypeWriterText from "../TypeWriterText";
 import "./TerminalView.css";
@@ -48,6 +48,7 @@ const TerminalView: React.FC<TerminalViewProps> = ({
   terminalRef,
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
+  const followOutputRef = useRef(true);
 
   // Focus input when prompt is shown
   useEffect(() => {
@@ -56,20 +57,19 @@ const TerminalView: React.FC<TerminalViewProps> = ({
     }
   }, [showPrompt]);
 
-  // Smart auto-scroll: only scroll to bottom if user is already near the bottom
-  useEffect(() => {
-    if (terminalRef.current) {
-      const container = terminalRef.current;
-      const isScrolledToBottom =
-        container.scrollHeight - container.clientHeight <=
-        container.scrollTop + 50; // 50px threshold
+  // Remember the user's position before new output changes the scroll height.
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const container = e.currentTarget;
+    followOutputRef.current =
+      container.scrollHeight - container.clientHeight - container.scrollTop <= 50;
+  };
 
-      // Only auto-scroll if user is already near the bottom
-      if (isScrolledToBottom) {
-        container.scrollTop = container.scrollHeight;
-      }
+  useLayoutEffect(() => {
+    const container = terminalRef.current;
+    if (container && followOutputRef.current) {
+      container.scrollTop = container.scrollHeight;
     }
-  }, [commandHistory, terminalRef]);
+  }, [commandHistory, showPrompt, terminalRef]);
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
@@ -78,9 +78,11 @@ const TerminalView: React.FC<TerminalViewProps> = ({
         if (reverseSearchResults.length > 0) {
           const selectedCommand = reverseSearchResults[reverseSearchIndex];
           onCommandChange(selectedCommand);
+          followOutputRef.current = true;
           onCommandSubmit();
         }
       } else if (currentCommand.trim()) {
+        followOutputRef.current = true;
         onCommandSubmit();
       }
     }
@@ -92,7 +94,7 @@ const TerminalView: React.FC<TerminalViewProps> = ({
   };
 
   return (
-    <div className="terminal-body" ref={terminalRef}>
+    <div className="terminal-body" ref={terminalRef} onScroll={handleScroll}>
       <div className="terminal-message">
         {!hasShownIntro ? (
           // Layout suppresses initial animations. Give the welcome its own
