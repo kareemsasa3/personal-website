@@ -378,10 +378,13 @@ export const useTerminal = (
         (cmd) => cmd.name === commandName
       );
       if (advancedCommand) {
-        // Execute advanced command
+        core.recordCommand(trimmedCommand);
+
+        // Execute advanced command against a snapshot of the transcript
+        const historySnapshot = core.state.commandHistory;
         const result = await advancedCommand.execute(
           args,
-          core.state.commandHistory,
+          historySnapshot,
           fileSystem,
           core.dispatch,
           core.state.currentDirectory,
@@ -391,24 +394,16 @@ export const useTerminal = (
           getFileContentByPath
         );
 
-        // Handle different result types
-        if (Array.isArray(result)) {
-          // HistoryEntry array
-          core.dispatch({
-            type: "SET_COMMAND_HISTORY",
-            payload: result,
-          });
-        } else if (
-          result &&
-          typeof result === "object" &&
-          "history" in result
-        ) {
-          // PipeResult - use the history
-          core.dispatch({
-            type: "SET_COMMAND_HISTORY",
-            payload: result.history,
-          });
-        }
+        // Append only the new output entries so the command entry, and anything
+        // submitted while an async command (curl) was pending, is preserved
+        const resultHistory = Array.isArray(result)
+          ? result
+          : result && typeof result === "object" && "history" in result
+            ? result.history
+            : [];
+        resultHistory.slice(historySnapshot.length).forEach((entry) => {
+          core.dispatch({ type: "ADD_HISTORY_ENTRY", payload: entry });
+        });
         return;
       }
 

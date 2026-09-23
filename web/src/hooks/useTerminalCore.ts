@@ -624,13 +624,9 @@ export const useTerminalCore = (
     state.nextHistoryId,
   ]);
 
-  // Execute command
-  const executeCommand = useCallback(
-    async (commandLine: string): Promise<void> => {
-      const trimmedCommand = commandLine.trim();
-      if (!trimmedCommand) return;
-
-      // Add command to history
+  // Record a submitted command line as a command entry in the transcript
+  const recordCommand = useCallback(
+    (trimmedCommand: string) => {
       const commandEntry = createHistoryEntry(
         trimmedCommand,
         "command",
@@ -642,6 +638,17 @@ export const useTerminalCore = (
         type: "SET_NEXT_HISTORY_ID",
         payload: state.nextHistoryId + 1,
       });
+    },
+    [state.nextHistoryId]
+  );
+
+  // Execute command
+  const executeCommand = useCallback(
+    async (commandLine: string): Promise<void> => {
+      const trimmedCommand = commandLine.trim();
+      if (!trimmedCommand) return;
+
+      recordCommand(trimmedCommand);
 
       // Parse command and arguments
       const parts = trimmedCommand.split(" ");
@@ -712,6 +719,7 @@ export const useTerminalCore = (
       fileSystem,
       onNavigate,
       dispatch,
+      recordCommand,
     ]
   );
 
@@ -904,6 +912,7 @@ export const useTerminalCore = (
 
     // Actions
     executeCommand,
+    recordCommand,
     handleTabComplete,
     setCurrentCommand,
     setShowPrompt,
