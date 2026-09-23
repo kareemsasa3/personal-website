@@ -1,4 +1,10 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, {
+  useEffect,
+  useState,
+  useCallback,
+  useMemo,
+  useRef,
+} from "react";
 import { useNavigate } from "react-router-dom";
 import "./Terminal.css";
 import "./TerminalErrorBoundary.css";
@@ -53,6 +59,18 @@ const Terminal: React.FC<TerminalProps> = ({ isIntro }) => {
     executeCommand,
   } = useTerminal(fileSystem, handleRouteNavigation, !isIntro);
 
+  // Submitted commands (oldest first) for Up/Down recall
+  const submittedCommands = useMemo(
+    () =>
+      coreState.commandHistory
+        .filter((entry) => entry.type === "command")
+        .map((entry) => entry.text),
+    [coreState.commandHistory]
+  );
+
+  // Input typed before history navigation started, restored past the newest entry
+  const historyDraftRef = useRef("");
+
   // Handle terminal close
   const handleTerminalClose = useCallback(() => {
     // Reset terminal state when closing
@@ -104,6 +122,7 @@ const Terminal: React.FC<TerminalProps> = ({ isIntro }) => {
 
   // Handle command submission
   const handleCommandSubmit = () => {
+    coreHandlers.resetHistoryIndex();
     if (coreState.isReverseSearch) {
       if (coreState.reverseSearchResults.length > 0) {
         const selectedCommand =
@@ -131,6 +150,10 @@ const Terminal: React.FC<TerminalProps> = ({ isIntro }) => {
       coreHandlers.updateReverseSearch(value, results);
     } else {
       coreHandlers.setCurrentCommand(value);
+      // Editing detaches the input from history navigation
+      if (coreState.historyIndex !== -1) {
+        coreHandlers.resetHistoryIndex();
+      }
     }
   };
 
@@ -140,6 +163,7 @@ const Terminal: React.FC<TerminalProps> = ({ isIntro }) => {
       e.preventDefault();
       const result = coreHandlers.handleTabComplete(coreState.currentCommand);
       coreHandlers.setCurrentCommand(result.currentCommand);
+      coreHandlers.resetHistoryIndex();
       coreHandlers.setAutocompleteIndex(result.autocompleteIndex);
       if (result.suggestions) {
         coreHandlers.dispatch({
@@ -153,14 +177,20 @@ const Terminal: React.FC<TerminalProps> = ({ isIntro }) => {
         // Navigate reverse search results up
         const newIndex = Math.max(0, coreState.reverseSearchIndex - 1);
         coreHandlers.setReverseSearchIndex(newIndex);
-      } else {
-        // Navigate history up
+      } else if (submittedCommands.length > 0) {
+        // Navigate history up (index 0 = newest submitted command)
         const currentIndex = coreState.historyIndex;
+        if (currentIndex === -1) {
+          historyDraftRef.current = coreState.currentCommand;
+        }
         const newIndex = Math.min(
-          coreState.commandHistory.length - 1,
+          submittedCommands.length - 1,
           currentIndex + 1
         );
         coreHandlers.setHistoryIndex(newIndex);
+        coreHandlers.setCurrentCommand(
+          submittedCommands[submittedCommands.length - 1 - newIndex]
+        );
       }
     } else if (e.key === "ArrowDown") {
       e.preventDefault();
@@ -171,11 +201,15 @@ const Terminal: React.FC<TerminalProps> = ({ isIntro }) => {
           coreState.reverseSearchIndex + 1
         );
         coreHandlers.setReverseSearchIndex(newIndex);
-      } else {
-        // Navigate history down
-        const currentIndex = coreState.historyIndex;
-        const newIndex = Math.max(-1, currentIndex - 1);
+      } else if (coreState.historyIndex !== -1) {
+        // Navigate history down, restoring the draft past the newest entry
+        const newIndex = coreState.historyIndex - 1;
         coreHandlers.setHistoryIndex(newIndex);
+        coreHandlers.setCurrentCommand(
+          newIndex === -1
+            ? historyDraftRef.current
+            : submittedCommands[submittedCommands.length - 1 - newIndex]
+        );
       }
     } else if (e.ctrlKey && e.key === "r") {
       e.preventDefault();
