@@ -141,12 +141,10 @@ const Terminal: React.FC<TerminalProps> = ({ isIntro }) => {
   // Handle command change
   const handleCommandChange = (value: string) => {
     if (coreState.isReverseSearch) {
-      // For reverse search, we need to filter command history
-      const results = coreState.commandHistory
-        .filter((entry) =>
-          entry.text.toLowerCase().includes(value.toLowerCase())
-        )
-        .map((entry) => entry.text);
+      // Reverse search matches submitted commands only, never output lines
+      const results = submittedCommands.filter((command) =>
+        command.toLowerCase().includes(value.toLowerCase())
+      );
       coreHandlers.updateReverseSearch(value, results);
     } else {
       coreHandlers.setCurrentCommand(value);
