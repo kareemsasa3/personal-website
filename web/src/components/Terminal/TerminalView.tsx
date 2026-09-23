@@ -1,4 +1,5 @@
 import React, { useRef, useEffect } from "react";
+import { AnimatePresence } from "framer-motion";
 import TypeWriterText from "../TypeWriterText";
 import "./TerminalView.css";
 
@@ -94,12 +95,16 @@ const TerminalView: React.FC<TerminalViewProps> = ({
     <div className="terminal-body" ref={terminalRef}>
       <div className="terminal-message">
         {!hasShownIntro ? (
-          <TypeWriterText
-            text="Welcome to my terminal."
-            delay={0}
-            speed={30}
-            onComplete={onIntroComplete}
-          />
+          // Layout suppresses initial animations. Give the welcome its own
+          // boundary so its completion callback can reveal the command prompt.
+          <AnimatePresence initial={true}>
+            <TypeWriterText
+              text="Welcome to my terminal."
+              delay={0}
+              speed={30}
+              onComplete={onIntroComplete}
+            />
+          </AnimatePresence>
         ) : (
           <span>Welcome to my terminal.</span>
         )}
