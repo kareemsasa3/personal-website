@@ -1,5 +1,7 @@
 # AI Usage Analytics: Metrics & Queries
 
+> **Status (2026-09-22):** This is a design reference for an AI-assistant backend that is not part of the current deployment. The production site is frontend-only, so none of the metrics below (`ai_chat_*`, `http_requests_total`) are emitted, and the frontend exposes no Prometheus metrics. For the current monitoring and analytics posture, see [`docs/infrastructure/MONITORING_SETUP.md`](infrastructure/MONITORING_SETUP.md).
+
 This document outlines product analytics metrics for the AI assistant. These can be implemented via Prometheus + Grafana (for operational/volume metrics) and optionally exported to a product analytics system later.
 
 ## Key Events & Counters (Prometheus)
