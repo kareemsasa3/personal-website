@@ -8,6 +8,7 @@ import {
   CoreTerminalAction,
 } from "../types/terminal";
 import { manPages } from "../data/manPages";
+import { tokenizeCommand } from "../utils/tokenizeCommand";
 
 // Type definition for TypewriterEffect (unused for now)
 // interface TypewriterEffect {
@@ -650,17 +651,21 @@ export const useTerminalCore = (
 
       recordCommand(trimmedCommand);
 
-      // Parse command and arguments
-      const parts = trimmedCommand.split(" ");
+      // Parse command and arguments; malformed quoting is reported without
+      // dispatching anything
+      const parsed = tokenizeCommand(trimmedCommand);
+      const parts = parsed.ok ? parsed.tokens : [];
       const commandName = parts[0];
       const args = parts.slice(1);
 
       // Find command
-      const command = commands.find((cmd) => cmd.name === commandName);
+      const command = parsed.ok
+        ? commands.find((cmd) => cmd.name === commandName)
+        : undefined;
 
       if (!command) {
         const errorEntry = createHistoryEntry(
-          `Command not found: ${commandName}`,
+          parsed.ok ? `Command not found: ${commandName}` : parsed.error,
           "error",
           false,
           state.nextHistoryId

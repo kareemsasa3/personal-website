@@ -11,6 +11,7 @@ import { useTerminalCore } from "./useTerminalCore";
 import { useTopCommand } from "./useTopCommand";
 import { getFileContentByPath } from "../data/fileContents";
 import { readVirtualFile } from "../utils/virtualFileSystem";
+import { tokenizeCommand } from "../utils/tokenizeCommand";
 
 // Helper function to create properly typed history entries
 const createHistoryEntry = (
@@ -368,10 +369,14 @@ export const useTerminal = (
       const trimmedCommand = commandLine.trim();
       if (!trimmedCommand) return;
 
-      // Parse command and arguments
-      const parts = trimmedCommand.split(" ");
-      const commandName = parts[0];
-      const args = parts.slice(1);
+      // Parse command and arguments. Malformed input falls through to the
+      // core executor, which records the command and prints the parse error.
+      const parsed = tokenizeCommand(trimmedCommand);
+      if (!parsed.ok) {
+        await core.executeCommand(commandLine);
+        return;
+      }
+      const [commandName, ...args] = parsed.tokens;
 
       // Check for advanced commands first
       const advancedCommand = advancedCommands.find(
