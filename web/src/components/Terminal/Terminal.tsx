@@ -189,7 +189,9 @@ const Terminal: React.FC<TerminalProps> = ({ isIntro }) => {
   return (
     <TerminalErrorBoundary>
       <div
-        className={`terminal-screen ${isIntro ? "intro-mode" : "route-mode"}`}
+        className={`terminal-screen ${isIntro ? "intro-mode" : "route-mode"} ${
+          windowManagement.isMaximized ? "window-maximized" : ""
+        }`}
       >
         {!isIntro && (
           <div className="terminal-route-intro">

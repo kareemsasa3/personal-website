@@ -55,6 +55,17 @@
   justify-content: center;
 }
 
+/*
+  A maximized window covers the viewport, so the terminal must layer above the
+  fixed site header (9998 desktop wrapper, 10001 mobile .site-header), or the
+  header intercepts clicks on the window controls. Scoping the context to the
+  screen keeps the window, sidecar and man/top/vim overlays in their existing
+  relative order.
+*/
+.terminal-screen.window-maximized {
+  z-index: 10002;
+}
+
 .terminal-route-intro {
   position: absolute;
   top: 2rem;
