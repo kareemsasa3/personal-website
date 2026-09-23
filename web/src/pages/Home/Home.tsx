@@ -9,6 +9,7 @@ import {
   FeaturedProjectsSection,
   CapabilitiesSection,
   ContactStripSection,
+  ExplorationChoiceSection,
 } from "./sections";
 
 const Home = () => {
@@ -158,6 +159,7 @@ const Home = () => {
         <div id="contact">
           <ContactStripSection />
         </div>
+        <ExplorationChoiceSection />
       </div>
     </div>
   );

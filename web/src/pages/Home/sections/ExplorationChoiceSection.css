@@ -1,0 +1,88 @@
+.exploration-choice {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: clamp(24px, 6vw, 64px);
+  padding: 1rem 0 max(4rem, env(safe-area-inset-bottom));
+}
+
+.exploration-pill {
+  display: grid;
+  place-items: center;
+  width: 112px;
+  height: 64px;
+  flex: 0 0 112px;
+  border-radius: 999px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.exploration-pill--red {
+  --pill-color: #dc3847;
+  --pill-light: #ff7c83;
+  --pill-dark: #701421;
+}
+
+.exploration-pill--blue {
+  --pill-color: #2677dc;
+  --pill-light: #80b9ff;
+  --pill-dark: #123a78;
+}
+
+.exploration-pill-capsule {
+  position: relative;
+  width: 96px;
+  height: 38px;
+  border: 1px solid color-mix(in srgb, var(--pill-light) 65%, var(--pill-dark));
+  border-radius: 999px;
+  background:
+    linear-gradient(90deg, transparent 49%, rgba(0, 0, 0, 0.24) 49.5%, rgba(255, 255, 255, 0.22) 51%, transparent 52%),
+    linear-gradient(90deg, transparent 50%, rgba(0, 0, 0, 0.16) 50%),
+    linear-gradient(180deg, var(--pill-light), var(--pill-color) 35%, var(--pill-dark));
+  box-shadow:
+    inset 0 2px 3px rgba(255, 255, 255, 0.3),
+    inset 0 -4px 6px rgba(0, 0, 0, 0.3),
+    0 6px 12px rgba(0, 0, 0, 0.3),
+    0 0 14px color-mix(in srgb, var(--pill-color) 15%, transparent);
+  transition: transform 180ms ease, filter 180ms ease;
+}
+
+.exploration-pill-capsule::before {
+  content: "";
+  position: absolute;
+  top: 5px;
+  left: 13px;
+  right: 13px;
+  height: 6px;
+  border-radius: inherit;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+}
+
+.exploration-pill:focus-visible {
+  outline: 2px solid var(--text-color);
+  outline-offset: 4px;
+}
+
+.exploration-pill:focus-visible .exploration-pill-capsule {
+  filter: brightness(1.15);
+}
+
+@media (hover: hover) {
+  .exploration-pill:hover .exploration-pill-capsule {
+    transform: translateY(-3px);
+    filter: brightness(1.15);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .exploration-pill .exploration-pill-capsule {
+    transition: none;
+    transform: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .exploration-pill-capsule {
+    border: 2px solid LinkText;
+  }
+}
