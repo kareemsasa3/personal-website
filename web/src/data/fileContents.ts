@@ -99,7 +99,7 @@ export const fileContents: FileContent[] = [
       "Intentional architecture note describing how the portfolio terminal fits into the app",
   },
   {
-    path: "work/resolute consulting group",
+    path: "experience/resolute consulting group",
     content: [
       "# Lead Software Consultant - Resolute Consulting Group",
       "",
@@ -127,7 +127,7 @@ export const fileContents: FileContent[] = [
       "Current consulting role focused on modernization, platform stability, and cross-stack delivery",
   },
   {
-    path: "work/capgemini",
+    path: "experience/capgemini",
     content: [
       "# Full Stack Developer - Capgemini",
       "",
@@ -153,7 +153,7 @@ export const fileContents: FileContent[] = [
     description: "Enterprise full-stack delivery experience for global clients",
   },
   {
-    path: "work/varsity tutors",
+    path: "experience/varsity tutors",
     content: [
       "# Programming Tutor - Varsity Tutors",
       "",
@@ -174,7 +174,7 @@ export const fileContents: FileContent[] = [
     description: "Programming instruction focused on fundamentals, interviews, and practical problem solving",
   },
   {
-    path: "work/outlier ai",
+    path: "experience/outlier ai",
     content: [
       "# AI Training Specialist - Outlier AI",
       "",
@@ -194,7 +194,7 @@ export const fileContents: FileContent[] = [
     description: "AI evaluation work focused on reasoning quality and feedback loops",
   },
   {
-    path: "work/freelance",
+    path: "experience/freelance",
     content: [
       "# Freelance",
       "",

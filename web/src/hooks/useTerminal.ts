@@ -10,6 +10,7 @@ import {
 import { useTerminalCore } from "./useTerminalCore";
 import { useTopCommand } from "./useTopCommand";
 import { getFileContentByPath } from "../data/fileContents";
+import { readVirtualFile } from "../utils/virtualFileSystem";
 
 // Helper function to create properly typed history entries
 const createHistoryEntry = (
@@ -50,6 +51,9 @@ const getCurrentDirectoryItems = (
   return currentItems;
 };
 
+const fileErrorMessage = (status: "directory" | "missing"): string =>
+  status === "directory" ? "Is a directory" : "No such file or directory";
+
 // Advanced Command Implementations
 
 class TopCommand implements Command {
@@ -78,7 +82,7 @@ class CatCommand implements Command {
   execute(
     args: string[],
     history: HistoryEntry[],
-    _fileSystem: FileSystemItem[],
+    fileSystem: FileSystemItem[],
     _dispatch: React.Dispatch<CoreTerminalAction>,
     currentDirectory: string,
     _onNavigate?: (route: string) => void,
@@ -94,24 +98,17 @@ class CatCommand implements Command {
     }
 
     const fileName = args[0];
-    let filePath = fileName;
-
-    // Handle relative paths
-    if (!fileName.startsWith("/")) {
-      if (currentDirectory.endsWith("/")) {
-        filePath = currentDirectory + fileName;
-      } else {
-        filePath = currentDirectory + "/" + fileName;
-      }
-    }
-
-    // Try to get file content
-    const fileContent = getFileContent ? getFileContent(filePath) : null;
-    if (!fileContent) {
+    const file = readVirtualFile(
+      fileSystem,
+      currentDirectory,
+      fileName,
+      getFileContent
+    );
+    if (file.status !== "file") {
       return [
         ...history,
         createHistoryEntry(
-          `cat: ${fileName}: No such file or directory`,
+          `cat: ${fileName}: ${fileErrorMessage(file.status)}`,
           "error"
         ),
       ];
@@ -119,7 +116,7 @@ class CatCommand implements Command {
 
     return [
       ...history,
-      createHistoryEntry(fileContent.content.join("\n"), "success"),
+      createHistoryEntry(file.content.join("\n"), "success"),
     ];
   }
 
@@ -143,7 +140,7 @@ class GrepCommand implements Command {
   execute(
     args: string[],
     history: HistoryEntry[],
-    _fileSystem: FileSystemItem[],
+    fileSystem: FileSystemItem[],
     _dispatch: React.Dispatch<CoreTerminalAction>,
     currentDirectory: string,
     _onNavigate?: (route: string) => void,
@@ -164,26 +161,22 @@ class GrepCommand implements Command {
       lines = stdin;
     } else if (fileName) {
       // Read from file
-      let filePath = fileName;
-      if (!fileName.startsWith("/")) {
-        if (currentDirectory.endsWith("/")) {
-          filePath = currentDirectory + fileName;
-        } else {
-          filePath = currentDirectory + "/" + fileName;
-        }
-      }
-
-      const fileContent = getFileContent ? getFileContent(filePath) : null;
-      if (!fileContent) {
+      const file = readVirtualFile(
+        fileSystem,
+        currentDirectory,
+        fileName,
+        getFileContent
+      );
+      if (file.status !== "file") {
         return [
           ...history,
           createHistoryEntry(
-            `grep: ${fileName}: No such file or directory`,
+            `grep: ${fileName}: ${fileErrorMessage(file.status)}`,
             "error"
           ),
         ];
       }
-      lines = fileContent.content;
+      lines = file.content;
     } else {
       return [
         ...history,
@@ -236,7 +229,7 @@ class WcCommand implements Command {
   execute(
     args: string[],
     history: HistoryEntry[],
-    _fileSystem: FileSystemItem[],
+    fileSystem: FileSystemItem[],
     _dispatch: React.Dispatch<CoreTerminalAction>,
     currentDirectory: string,
     _onNavigate?: (route: string) => void,
@@ -252,26 +245,22 @@ class WcCommand implements Command {
     } else if (args.length > 0) {
       // Read from file
       const fileName = args[0];
-      let filePath = fileName;
-      if (!fileName.startsWith("/")) {
-        if (currentDirectory.endsWith("/")) {
-          filePath = currentDirectory + fileName;
-        } else {
-          filePath = currentDirectory + "/" + fileName;
-        }
-      }
-
-      const fileContent = getFileContent ? getFileContent(filePath) : null;
-      if (!fileContent) {
+      const file = readVirtualFile(
+        fileSystem,
+        currentDirectory,
+        fileName,
+        getFileContent
+      );
+      if (file.status !== "file") {
         return [
           ...history,
           createHistoryEntry(
-            `wc: ${fileName}: No such file or directory`,
+            `wc: ${fileName}: ${fileErrorMessage(file.status)}`,
             "error"
           ),
         ];
       }
-      lines = fileContent.content;
+      lines = file.content;
     } else {
       return [
         ...history,
