@@ -47,7 +47,7 @@ The recording mechanism kept going. Every finding received a numbered backlog ID
 
 The reference document preserved information, but determining what it asked us to do became harder. Was an entry evidence of something once noticed, a decision to fix it, or unfinished work that belonged somewhere else? The number made those distinctions look settled when they were not.
 
-The growing finding count had started to look like progress. It was not. It was inventory.
+The growing finding count had started to look like progress, but it was inventory.
 
 An ID is not a promise. But the old recording convention had made it function like one. The conversion record describes the result directly: severity and intent-to-fix had become the same axis. Noticing a problem gave it a permanent place in the backlog without a separate decision about whether it deserved remediation.
 
