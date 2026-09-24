@@ -144,7 +144,7 @@ The reader may be an agent or an operator at one in the morning. The questions a
 
 I do not want an environment that answers every question in advance. I want one that is strict about which questions are closed, honest about which are half-closed, and unwilling to let an open one look finished.
 
-The agent should have to figure out what is still actually open: the contradiction that appeared this morning, the tradeoff nobody has scored, the script whose intent was never stated, the recovery design that waits on a preference nobody has chosen. It should not have to figure out, again, who owns the service, whether the pruning failure is work, or whether last year's conversion record is current policy. And it should not be handed unsolved problems in the file format of policy. The environment's job is to make the second list short and the first list visible. Not to make the first list disappear.
+The agent should have to figure out what is still actually open: the contradiction that appeared this morning, the tradeoff nobody has scored, the script whose intent was never stated, the recovery design that waits on a preference nobody has chosen. It should not have to figure out, again, who owns the service, whether the pruning failure is work, or whether last year's conversion record is current policy. And it should not be handed unsolved problems in the file format of policy. The environment's job is to make the second list short and the first list visible.
 
 ---
 
