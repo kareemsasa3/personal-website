@@ -20,7 +20,7 @@ series:
 
 In June 1998, a year after IBM’s Deep Blue defeated him in a match the world treated as a referendum on the human mind, Garry Kasparov sat down in León, Spain, not to play against a machine but to play *with* one. Across the board was Veselin Topalov. Each man had a PC and a chess engine. Kasparov called the format Advanced Chess. The idea was architectural. If a machine could search more positions than any grandmaster could hold in working memory, and a human could still decide which lines were worth searching, then the interesting unit of intelligence was no longer either participant. It was the coupled system.
 
-A month earlier, in ordinary rapid chess, Kasparov had beaten Topalov 4–0. In León they drew 3–3. Kasparov’s own account, written a decade later, is that his advantage in calculating tactics had been nullified by the machine. The engines did not automatically produce a higher form of play. They levelled the board. Whatever the coupled system was going to add would have to come from somewhere else. Collaboration was itself a skill.
+A month earlier, in ordinary rapid chess, Kasparov had beaten Topalov 4–0. In León they drew 3–3. Kasparov’s own account, written a decade later, is that his advantage in calculating tactics had been nullified by the machine. The engines levelled the board. Whatever the coupled system was going to add would have to come from somewhere else. Collaboration was itself a skill.
 
 That is the part of the story worth keeping. Chess is the metaphor, not the subject.
 
@@ -28,13 +28,13 @@ That is the part of the story worth keeping. Chess is the metaphor, not the subj
 
 The result that made the metaphor travel arrived in 2005, in an online “freestyle” tournament that permitted any combination of humans and computers. Grandmasters entered with strong hardware and strong colleagues. So did Hydra, a chess-specific supercomputer that, the same month, beat one of the ten highest-rated players in the world by five and a half games to a half. Neither version of Hydra reached the quarterfinals. The winners were two American amateurs, Steven Cramton and Zackary Stephen, rated well below master level, operating three ordinary PCs. Kasparov’s distillation, written five years later, has been repeated ever since: weak human plus machine plus better process was superior to a strong computer alone, and, more remarkably, superior to a strong human plus machine plus inferior process.
 
-What the amateurs were good at was not chess in the romantic sense. They ran four engines across their three machines, and in Kasparov’s telling their skill lay in manipulating and coaching those engines to look very deeply into the positions that mattered. The machine was not an oracle. It was an instrument whose attention could be aimed. The human contribution was already migrating: away from making the move, toward deciding how the move would be produced.
+What the amateurs were good at was not chess in the romantic sense. They ran four engines across their three machines, and in Kasparov’s telling their skill lay in manipulating and coaching those engines to look very deeply into the positions that mattered. The machine was an instrument whose attention could be aimed. The human contribution was already migrating: away from making the move, toward deciding how the move would be produced.
 
-That migration is the subject here. Not whether AI will “augment” us. It already does. The question is what happens when the human contribution shifts from performing the work to deciding what work should happen, what constraints should govern it, when the machine has done enough, and when control must return to a person.
+That migration is the subject here. The question is what happens when the human contribution shifts from performing the work to deciding what work should happen, what constraints should govern it, when the machine has done enough, and when control must return to a person.
 
 ## Five stages of a coupled system
 
-The shift does not arrive all at once. It proceeds through stages that look, from the inside, like ordinary improvements in tooling.
+The shift proceeds through stages that look, from the inside, like ordinary improvements in tooling.
 
 First, a human performs the work. Judgment, memory, drafting, calculation, and execution live in one skull. Errors are human errors. Responsibility is easy to locate because almost nothing else was involved.
 
@@ -42,7 +42,7 @@ Second, a human uses a machine as a tool. Spreadsheet, compiler, search engine, 
 
 Third, a human delegates substantial cognitive work to an AI system. Draft this. Compare these options. Write the function. Summarize the docket. Simulate the scenario. The human remains, in principle, the author. In practice the human becomes an editor of machine-generated intermediates. Much of what used to count as thinking now arrives pre-shaped.
 
-Fourth, a human designs, supervises, and governs systems of agents that perform work. The object of attention is no longer a document or a function. It is a process that can continue while the human is elsewhere. The human sets objectives, boundaries, budgets, tools, and stopping conditions. Execution becomes a property of the system. The human role becomes gubernatorial.
+Fourth, a human designs, supervises, and governs systems of agents that perform work. The object of attention shifts from a document or a function to a process that can continue while the human is elsewhere. The human sets objectives, boundaries, budgets, tools, and stopping conditions. Execution becomes a property of the system. The human role becomes gubernatorial.
 
 Fifth, still partly prospective but already visible in narrow domains, the machine becomes capable enough that the human’s direct contribution is no longer justified by performance alone. Intervention starts to look like noise. The remaining arguments for keeping a person in the circuit are no longer about quality of output. They are about legitimacy, liability, values, and the right to refuse a course of action that would, by the machine’s lights, succeed.
 
@@ -52,7 +52,7 @@ Most knowledge work is now distributed across stages two through four, often in 
 
 It is tempting to draw two columns and call the problem solved. On one side: search, recall, calculation, drafting, coding, comparison, simulation, classification, monitoring, execution, coordination among machines. On the other: intent, values, contextual judgment, constraints, skepticism, escalation, acceptance criteria, accountability, the decision to intervene, the decision that the system is solving the wrong problem.
 
-The columns are not false. They are unstable.
+The columns are accurate but unstable.
 
 They assume complementarity that does not have to persist. Chess already showed this. Centaur play was interesting while humans and engines had different failure modes. Humans blundered tactically; engines were strategically crude, or at least differently crude. A person who could aim the search still added something. Even then the margin was thinner than the story suggests. A later engine-based analysis of the freestyle games from 2005 to 2008 found that the human–machine teams matched a strong engine’s preferred move more often than computers playing alone did, but did not clearly beat those computers on average error. Then the engines became overwhelmingly strong, first by raw search and later by self-play learning that produced superhuman evaluation from nothing but the rules of the game. The value of overriding the machine declined. In many positions the human’s distinctive contribution became the ability to make the line worse. Complementarity had been a temporary fact about two kinds of error, not a law of nature.
 
@@ -62,7 +62,7 @@ Knowledge work is not chess. The board is not fully observable, the rules are no
 
 ## Shared control is not a feeling
 
-The centaur, properly understood, is not a mascot for teamwork. It is an architecture of shared control.
+Properly understood, the centaur is an architecture of shared control.
 
 The important questions in that architecture are operational. Who may start a process, extend it, spend money, change state in the world, send a message that cannot be unsent? What evidence is required before the next step is authorized? What conditions force a halt even if the system can continue? Who is answerable when the halt does not come?
 
@@ -96,7 +96,7 @@ There is an uncomfortable possibility that the centaur era is transitional.
 
 Centaur chess was genuine for a window of years in which humans and machines had complementary strengths and the interface still rewarded craft. Then the machines pulled away. Kasparov, looking back over the whole arc of human–machine chess, put the general shape plainly: the computers went quickly from too weak to too strong, and the genuinely fascinating contests occupied a span of about ten years in between. People still play chess. They play it in a world where the strongest play is not human, and where a person at the keyboard is no longer expected to improve on the strongest engine’s move.
 
-Other cognitive domains may not close that cleanly. Law, medicine, management, engineering, and politics are soaked in contested purposes. There is no single evaluation function hiding under the paperwork. Even so, inside many subtasks, such as retrieval, first drafts, code synthesis, reconciliation, and log monitoring, the performance gap is already large. The human who insists on performing those subtasks by hand is not defending judgment. They are defending a habit.
+Other cognitive domains may not close that cleanly. Law, medicine, management, engineering, and politics are soaked in contested purposes. There is no single evaluation function hiding under the paperwork. Even so, inside many subtasks, such as retrieval, first drafts, code synthesis, reconciliation, and log monitoring, the performance gap is already large. The human who insists on performing those subtasks by hand is defending a habit rather than judgment.
 
 If that trajectory continues, the centaur era is the period in which society still gets to decide which forms of human authority are worth preserving before capability alone answers the question for us.
 
@@ -104,13 +104,13 @@ That distinction is the one most easily lost. A machine being better at making a
 
 Some decisions should remain human-controlled even when a system would score higher on the local metric. Not because human judgment is superior, since often it is not, but because some acts are exercises of authority rather than of optimization. The measure itself may be in dispute. People may refuse to be governed by a process they cannot contest. Accountability that cannot land on a person becomes, in practice, accountability that lands on no one.
 
-The reverse error is just as available: treating the final button-press as proof that authority has been retained. A button is not a philosophy of control. If the person pressing it cannot evaluate the action, cannot refuse it without institutional penalty, and cannot explain it afterward except by pointing at the model, then the human in the loop is a liability shield. That is not preservation of agency. It is the appearance of agency purchased at the price of its contents.
+The reverse error is just as available: treating the final button-press as proof that authority has been retained. A button is not a philosophy of control. If the person pressing it cannot evaluate the action, cannot refuse it without institutional penalty, and cannot explain it afterward except by pointing at the model, then the human in the loop is a liability shield.
 
 ## What we are still deciding
 
-The important question is no longer merely what the machine can do. It is what role remains for the human when the machine can do it better. And it is which of those remaining roles we are prepared to defend on grounds other than accuracy.
+The important question now is what role remains for the human when the machine can do it better. And it is which of those remaining roles we are prepared to defend on grounds other than accuracy.
 
-That is not a question a benchmark can close. It has to be answered domain by domain, with an unsentimental inventory of what the human is actually contributing: not what we hope they contribute, not what the org chart says, but what would change if they stopped. In some places the honest answer will be almost nothing about the quality of the artifact, and a great deal about who may be blamed. That answer is information. It tells you the human role has already become ceremonial, and that ceremony is being asked to carry a weight it cannot bear.
+That is not a question a benchmark can close. It has to be answered domain by domain, with an unsentimental inventory of what the human is actually contributing, measured by what would change if they stopped. In some places the honest answer will be almost nothing about the quality of the artifact, and a great deal about who may be blamed. That answer is information. It tells you the human role has already become ceremonial, and that ceremony is being asked to carry a weight it cannot bear.
 
 In other places the human is still doing the only work that makes the rest of the work make sense: choosing the objective, naming the constraint that must not be optimized away, noticing that the system is succeeding at a proxy, deciding that continuation is no longer authorized. Those are governor functions. They survive the loss of complementarity only if they are treated as real work—trained, resourced, and allowed to halt a process that is performing well.
 
