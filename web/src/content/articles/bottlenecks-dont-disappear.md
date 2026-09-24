@@ -30,7 +30,7 @@ Then someone doubles B's speed.
 
 Throughput rises. But it does not double, and it does not rise to A's capacity or to B's new capacity. It rises exactly to the capacity of C, which was never the problem before and is now the only problem. The queue that used to form in front of B forms in front of C. The people who used to be blamed for B are congratulated, and the people at C, who changed nothing, are suddenly the ones explaining themselves.
 
-Nothing was lost. The constraint did not vanish. It moved one step downstream.
+Nothing was lost. The constraint moved one step downstream.
 
 This is the whole field note in miniature. Every major innovation solves one constraint and, by solving it, exposes another. The organizations that come out ahead are not the ones that solve today's bottleneck fastest. They are the ones that spot the next one first, because the next one is not a surprise. It was there the whole time, hidden behind the constraint that was binding.
 
@@ -118,7 +118,7 @@ Most consulting engagements are not, at root, about the problem the client names
 
 ## 5. Generative AI did not remove the constraint. It inverted it.
 
-The current wave fits the model, with one feature that makes it unusually sharp: the constraint did not merely move, it flipped sign.
+The current wave fits the model, with one feature that makes it unusually sharp: the constraint flipped sign.
 
 ```text
    BEFORE                          AFTER
@@ -187,7 +187,7 @@ A practical exercise, which the deck poses and which works as a diagnostic for a
 
 > Take your team's biggest win of the past year. What problem disappeared? Now look downstream. What appeared right after it?
 
-If the second question has no answer, the new constraint has not yet been noticed. It is there. It is always there.
+If the second question has no answer, the new constraint has not yet been noticed. It is always there.
 
 ---
 
@@ -195,9 +195,9 @@ If the second question has no answer, the new constraint has not yet been notice
 
 Bottlenecks do not disappear. They move, and they move in a predictable direction: downstream, to the stage that was sized for the old rate and has not been resized for the new one. This is not an observation about technology cycles. It is a consequence of how throughput works in any system of dependent stages, and it has been formalized independently in operations management, computer architecture, and queueing theory.
 
-The current wave of generation tools is a textbook instance, distinguished only by the violence of the inversion: production, the binding constraint on knowledge work for as long as there has been knowledge work, is no longer binding, and the constraints that were always waiting behind it, attention, trust, judgment, coordination, and accountability, are now fully exposed. They were not created by the new tools. They were revealed by them.
+The current wave of generation tools is a textbook instance, distinguished only by the violence of the inversion: production, the binding constraint on knowledge work for as long as there has been knowledge work, is no longer binding, and the constraints that were always waiting behind it, attention, trust, judgment, coordination, and accountability, are now fully exposed.
 
-The organizations that will handle this well are not the ones with the highest generated volume. They are the ones that asked, before adopting anything, what would become the problem once the old problem was solved, and who would own it.
+The organizations that will handle this well are the ones that asked, before adopting anything, what would become the problem once the old problem was solved, and who would own it.
 
 ---
 ---
