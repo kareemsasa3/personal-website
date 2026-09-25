@@ -4,8 +4,7 @@
   justify-content: center;
   align-items: center;
   position: relative;
-  overflow-x: hidden;
-  overflow-y: visible;
+  /* No overflow clipping here: .page-content clips at the viewport so the prose-surface scrim can feather past this box */
   /* Fill the visible fold below the header and page padding, not a full viewport */
   min-height: calc(100svh - var(--site-header-measured-offset, 0px) - 2rem);
 }

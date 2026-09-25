@@ -4,8 +4,7 @@
   justify-content: flex-start;
   align-items: center;
   position: relative;
-  overflow-x: hidden;
-  overflow-y: visible;
+  /* No overflow clipping here: .page-content clips at the viewport so the prose-surface scrim can feather past this box */
 }
 
 .capabilities-content {
