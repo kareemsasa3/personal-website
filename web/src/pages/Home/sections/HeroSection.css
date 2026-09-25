@@ -50,8 +50,38 @@
 .hero-buttons {
   display: flex;
   justify-content: center;
+  align-items: center;
   flex-wrap: wrap;
   gap: 1.5rem;
+}
+
+/* Tertiary action: in-page jump, so a quiet text link instead of a third button */
+.hero-text-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 0.5rem;
+  border: none;
+  background: none;
+  color: var(--text-secondary);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--text-secondary) 45%, transparent);
+  text-underline-offset: 0.3em;
+  cursor: pointer;
+  transition: color 0.2s ease, text-decoration-color 0.2s ease;
+}
+
+.hero-text-link:hover {
+  color: var(--primary-color);
+  text-decoration-color: currentColor;
+}
+
+.hero-text-link:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 4px;
+  border-radius: 4px;
 }
 
 .hero-proof-strip {
@@ -145,16 +175,21 @@
     line-height: 1.55;
   }
 
+  /* Primary on its own row; secondary and the contact link share the row below */
   .hero-buttons {
-    gap: 1rem;
-    flex-direction: column;
-    align-items: center;
+    gap: 0.75rem 1rem;
     width: 100%;
+    max-width: 20rem;
+    margin: 0 auto;
   }
 
-  .hero-buttons .btn {
-    width: min(100%, calc(100vw - 2rem));
-    max-width: 280px;
+  .hero-buttons .btn-primary {
+    flex: 1 1 100%;
+  }
+
+  .hero-buttons .btn-secondary {
+    flex: 1 1 auto;
+    padding-inline: 1rem;
   }
 
   .hero-proof-strip {

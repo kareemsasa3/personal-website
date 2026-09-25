@@ -104,6 +104,8 @@ TABLE OF CONTENTS
 }
 
 .btn-primary {
+  /* Transparent border matches the 2px-bordered secondary/outline buttons so paired buttons share a height */
+  border: 2px solid transparent;
   background: var(--primary-color-dark);
 }
 

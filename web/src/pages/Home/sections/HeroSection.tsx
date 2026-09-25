@@ -98,7 +98,7 @@ export const HeroSection = ({
             {isNavigatingToWork ? "Loading..." : "View Experience"}
           </button>
           <button
-            className="btn btn-outline"
+            className="hero-text-link"
             onClick={onNavigateToContact}
             aria-label="Jump to contact links"
           >
