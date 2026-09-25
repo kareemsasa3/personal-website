@@ -78,7 +78,7 @@
 }
 
 /* High contrast mode support */
-@media (prefers-contrast: high) {
+@media (prefers-contrast: more) {
     .typewriter-text::after {
         color: var(--accent-color);
         font-weight: 900;

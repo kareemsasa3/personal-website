@@ -229,7 +229,7 @@ TABLE OF CONTENTS
    ======================================== */
 
 /* --- High Contrast Mode --- */
-@media (prefers-contrast: high) {
+@media (prefers-contrast: more) {
   .btn-primary {
     border: 2px solid white;
   }

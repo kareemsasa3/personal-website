@@ -626,7 +626,7 @@
 }
 
 /* High contrast mode support */
-@media (prefers-contrast: high) {
+@media (prefers-contrast: more) {
     .simulation-card {
         border: 2px solid var(--terminal-primary, #4CAF50);
     }

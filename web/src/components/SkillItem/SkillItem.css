@@ -100,7 +100,7 @@
 }
 
 /* High contrast mode support */
-@media (prefers-contrast: high) {
+@media (prefers-contrast: more) {
     .skill-item {
         border: 2px solid var(--primary-color);
     }
