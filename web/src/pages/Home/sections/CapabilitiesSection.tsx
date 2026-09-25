@@ -1,4 +1,3 @@
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import "./CapabilitiesSection.css";
 import { motion, MotionStyle } from "framer-motion";
 import { forwardRef, ForwardedRef } from "react";
@@ -30,7 +29,7 @@ export const CapabilitiesSection = forwardRef(
             {capabilitiesContent.title}
           </motion.h2>
           <motion.ul
-            className="capabilities-grid"
+            className="capabilities-list prose-surface"
             aria-label="Engineering capabilities"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -40,16 +39,15 @@ export const CapabilitiesSection = forwardRef(
             {capabilitiesContent.items.map((item, index) => (
               <motion.li
                 key={item.title}
-                className="capability-card interactive-card"
+                className="capability-row"
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-100px" }}
                 transition={{ duration: 0.6, delay: 0.5 + index * 0.08 }}
-                whileHover={{ y: -6, transition: { duration: 0.25 } }}
               >
-                <div className="card-icon" aria-hidden="true">
-                  <FontAwesomeIcon icon={item.icon} />
-                </div>
+                <span className="capability-index" aria-hidden="true">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
                 <h3>{item.title}</h3>
                 <p>{item.description}</p>
               </motion.li>
