@@ -19,6 +19,7 @@ interface ArticlePageProps {
 }
 
 const ArticlePage = ({ article }: ArticlePageProps) => {
+  const [activeHeading, setActiveHeading] = useState("");
   const [isSidebarWidth, setIsSidebarWidth] = useState(
     () => window.matchMedia(TOC_SIDEBAR_QUERY).matches
   );
@@ -33,8 +34,25 @@ const ArticlePage = ({ article }: ArticlePageProps) => {
     return () => query.removeEventListener("change", handleChange);
   }, []);
 
+  useEffect(() => {
+    const update = () => {
+      const offset = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--site-header-measured-offset")) || 0;
+      let current = article.toc[0]?.id ?? "";
+      for (const entry of article.toc) {
+        const heading = document.getElementById(entry.id);
+        if (heading && heading.getBoundingClientRect().top <= offset + 48) current = entry.id;
+      }
+      setActiveHeading(current);
+    };
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    return () => { window.removeEventListener("scroll", update); window.removeEventListener("resize", update); };
+  }, [article]);
+
+  const seriesArticles = articlesData.filter(entry => article.series && entry.series?.slug === article.series.slug);
   const otherArticles = articlesData.filter(
-    (entry) => entry.slug !== article.slug
+    (entry) => entry.slug !== article.slug && (!article.series || entry.series?.slug !== article.series.slug)
   );
   const showToc = article.toc.length >= MIN_TOC_ENTRIES;
   const usesNumberedHeadings = article.toc.every((entry) =>
@@ -50,11 +68,11 @@ const ArticlePage = ({ article }: ArticlePageProps) => {
           <span>{article.title}</span>
         </p>
 
-        <header className="article-header">
+        <header className="article-header prose-surface prose-surface--reading">
           <p className="article-eyebrow">{KIND_LABELS[article.kind]}</p>
           {article.series ? (
             <p className="article-series">
-              {formatSeriesPosition(article.series)} in {article.series.name}
+              {formatSeriesPosition(article.series)} in <a href="#in-this-series">{article.series.name}</a>
             </p>
           ) : null}
           <h1 className="article-title">{article.title}</h1>
@@ -67,6 +85,7 @@ const ArticlePage = ({ article }: ArticlePageProps) => {
             </time>
             <span aria-hidden="true"> · </span>
             <span>{article.readingMinutes} min read</span>
+            <span> · {article.provenance.sourceCount} sources · {article.provenance.factCheckRowCount} checked claims</span>
           </p>
         </header>
 
@@ -88,7 +107,7 @@ const ArticlePage = ({ article }: ArticlePageProps) => {
                 >
                   {article.toc.map((entry) => (
                     <li key={entry.id}>
-                      <a href={`#${entry.id}`}>{entry.label}</a>
+                      <a href={`#${entry.id}`} aria-current={activeHeading === entry.id ? "location" : undefined}>{entry.label}</a>
                     </li>
                   ))}
                 </ol>
@@ -97,7 +116,7 @@ const ArticlePage = ({ article }: ArticlePageProps) => {
           ) : null}
 
           <article
-            className="article-body"
+            className="article-body prose-surface prose-surface--reading"
             dangerouslySetInnerHTML={{ __html: article.bodyHtml }}
           />
         </div>
@@ -128,7 +147,7 @@ const ArticlePage = ({ article }: ArticlePageProps) => {
           </nav>
         ) : null}
 
-        <section className="article-provenance" aria-labelledby="provenance-title">
+        <section className="article-provenance prose-surface prose-surface--reading" aria-labelledby="provenance-title">
           <h2 id="provenance-title">Provenance</h2>
           <p className="article-provenance-note">
             This piece is published with the material behind it: what it argues
@@ -179,6 +198,9 @@ const ArticlePage = ({ article }: ArticlePageProps) => {
           </details>
         </section>
 
+        {seriesArticles.length > 0 && <nav id="in-this-series" className="article-footer prose-surface" aria-label="In this series">
+          <h2>In this series</h2><ol>{seriesArticles.map(entry => <li key={entry.slug}><Link to={`/writing/${entry.slug}`} aria-current={entry.slug === article.slug ? "page" : undefined}>{entry.title}</Link></li>)}</ol>
+        </nav>}
         {otherArticles.length > 0 ? (
           <footer className="article-footer">
             <h2>More writing</h2>

@@ -4,9 +4,9 @@ import { z } from "zod";
 
 // Schema validation for dock settings
 const DockSettingsSchema = z.object({
-  dockSize: z.number().min(20).max(80),
-  dockStiffness: z.number().min(50).max(1000),
-  magnification: z.number().min(0).max(100),
+  dockSize: z.number().min(40).max(60),
+  dockStiffness: z.number().min(200).max(600),
+  magnification: z.number().min(20).max(100),
 });
 
 // Unified state interface

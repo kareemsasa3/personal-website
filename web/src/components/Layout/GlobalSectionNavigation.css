@@ -126,3 +126,6 @@
         display: none;
     }
 }
+
+.nav-dot:focus-visible .dot-tooltip { opacity: 1; visibility: visible; }
+.nav-dot:focus-visible { outline: 2px solid var(--brand-primary); outline-offset: 4px; }

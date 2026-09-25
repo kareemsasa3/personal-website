@@ -1,3 +1,4 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import "./ContactStripSection.css";
 import { motion, MotionStyle } from "framer-motion";
 import { forwardRef, ForwardedRef } from "react";
@@ -64,7 +65,7 @@ export const ContactStripSection = forwardRef(
                 transition={{ duration: 0.45, delay: 0.3 + index * 0.08 }}
                 whileHover={{ y: -2 }}
               >
-                <span aria-hidden="true">{link.icon}</span>
+                <span aria-hidden="true"><FontAwesomeIcon icon={link.icon} /></span>
                 <span>{link.name}</span>
               </motion.a>
             ))}

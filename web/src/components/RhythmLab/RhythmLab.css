@@ -2042,3 +2042,10 @@
   font-size: 0.82rem;
   line-height: 1.4;
 }
+
+.rhythm-lab-header { width: min(86vw, 760px); flex-wrap: wrap; padding: .75rem; border: 1px solid rgba(76,175,80,.3); border-radius: .65rem; background: rgba(0,0,0,.65); }
+.rhythm-lab-hud { max-width: none; width: 100%; justify-content: flex-start; border-top: 1px solid rgba(76,175,80,.25); padding-top: .6rem; }
+.rhythm-lab-hud span { flex: 1 1 auto; box-shadow: none; }
+.rhythm-lab-audio-panel { max-width: 100%; }
+.rhythm-lab-stage { align-items: flex-start; }
+.rhythm-lab-note { box-shadow: 0 0 8px rgba(255,215,0,.4), inset 0 0 6px rgba(255,255,255,.25); }

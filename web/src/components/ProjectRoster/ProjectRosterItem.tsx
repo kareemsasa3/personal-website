@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Project } from "../../data/projects";
 import { caseStudyByProjectId } from "../../data/caseStudies";
@@ -13,20 +14,18 @@ const statusModifier = (status: string) =>
 interface ProjectRosterDetailProps {
   project: Project;
   detailId: string;
-  isExpanded: boolean;
 }
 
 const ProjectRosterDetail = ({
   project,
   detailId,
-  isExpanded,
 }: ProjectRosterDetailProps) => {
   const stackId = `${detailId}-stack`;
   const highlightsId = `${detailId}-highlights`;
   const featuresId = `${detailId}-features`;
 
   return (
-    <div id={detailId} className="project-roster__detail" hidden={!isExpanded}>
+    <div id={detailId} className="project-roster__detail">
       <p className="project-roster__description">{project.description}</p>
 
       <div className="project-roster__detail-grid">
@@ -103,6 +102,7 @@ interface ProjectRosterItemProps {
 }
 
 const ProjectRosterItem = ({ project }: ProjectRosterItemProps) => {
+  const reduceMotion = useReducedMotion();
   const [isExpanded, setIsExpanded] = useState(false);
   const caseStudy = caseStudyByProjectId[project.id];
   const titleId = `project-${project.id}-title`;
@@ -169,11 +169,11 @@ const ProjectRosterItem = ({ project }: ProjectRosterItemProps) => {
           </div>
         </div>
 
-        <ProjectRosterDetail
-          project={project}
-          detailId={detailId}
-          isExpanded={isExpanded}
-        />
+        <AnimatePresence initial={false}>
+          {isExpanded && <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: reduceMotion ? 0 : .18 }} style={{ overflow: "hidden" }}>
+            <ProjectRosterDetail project={project} detailId={detailId} />
+          </motion.div>}
+        </AnimatePresence>
       </article>
     </li>
   );

@@ -10,7 +10,7 @@ const getMeasuredHeaderOffset = () => {
   );
 
   if (!Number.isFinite(measuredHeaderOffset) || measuredHeaderOffset <= 0) {
-    return 96;
+    return 0;
   }
 
   return measuredHeaderOffset;
@@ -107,7 +107,7 @@ const GlobalSectionNavigation = () => {
       setActiveSection(sectionId);
       window.scrollTo({
         top: targetTop,
-        behavior: "smooth",
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
       });
     }
   };
@@ -120,6 +120,7 @@ const GlobalSectionNavigation = () => {
   return (
     <motion.nav
       className="global-section-navigation"
+      aria-label="Page sections"
       initial={{ opacity: 0, x: 50 }}
       animate={{
         opacity: 1,
@@ -136,6 +137,8 @@ const GlobalSectionNavigation = () => {
               }`}
               onClick={() => scrollToSection(section.id)}
               aria-label={`Go to ${section.label} section`}
+              aria-current={activeSection === section.id ? "location" : undefined}
+              title={section.label}
               whileHover={{ scale: 1.2 }}
               whileTap={{ scale: 0.95 }}
               animate={

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { TimelineEvent } from "../../data/timelineData";
 import { useTheme } from "../../contexts/ThemeContext";
@@ -15,9 +15,10 @@ const TimelineItem: React.FC<TimelineItemProps> = ({ data, isLeft }) => {
   const [isFlipped, setIsFlipped] = useState(false);
   const [loadedImageUrl, setLoadedImageUrl] = useState<string | null>(null);
   const { theme } = useTheme();
+  const reduceMotion = useReducedMotion();
 
   const itemVariants = {
-    hidden: { opacity: 0, x: isLeft ? -100 : 100 },
+    hidden: { opacity: 0, x: reduceMotion ? 0 : isLeft ? -100 : 100 },
     visible: {
       opacity: 1,
       x: 0,
@@ -102,17 +103,15 @@ const TimelineItem: React.FC<TimelineItemProps> = ({ data, isLeft }) => {
         className={`timeline-flip-container ${
           loadedImageUrl ? "has-image" : ""
         }`}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-        onClick={() => {
-          if (loadedImageUrl) setIsFlipped((v) => !v);
-        }}
+        onPointerEnter={(event) => { if (event.pointerType === "mouse") handleMouseEnter(); }}
+        onPointerLeave={(event) => { if (event.pointerType === "mouse") handleMouseLeave(); }}
+
       >
         <motion.div
           className="timeline-flip-card"
           variants={flipVariants}
           animate={isFlipped ? "back" : "front"}
-          transition={{ duration: 0.6, ease: "easeInOut" }}
+          transition={{ duration: reduceMotion ? 0 : 0.6, ease: "easeInOut" }}
           style={{ transformStyle: "preserve-3d" }}
         >
           {/* Front of card */}
@@ -141,7 +140,7 @@ const TimelineItem: React.FC<TimelineItemProps> = ({ data, isLeft }) => {
               <img
                 src={loadedImageUrl}
                 referrerPolicy="no-referrer"
-                alt="timeline visual"
+                alt={`${title} — timeline image`}
                 style={{
                   width: "100%",
                   height: "100%",
@@ -154,6 +153,7 @@ const TimelineItem: React.FC<TimelineItemProps> = ({ data, isLeft }) => {
             </motion.div>
           )}
         </motion.div>
+        {loadedImageUrl && <button className="timeline-flip-toggle" aria-pressed={isFlipped} aria-label={`${isFlipped ? "Show story" : "View image"}: ${title}`} onClick={() => setIsFlipped(v => !v)}>{isFlipped ? "Show story" : "View image"} ↻</button>}
       </div>
     </motion.div>
   );

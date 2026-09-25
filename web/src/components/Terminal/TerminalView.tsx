@@ -94,7 +94,9 @@ const TerminalView: React.FC<TerminalViewProps> = ({
   };
 
   return (
-    <div className="terminal-body" ref={terminalRef} onScroll={handleScroll}>
+    <div className="terminal-body" ref={terminalRef} onScroll={handleScroll} onClick={(event) => {
+      if (!window.getSelection()?.toString() && !(event.target as HTMLElement).closest("a, button")) inputRef.current?.focus();
+    }}>
       <div className="terminal-message">
         {!hasShownIntro ? (
           // Layout suppresses initial animations. Give the welcome its own

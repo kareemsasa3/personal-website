@@ -1,3 +1,5 @@
+import { faGithub, faLinkedin } from "@fortawesome/free-brands-svg-icons";
+import { faBrain, faCogs, faWrench, faChartLine, faEnvelope } from "@fortawesome/free-solid-svg-icons";
 // Site-wide copy and content strings
 // Centralized for easy updates without touching components
 
@@ -32,25 +34,25 @@ export const capabilitiesContent = {
     title: "How I Work",
     items: [
       {
-        icon: "🧠",
+        icon: faBrain,
         title: "Systems Architecture",
         description:
           "I design software around real operating conditions, failure boundaries, and long-term maintainability.",
       },
       {
-        icon: "⚙️",
+        icon: faCogs,
         title: "Event-Driven Design",
         description:
           "I model state from streams of system activity so behavior can be traced, replayed, and reasoned about later.",
       },
       {
-        icon: "🔧",
+        icon: faWrench,
         title: "Infrastructure Automation",
         description:
           "I build platform tooling and deployment workflows that reduce manual coordination and keep environments predictable.",
       },
       {
-        icon: "📈",
+        icon: faChartLine,
         title: "Observability and Reliability",
         description:
           "I prioritize visibility, auditability, and operational clarity so production behavior is easier to understand under load.",
@@ -66,17 +68,17 @@ export const socialContent = {
       {
         name: "GitHub",
         url: githubProfileUrl,
-        icon: "🐙",
+        icon: faGithub,
       },
       {
         name: "LinkedIn",
         url: "https://linkedin.com/in/kareem-sasa",
-        icon: "💼",
+        icon: faLinkedin,
       },
       {
         name: "Email",
         url: "mailto:kareemsasa.dev@proton.me",
-        icon: "✉️",
+        icon: faEnvelope,
       },
     ],
 } as const;

@@ -22,12 +22,14 @@ export interface Project {
   description: string;
   shortDescription: string;
   techStack: string[];
+  /** Concrete delivered capabilities. */
   features: string[];
   status: (typeof STATUSES)[number];
   url: string;
   githubUrl?: string;
   liveUrl?: string;
   image?: string;
+  /** Architecture, implementation decisions, and engineering distinctions; lifecycle belongs in status. */
   highlights: string[];
 }
 
@@ -36,7 +38,7 @@ export const projectsData: Project[] = [
     id: "erebus",
     category: "Systems Infrastructure",
     date: "2025",
-    title: "Erebus OS",
+    title: "Erebus",
     description:
       "Event-driven coordination layer for Linux that captures system context, tracks inferred state, and turns reactive troubleshooting into auditable operational understanding.",
     shortDescription:
@@ -54,7 +56,6 @@ export const projectsData: Project[] = [
     highlights: [
       "Belief-driven system state modeling",
       "Replayable operational history",
-      "Active development",
     ],
   },
   {
@@ -68,7 +69,6 @@ export const projectsData: Project[] = [
       "PipeWire audio analysis exposed to cross-process consumers through shared memory.",
     techStack: ["Python", "PipeWire", "Shared Memory", "OpenRGB", "systemd"],
     features: [
-      "Lock-free IPC via memory-mapped files",
       "7-band FFT analysis at ~23Hz",
       "~92ms end-to-end latency",
       "300+ LED hardware sync via OpenRGB",
@@ -78,7 +78,7 @@ export const projectsData: Project[] = [
     url: "https://github.com/kareemsasa3/aether",
     githubUrl: "https://github.com/kareemsasa3/aether",
     highlights: [
-      "Lock-free concurrent design",
+      "Lock-free IPC via memory-mapped files",
       "Low-latency shared-memory pipeline",
       "Architecture recognized publicly",
     ],
@@ -97,15 +97,13 @@ export const projectsData: Project[] = [
       "Search → scrape → index → AI synthesis pipeline",
       "Change detection and version history",
       "Full-text search powered by SQLite FTS5",
-      "Microservices architecture with submodules",
       "Prometheus metrics and health monitoring",
     ],
     status: "Completed",
     url: "https://github.com/kareemsasa3/arachne",
     githubUrl: "https://github.com/kareemsasa3/arachne",
     highlights: [
-      "Autonomous research workflows",
-      "Change tracking with searchable history",
+      "Microservices architecture with submodules",
       "Production-grade Go + Next.js architecture",
     ],
   },
@@ -155,7 +153,6 @@ export const projectsData: Project[] = [
     highlights: [
       "Source-first traceability",
       "Deterministic documentation model",
-      "Active development",
     ],
   },
   {
@@ -180,7 +177,6 @@ export const projectsData: Project[] = [
     highlights: [
       "Planned agent-assisted development runs",
       "Verifiable local workflow control",
-      "Active development",
     ],
   },
   {
@@ -205,7 +201,6 @@ export const projectsData: Project[] = [
     highlights: [
       "Read-only OS drift detection",
       "Deterministic snapshot comparisons",
-      "Demo-ready CLI",
     ],
   },
 ];

@@ -174,7 +174,7 @@ const main = async () => {
   assertNotIncludes(homepage, 'aria-label="Loading site"', "homepage shell aria-label");
 
   for (const [title, href] of [
-    ["Erebus OS", "/case-studies/erebus"],
+    ["Erebus", "/case-studies/erebus"],
     ["Arachne", "/case-studies/arachne"],
   ]) {
     assertIncludes(homepage, `<h3>${title}</h3>`, "homepage shell featured system title");
@@ -252,7 +252,7 @@ const main = async () => {
   assertBreadcrumb(structuredDataNodes(erebusCaseStudy), "/case-studies/erebus", [
     "Home",
     "Case Studies",
-    "Erebus OS",
+    "Erebus",
   ]);
   assertBreadcrumb(structuredDataNodes(experience), "/experience", [
     "Home",
@@ -400,7 +400,7 @@ const main = async () => {
 
   assertIncludes(
     erebusCaseStudy,
-    "<title>Erebus OS Case Study - Kareem Sasa</title>",
+    "<title>Erebus Case Study - Kareem Sasa</title>",
     "Erebus case study title"
   );
   assertIncludes(

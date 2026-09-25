@@ -60,7 +60,7 @@ const Work = () => {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <header className="work-header">
+      <header className="work-header prose-surface">
         <h1 className="work-title">
           <TypeWriterText
             key={`work-title-${location.pathname}`}

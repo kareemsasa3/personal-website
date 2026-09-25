@@ -115,44 +115,12 @@ This is useful for determining your current location in the file system.`,
   },
 
   cat: {
-    name: "cat - concatenate and display files",
-    synopsis: "cat [OPTION]... [FILE]...",
-    description: `Concatenate FILE(s) to standard output.
-
-With no FILE, or when FILE is -, read standard input.
-
-The cat command is used to display the contents of files. It can also be used 
-to concatenate multiple files and display them together. When used in pipes, 
-cat can read from standard input and pass data to other commands.`,
-    options: [
-      {
-        flag: "-n, --number",
-        description: "number all output lines",
-      },
-      {
-        flag: "-A, --show-all",
-        description: "equivalent to -vET",
-      },
-      {
-        flag: "-E, --show-ends",
-        description: "display $ at end of each line",
-      },
-    ],
-    examples: [
-      {
-        command: "cat README.md",
-        description: "Display contents of README.md",
-      },
-      {
-        command: "cat file1.txt file2.txt",
-        description: "Display contents of multiple files",
-      },
-      {
-        command: "cat projects/web/package.json | grep react",
-        description: "Use cat in a pipe to search for 'react'",
-      },
-    ],
-    seeAlso: ["grep", "wc", "ls"],
+    name: "cat - display a virtual file",
+    synopsis: "cat <file>",
+    description: "Display the raw contents of one virtual file. Paths resolve from the current directory; quote paths containing spaces. This terminal does not implement cat flags, standard input, or pipelines.",
+    options: [],
+    examples: [{ command: "cat README.md", description: "Display the raw README file" }],
+    seeAlso: ["ls", "cd", "grep", "wc"],
   },
 
   grep: {

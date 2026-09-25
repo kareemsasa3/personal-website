@@ -64,7 +64,7 @@ const CaseStudyPage = ({ caseStudy }: CaseStudyPageProps) => {
           <h2>Constraints</h2>
           <div className="case-study-grid case-study-constraints-grid">
             <article className="interactive-card">
-              <h3>Technical Limitations</h3>
+              <h3>Technical Constraints</h3>
               <p>{caseStudy.constraints.technicalLimitations}</p>
             </article>
             <article className="interactive-card">
@@ -80,6 +80,16 @@ const CaseStudyPage = ({ caseStudy }: CaseStudyPageProps) => {
 
         <section id="architecture" className="case-study-section interactive-card">
           <h2>Architecture</h2>
+          {caseStudy.slug === "erebus" && (
+            <figure className="case-study-flow">
+              <figcaption>Event and inference flow</figcaption>
+              <ol aria-label="Erebus architecture">
+                <li>Emitters</li><li>Append-only event history</li>
+                <li>Belief engine</li><li>Search &amp; inspection</li>
+              </ol>
+              <p>Inspection exposes both raw event history and inferred state.</p>
+            </figure>
+          )}
           <ul className="case-study-list">
             {caseStudy.architecture.map((item) => (
               <li key={item}>{item}</li>
@@ -100,7 +110,7 @@ const CaseStudyPage = ({ caseStudy }: CaseStudyPageProps) => {
         </section>
 
         <section id="implementation" className="case-study-section">
-          <h2>Implementation Highlights</h2>
+          <h2>{caseStudy.slug === "erebus" ? "Operational Capabilities" : "Implementation Highlights"}</h2>
           <div className="case-study-grid">
             {caseStudy.implementationHighlights.map((highlight) => (
               <article key={highlight.title} className="interactive-card">
@@ -112,7 +122,7 @@ const CaseStudyPage = ({ caseStudy }: CaseStudyPageProps) => {
         </section>
 
         <section id="outcome" className="case-study-section interactive-card">
-          <h2>Outcome</h2>
+          <h2>{caseStudy.slug === "erebus" ? "Current Outcome" : "Outcome"}</h2>
           <ul className="case-study-list">
             {caseStudy.outcome.map((item) => (
               <li key={item}>{item}</li>

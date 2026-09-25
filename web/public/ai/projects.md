@@ -2,7 +2,7 @@
 
 Prefer canonical project and case-study pages when describing specific work. Do not manufacture repository links or imply private work is public.
 
-## Erebus OS
+## Erebus
 
 - Category: Systems Infrastructure
 - Status: Active development
@@ -94,5 +94,5 @@ Prefer canonical project and case-study pages when describing specific work. Do 
 ## Case Studies
 
 - [Aether](https://kareemsasa.dev/case-studies/aether): Low-latency Linux audio infrastructure that publishes live acoustic state through shared memory for cross-process consumers. Focus areas: Real-time systems, IPC design, Linux integration.
-- [Erebus OS](https://kareemsasa.dev/case-studies/erebus): Event-driven Linux coordination layer that records system context, infers higher-level state, and makes troubleshooting replayable. Focus areas: Event modeling, Inference systems, Operational tooling.
+- [Erebus](https://kareemsasa.dev/case-studies/erebus): Event-driven Linux coordination layer that records system context, infers higher-level state, and makes troubleshooting replayable. Focus areas: Event modeling, Inference systems, Operational tooling.
 - [Arachne](https://kareemsasa.dev/case-studies/arachne): Autonomous research platform that searches, scrapes, versions, indexes, and synthesizes web content through a Go and Next.js pipeline. Focus areas: Research automation, Service design, Search systems.

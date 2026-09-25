@@ -1,3 +1,5 @@
+import { countLabel } from "../../utils/countLabel";
+import { projectTechnicalTerms } from "../../utils/technicalCoverage";
 import { useMemo, useReducer, useCallback } from "react";
 import { projectsData, STATUSES } from "../../data/projects";
 
@@ -95,7 +97,7 @@ export function useProjects() {
   const allTechnologies = useMemo(() => {
     const techSet = new Set<string>();
     projectsData.forEach((project) => {
-      project.techStack.forEach((tech) => techSet.add(tech));
+      projectTechnicalTerms(project.techStack).forEach((tech) => techSet.add(tech));
     });
     return Array.from(techSet).sort();
   }, []);
@@ -111,7 +113,7 @@ export function useProjects() {
     const counts = new Map<string, number>();
     // Iterate through the projects ONCE to build the count map
     projectsData.forEach((project) => {
-      project.techStack.forEach((tech) => {
+      projectTechnicalTerms(project.techStack).forEach((tech) => {
         counts.set(tech, (counts.get(tech) || 0) + 1);
       });
     });
@@ -168,7 +170,7 @@ export function useProjects() {
   const projectCount = filteredAndSortedProjects.length;
   const projectsFoundMessage =
     projectCount > 0
-      ? `${projectCount} project${projectCount === 1 ? "" : "s"} found.`
+      ? `${countLabel(projectCount, "project")} found.`
       : "No projects found matching your criteria.";
 
   return {

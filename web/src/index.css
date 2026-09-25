@@ -389,3 +389,9 @@ select {
     /* NO height or min-height rules here! */
   }
 }
+
+.prose-surface { background: color-mix(in srgb, var(--app-bg) 65%, transparent); backdrop-filter: blur(6px); border-radius: 8px; }
+.prose-surface--reading { background: color-mix(in srgb, var(--app-bg) 94%, transparent); backdrop-filter: blur(12px); box-shadow: 0 0 24px 12px color-mix(in srgb, var(--app-bg) 80%, transparent); }
+html { scroll-padding-top: calc(var(--site-header-measured-offset, 0px) + 16px); scroll-padding-bottom: var(--site-dock-safe-space, 0px); }
+:target { scroll-margin-top: 1rem; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }

@@ -31,28 +31,28 @@ const SimulationCard: React.FC<SimulationCardProps> = ({
       case "spider":
         return (
           <div className="spider-preview" aria-hidden="true">
-            <div className="spider-column spider-column-tall">
-              <div className="spider-card spider-card-back"></div>
-              <div className="spider-card spider-card-back"></div>
-              <div className="spider-card spider-card-face">K</div>
+            <div className="spider-preview-column spider-preview-column-tall">
+              <div className="spider-preview-card spider-preview-card-back"></div>
+              <div className="spider-preview-card spider-preview-card-back"></div>
+              <div className="spider-preview-card spider-preview-card-face">K</div>
             </div>
-            <div className="spider-column">
-              <div className="spider-card spider-card-back"></div>
-              <div className="spider-card spider-card-face">9</div>
+            <div className="spider-preview-column">
+              <div className="spider-preview-card spider-preview-card-back"></div>
+              <div className="spider-preview-card spider-preview-card-face">9</div>
             </div>
-            <div className="spider-column spider-column-tall">
-              <div className="spider-card spider-card-back"></div>
-              <div className="spider-card spider-card-back"></div>
-              <div className="spider-card spider-card-back"></div>
-              <div className="spider-card spider-card-face">Q</div>
+            <div className="spider-preview-column spider-preview-column-tall">
+              <div className="spider-preview-card spider-preview-card-back"></div>
+              <div className="spider-preview-card spider-preview-card-back"></div>
+              <div className="spider-preview-card spider-preview-card-back"></div>
+              <div className="spider-preview-card spider-preview-card-face">Q</div>
             </div>
-            <div className="spider-column">
-              <div className="spider-card spider-card-back"></div>
-              <div className="spider-card spider-card-face">7</div>
+            <div className="spider-preview-column">
+              <div className="spider-preview-card spider-preview-card-back"></div>
+              <div className="spider-preview-card spider-preview-card-face">7</div>
             </div>
-            <div className="spider-stock">
-              <div className="spider-card spider-card-back"></div>
-              <div className="spider-card spider-card-back"></div>
+            <div className="spider-preview-stock">
+              <div className="spider-preview-card spider-preview-card-back"></div>
+              <div className="spider-preview-card spider-preview-card-back"></div>
             </div>
           </div>
         );
@@ -84,7 +84,7 @@ const SimulationCard: React.FC<SimulationCardProps> = ({
         );
       case "placeholder":
       default:
-        return <div className="placeholder">🔬</div>;
+        return <div className="placeholder" aria-hidden="true">[ &#43; ]</div>;
     }
   };
 

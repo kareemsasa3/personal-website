@@ -157,7 +157,15 @@ const Terminal: React.FC<TerminalProps> = ({ isIntro }) => {
 
   // Handle key down events
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Tab") {
+    if (e.ctrlKey && e.key.toLowerCase() === "l") {
+      e.preventDefault();
+      executeCommand("clear");
+    } else if (e.ctrlKey && e.key.toLowerCase() === "c" && !window.getSelection()?.toString()) {
+      e.preventDefault();
+      coreHandlers.clearCommand();
+      coreHandlers.exitReverseSearch();
+      coreHandlers.resetHistoryIndex();
+    } else if (e.key === "Tab" && !e.shiftKey) {
       e.preventDefault();
       const result = coreHandlers.handleTabComplete(coreState.currentCommand);
       coreHandlers.setCurrentCommand(result.currentCommand);
@@ -218,6 +226,17 @@ const Terminal: React.FC<TerminalProps> = ({ isIntro }) => {
     }
   };
 
+  useEffect(() => {
+    if (!windowManagement.isMaximized) return;
+    const restore = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !coreState.isManPage && !topState.isTopCommand && !coreState.isReverseSearch) {
+        windowManagement.handleMaximize();
+      }
+    };
+    document.addEventListener("keydown", restore);
+    return () => document.removeEventListener("keydown", restore);
+  }, [windowManagement, coreHandlers, coreState.isManPage, coreState.isReverseSearch, topState.isTopCommand]);
+
   return (
     <TerminalErrorBoundary>
       <div
@@ -243,7 +262,7 @@ const Terminal: React.FC<TerminalProps> = ({ isIntro }) => {
             aria-label="Restore terminal window"
           >
             <span className="sidecar-icon" aria-hidden="true">
-              💻
+              &gt;_ Terminal minimized — reopen
             </span>
           </button>
         )}
@@ -270,7 +289,7 @@ const Terminal: React.FC<TerminalProps> = ({ isIntro }) => {
         />
 
         {/* Main terminal window */}
-        <TerminalWindow
+        {!windowManagement.isMinimized && <TerminalWindow
           containerStyles={windowManagement.containerStyles}
           isMaximized={windowManagement.isMaximized}
           isDragging={windowManagement.isDragging}
@@ -298,7 +317,7 @@ const Terminal: React.FC<TerminalProps> = ({ isIntro }) => {
             onIntroComplete={handleIntroComplete}
             terminalRef={coreHandlers.terminalRef}
           />
-        </TerminalWindow>
+        </TerminalWindow>}
       </div>
     </TerminalErrorBoundary>
   );

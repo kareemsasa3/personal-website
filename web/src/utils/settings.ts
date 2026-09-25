@@ -69,13 +69,13 @@ const validateDockSettings = (settings: unknown) => {
 
   return (
     typeof dockSize === "number" &&
-    dockSize >= 20 &&
-    dockSize <= 80 &&
+    dockSize >= 40 &&
+    dockSize <= 60 &&
     typeof dockStiffness === "number" &&
-    dockStiffness >= 50 &&
-    dockStiffness <= 1000 &&
+    dockStiffness >= 200 &&
+    dockStiffness <= 600 &&
     typeof magnification === "number" &&
-    magnification >= 0 &&
+    magnification >= 20 &&
     magnification <= 100
   );
 };
@@ -205,3 +205,35 @@ export const resetAllSettings = () => {
 
 // Export storage keys for external use
 export { STORAGE_KEYS };
+
+
+export const SETTINGS_EXPORT_VERSION = 1;
+export function parseSettingsImport(value: unknown): Partial<UserSettings> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Expected a settings object");
+  const data = value as Record<string, unknown>;
+  if (data.version !== undefined && data.version !== SETTINGS_EXPORT_VERSION) throw new Error("Unsupported settings version");
+  const result: Partial<UserSettings> = {};
+  const ranges = { dockSize: [40, 60], dockStiffness: [200, 600], magnification: [20, 100], backgroundMotionSpeed: [.5, 2] } as const;
+  for (const key of Object.keys(ranges) as (keyof typeof ranges)[]) {
+    const supplied = data[key] !== undefined ? data[key] : (key === "backgroundMotionSpeed" ? data.matrixSpeed : undefined);
+    if (supplied === undefined) continue;
+    const [min, max] = ranges[key];
+    if (typeof supplied !== "number" || !Number.isFinite(supplied) || supplied < min || supplied > max) throw new Error(`Invalid ${key}`);
+    result[key] = supplied;
+  }
+  if (data.theme !== undefined) {
+    if (data.theme !== "dark" && data.theme !== "light") throw new Error("Invalid theme");
+    result.theme = data.theme;
+  }
+  if (data.navMode !== undefined) {
+    if (data.navMode !== "dock" && data.navMode !== "header") throw new Error("Invalid navigation mode");
+    result.navMode = data.navMode;
+  }
+  if (data.isAnimationPaused !== undefined) {
+    if (typeof data.isAnimationPaused !== "boolean") throw new Error("Invalid animation state");
+    result.isAnimationPaused = data.isAnimationPaused;
+  }
+  if (data.isSettingsOpen !== undefined && typeof data.isSettingsOpen !== "boolean") throw new Error("Invalid panel state");
+  if (!Object.keys(result).length) throw new Error("No supported preferences found");
+  return result;
+}

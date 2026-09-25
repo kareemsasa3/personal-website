@@ -338,12 +338,12 @@ export default function Annals() {
           </div>
         )}
 
-        <div className="grid md:grid-cols-[1fr_320px] gap-6">
+        <div className="annals-columns grid md:grid-cols-[1fr_320px] gap-6">
 
           {/* the chronicle */}
           <section>
             <h2 className="text-xs uppercase tracking-widest text-stone-500 mb-2">The Chronicle</h2>
-            <div className="bg-stone-50/70 border border-stone-300 rounded p-4 h-[460px] overflow-y-auto font-mono text-[13px] leading-relaxed flex flex-col-reverse">
+            <div className="annals-chronicle bg-stone-50/70 border border-stone-300 rounded p-4 h-[460px] overflow-y-auto font-mono text-[13px] leading-relaxed flex flex-col-reverse">
               <div>
                 {world.chronicle.map((e: ChronicleEvent, i: number) => (
                   <div key={i} className="mb-1.5">
@@ -366,10 +366,10 @@ export default function Annals() {
             </h2>
             <div className="flex flex-wrap gap-1.5 mb-2">
               {VERBS.map(([v, label]) => (
-                <button key={v} disabled={!world.token}
+                <button key={v} disabled={!world.token} aria-pressed={pending === v}
                   onClick={() => { setPending(pending === v ? null : v); setPickTwo(null); }}
                   className={`px-2 py-1 text-xs rounded border transition ${
-                    pending === v ? "bg-yellow-600 text-white border-yellow-700"
+                    pending === v ? "bg-stone-800 text-white border-yellow-700"
                     : world.token ? "border-stone-400 hover:bg-stone-200"
                     : "border-stone-200 text-stone-300 cursor-not-allowed"}`}>
                   {label}
@@ -386,9 +386,12 @@ export default function Annals() {
 
             {/* roster */}
             <h2 className="text-xs uppercase tracking-widest text-stone-500 mb-2">The Living</h2>
-            <div className="space-y-1 mb-4 max-h-[230px] overflow-y-auto pr-1">
+            <div className="annals-living space-y-1 mb-4 max-h-[230px] overflow-y-auto pr-1">
               {roster.map((a: Agent) => (
                 <button key={a.id} onClick={() => onAgentClick(a)}
+                  title={pending ? "Choose this soul" : "Watch this soul"}
+                  aria-pressed={pending ? pickTwo === a.id : favorite === a.id}
+                  aria-label={`${a.name}, ${a.trait}, age ${a.age}${favorite === a.id ? ", watched" : ""}`}
                   className={`w-full text-left px-2 py-1 rounded text-sm flex items-center justify-between transition
                     ${favorite === a.id ? "bg-yellow-100 ring-1 ring-yellow-400" : "hover:bg-stone-200"}
                     ${pickTwo === a.id ? "ring-1 ring-yellow-500" : ""}`}>
@@ -397,7 +400,7 @@ export default function Annals() {
                     <b>{a.name}</b>{a.epithet && <span className="text-amber-800"> {a.epithet}</span>} <span className="text-stone-500">of {a.house}</span>
                   </span>
                   <span className="text-xs text-stone-500 tabular-nums">
-                    {a.trait[0]}·{a.age}{a.grain < 1 ? " ·hungry" : ""}{a.partner ? " ·♥" : ""}
+                    <abbr title={`${a.trait}, age ${a.age}`}>{a.trait[0]}·{a.age}</abbr>{a.grain < 1 ? " ·hungry" : ""}{a.partner ? " ·♥" : ""}
                   </span>
                 </button>
               ))}
@@ -412,7 +415,7 @@ export default function Annals() {
                   return (
                     <div key={k} className="text-sm flex items-center justify-between">
                       <span>{h1} <span className="text-red-700">⚔</span> {h2}</span>
-                      <span className="text-xs text-red-800">{"●".repeat(Math.min(v, 6))}</span>
+                      <span className="text-xs text-red-800" aria-label={`Feud intensity: ${v}`} title={`Feud intensity: ${v}`}>{"●".repeat(Math.min(v, 6))}</span>
                     </div>
                   );
                 })}

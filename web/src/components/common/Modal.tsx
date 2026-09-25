@@ -1,4 +1,5 @@
 import React from "react";
+import FocusTrap from "focus-trap-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTimes } from "@fortawesome/free-solid-svg-icons";
@@ -48,7 +49,9 @@ const Modal: React.FC<ModalProps> = ({
   return (
     <AnimatePresence>
       {isOpen && (
+        <FocusTrap focusTrapOptions={{ escapeDeactivates: false }}>
         <motion.div
+          onKeyDown={(event) => { if (event.key === "Escape") { event.stopPropagation(); onClose(); } }}
           className="modal-overlay"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -111,6 +114,7 @@ const Modal: React.FC<ModalProps> = ({
             )}
           </motion.div>
         </motion.div>
+        </FocusTrap>
       )}
     </AnimatePresence>
   );

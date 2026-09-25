@@ -1,3 +1,4 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import "./CapabilitiesSection.css";
 import { motion, MotionStyle } from "framer-motion";
 import { forwardRef, ForwardedRef } from "react";
@@ -47,7 +48,7 @@ export const CapabilitiesSection = forwardRef(
                 whileHover={{ y: -6, transition: { duration: 0.25 } }}
               >
                 <div className="card-icon" aria-hidden="true">
-                  {item.icon}
+                  <FontAwesomeIcon icon={item.icon} />
                 </div>
                 <h3>{item.title}</h3>
                 <p>{item.description}</p>

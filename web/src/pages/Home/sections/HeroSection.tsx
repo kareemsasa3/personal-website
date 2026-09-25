@@ -27,7 +27,7 @@ export const HeroSection = ({
       className="hero-section"
       aria-labelledby="home-hero-title"
     >
-      <div className="hero-content">
+      <div className="hero-content prose-surface">
         <motion.h1
           id="home-hero-title"
           className="hero-title"

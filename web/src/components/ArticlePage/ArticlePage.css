@@ -325,3 +325,8 @@
     min-width: 28rem;
   }
 }
+
+.article-body h2 { scroll-margin-top: 1rem; }
+.article-toc a[aria-current="location"] { color: var(--brand-primary); font-weight: 700; text-decoration: underline; }
+.article-series a { color: var(--brand-primary); }
+@media (min-width: 1200px) { .article-toc { top: calc(var(--site-header-measured-offset, 0px) + 1rem); max-height: calc(100dvh - var(--site-header-measured-offset, 0px) - var(--site-dock-safe-space, 0px) - 2rem); overflow-y: auto; } }

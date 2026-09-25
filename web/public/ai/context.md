@@ -31,7 +31,7 @@ Public portfolio, project archive, case-study surface, and professional contact 
 - [Rhythm Lab - Kareem Sasa](https://kareemsasa.dev/simulations/rhythm-lab): Three-lane input timing system with chart authoring, recording sessions, real-time feedback scoring, and run analytics.
 - [Terminal - Kareem Sasa](https://kareemsasa.dev/terminal): An interactive terminal layer for exploring portfolio content, projects, and work history through a command-driven interface.
 - [Aether Case Study - Kareem Sasa](https://kareemsasa.dev/case-studies/aether): Low-latency Linux audio infrastructure that publishes live acoustic state through shared memory for cross-process consumers.
-- [Erebus OS Case Study - Kareem Sasa](https://kareemsasa.dev/case-studies/erebus): Event-driven Linux coordination layer that records system context, infers higher-level state, and makes troubleshooting replayable.
+- [Erebus Case Study - Kareem Sasa](https://kareemsasa.dev/case-studies/erebus): Event-driven Linux coordination layer that records system context, infers higher-level state, and makes troubleshooting replayable.
 - [Arachne Case Study - Kareem Sasa](https://kareemsasa.dev/case-studies/arachne): Autonomous research platform that searches, scrapes, versions, indexes, and synthesizes web content through a Go and Next.js pipeline.
 
 ## Assistant Guidance

@@ -119,6 +119,7 @@ const initialState: WindowState = {
 export const useWindowManagement = (options: UseWindowManagementOptions) => {
   const { initialWidth, initialHeight, isIntro = false, onClose } = options;
   const [state, dispatch] = useReducer(windowReducer, initialState);
+  const maximizeOpenerRef = useRef<HTMLElement | null>(null);
   const dimensionsRef = useRef({ width: initialWidth, height: initialHeight });
 
   // Initialize position
@@ -194,7 +195,9 @@ export const useWindowManagement = (options: UseWindowManagementOptions) => {
   const handleMaximize = useCallback(() => {
     if (state.isMaximized) {
       dispatch({ type: "RESTORE" });
+      requestAnimationFrame(() => maximizeOpenerRef.current?.focus());
     } else {
+      maximizeOpenerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
       dispatch({ type: "MAXIMIZE" });
     }
   }, [state.isMaximized]);

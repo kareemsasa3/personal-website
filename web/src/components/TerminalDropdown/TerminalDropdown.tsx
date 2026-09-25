@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useId } from "react";
 import "./TerminalDropdown.css";
 
 // Support both string arrays and {label, value} objects
@@ -45,6 +45,8 @@ const TerminalDropdown: React.FC<TerminalDropdownProps> = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
+  const menuId = useId();
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown when clicking outside
@@ -66,7 +68,7 @@ const TerminalDropdown: React.FC<TerminalDropdownProps> = ({
   // Handle keyboard navigation
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (!isOpen) return;
+      if (!isOpen || !dropdownRef.current?.contains(event.target as Node)) return;
 
       switch (event.key) {
         case "ArrowDown":
@@ -81,6 +83,9 @@ const TerminalDropdown: React.FC<TerminalDropdownProps> = ({
             prev > 0 ? prev - 1 : options.length - 1
           );
           break;
+        case "Tab":
+          setIsOpen(false);
+          break;
         case "Enter":
           event.preventDefault();
           if (highlightedIndex >= 0 && highlightedIndex < options.length) {
@@ -93,6 +98,7 @@ const TerminalDropdown: React.FC<TerminalDropdownProps> = ({
           event.preventDefault();
           setIsOpen(false);
           setHighlightedIndex(-1);
+          triggerRef.current?.focus();
           break;
       }
     };
@@ -112,6 +118,7 @@ const TerminalDropdown: React.FC<TerminalDropdownProps> = ({
     onChange(getOptionValue(option));
     setIsOpen(false);
     setHighlightedIndex(-1);
+    triggerRef.current?.focus();
   };
 
   // Fix: Ensure options is mutable for findOptionByValue
@@ -130,11 +137,16 @@ const TerminalDropdown: React.FC<TerminalDropdownProps> = ({
       <div className="terminal-dropdown-container">
         <button
           type="button"
+          role="combobox"
           className={`terminal-dropdown-trigger ${isOpen ? "open" : ""} ${
             disabled ? "disabled" : ""
           }`}
           onClick={handleToggle}
           disabled={disabled}
+          ref={triggerRef}
+          aria-label={`${label ?? "Select"}: ${displayValue}`}
+          aria-controls={isOpen ? menuId : undefined}
+          aria-activedescendant={isOpen && highlightedIndex >= 0 ? `${menuId}-${highlightedIndex}` : undefined}
           aria-haspopup="listbox"
           aria-expanded={isOpen}
         >
@@ -154,10 +166,14 @@ const TerminalDropdown: React.FC<TerminalDropdownProps> = ({
                 <span className="terminal-prompt">$</span> cat options.txt
               </div>
             )}
-            <div className="terminal-dropdown-options">
+            <div className="terminal-dropdown-options" id={menuId} role="listbox" aria-label={label}>
               {options.map((option, index) => (
                 <button
                   key={getOptionValue(option)}
+                  id={`${menuId}-${index}`}
+                  role="option"
+                  aria-selected={getOptionValue(option) === value}
+                  tabIndex={-1}
                   type="button"
                   className={`terminal-dropdown-option ${
                     index === highlightedIndex ? "highlighted" : ""

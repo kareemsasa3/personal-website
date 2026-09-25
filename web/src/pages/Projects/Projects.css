@@ -392,12 +392,7 @@ primary comprehension layer.
     transition: all 0.3s ease;
 }
 
-.tech-item:hover {
-    background: var(--primary-color-light);
-    border-color: var(--terminal-primary, #4CAF50);
-    box-shadow: 0 0 10px rgba(0, 255, 0, 0.2), 0 4px 12px var(--shadow-color);
-    transform: translateY(-1px);
-}
+
 
 .tech-name {
     color: var(--terminal-primary, #4CAF50);
@@ -537,3 +532,9 @@ primary comprehension layer.
         font-size: 0.8rem;
     }
 }
+
+.projects-hero { margin-bottom: 1.5rem; padding: 1rem 0; }
+.projects-section-heading { margin-bottom: 1rem; }
+.projects-controls { padding: .75rem; gap: .75rem; margin-bottom: 1rem; }
+.stat-card:focus-visible { outline: 2px solid var(--brand-primary); outline-offset: 3px; }
+.tech-item, .tech-item:hover { cursor: default; transform: none; box-shadow: none; }

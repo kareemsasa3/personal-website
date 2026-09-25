@@ -1,3 +1,4 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { motion, MotionStyle } from "framer-motion";
 import { forwardRef, ForwardedRef } from "react";
 import TypeWriterText from "../../../components/TypeWriterText";
@@ -36,7 +37,7 @@ export const SocialLinksSection = forwardRef(
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.6, delay: 0.4 }}
           >
-            {socialContent.links.map((link: { name: string; url: string; icon: string }, index: number) => (
+            {socialContent.links.map((link, index) => (
               <motion.a
                 key={index}
                 href={link.url}
@@ -55,7 +56,7 @@ export const SocialLinksSection = forwardRef(
                 whileTap={{ scale: 0.95 }}
               >
                 <span className="social-icon" aria-hidden="true">
-                  {link.icon}
+                  <FontAwesomeIcon icon={link.icon} />
                 </span>
                 <span className="social-name">{link.name}</span>
               </motion.a>

@@ -47,7 +47,7 @@ function DockContent(
   const isGameRoute = location.pathname.includes("/simulations/");
 
   // Mobile-specific presentation adjustments
-  const effectiveMagnification = isMobile ? 0 : magnification;
+  const effectiveMagnification = isMobile || reduceNavModeTransition ? 0 : magnification;
   const effectiveDockSize = isMobile ? Math.min(dockSize, 36) : dockSize;
   const dockItems = useMemo(() => {
     if (!isGameRoute) return navItems;

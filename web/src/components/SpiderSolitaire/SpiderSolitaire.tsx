@@ -194,6 +194,7 @@ const SpiderSolitaire = () => {
             <div
               key={`column-${columnIndex}`}
               className="spider-column"
+              style={{ minHeight: column.cards.length ? calculateCardTop(column.cards, column.cards.length - 1) + 140 : undefined }}
               onClick={() => handleEmptyColumnClick(columnIndex)}
               onDragOver={(e) => handleDragOver(e, columnIndex)}
               onDragLeave={handleDragLeave}

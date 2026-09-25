@@ -47,7 +47,7 @@ const applyThemeToDocument = (theme: Theme) => {
   );
   root.style.setProperty(
     "--app-text-muted",
-    isLight ? "#6a6a6a" : "#6c757d"
+    isLight ? "#6a6a6a" : "#a0a8b0"
   );
   root.style.setProperty("--app-border", isLight ? "#d0d0d0" : "#495057");
   root.style.setProperty(
@@ -93,7 +93,7 @@ const applyThemeToDocument = (theme: Theme) => {
   );
   root.style.setProperty(
     "--bg-signal",
-    isLight ? "rgba(0, 122, 0, 0.14)" : "rgba(129, 199, 132, 0.16)"
+    isLight ? "rgba(0, 122, 0, 0.06)" : "rgba(129, 199, 132, 0.16)"
   );
   root.style.setProperty(
     "--bg-center-lift",

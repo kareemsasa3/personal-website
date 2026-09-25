@@ -9,6 +9,7 @@ const SnakeGame: React.FC = () => {
     width: Math.ceil(window.innerWidth / CELL_SIZE),
     height: Math.ceil(window.innerHeight / CELL_SIZE),
   }));
+  const containerRef = useRef<HTMLDivElement>(null);
   const [isTouchDevice, setIsTouchDevice] = useState(false);
 
   const { snake, food, score, highScore, gameState, resetGame, changeDirection } = useSnakeGame({
@@ -31,14 +32,15 @@ const SnakeGame: React.FC = () => {
   // Recalculate grid dimensions on resize
   useEffect(() => {
     const handleResize = () => {
-      setDimensions({
-        width: Math.ceil(window.innerWidth / CELL_SIZE),
-        height: Math.ceil(window.innerHeight / CELL_SIZE),
-      });
+      const rect = containerRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      setDimensions({ width: Math.max(1, Math.floor(rect.width / CELL_SIZE)), height: Math.max(1, Math.floor(rect.height / CELL_SIZE)) });
     };
 
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    handleResize();
+    const observer = new ResizeObserver(handleResize);
+    if (containerRef.current) observer.observe(containerRef.current);
+    return () => observer.disconnect();
   }, []);
 
   // Touch control handlers
@@ -92,7 +94,7 @@ const SnakeGame: React.FC = () => {
   }), [dimensions]);
 
   return (
-    <div className="snake-game-container">
+    <div className="snake-game-container" ref={containerRef}>
       <div className="game-scores">
         <p className="game-score">Score: {score}</p>
         <p className="game-high-score">High: {highScore}</p>
@@ -102,7 +104,7 @@ const SnakeGame: React.FC = () => {
         {snake.map((_segment, index) => (
           <div
             key={index}
-            className="snake-segment"
+            className={`snake-segment ${index === 0 ? "snake-head" : ""}`}
             ref={(el) => {
               if (el) segmentRefs.current.set(index, el);
             }}

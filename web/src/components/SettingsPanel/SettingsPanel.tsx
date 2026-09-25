@@ -1,4 +1,4 @@
-import React, { ReactNode, useEffect, useState } from "react";
+import React, { ReactNode, useEffect, useState, useRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faTimes,
@@ -20,8 +20,8 @@ import {
 import {
   resetAllSettings,
   getAllSettings,
-  setDockSettings,
-  setAnimationPaused,
+  parseSettingsImport,
+  SETTINGS_EXPORT_VERSION,
   DEFAULT_SETTINGS,
 } from "../../utils/settings";
 import { useTheme } from "../../contexts/ThemeContext";
@@ -173,7 +173,18 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
   const { showSuccess, showError } = useToast();
   const { theme, setTheme } = useTheme();
   const { navMode, setNavMode } = useNavigationMode();
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
   const [showResetModal, setShowResetModal] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    closeButtonRef.current?.focus();
+    return () => {
+      if (opener?.isConnected) opener.focus();
+      else document.querySelector<HTMLButtonElement>('[aria-label="Open settings"]')?.focus();
+    };
+  }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -244,7 +255,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
 
   const handleExportSettings = () => {
     try {
-      const settings = getAllSettings(theme);
+      const settings = { version: SETTINGS_EXPORT_VERSION, ...getAllSettings(theme) };
       const settingsBlob = new Blob([JSON.stringify(settings, null, 2)], {
         type: "application/json",
       });
@@ -282,43 +293,14 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
         const reader = new FileReader();
         reader.onload = (e) => {
           try {
-            const settings = JSON.parse(e.target?.result as string);
-
-            // Validate and apply settings
-            if (
-              settings.dockSize &&
-              settings.dockStiffness &&
-              settings.magnification
-            ) {
-              setDockSettings({
-                dockSize: settings.dockSize,
-                dockStiffness: settings.dockStiffness,
-                magnification: settings.magnification,
-              });
-              onDockSizeChange(settings.dockSize);
-              onDockStiffnessChange(settings.dockStiffness);
-              onMagnificationChange(settings.magnification);
-            }
-
-            if (settings.theme === "light" || settings.theme === "dark") {
-              setTheme(settings.theme);
-            }
-
-            if (typeof settings.isAnimationPaused === "boolean") {
-              setAnimationPaused(settings.isAnimationPaused);
-              onAnimationToggle(settings.isAnimationPaused);
-            }
-
-            if (typeof settings.backgroundMotionSpeed === "number") {
-              onBackgroundMotionSpeedChange?.(settings.backgroundMotionSpeed);
-            } else if (
-              typeof (settings as { matrixSpeed?: number }).matrixSpeed ===
-              "number"
-            ) {
-              onBackgroundMotionSpeedChange?.(
-                (settings as { matrixSpeed: number }).matrixSpeed
-              );
-            }
+            const settings = parseSettingsImport(JSON.parse(e.target?.result as string));
+            if (settings.dockSize !== undefined) onDockSizeChange(settings.dockSize);
+            if (settings.dockStiffness !== undefined) onDockStiffnessChange(settings.dockStiffness);
+            if (settings.magnification !== undefined) onMagnificationChange(settings.magnification);
+            if (settings.theme !== undefined) setTheme(settings.theme);
+            if (settings.navMode !== undefined) setNavMode(settings.navMode);
+            if (settings.isAnimationPaused !== undefined) onAnimationToggle(settings.isAnimationPaused);
+            if (settings.backgroundMotionSpeed !== undefined) onBackgroundMotionSpeedChange?.(settings.backgroundMotionSpeed);
 
             showSuccess(
               "Settings Imported",
@@ -359,6 +341,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                   <h3 id="settings-title">Settings</h3>
                   <motion.button
                     className="settings-close"
+                    ref={closeButtonRef}
                     onClick={onClose}
                     aria-label="Close settings"
                     whileHover={{ scale: 1.1 }}
@@ -381,7 +364,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                       <ThemeToggle />
                     </div>
                     <div className="setting-description">
-                      Switch between light and dark themes.
+                      {theme === "dark" ? "Dark theme active. Switch to light." : "Light theme active. Switch to dark."}
                     </div>
                   </div>
                 </SettingsSection>
@@ -451,6 +434,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                       <input
                         type="range"
                         id="background-motion-speed"
+                        disabled={isAnimationPaused}
                         min={BACKGROUND_MOTION_SPEED_CONFIG.min}
                         max={BACKGROUND_MOTION_SPEED_CONFIG.max}
                         step={BACKGROUND_MOTION_SPEED_CONFIG.step}
@@ -474,7 +458,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                       </div>
                     </div>
                     <div className="setting-description">
-                      Adjust the motion speed of the active background.
+                      {isAnimationPaused ? "Resume animation to adjust motion speed." : "Adjust the motion speed of the active background."}
                     </div>
                   </div>
                 </SettingsSection>
@@ -516,7 +500,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                     <div className="setting-description">
                       <strong>Web v1.0</strong>
                       <br />
-                      A Mac-inspired portfolio with interactive dock
+                      A terminal-inspired portfolio with selectable dock or header
                       navigation.
                       <br />
                       Built with React, TypeScript, and Framer Motion.
@@ -566,9 +550,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
           Are you sure you want to reset all settings to their default values?
           This action cannot be undone.
         </p>
-        <p style={{ marginTop: "12px", fontSize: "0.9rem", color: "#b0b0b0" }}>
-          Note: The theme setting will update on the next page refresh.
-        </p>
+
       </Modal>
     </>
   );

@@ -121,7 +121,7 @@
 }
 
 .project-item::before {
-    content: "⚡";
+    content: "▸";
     color: var(--primary-color);
     position: absolute;
     left: 0;

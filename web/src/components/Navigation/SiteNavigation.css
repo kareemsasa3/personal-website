@@ -262,3 +262,13 @@
         font-size: 0.62rem;
     }
 }
+
+.site-header__nav { overflow: visible; }
+.site-header__link { position: relative; }
+.site-header__tooltip { display: none; position: absolute; top: calc(100% + .5rem); left: 50%; transform: translateX(-50%); padding: .5rem; background: var(--app-surface); color: var(--app-text); border: 1px solid var(--app-border); border-radius: 4px; z-index: 2; pointer-events: none; }
+@media (max-width: 1180px) {
+ .site-header__link-label { display: none; }
+ .site-header__link.active .site-header__link-label { display: inline; }
+ .site-header__link:hover .site-header__tooltip, .site-header__link:focus-visible .site-header__tooltip { display: block; }
+ .site-header__link:last-child .site-header__tooltip { left: auto; right: 0; transform: none; }
+}

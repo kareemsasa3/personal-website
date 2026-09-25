@@ -242,3 +242,8 @@
         border-left-color: transparent;
     }
 }
+.timeline-flip-container { position: relative; cursor: default; }
+.timeline-item-description { color: var(--app-text-secondary); opacity: 1; }
+.timeline-flip-toggle { position: relative; margin-top: .5rem; padding: .35rem .6rem; background: var(--app-surface); color: var(--brand-primary); border: 1px solid var(--app-border); border-radius: 4px; cursor: pointer; }
+.timeline-flip-toggle:focus-visible { outline: 2px solid var(--brand-primary); outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) { .timeline-content, .timeline-icon-wrapper { transition: none; } }

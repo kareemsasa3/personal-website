@@ -1,3 +1,4 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { motion, MotionStyle } from "framer-motion";
 import { forwardRef, ForwardedRef } from "react";
 import { aboutContent } from "../../../data/siteContent";
@@ -49,7 +50,7 @@ export const AboutSection = forwardRef(
                 }}
               >
                 <div className="card-icon" aria-hidden="true">
-                  {item.icon}
+                  <FontAwesomeIcon icon={item.icon} />
                 </div>
                 <h3>{item.title}</h3>
                 <p>{item.description}</p>

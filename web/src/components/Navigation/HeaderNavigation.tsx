@@ -25,6 +25,8 @@ const HeaderNavigation = forwardRef<HTMLElement>(function HeaderNavigation(
           <NavLink
             key={item.path}
             to={item.path}
+            aria-label={item.label}
+            title={item.label}
             end={item.path === "/"}
             className={({ isActive }) =>
               `site-header__link ${isActive ? "active" : ""}`
@@ -32,6 +34,7 @@ const HeaderNavigation = forwardRef<HTMLElement>(function HeaderNavigation(
           >
             <FontAwesomeIcon className="site-header__link-icon" icon={item.icon} />
             <span className="site-header__link-label">{item.label}</span>
+            <span className="site-header__tooltip" aria-hidden="true">{item.label}</span>
           </NavLink>
         ))}
       </nav>

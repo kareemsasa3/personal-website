@@ -58,7 +58,7 @@
 }
 
 .settings-header h3::before {
-    content: "⚙️";
+    content: "[ / ]";
     font-size: 1.2rem;
 }
 
@@ -145,7 +145,7 @@
 }
 
 .setting-label::before {
-    content: "🎛️";
+    content: ">";
     font-size: 1rem;
 }
 
@@ -521,3 +521,10 @@
 .settings-content::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.3);
 }
+
+.settings-header { position: sticky; top: 0; z-index: 1; background: var(--app-surface); }
+.settings-section .setting-group { padding: .65rem; }
+.settings-section .setting-control { padding: .4rem; }
+.settings-section input:disabled { opacity: .5; cursor: not-allowed; }
+
+.settings-close:focus-visible { outline: 2px solid var(--brand-primary); outline-offset: 2px; }

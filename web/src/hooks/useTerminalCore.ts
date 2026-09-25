@@ -356,15 +356,7 @@ class HelpCommand implements Command {
   name = "help";
 
   execute(_args: string[], history: HistoryEntry[]): HistoryEntry[] {
-    const helpText = `Available commands:
-  ls          - List directory contents
-  cd <dir>    - Change directory
-  pwd         - Print working directory
-  clear       - Clear terminal
-  history     - Show command history
-  man <cmd>   - Show manual page for command
-  exit        - Exit terminal
-  help        - Show this help message`;
+    const helpText = "Available commands:\n  man <command> — Show a command manual\n" + Object.values(manPages).map(page => `  ${page.synopsis} — ${page.name.split(" - ").slice(1).join(" - ")}`).join("\n");
 
     return [...history, createHistoryEntry(helpText)];
   }

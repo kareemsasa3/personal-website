@@ -162,7 +162,7 @@ export const caseStudiesData: CaseStudy[] = [
   {
     slug: "erebus",
     projectId: "erebus",
-    title: "Erebus OS",
+    title: "Erebus",
     shortDescription:
       "Event-driven Linux coordination layer that records system context, infers higher-level state, and makes troubleshooting replayable.",
     problem:
@@ -368,7 +368,7 @@ export const caseStudyByProjectId = caseStudiesData.reduce<
   return accumulator;
 }, {});
 
-export const caseStudyCards: CaseStudyCard[] = caseStudiesData.flatMap(
+export const caseStudyCards: CaseStudyCard[] = ["erebus", "aether", "arachne"].map((slug) => caseStudyBySlug[slug]).flatMap(
   (caseStudy) => {
   const project = projectsData.find(
     (entry) => entry.id === caseStudy.projectId

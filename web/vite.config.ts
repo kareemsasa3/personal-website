@@ -426,7 +426,7 @@ const renderCaseStudyBody = (slug: string) => {
         <h2>Constraints</h2>
         <div class="route-fallback__grid">
           <article class="route-fallback__card">
-            <h3>Technical Limitations</h3>
+            <h3>Technical Constraints</h3>
             <p>${escapeHtml(caseStudy.constraints.technicalLimitations)}</p>
           </article>
           <article class="route-fallback__card">
@@ -462,7 +462,7 @@ const renderCaseStudyBody = (slug: string) => {
       </section>
 
       <section class="route-fallback__section">
-        <h2>Implementation Highlights</h2>
+        <h2>${caseStudy.slug === "erebus" ? "Operational Capabilities" : "Implementation Highlights"}</h2>
         <div class="route-fallback__grid">
           ${caseStudy.implementationHighlights
             .map(
@@ -478,7 +478,7 @@ const renderCaseStudyBody = (slug: string) => {
       </section>
 
       <section class="route-fallback__section">
-        <h2>Outcome</h2>
+        <h2>${caseStudy.slug === "erebus" ? "Current Outcome" : "Outcome"}</h2>
         ${renderList(caseStudy.outcome)}
       </section>
 

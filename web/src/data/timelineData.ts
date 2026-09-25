@@ -29,7 +29,7 @@ export const timelineData: TimelineEvent[] = [
     id: 15,
     date: "2025 - Present",
     title: "Erebus: Systems That Understand Themselves",
-    description: `My current focus is Erebus OS, an event-driven coordination layer for Linux. This project represents my belief that systems should not only respond to events but understand them, adapt in real-time, and proactively surface insights that inform decision-making. Currently at v0.6.3, it’s evolved with belief engines, session tracking, and real-time emitters.`,
+    description: `My current focus is Erebus, an event-driven coordination layer for Linux. This project represents my belief that systems should not only respond to events but understand them, adapt in real-time, and proactively surface insights that inform decision-making. Currently at v0.6.3, it’s evolved with belief engines, session tracking, and real-time emitters.`,
     icon: faRocket,
     category: "milestone",
     era: "Present & Future",

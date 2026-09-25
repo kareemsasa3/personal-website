@@ -264,3 +264,7 @@
   -moz-user-select: none;
   -ms-user-select: none;
 }
+
+.terminal-screen.route-mode { height: calc(100dvh - var(--site-header-measured-offset, 0px) - var(--site-dock-safe-space, 0px)); min-height: 28rem; }
+.terminal-screen .terminal-sidecar { position: relative; inset: auto; width: min(90%, 36rem); height: auto; padding: 1.5rem; transform: none; background: var(--terminal-window-bg); border: 1px solid var(--terminal-border); border-radius: 8px; color: var(--terminal-text-primary); }
+.terminal-sidecar .sidecar-icon { font-size: 1rem; }

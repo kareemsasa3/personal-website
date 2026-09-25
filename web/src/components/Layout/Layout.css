@@ -55,3 +55,7 @@
         padding-bottom: 0;
     }
 }
+
+.nav-mode-dock .app-content { padding-bottom: calc(var(--site-dock-safe-space, 120px) + env(safe-area-inset-bottom)); }
+.nav-mode-header .app-content { padding-bottom: 0; }
+.layout-foreground [id] { scroll-margin-top: 1rem; }

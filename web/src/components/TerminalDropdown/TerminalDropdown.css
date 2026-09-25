@@ -231,3 +231,8 @@
         padding: 1.25rem 1rem;
     }
 }
+.terminal-dropdown-menu { right: auto; width: max-content; min-width: 100%; max-width: calc(100vw - 2rem); }
+.terminal-dropdown-options { overflow-x: hidden; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--brand-primary) var(--app-bg); }
+.terminal-dropdown-option { white-space: nowrap; }
+.sort-section .terminal-dropdown-menu { left: auto; right: 0; }
+@media (prefers-reduced-motion: reduce) { .terminal-dropdown-menu { animation: none; } }

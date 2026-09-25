@@ -1,3 +1,4 @@
+import { MotionConfig } from "framer-motion";
 import { BrowserRouter } from "react-router-dom";
 import { ThemeProvider } from "../contexts/ThemeContext";
 import { LayoutContextProvider } from "../contexts/LayoutContext";
@@ -12,7 +13,7 @@ export const AppProviders = ({ children }: { children: React.ReactNode }) => {
         <SettingsProvider>
           <NavigationModeProvider>
             <ToastContainer>
-              <BrowserRouter>{children}</BrowserRouter>
+              <MotionConfig reducedMotion="user"><BrowserRouter>{children}</BrowserRouter></MotionConfig>
             </ToastContainer>
           </NavigationModeProvider>
         </SettingsProvider>

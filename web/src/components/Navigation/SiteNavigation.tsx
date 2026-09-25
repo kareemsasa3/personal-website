@@ -87,18 +87,21 @@ const SiteNavigation = () => {
     if (!layoutShell) return;
 
     layoutShell.style.setProperty("--site-header-measured-offset", value);
+    document.documentElement.style.setProperty("--site-header-measured-offset", value);
   }, []);
 
   useLayoutEffect(() => {
-    if (navMode !== "header" || !isPresent) return;
+    if (navMode !== "header" || !isPresent) {
+      setMeasuredHeaderOffset("0px");
+      return;
+    }
 
     const headerElement = headerRef.current;
     if (!headerElement) return;
 
     const measureHeaderOffset = () => {
-      const rect = headerElement.getBoundingClientRect();
-      const { marginBottom } = window.getComputedStyle(headerElement);
-      const occupiedOffset = rect.bottom + parseFloat(marginBottom || "0");
+      const style = window.getComputedStyle(headerElement);
+      const occupiedOffset = headerElement.offsetHeight + (parseFloat(style.top) || 0) + (parseFloat(style.marginTop) || 0) + (parseFloat(style.marginBottom) || 0);
 
       setMeasuredHeaderOffset(`${Math.max(0, occupiedOffset)}px`);
     };
@@ -119,6 +122,28 @@ const SiteNavigation = () => {
       window.visualViewport?.removeEventListener("resize", measureHeaderOffset);
     };
   }, [isPresent, navMode, setMeasuredHeaderOffset]);
+
+  useLayoutEffect(() => {
+    const update = () => {
+      const mobile = window.innerWidth <= 768;
+      const size = mobile ? Math.min(dockControls.dockSize, 36) : dockControls.dockSize;
+      const magnification = mobile || shouldReduceMotion ? 0 : dockControls.magnification;
+      // Include maximum hover growth, dock padding, bottom margin and breathing room.
+      const space = navMode === "dock" ? size * (1 + magnification / 100) + 60 : 0;
+      document.documentElement.style.setProperty("--site-dock-safe-space", `${space}px`);
+    };
+    update();
+    window.addEventListener("resize", update);
+    return () => {
+      window.removeEventListener("resize", update);
+      document.documentElement.style.removeProperty("--site-dock-safe-space");
+    };
+  }, [navMode, dockControls.dockSize, dockControls.magnification, shouldReduceMotion]);
+
+  useLayoutEffect(() => () => {
+    document.documentElement.style.removeProperty("--site-header-measured-offset");
+    document.documentElement.style.removeProperty("--site-dock-safe-space");
+  }, []);
 
   const activeNavigationMode = siteNavigationModeConfig[navMode];
   const activeNavigation = activeNavigationMode.renderNavigation({

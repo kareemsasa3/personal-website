@@ -51,7 +51,7 @@ const Journey = () => {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <header id="journey-intro" className="journey-header">
+      <header id="journey-intro" className="journey-header prose-surface">
         <h1 className="journey-title">
           <TypeWriterText text="Background & Journey" speed={80} delay={200} />
         </h1>

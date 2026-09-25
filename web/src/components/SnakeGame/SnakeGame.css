@@ -169,3 +169,12 @@
   color: #000;
   box-shadow: 0 0 15px var(--terminal-primary, #4CAF50);
 }
+.snake-game-container { width: 100%; background: rgba(0,0,0,.24); backdrop-filter: blur(2px); }
+.game-scores { top: max(1rem, env(safe-area-inset-top)); right: max(1rem, env(safe-area-inset-right)); padding: .5rem .75rem; background: rgba(0,0,0,.65); border-radius: 6px; }
+.snake-segment { border: 1px solid rgba(0,0,0,.35); border-radius: 3px; }
+.snake-segment.snake-head { background: #d1ffd1; box-shadow: 0 0 6px #4caf50; border: 2px solid #23852b; }
+.food { background: #ffd700; border: 2px solid #503e00; box-shadow: 0 0 0 2px rgba(0,0,0,.65), 0 0 8px #ffd700; }
+.touch-controls { bottom: calc(var(--site-dock-safe-space, 0px) + 1rem); }
+@media (prefers-reduced-motion: reduce) { .snake-segment { transition: none; } }
+
+.snake-game-container { height: 100%; }

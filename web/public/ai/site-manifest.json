@@ -92,7 +92,7 @@
     {
       "path": "/case-studies/erebus",
       "url": "https://kareemsasa.dev/case-studies/erebus",
-      "title": "Erebus OS Case Study - Kareem Sasa",
+      "title": "Erebus Case Study - Kareem Sasa",
       "description": "Event-driven Linux coordination layer that records system context, infers higher-level state, and makes troubleshooting replayable."
     },
     {
@@ -214,7 +214,7 @@
   "projects": [
     {
       "id": "erebus",
-      "title": "Erebus OS",
+      "title": "Erebus",
       "category": "Systems Infrastructure",
       "status": "Active development",
       "date": "2025",
@@ -468,7 +468,7 @@
     {
       "slug": "erebus",
       "projectId": "erebus",
-      "title": "Erebus OS",
+      "title": "Erebus",
       "url": "https://kareemsasa.dev/case-studies/erebus",
       "summary": "Event-driven Linux coordination layer that records system context, infers higher-level state, and makes troubleshooting replayable.",
       "focusAreas": [

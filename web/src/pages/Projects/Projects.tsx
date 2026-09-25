@@ -1,6 +1,6 @@
 import FocusTrap from "focus-trap-react";
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { countLabel, pluralize } from "../../utils/countLabel";
 import "./Projects.css";
 import ProjectRoster from "../../components/ProjectRoster";
 import TerminalDropdown from "../../components/TerminalDropdown";
@@ -33,7 +33,7 @@ const Projects = () => {
   return (
     <div className="page-content">
       <div className="projects-container">
-        <header className="projects-hero">
+        <header className="projects-hero prose-surface">
           <p className="projects-eyebrow">Project Roster</p>
           <h1 className="projects-title">Projects</h1>
           <p className="projects-subtitle">
@@ -41,14 +41,7 @@ const Projects = () => {
             Projects with case studies link to deeper write-ups of the
             problem, constraints, and decisions.
           </p>
-          <div className="projects-hero-actions">
-            <Link
-              to="/case-studies"
-              className="projects-cta projects-cta-primary"
-            >
-              Read the case studies
-            </Link>
-          </div>
+
         </header>
 
         <section
@@ -119,7 +112,7 @@ const Projects = () => {
               title="Show all projects"
             >
               <span className="stat-number">{projects.length}</span>
-              <span className="stat-label">Projects listed</span>
+              <span className="stat-label">{pluralize(projects.length, "Project")} listed</span>
             </button>
             <button
               className="stat-card"
@@ -128,16 +121,16 @@ const Projects = () => {
               title="Show live projects"
             >
               <span className="stat-number">{stats.liveProjectCount}</span>
-              <span className="stat-label">Live projects</span>
+              <span className="stat-label">Live {pluralize(stats.liveProjectCount, "project")}</span>
             </button>
             <button
               className="stat-card"
               onClick={() => setIsTechStackVisible(true)}
               aria-pressed={isTechStackVisible}
-              title="View all technologies"
+              title="View technical coverage"
             >
               <span className="stat-number">{data.allTechnologies.length}</span>
-              <span className="stat-label">Technologies used</span>
+              <span className="stat-label">Technical coverage ↗</span>
             </button>
           </div>
 
@@ -155,7 +148,7 @@ const Projects = () => {
                   aria-labelledby="tech-stack-title"
                 >
                   <div className="tech-stack-header">
-                    <h3 id="tech-stack-title">Technology Coverage</h3>
+                    <h3 id="tech-stack-title">Technical Coverage</h3>
                     <button
                       className="close-tech-stack"
                       onClick={() => setIsTechStackVisible(false)}
@@ -169,7 +162,7 @@ const Projects = () => {
                       <div key={tech} className="tech-item">
                         <span className="tech-name">{tech}</span>
                         <span className="tech-count">
-                          ({stats.techProjectCounts.get(tech) || 0} projects)
+                          ({countLabel(stats.techProjectCounts.get(tech) || 0, "project")})
                         </span>
                       </div>
                     ))}
