@@ -6,7 +6,8 @@
   position: relative;
   overflow-x: hidden;
   overflow-y: visible;
-  min-height: 100svh;
+  /* Fill the visible fold below the header and page padding, not a full viewport */
+  min-height: calc(100svh - var(--site-header-measured-offset, 0px) - 2rem);
 }
 
 .hero-content {
@@ -110,7 +111,8 @@
 @media (max-width: 768px) {
   .hero-section {
     min-height: 100svh;
-    padding: clamp(6rem, 18svh, 8rem) 0 2rem;
+    /* Page content already starts below the header; this is breathing room only */
+    padding: clamp(1.5rem, 4svh, 2.5rem) 0 2rem;
     justify-content: flex-start;
   }
 
@@ -170,7 +172,7 @@
 @media (max-width: 480px) {
   .hero-section {
     min-height: 100svh;
-    padding-top: clamp(5rem, 15svh, 7rem);
+    padding-top: clamp(1rem, 3svh, 1.5rem);
   }
 
   .hero-content {
