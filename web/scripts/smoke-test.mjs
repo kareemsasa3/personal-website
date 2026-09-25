@@ -649,6 +649,7 @@ const main = async () => {
   ].map((m) => m[1]);
 
   const expectedIndexOrder = [
+    "when-programming-became-the-smaller-part",
     "the-machine-should-explain-itself",
     "the-work-the-agent-stopped-doing",
     "what-should-the-agent-have-to-figure-out",
