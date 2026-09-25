@@ -12,7 +12,7 @@ const Writing = () => {
   return (
     <div className="page-content writing-page">
       <div className="writing-container">
-        <header id="writing-overview" className="writing-header prose-surface">
+        <header id="writing-overview" className="writing-header prose-surface prose-surface--start">
           <p className="writing-eyebrow">Long-form</p>
           <h1>
             <TypeWriterText text="Writing" speed={60} />

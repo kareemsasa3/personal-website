@@ -375,6 +375,8 @@ select {
   padding: var(--page-padding);
   width: 100%;
   box-sizing: border-box;
+  /* clip (not hidden) trims decorative bleed like the prose-surface scrim without creating a scroll container, so sticky descendants still pin */
+  overflow-x: clip;
   /* NO height, min-height, or margin rules here! It inherits its size. */
 }
 
@@ -390,8 +392,12 @@ select {
   }
 }
 
-.prose-surface { background: color-mix(in srgb, var(--app-bg) 65%, transparent); backdrop-filter: blur(6px); border-radius: 8px; }
-.prose-surface--reading { background: color-mix(in srgb, var(--app-bg) 94%, transparent); backdrop-filter: blur(12px); box-shadow: 0 0 24px 12px color-mix(in srgb, var(--app-bg) 80%, transparent); }
+/* Edgeless scrim: a feathered radial shade that extends past the box so rain behind text is dimmed without drawing a panel */
+.prose-surface:not(.prose-surface--reading) { position: relative; isolation: isolate; }
+.prose-surface:not(.prose-surface--reading)::before { content: ""; position: absolute; inset: -3rem -6rem; z-index: -1; pointer-events: none; background: radial-gradient(closest-side, color-mix(in srgb, var(--app-bg) 88%, transparent) 0%, color-mix(in srgb, var(--app-bg) 78%, transparent) 70%, transparent 100%); }
+/* Start-aligned headers: shrink the box to its text so the centered scrim sits behind the words, not the empty row */
+.prose-surface--start { width: fit-content; }
+.prose-surface--reading { background: color-mix(in srgb, var(--app-bg) 94%, transparent); backdrop-filter: blur(12px); border-radius: 8px; box-shadow: 0 0 24px 12px color-mix(in srgb, var(--app-bg) 80%, transparent); }
 html { scroll-padding-top: calc(var(--site-header-measured-offset, 0px) + 16px); scroll-padding-bottom: var(--site-dock-safe-space, 0px); }
 :target { scroll-margin-top: 1rem; }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
