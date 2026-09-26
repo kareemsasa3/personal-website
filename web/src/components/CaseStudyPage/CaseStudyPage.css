@@ -309,3 +309,6 @@
 .case-study-link.disabled:hover { transform: none; border-color: var(--app-border); }
 
 .case-study-link.disabled:hover { color: var(--app-text-secondary); background: transparent; }
+
+/* Cap near the 960px source so the loop is not upscaled and fits on screen with the header */
+.case-study-hero-media { max-width: min(100%, 880px); margin-top: 1.5rem; }

@@ -14,6 +14,19 @@ export const CATEGORIES = [
   "Portfolio",
 ] as const;
 
+export interface ProjectMediaAsset {
+  /** Path under web/public, served from the site root. */
+  src: string;
+  width: number;
+  height: number;
+}
+
+/** A still poster is required; a looping video is optional and only plays on detail pages. */
+export interface ProjectMedia {
+  poster: ProjectMediaAsset & { alt: string };
+  video?: ProjectMediaAsset & { label: string };
+}
+
 export interface Project {
   id: string;
   category: (typeof CATEGORIES)[number];
@@ -28,7 +41,7 @@ export interface Project {
   url: string;
   githubUrl?: string;
   liveUrl?: string;
-  image?: string;
+  media?: ProjectMedia;
   /** Architecture, implementation decisions, and engineering distinctions; lifecycle belongs in status. */
   highlights: string[];
 }
@@ -76,6 +89,20 @@ export const projectsData: Project[] = [
     ],
     status: "Completed",
     url: "https://github.com/kareemsasa3/aether",
+    media: {
+      poster: {
+        src: "/media/aether.webp",
+        width: 960,
+        height: 706,
+        alt: "Aether's terminal visualizer in the Phosphor style: green and cyan Lissajous curves drawn from live audio, with the seven-band spectrum readout below.",
+      },
+      video: {
+        src: "/media/aether.mp4",
+        width: 960,
+        height: 706,
+        label: "Aether's terminal visualizer reacting to live audio, cycling through the Phosphor, Neon Wave, Matrix Rain, Aurora and Cyberpunk styles.",
+      },
+    },
     githubUrl: "https://github.com/kareemsasa3/aether",
     highlights: [
       "Lock-free IPC via memory-mapped files",

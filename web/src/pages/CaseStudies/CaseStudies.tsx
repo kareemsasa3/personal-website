@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import TypeWriterText from "../../components/TypeWriterText";
+import ProjectMedia from "../../components/ProjectMedia";
 import { caseStudyCards } from "../../data/caseStudies";
 import "../../components/CaseStudyPage/CaseStudyPage.css";
 
@@ -26,6 +27,13 @@ const CaseStudies = () => {
               to={`/case-studies/${caseStudy.slug}`}
               className="case-study-card interactive-card"
             >
+              {caseStudy.project.media && (
+                <ProjectMedia
+                  media={caseStudy.project.media}
+                  label={caseStudy.slug}
+                  decorative
+                />
+              )}
               <div className="case-study-card-header">
                 <div>
                   <h3>{caseStudy.title}</h3>

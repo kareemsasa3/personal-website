@@ -409,3 +409,45 @@ with globally bundled card/badge styles.
         animation: none;
     }
 }
+
+/* Rows with a project still: thumbnail column on the left, text and actions unchanged */
+.project-roster__summary--with-media {
+    grid-template-columns: 12rem minmax(0, 1fr) auto;
+    grid-template-areas:
+        "media meta actions"
+        "media title actions"
+        "media deck actions";
+}
+
+.project-roster__media {
+    grid-area: media;
+    align-self: start;
+    margin-right: 0.5rem;
+}
+
+@media (max-width: 899px) {
+    .project-roster__summary--with-media {
+        grid-template-columns: 9rem minmax(0, 1fr);
+        grid-template-areas:
+            "media meta"
+            "media title"
+            "media deck"
+            "actions actions";
+    }
+}
+
+@media (max-width: 599px) {
+    .project-roster__summary--with-media {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-areas:
+            "media"
+            "meta"
+            "title"
+            "deck"
+            "actions";
+    }
+
+    .project-roster__media {
+        margin: 0 0 1rem;
+    }
+}

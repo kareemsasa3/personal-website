@@ -3,6 +3,7 @@ import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Project } from "../../data/projects";
 import { caseStudyByProjectId } from "../../data/caseStudies";
+import ProjectMedia from "../ProjectMedia";
 
 const STATUS_LABELS: Partial<Record<Project["status"], string>> = {
   Development: "In progress",
@@ -112,7 +113,18 @@ const ProjectRosterItem = ({ project }: ProjectRosterItemProps) => {
   return (
     <li className="project-roster__item" data-expanded={isExpanded}>
       <article className="project-roster__article" aria-labelledby={titleId}>
-        <div className="project-roster__summary">
+        <div
+          className={`project-roster__summary${
+            project.media ? " project-roster__summary--with-media" : ""
+          }`}
+        >
+          {project.media && (
+            <ProjectMedia
+              media={project.media}
+              label={project.id}
+              className="project-roster__media"
+            />
+          )}
           <p className="project-roster__meta">
             <span className="project-roster__meta-item">{project.category}</span>
             <span className="project-roster__meta-item">{project.date}</span>

@@ -2,6 +2,8 @@ import { Link } from "react-router-dom";
 import { useEffect, useMemo } from "react";
 import TypeWriterText from "../TypeWriterText";
 import { CaseStudy } from "../../data/caseStudies";
+import { projectsData } from "../../data/projects";
+import ProjectMedia from "../ProjectMedia";
 import { useLayoutContext, PageSection } from "../../contexts/LayoutContext";
 import "./CaseStudyPage.css";
 
@@ -24,6 +26,9 @@ const sectionDefinitions: PageSection[] = [
 const CaseStudyPage = ({ caseStudy }: CaseStudyPageProps) => {
   const { setSections } = useLayoutContext();
   const sections = useMemo(() => sectionDefinitions, []);
+  const media = projectsData.find(
+    (project) => project.id === caseStudy.projectId
+  )?.media;
 
   useEffect(() => {
     setSections(sections);
@@ -53,6 +58,14 @@ const CaseStudyPage = ({ caseStudy }: CaseStudyPageProps) => {
               </span>
             ))}
           </div>
+          {media && (
+            <ProjectMedia
+              media={media}
+              label={caseStudy.slug}
+              mode="video"
+              className="case-study-hero-media"
+            />
+          )}
         </section>
 
         <section id="problem" className="case-study-section interactive-card">

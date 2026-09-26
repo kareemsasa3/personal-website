@@ -1,0 +1,57 @@
+/* Terminal-window frame around project stills and demo loops */
+.project-media {
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--border-color) 80%, transparent);
+  border-radius: 8px;
+  /* Matches the recording background so letterboxing is invisible */
+  background: #181818;
+}
+
+.project-media__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 1.9rem;
+  padding: 0.3rem 0.75rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--border-color) 60%, transparent);
+  color: var(--text-secondary);
+  font-family: var(--font-family-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+}
+
+.project-media__label::before {
+  content: "▍";
+  margin-right: 0.4rem;
+  color: var(--primary-color);
+}
+
+.project-media__control {
+  min-height: 1.6rem;
+  padding: 0 0.5rem;
+  border: 1px solid color-mix(in srgb, var(--border-color) 80%, transparent);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.project-media__control:hover {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+}
+
+.project-media__control:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+.project-media__asset {
+  display: block;
+  width: 100%;
+  height: auto;
+}
