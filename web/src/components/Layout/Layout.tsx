@@ -1,4 +1,4 @@
-import { useLocation, useOutlet } from "react-router-dom";
+import { useLocation, useNavigationType, useOutlet } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Suspense, useMemo, useState, useEffect, useRef } from "react";
 import AppBackground from "../AppBackground/AppBackground";
@@ -49,11 +49,13 @@ const FrozenOutlet = () => {
 
 const Layout = () => {
   const location = useLocation();
+  const navigationType = useNavigationType();
   const { mainContentAreaRef } = useLayoutContext();
   const { navMode } = useNavigationMode();
   const [isLoading, setIsLoading] = useState(true);
   const hasMarkedAppReady = useRef(false);
   const isInitialLoad = useRef(true);
+  const pendingScrollReset = useRef(false);
 
   // Memoize the key to prevent unnecessary re-renders
   const pageKey = useMemo(() => location.pathname, [location.pathname]);
@@ -77,6 +79,27 @@ const Layout = () => {
 
     return () => clearTimeout(timer);
   }, [location.pathname]);
+
+  // Start each newly navigated page at the top. Back/forward (POP) keeps the
+  // browser's restoration, and #anchor links scroll themselves.
+  useEffect(() => {
+    if (navigationType === "POP" || location.hash) {
+      pendingScrollReset.current = false;
+      return;
+    }
+
+    pendingScrollReset.current = true;
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  }, [location.pathname, location.hash, navigationType]);
+
+  // Reset again once the page replaces the loader: a touch fling still in
+  // progress (e.g. iOS momentum scrolling) can override the first reset.
+  useEffect(() => {
+    if (!isLoading && pendingScrollReset.current) {
+      pendingScrollReset.current = false;
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    }
+  }, [isLoading]);
 
   useEffect(() => {
     if (!isLoading && !hasMarkedAppReady.current) {
