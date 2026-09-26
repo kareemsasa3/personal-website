@@ -1,12 +1,27 @@
 # Evidence-Linked Case Studies Implementation Specification
 
-Status: Approved design, implementation pending
+Status: Approved design, implementation pending; subject to the user-directed supersession below
 
 Scope: Personal website frontend and its generated public artifacts
 
 Implementation phase covered: Phase 1 only
 
 Last repository/evidence inspection: 2026-08-27
+
+## User-directed supersession — 2026-09-26
+
+The user clarified the governing product decision after this specification was written:
+
+> Homepage curation and evidence qualification are separate concerns. Erebus and Arachne remain the current featured systems. Aether may serve as the first evidence-linked case-study implementation, but evidence readiness does not confer homepage flagship status. The older specification is superseded where it conflicts with this distinction.
+
+This direction takes precedence throughout the document. The original dated specification below is retained as history; conflicting clauses are not current implementation instructions.
+
+- **Homepage curation:** preserve Erebus and Arachne as the current featured systems. Do not derive homepage selection from evidence eligibility, promote Aether automatically, or demote Erebus/Arachne because their evidence packages are incomplete.
+- **Evidence qualification:** qualify claims and their supporting artifacts independently of homepage curation. Aether may be the first evidence-linked implementation; that implementation order does not assign homepage flagship status.
+- **Conflicting implementation requirements:** the Aether-only flagship configuration, evidence-gated homepage selection, associated promotion/demotion copy, and tests or acceptance criteria enforcing those policies are superseded. This applies wherever repeated, including sections 1–2, 4, 6–7, 9, 11–12, 14–19, and 22. Do not propagate the superseded coupling into static shells, metadata, sitemap priorities, generated AI context, or test fixtures. No separate case-study-index promotion is authorized merely by this clarification.
+- **Unchanged scope:** non-conflicting claim/evidence schema, qualification logic, disclosure rules, privacy protections, and publication safeguards remain applicable. Unrelated navigation, rollout, and implementation requirements are not superseded by this clarification. The separate Simulations navigation question remains recorded in the discovery report.
+
+This is documentation reconciliation only: no implementation, publication, deployment, or stakeholder-validation state is advanced. The [modernization discovery report](design/personal-website-modernization-discovery.md) reflects the same distinction in its recommendations, roadmap, and prototypes.
 
 ## 1. Purpose
 
