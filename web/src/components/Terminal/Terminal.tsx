@@ -246,11 +246,14 @@ const Terminal: React.FC<TerminalProps> = ({ isIntro }) => {
       >
         {!isIntro && (
           <div className="terminal-route-intro">
-            <h1 className="terminal-route-title">Terminal</h1>
-            <p className="terminal-route-description">
-              Interactive interface for exploring parts of the site and
-              projects.
-            </p>
+            {/* Inner wrapper carries the scrim: prose-surface sets position: relative, which would override the intro's absolute positioning */}
+            <div className="prose-surface">
+              <h1 className="terminal-route-title">Terminal</h1>
+              <p className="terminal-route-description">
+                Interactive interface for exploring parts of the site and
+                projects.
+              </p>
+            </div>
           </div>
         )}
 

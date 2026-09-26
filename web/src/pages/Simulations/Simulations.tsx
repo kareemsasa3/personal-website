@@ -13,7 +13,7 @@ const Simulations = () => {
   return (
     <div className="page-content">
       <div className="simulations-container">
-        <div className="simulations-header">
+        <div className="simulations-header prose-surface">
           <h1 className="simulations-title">Simulations</h1>
           <p className="simulations-subtitle">
             Interactive systems exploring state, rules, feedback loops, and
