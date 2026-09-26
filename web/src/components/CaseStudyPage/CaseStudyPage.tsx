@@ -68,7 +68,7 @@ const CaseStudyPage = ({ caseStudy }: CaseStudyPageProps) => {
           )}
         </section>
 
-        <section id="problem" className="case-study-section interactive-card">
+        <section id="problem" className="case-study-section prose-surface">
           <h2>Problem</h2>
           <p>{caseStudy.problem}</p>
         </section>
@@ -91,7 +91,7 @@ const CaseStudyPage = ({ caseStudy }: CaseStudyPageProps) => {
           </div>
         </section>
 
-        <section id="architecture" className="case-study-section interactive-card">
+        <section id="architecture" className="case-study-section prose-surface">
           <h2>Architecture</h2>
           {caseStudy.slug === "erebus" && (
             <figure className="case-study-flow">
@@ -134,7 +134,7 @@ const CaseStudyPage = ({ caseStudy }: CaseStudyPageProps) => {
           </div>
         </section>
 
-        <section id="outcome" className="case-study-section interactive-card">
+        <section id="outcome" className="case-study-section prose-surface">
           <h2>{caseStudy.slug === "erebus" ? "Current Outcome" : "Outcome"}</h2>
           <ul className="case-study-list">
             {caseStudy.outcome.map((item) => (
@@ -173,7 +173,7 @@ const CaseStudyPage = ({ caseStudy }: CaseStudyPageProps) => {
           </div>
         </section>
 
-        <section id="links" className="case-study-section interactive-card">
+        <section id="links" className="case-study-section prose-surface">
           <h2>Links</h2>
           <div className="case-study-links">
             {caseStudy.links.map((link) => {
