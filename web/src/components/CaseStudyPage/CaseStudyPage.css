@@ -310,5 +310,5 @@
 
 .case-study-link.disabled:hover { color: var(--app-text-secondary); background: transparent; }
 
-/* Cap near the 960px source so the loop is not upscaled and fits on screen with the header */
-.case-study-hero-media { max-width: min(100%, 880px); margin-top: 1.5rem; }
+/* Span the hero card so the loop fills the width beside the left-aligned copy and dense terminal text stays legible */
+.case-study-hero-media { margin-top: 1.5rem; }
