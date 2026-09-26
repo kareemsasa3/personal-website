@@ -66,6 +66,20 @@ export const projectsData: Project[] = [
     ],
     status: "Active development",
     url: "#",
+    media: {
+      poster: {
+        src: "/media/erebus.webp",
+        width: 1344,
+        height: 784,
+        alt: "Erebus's live event stream in a terminal: timestamped network, window focus, thermal, UPS, GPU and belief-tick events from its system emitters.",
+      },
+      video: {
+        src: "/media/erebus.mp4",
+        width: 1344,
+        height: 784,
+        label: "Running erebus events --follow: events from Erebus's network, window focus, thermal, UPS and GPU emitters stream in as they happen, alongside periodic belief re-evaluation ticks.",
+      },
+    },
     highlights: [
       "Belief-driven system state modeling",
       "Replayable operational history",
