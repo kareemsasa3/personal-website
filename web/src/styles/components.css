@@ -82,10 +82,12 @@
   width: fit-content;
   max-width: 100%;
   padding: 0.25rem 0.75rem;
-  background: var(--primary-color-light);
-  border: 1px solid var(--primary-color-medium);
+  /* Solid dark-green pill with light text: 4.86:1 contrast in both themes.
+     The old pale-green fill with green text was 1.38:1 and needed per-page patches. */
+  background: #2e7d32;
+  border: 1px solid var(--primary-color);
   border-radius: 15px;
-  color: var(--primary-color);
+  color: #f8f9fa;
   font-size: 0.8rem;
   font-weight: 500;
   line-height: 1.25;
@@ -95,13 +97,6 @@
   transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease;
 }
 
-[data-theme="dark"] .featured-projects-section .tech-tag,
-[data-theme="dark"] .case-studies-page .tech-tag {
-  background: #2e7d32;
-  border-color: var(--primary-color);
-  color: var(--app-text);
-}
-
 @media (max-width: 480px) {
   .interactive-card {
     padding: 1rem;
@@ -109,7 +104,8 @@
 }
 
 .tech-tag:hover {
-  background: var(--primary-color);
+  /* Darker on hover keeps white text readable (7.87:1) */
+  background: #1b5e20;
   color: white;
   transform: translateY(-2px);
 }
