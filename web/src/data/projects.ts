@@ -24,6 +24,8 @@ export interface ProjectMediaAsset {
 /** A still poster is required; a looping video is optional and only plays on detail pages. */
 export interface ProjectMedia {
   poster: ProjectMediaAsset & { alt: string };
+  /** Card-sized still for when the full poster is unreadable at thumbnail scale; falls back to poster. */
+  thumbnail?: ProjectMediaAsset & { alt: string };
   video?: ProjectMediaAsset & { label: string };
 }
 
@@ -72,6 +74,12 @@ export const projectsData: Project[] = [
         width: 1344,
         height: 784,
         alt: "Erebus's live event stream in a terminal: timestamped network, window focus, thermal, UPS, GPU and belief-tick events from its system emitters.",
+      },
+      thumbnail: {
+        src: "/media/erebus-card.webp",
+        width: 492,
+        height: 362,
+        alt: "Close-up of Erebus's event stream: timestamped info and debug lines from the erebus-net, erebus-window, erebus-beliefs, erebus-ups and erebus-gpu emitters.",
       },
       video: {
         src: "/media/erebus.mp4",
@@ -148,6 +156,12 @@ export const projectsData: Project[] = [
         width: 1360,
         height: 1000,
         alt: "Arachne's Job Details page for a completed scrape of Hacker News, with the generated AI summary of the scraped content below the job metadata.",
+      },
+      thumbnail: {
+        src: "/media/arachne-card.webp",
+        width: 672,
+        height: 494,
+        alt: "Close-up of Arachne's Job Details page: the job ID, timestamps and https://news.ycombinator.com/ URL above the start of the generated AI summary.",
       },
       video: {
         src: "/media/arachne.mp4",

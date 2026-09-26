@@ -29,6 +29,7 @@ const ProjectMedia = ({
   const userPausedRef = useRef(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const video = mode === "video" ? media.video : undefined;
+  const still = (mode === "poster" && media.thumbnail) || media.poster;
   const shouldAutoplay = Boolean(video) && !reduceMotion;
 
   // Play only while on screen so the loop doesn't download or run out of view.
@@ -108,10 +109,10 @@ const ProjectMedia = ({
       ) : (
         <img
           className="project-media__asset"
-          src={media.poster.src}
-          alt={decorative ? "" : media.poster.alt}
-          width={media.poster.width}
-          height={media.poster.height}
+          src={still.src}
+          alt={decorative ? "" : still.alt}
+          width={still.width}
+          height={still.height}
           loading={eager ? "eager" : "lazy"}
           decoding="async"
         />
