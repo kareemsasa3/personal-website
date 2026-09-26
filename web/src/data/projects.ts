@@ -142,6 +142,20 @@ export const projectsData: Project[] = [
     ],
     status: "Completed",
     url: "https://github.com/kareemsasa3/arachne",
+    media: {
+      poster: {
+        src: "/media/arachne.webp",
+        width: 1360,
+        height: 1000,
+        alt: "Arachne's Job Details page for a completed scrape of Hacker News, with the generated AI summary of the scraped content below the job metadata.",
+      },
+      video: {
+        src: "/media/arachne.mp4",
+        width: 1360,
+        height: 1000,
+        label: "Arachne walkthrough: submitting a scrape job, watching it complete, generating an AI summary, browsing version history and the analytics dashboard, searching scraped content, and asking the assistant about a job.",
+      },
+    },
     githubUrl: "https://github.com/kareemsasa3/arachne",
     highlights: [
       "Microservices architecture with submodules",
