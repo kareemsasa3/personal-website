@@ -22,9 +22,8 @@ TABLE OF CONTENTS
    ======================================== */
 
 .journey-page {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 40px 20px;
+    /* Center an 860px column with padding rather than max-width: .page-content clips overflow-x, and a narrow box would cut the header scrim into hard edges */
+    padding: 40px max(20px, calc((100% - 860px) / 2));
     color: var(--text-color);
 }
 

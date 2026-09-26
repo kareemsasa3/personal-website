@@ -1,9 +1,8 @@
 /* Work page uses the standardized .page-content layout from index.css */
 
 .work-page {
-    padding: 40px 20px;
-    max-width: 1200px;
-    margin: 0 auto;
+    /* Center a 1160px column with padding rather than max-width: .page-content clips overflow-x, and a narrow box would cut the header scrim into hard edges */
+    padding: 40px max(20px, calc((100% - 1160px) / 2));
     color: var(--text-color);
     background: transparent;
     min-height: 100vh;
