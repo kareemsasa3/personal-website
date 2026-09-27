@@ -96,13 +96,14 @@ const HeaderNavigation = forwardRef<HTMLElement>(function HeaderNavigation(
   );
 
   const coreNav = (
-    <nav className="site-header__nav site-header__core" aria-label="Primary navigation">
+    <nav key="core" className="site-header__nav site-header__core" aria-label="Primary navigation">
       <HeaderLinkList items={coreNavItems} pathname={pathname} />
     </nav>
   );
 
   const exploreNav = (
     <nav
+      key="explore"
       ref={explore.containerRef}
       className="site-header__nav site-header__explore"
       aria-labelledby={EXPLORE_LABEL_ID}
@@ -164,7 +165,7 @@ const HeaderNavigation = forwardRef<HTMLElement>(function HeaderNavigation(
   );
 
   const actions = (
-    <div className="site-header__actions">
+    <div key="actions" className="site-header__actions">
       <button
         type="button"
         className={`site-header__settings-button ${isSettingsOpen ? "active" : ""}`}
