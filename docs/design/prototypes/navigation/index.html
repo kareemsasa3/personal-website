@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Navigation hierarchy prototype</title>
+<!--
+  NON-PRODUCTION PROTOTYPE for docs/design/navigation-hierarchy-prototype.md.
+  Not imported by the application; lives outside the Vite root (web/).
+  Open through any static server, e.g.:
+    python3 -m http.server -d docs/design/prototypes/navigation 8790
+  Query parameters:
+    v      = current | a | b | c          (header variant)
+    route  = any site path, e.g. /writing  (simulated current route)
+    dock   = none | flat | sep | stack     (schematic dock mock)
+    desc   = 0 | 1                         (placeholder descriptors in Explore panels)
+  Tokens and header geometry are copied from web/src/index.css and
+  web/src/components/Navigation/SiteNavigation.css at HEAD fe4421d.
+-->
+<style>
+:root {
+  --app-bg: #1a1a1a;
+  --app-surface: #2d2d2d;
+  --app-overlay: rgba(26, 26, 26, 0.88);
+  --app-text: #f8f9fa;
+  --app-text-secondary: #adb5bd;
+  --app-text-muted: #6c757d;
+  --app-border: #495057;
+  --app-shadow: rgba(0, 0, 0, 0.3);
+  --brand-primary: #4CAF50;
+  --brand-primary-soft: #81C784;
+  --font-family-primary: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-family-mono: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+  --header-offset: 6rem;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--app-bg);
+  color: var(--app-text);
+  font-family: var(--font-family-primary);
+  line-height: 1.5;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .panel { transition: opacity 120ms ease-out; }
+}
+
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
+}
+
+/* ---------- Shared shell (mirrors .site-header) ---------- */
+
+.hdr-shell {
+  position: fixed; inset: 0 0 auto 0; z-index: 10;
+  display: grid; place-items: start center; pointer-events: none;
+}
+
+.hdr {
+  pointer-events: auto;
+  position: relative;
+  width: min(1180px, calc(100% - 2rem));
+  max-width: calc(100% - 2rem);
+  min-width: 0;
+  min-height: 4rem;
+  margin: 0.75rem 1rem;
+  padding: 0.55rem 0.7rem;
+  display: flex; align-items: center; gap: 1rem;
+  border: 1px solid color-mix(in srgb, var(--app-border) 76%, transparent);
+  border-radius: 8px;
+  background: var(--app-overlay);
+  box-shadow: 0 10px 32px var(--app-shadow);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.nav {
+  display: flex; align-items: center; gap: 1rem;
+  flex: 1 1 auto; min-width: 0;
+}
+
+.brand {
+  display: inline-flex; align-items: center; gap: 0.6rem;
+  flex: 0 0 auto; color: var(--app-text); text-decoration: none;
+  border-radius: 6px;
+}
+.brand-mark {
+  display: grid; place-items: center; width: 2.4rem; aspect-ratio: 1;
+  border: 1px solid color-mix(in srgb, var(--brand-primary) 68%, transparent);
+  border-radius: 6px; background: rgba(0,0,0,.2); color: var(--brand-primary);
+  font-family: var(--font-family-mono); font-size: .85rem; font-weight: 800;
+}
+.brand-name { font-size: .95rem; font-weight: 700; white-space: nowrap; }
+.brand[aria-current="page"] .brand-mark { background: color-mix(in srgb, var(--brand-primary-soft) 14%, transparent); }
+
+.list { display: flex; align-items: center; gap: .15rem; margin: 0; padding: 0; list-style: none; }
+
+.link, .explore-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: .4rem;
+  min-height: 2.5rem; padding: .6rem .7rem;
+  border: 1px solid transparent; border-radius: 6px;
+  color: var(--app-text-secondary); background: none;
+  font: inherit; font-size: .9rem; font-weight: 650; line-height: 1.1;
+  text-decoration: none; white-space: nowrap; cursor: pointer;
+}
+.link:hover, .explore-btn:hover { color: var(--app-text); border-color: color-mix(in srgb, var(--app-border) 90%, transparent); }
+.link[aria-current], .explore-btn.is-current {
+  background: color-mix(in srgb, var(--brand-primary-soft) 14%, transparent);
+  border-color: color-mix(in srgb, var(--brand-primary) 58%, transparent);
+  color: var(--brand-primary);
+}
+.explore-btn[aria-expanded="true"] { border-color: color-mix(in srgb, var(--app-text-secondary) 60%, transparent); color: var(--app-text); }
+.explore-btn.is-current[aria-expanded="true"] { color: var(--brand-primary); }
+
+.brand:focus-visible, .link:focus-visible, .explore-btn:focus-visible, .gear:focus-visible, .dock a:focus-visible, .dock button:focus-visible {
+  outline: 2px solid var(--brand-primary); outline-offset: 3px;
+}
+
+.chev { width: .7em; height: .7em; flex: none; }
+.explore-btn[aria-expanded="true"] .chev { transform: rotate(180deg); }
+.explore-where { font-family: var(--font-family-mono); font-weight: 500; font-size: .8em; }
+
+.actions { display: inline-flex; flex: 0 0 auto; }
+.gear {
+  display: grid; place-items: center; width: 2.4rem; aspect-ratio: 1;
+  border: 1px solid color-mix(in srgb, var(--app-border) 80%, transparent);
+  border-radius: 6px; background: rgba(0,0,0,.2); color: var(--app-text); cursor: pointer;
+}
+
+/* Explore panel (disclosure, not role=menu) */
+.explore { position: relative; flex: 0 0 auto; }
+.panel {
+  position: absolute; top: calc(100% + .6rem); left: 0; z-index: 3;
+  min-width: 15rem; margin: 0; padding: .4rem; list-style: none;
+  background: var(--app-surface); border: 1px solid var(--app-border); border-radius: 8px;
+  box-shadow: 0 12px 28px var(--app-shadow);
+}
+.panel[hidden] { display: none; }
+.panel .link { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; width: 100%; min-height: 2.75rem; white-space: normal; }
+.panel-desc { font-size: .78rem; font-weight: 400; color: var(--app-text-muted); }
+.panel .link[aria-current] .panel-desc { color: color-mix(in srgb, var(--brand-primary) 70%, var(--app-text-secondary)); }
+.panel-heading {
+  margin: .5rem .7rem .25rem; font-family: var(--font-family-mono); font-size: .7rem;
+  letter-spacing: .08em; text-transform: uppercase; color: var(--app-text-muted);
+}
+
+/* ---------- Current (control): 8 equal destinations ---------- */
+[data-v="current"] .ico { display: inline-block; width: .8rem; height: .8rem; border-radius: 2px; background: currentColor; opacity: .75; }
+[data-v="current"] .nav { justify-content: space-between; }
+[data-v="current"] .list { flex: 1 1 auto; justify-content: center; }
+@media (max-width: 1180px) {
+  [data-v="current"] .link:not([aria-current]) .lbl { display: none; }
+}
+@media (max-width: 960px) {
+  [data-v="current"] .hdr { align-items: flex-start; }
+  [data-v="current"] .nav { flex-wrap: wrap; row-gap: .5rem; padding-right: 3rem; }
+  [data-v="current"] .list { flex-basis: 100%; justify-content: flex-start; margin-right: -3rem; }
+  [data-v="current"] .actions { position: absolute; top: .55rem; right: .7rem; }
+}
+@media (max-width: 768px) {
+  [data-v="current"] .list .link { flex: 1 1 0; min-width: 0; padding: .5rem .25rem; font-size: .72rem; }
+  [data-v="current"] .list li { flex: 1 1 0; min-width: 0; display: flex; }
+  [data-v="current"] .list li:has([aria-current]) { flex: 0 0 auto; }
+}
+
+/* ---------- Variant A: core inline + labeled Explore disclosure ---------- */
+[data-v="a"] .core { flex: 0 1 auto; }
+@media (max-width: 900px) {
+  [data-v="a"] .hdr { align-items: flex-start; }
+  [data-v="a"] .nav { flex-wrap: wrap; row-gap: .5rem; padding-right: 3rem; }
+  [data-v="a"] .brand { order: 1; }
+  [data-v="a"] .explore { order: 2; margin-left: auto; }
+  [data-v="a"] .core { order: 3; flex: 1 1 100%; flex-wrap: wrap; margin-right: -3rem; gap: .25rem; }
+  [data-v="a"] .core li { flex: 1 1 auto; display: flex; }
+  [data-v="a"] .core .link { flex: 1 1 auto; padding: .5rem .45rem; font-size: .82rem; }
+  [data-v="a"] .actions { position: absolute; top: .55rem; right: .7rem; }
+  [data-v="a"] .panel { left: auto; right: -3rem; }
+}
+@media (max-width: 640px) {
+  [data-v="a"] .brand-name { display: none; }
+  [data-v="a"] .explore-where { display: none; }
+}
+@media (max-width: 430px) {
+  [data-v="a"] .hdr { padding: .5rem; margin: .5rem; width: calc(100% - 1rem); max-width: calc(100% - 1rem); }
+  [data-v="a"] .core .link { font-size: .78rem; padding: .5rem .3rem; }
+  /* Anchor the panel to the header box so it opens below every row. */
+  [data-v="a"] .explore { position: static; }
+  [data-v="a"] .panel { top: calc(100% + .5rem); left: 0; right: 0; }
+}
+
+@media (max-width: 374px) {
+  /* Tightest attempt to keep four labeled core links on one row. If text is
+     enlarged, flex-wrap still produces a (taller) readable result. */
+  [data-v="a"] .core, [data-v="b"] .core { gap: 2px; }
+  [data-v="a"] .core .link, [data-v="b"] .core .link { font-size: .74rem; padding: .5rem .2rem; }
+}
+
+/* ---------- Variant B: two visible groups ---------- */
+[data-v="b"] .groups { display: flex; align-items: center; gap: .9rem; flex: 1 1 auto; min-width: 0; }
+[data-v="b"] .grp-explore { display: flex; align-items: center; gap: .35rem; padding-left: .9rem; border-left: 1px solid color-mix(in srgb, var(--app-border) 80%, transparent); }
+[data-v="b"] .grp-label, [data-v="c"] .grp-label {
+  font-family: var(--font-family-mono); font-size: .68rem; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--app-text-muted); white-space: nowrap;
+}
+[data-v="b"] .grp-explore .link, [data-v="c"] .grp-explore .link { font-family: var(--font-family-mono); font-weight: 500; font-size: .82rem; }
+@media (max-width: 1180px) {
+  [data-v="b"] .hdr { align-items: flex-start; }
+  [data-v="b"] .nav { flex-wrap: wrap; row-gap: .5rem; padding-right: 3rem; }
+  [data-v="b"] .groups { flex: 1 1 100%; margin-right: -3rem; }
+  [data-v="b"] .actions { position: absolute; top: .55rem; right: .7rem; }
+}
+@media (max-width: 768px) {
+  [data-v="b"] .groups { flex-direction: column; align-items: stretch; gap: .35rem; }
+  [data-v="b"] .core { flex-wrap: wrap; gap: .25rem; }
+  [data-v="b"] .core li { flex: 1 1 auto; display: flex; }
+  [data-v="b"] .core .link { flex: 1 1 auto; padding: .5rem .45rem; font-size: .82rem; }
+  [data-v="b"] .grp-explore { padding-left: 0; padding-top: .35rem; border-left: 0; border-top: 1px solid color-mix(in srgb, var(--app-border) 80%, transparent); flex-wrap: wrap; }
+  [data-v="b"] .grp-explore .list { flex: 1 1 auto; flex-wrap: wrap; }
+  [data-v="b"] .grp-explore .link { min-height: 2.25rem; padding: .4rem .45rem; font-size: .76rem; }
+}
+@media (max-width: 640px) { [data-v="b"] .brand-name { display: none; } }
+@media (max-width: 430px) {
+  [data-v="b"] .hdr { padding: .5rem; margin: .5rem; width: calc(100% - 1rem); max-width: calc(100% - 1rem); }
+  [data-v="b"] .core .link { font-size: .78rem; padding: .5rem .3rem; }
+}
+
+/* ---------- Variant C: width-adaptive (B wide, A middle, labeled menu on phones) ---------- */
+[data-v="c"] .nav > .wide, [data-v="c"] .nav > .mid, [data-v="c"] .nav > .phone { display: none; }
+[data-v="c"] .grp-explore { display: flex; align-items: center; gap: .35rem; padding-left: .9rem; border-left: 1px solid color-mix(in srgb, var(--app-border) 80%, transparent); }
+[data-v="c"] .groups { display: flex; align-items: center; gap: .9rem; }
+.where {
+  font-family: var(--font-family-mono); font-size: .8rem; color: var(--brand-primary);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0;
+}
+@media (min-width: 1181px) { [data-v="c"] .nav > .wide { display: flex; } }
+@media (min-width: 641px) and (max-width: 1180px) { [data-v="c"] .nav > .mid { display: flex; } }
+@media (max-width: 640px) {
+  [data-v="c"] .nav > .phone { display: flex; align-items: center; gap: .6rem; flex: 1 1 auto; min-width: 0; }
+  [data-v="c"] .brand-name { display: none; }
+  [data-v="c"] .hdr { gap: .6rem; padding: .5rem; margin: .5rem; width: calc(100% - 1rem); max-width: calc(100% - 1rem); min-height: 3.4rem; }
+  /* Enlarged text: let the row wrap instead of pushing Menu/Settings off-screen. */
+  [data-v="c"] .nav > .phone { flex-wrap: wrap; row-gap: .4rem; }
+  [data-v="c"] .phone .where { flex: 1 1 0; }
+  [data-v="c"] .phone .explore { margin-left: auto; }
+  [data-v="c"] .phone .explore { position: static; }
+  [data-v="c"] .phone .panel { top: calc(100% + .5rem); left: 0; right: 0; max-height: calc(100dvh - 5rem); overflow-y: auto; }
+  [data-v="c"] .phone .panel .link { min-height: 2.75rem; font-size: .95rem; }
+}
+
+/* ---------- Page body ---------- */
+main { padding: calc(var(--header-offset) + 1rem) 1rem 10rem; max-width: 60rem; margin: 0 auto; }
+h1 { font-family: var(--font-family-mono); font-size: 1.3rem; color: var(--brand-primary); margin: 0 0 .5rem; }
+.proto-controls { margin-top: 2rem; padding: 1rem; border: 1px dashed var(--app-border); border-radius: 8px; font-size: .85rem; }
+.proto-controls a { color: var(--brand-primary-soft); margin-right: .6rem; display: inline-block; padding: .15rem 0; }
+.proto-controls a[aria-current] { color: var(--app-text); font-weight: 700; }
+.proto-controls p { margin: .4rem 0; }
+
+/* ---------- Schematic dock mock ---------- */
+.dock {
+  position: fixed; bottom: 20px; left: 50%; translate: -50% 0; max-width: 90vw; z-index: 10;
+  display: flex; align-items: flex-end; gap: 12px; padding: 8px 12px;
+  background: var(--app-overlay); border-radius: 16px; box-shadow: 0 8px 32px var(--app-shadow);
+  font-family: var(--font-family-mono);
+}
+.dock a, .dock > button, .dock .explore > button {
+  position: relative; display: grid; place-items: center; width: 40px; height: 40px;
+  border: 1px solid transparent; border-radius: 6px; background: rgba(0,0,0,.2);
+  color: var(--app-text); font: inherit; font-size: .7rem; font-weight: 700; text-decoration: none; cursor: pointer;
+}
+.dock a[aria-current] { color: var(--brand-primary); }
+.dock a[aria-current]::after { content: ""; position: absolute; bottom: -6px; left: 50%; translate: -50% 0; width: 4px; height: 4px; border-radius: 50%; background: var(--brand-primary); }
+.dock-sep { align-self: stretch; width: 1px; background: color-mix(in srgb, var(--app-border) 90%, transparent); margin: 4px 0; }
+.dock .panel { top: auto; bottom: calc(100% + .8rem); left: 50%; translate: -50% 0; }
+.dock .panel a { width: 100%; height: auto; display: flex; justify-items: start; }
+.dock .panel a[aria-current]::after { display: none; }
+@media (max-width: 768px) {
+  .dock { bottom: 10px; gap: 6px; padding: 4px 6px; }
+  .dock a, .dock > button, .dock .explore > button { width: 36px; height: 36px; }
+}
+</style>
+</head>
+<body>
+<div class="hdr-shell"><header class="hdr" id="hdr"></header></div>
+<main id="main"></main>
+<div id="dock-root"></div>
+
+<script>
+(() => {
+  const params = new URLSearchParams(location.search);
+  const v = ["current", "a", "b", "c"].includes(params.get("v")) ? params.get("v") : "current";
+  const route = params.get("route") || "/";
+  const dockMode = ["none", "flat", "sep", "stack"].includes(params.get("dock")) ? params.get("dock") : "none";
+  const showDesc = params.get("desc") !== "0";
+
+  // Same destinations and order as web/src/data/navigation.ts (current control).
+  const current = [
+    { path: "/", label: "Home", abbr: "H" },
+    { path: "/projects", label: "Projects", abbr: "Pr" },
+    { path: "/case-studies", label: "Case Studies", abbr: "CS" },
+    { path: "/writing", label: "Writing", abbr: "W" },
+    { path: "/experience", label: "Experience", abbr: "Ex" },
+    { path: "/terminal", label: "Terminal", abbr: ">_" },
+    { path: "/journey", label: "Journey", abbr: "Jo" },
+    { path: "/simulations", label: "Simulations", abbr: "Si" },
+  ];
+  // Proposed grouping under test (order is a prototype choice, not a decision).
+  const byPath = Object.fromEntries(current.map((i) => [i.path, i]));
+  const core = ["/case-studies", "/projects", "/writing", "/experience"].map((p) => byPath[p]);
+  const explore = ["/terminal", "/journey", "/simulations"].map((p) => byPath[p]);
+  // PLACEHOLDER copy for evaluating descriptors; not approved site copy.
+  const desc = {
+    "/terminal": "Browse the site from a command line",
+    "/journey": "Personal history, era by era",
+    "/simulations": "Games and interactive experiments",
+  };
+
+  // NavLink-style matching (non-end, prefix). /work is treated as an alias of
+  // /experience here; production NavLink does not do that today.
+  const matches = (path) => {
+    const r = route === "/work" || route.startsWith("/work/") ? route.replace(/^\/work/, "/experience") : route;
+    return path === "/" ? r === "/" : r === path || r.startsWith(path + "/");
+  };
+  const currentExplore = explore.find((i) => matches(i.path));
+
+  const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const href = (path, extra = {}) => {
+    const p = new URLSearchParams({ v, route: path, dock: dockMode, desc: showDesc ? "1" : "0", ...extra });
+    return "?" + p.toString();
+  };
+  const cur = (path) => (matches(path) ? ' aria-current="page"' : "");
+  const chev = '<svg class="chev" viewBox="0 0 10 6" aria-hidden="true"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>';
+
+  const link = (i, cls = "link", withIcon = false) =>
+    `<a class="${cls}" href="${href(i.path)}"${cur(i.path)}>${withIcon ? '<span class="ico" aria-hidden="true"></span>' : ""}<span class="lbl">${esc(i.label)}</span></a>`;
+  const listOf = (items, cls, attrs = "") => `<ul class="list ${cls}"${attrs}>${items.map((i) => `<li>${link(i)}</li>`).join("")}</ul>`;
+  const brand = `<a class="brand" href="${href("/")}"${cur("/")}><span class="brand-mark" aria-hidden="true">KS</span><span class="brand-name">Kareem Sasa</span><span class="visually-hidden">, home</span></a>`;
+  const gear = `<div class="actions"><button type="button" class="gear" aria-label="Open settings" aria-pressed="false"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="8" cy="8" r="6.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-dasharray="2.4 2.4"/></svg></button></div>`;
+
+  let uid = 0;
+  const panelItem = (i) =>
+    `<li><a class="link" href="${href(i.path)}"${cur(i.path)}><span>${esc(i.label)}</span>${showDesc ? `<span class="panel-desc">${esc(desc[i.path])}</span>` : ""}</a></li>`;
+  // Disclosure: native <button aria-expanded> controlling a list of links.
+  const disclosure = (label, innerHtml, { showWhere = true, isCurrent = !!currentExplore } = {}) => {
+    const id = `disc-${++uid}`;
+    const where = showWhere && currentExplore ? `<span class="explore-where">: ${esc(currentExplore.label)}</span>` : "";
+    return `<div class="explore"><button type="button" class="explore-btn${isCurrent ? " is-current" : ""}" aria-expanded="false" aria-controls="${id}">${esc(label)}${where}${chev}</button><div class="panel" id="${id}" hidden>${innerHtml}</div></div>`;
+  };
+  const explorePanel = () => `<ul class="list" style="flex-direction:column;align-items:stretch">${explore.map(panelItem).join("")}</ul>`;
+  const groupExplore = () => `<div class="grp-explore"><span class="grp-label" id="grp-explore-${++uid}">Explore</span>${listOf(explore, "", ` aria-labelledby="grp-explore-${uid}"`)}</div>`;
+
+  const hdr = document.getElementById("hdr");
+  hdr.dataset.v = v;
+  document.body.dataset.v = v;
+  let navHtml;
+  if (v === "current") {
+    navHtml = `<nav class="nav" aria-label="Primary navigation">${brand}<ul class="list">${current.map((i) => `<li>${link(i, "link", true)}</li>`).join("")}</ul></nav>`;
+  } else if (v === "a") {
+    navHtml = `<nav class="nav" aria-label="Primary navigation">${brand}${listOf(core, "core")}${disclosure("Explore", explorePanel())}</nav>`;
+  } else if (v === "b") {
+    navHtml = `<nav class="nav" aria-label="Primary navigation">${brand}<div class="groups">${listOf(core, "core")}${groupExplore()}</div></nav>`;
+  } else {
+    const pageName = [...core, ...explore].find((i) => matches(i.path));
+    const phoneMenu =
+      `<p class="panel-heading" id="menu-core-h">Work</p><ul class="list" aria-labelledby="menu-core-h" style="flex-direction:column;align-items:stretch">${core.map((i) => `<li>${link(i)}</li>`).join("")}</ul>` +
+      `<p class="panel-heading" id="menu-exp-h">Explore</p><ul class="list" aria-labelledby="menu-exp-h" style="flex-direction:column;align-items:stretch">${explore.map(panelItem).join("")}</ul>`;
+    navHtml =
+      `<nav class="nav" aria-label="Primary navigation">${brand}` +
+      `<div class="wide groups">${listOf(core, "core")}${groupExplore()}</div>` +
+      `<div class="mid groups">${listOf(core, "core")}${disclosure("Explore", explorePanel())}</div>` +
+      `<div class="phone"><span class="where" aria-hidden="true">~${esc(route === "/" ? "" : route)}</span>${disclosure("Menu", phoneMenu, { showWhere: false, isCurrent: false })}</div>` +
+      `</nav>`;
+    // Note: the three presentations are all in the DOM and switched with CSS
+    // display, so only one is in the accessibility tree at a time.
+    void pageName;
+  }
+  hdr.innerHTML = navHtml + gear;
+
+  // ----- Dock mock -----
+  const dockRoot = document.getElementById("dock-root");
+  if (dockMode !== "none") {
+    const dl = (i) => `<a href="${href(i.path)}"${cur(i.path)} aria-label="${esc(i.label)}" title="${esc(i.label)}">${esc(i.abbr)}</a>`;
+    const onSimChild = route.startsWith("/simulations/");
+    let inner;
+    if (onSimChild && dockMode === "flat") inner = dl(byPath["/simulations"]);
+    else if (dockMode === "flat") inner = current.map(dl).join("");
+    else if (dockMode === "sep") inner = [byPath["/"], ...core].map(dl).join("") + '<span class="dock-sep" aria-hidden="true"></span>' + explore.map(dl).join("");
+    else inner = [byPath["/"], ...core].map(dl).join("") + '<span class="dock-sep" aria-hidden="true"></span>' +
+      `<div class="explore"><button type="button" class="explore-btn${currentExplore ? " is-current" : ""}" aria-expanded="false" aria-controls="dock-exp" aria-label="Explore">Exp</button><div class="panel" id="dock-exp" hidden>${explorePanel()}</div></div>`;
+    dockRoot.innerHTML = `<nav class="dock" aria-label="Dock navigation">${inner}<button type="button" aria-label="Open settings">⚙</button></nav>`;
+  }
+
+  // ----- Disclosure behavior -----
+  const closeAll = (except) => {
+    document.querySelectorAll(".explore-btn[aria-expanded='true']").forEach((b) => {
+      if (b !== except) { b.setAttribute("aria-expanded", "false"); document.getElementById(b.getAttribute("aria-controls")).hidden = true; }
+    });
+  };
+  document.querySelectorAll(".explore").forEach((wrap) => {
+    const btn = wrap.querySelector(".explore-btn");
+    const panel = document.getElementById(btn.getAttribute("aria-controls"));
+    btn.addEventListener("click", () => {
+      const open = btn.getAttribute("aria-expanded") !== "true";
+      closeAll(btn);
+      btn.setAttribute("aria-expanded", String(open));
+      panel.hidden = !open;
+    });
+    wrap.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && btn.getAttribute("aria-expanded") === "true") {
+        e.stopPropagation();
+        btn.setAttribute("aria-expanded", "false");
+        panel.hidden = true;
+        btn.focus();
+      }
+    });
+    // Close when focus leaves the disclosure entirely (e.g. Tab past last item).
+    wrap.addEventListener("focusout", (e) => {
+      if (e.relatedTarget && !wrap.contains(e.relatedTarget)) {
+        btn.setAttribute("aria-expanded", "false");
+        panel.hidden = true;
+      }
+    });
+  });
+  // Outside pointer dismissal; does not move focus.
+  document.addEventListener("pointerdown", (e) => {
+    if (!e.target.closest(".explore")) closeAll(null);
+  });
+
+  // ----- Header offset (mirrors measured offset in SiteNavigation.tsx) -----
+  const setOffset = () => {
+    const r = hdr.getBoundingClientRect();
+    document.documentElement.style.setProperty("--header-offset", `${Math.ceil(r.bottom)}px`);
+  };
+  setOffset();
+  new ResizeObserver(setOffset).observe(hdr);
+
+  // ----- Page body + prototype controls -----
+  const ctl = (label, extra, active) => `<a href="${href(extra.route ?? route, extra)}"${active ? ' aria-current="true"' : ""}>${esc(label)}</a>`;
+  const routes = ["/", "/case-studies", "/case-studies/erebus", "/projects", "/writing", "/writing/example-essay", "/experience", "/work", "/terminal", "/journey", "/simulations", "/simulations/snake"];
+  document.getElementById("main").innerHTML = `
+    <h1>~${esc(route)}</h1>
+    <p>Simulated page body for route <code>${esc(route)}</code>. This file is a non-production prototype.</p>
+    <p style="color:var(--app-text-secondary)">Lorem ipsum stands in for page prose so the header's overlap with content can be judged. Scroll to check the fixed header against body text.</p>
+    <section class="proto-controls" aria-label="Prototype controls">
+      <p><strong>Variant:</strong> ${["current", "a", "b", "c"].map((x) => ctl(x.toUpperCase(), { v: x }, x === v)).join("")}</p>
+      <p><strong>Route:</strong> ${routes.map((r) => ctl(r, { route: r }, r === route)).join("")}</p>
+      <p><strong>Dock mock:</strong> ${["none", "flat", "sep", "stack"].map((d) => ctl(d, { dock: d }, d === dockMode)).join("")}</p>
+      <p><strong>Explore descriptors:</strong> ${ctl("on", { desc: "1" }, showDesc)}${ctl("off", { desc: "0" }, !showDesc)}</p>
+    </section>
+    ${"<p style='color:var(--app-text-muted)'>Filler paragraph.</p>".repeat(20)}`;
+})();
+</script>
+</body>
+</html>
