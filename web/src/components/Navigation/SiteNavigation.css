@@ -286,7 +286,29 @@
 /* Menu: fallback when the labeled core row no longer fits (e.g. enlarged text). */
 .site-header[data-layout="menu"] {
     flex-wrap: wrap;
-    row-gap: 0.45rem;
+    row-gap: 0.3rem;
+}
+
+/* Force a line break after the brand so the header is at most two rows: the
+   brand alone, then Menu and Settings together (order sits strictly between
+   the brand's and Menu/Settings', independent of the group's measured width). */
+.site-header[data-layout="menu"]::after {
+    content: "";
+    order: 1;
+    flex-basis: 100%;
+    height: 0;
+}
+
+.site-header[data-layout="menu"] .site-header__menu,
+.site-header[data-layout="menu"] .site-header__actions {
+    order: 2;
+}
+
+/* Trim the Menu toggle's own padding/gap (not the brand or settings marks) so
+   it fits next to Settings on the second row instead of wrapping to a third. */
+.site-header[data-layout="menu"] .site-header__menu .site-header__disclosure-toggle {
+    gap: 0.25rem;
+    padding: 0.5rem 0.15rem;
 }
 
 .site-header__menu {
@@ -297,8 +319,18 @@
 .site-header__menu-panel {
     width: min(18rem, calc(100vw - 2rem));
     min-width: 0;
-    max-height: calc(100dvh - 5rem);
+    max-height: calc(100dvh - var(--site-header-measured-offset, 5rem) - 1rem);
     overflow-y: auto;
+}
+
+/* The Menu toggle is no longer the row's rightmost control (Settings follows
+   it), so its own edges no longer line up with the header's. Let the panel's
+   position:absolute resolve against the header (already position:relative)
+   instead of the toggle's narrow nav, so the base rule's right:0 lines up
+   with the header's own right edge — the same edge the panel's width is
+   already computed against. */
+.site-header[data-layout="menu"] .site-header__menu {
+    position: static;
 }
 
 .site-header__panel .site-header__list {
