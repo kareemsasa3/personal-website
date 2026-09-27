@@ -323,7 +323,10 @@
         box-shadow: 0 6px 20px var(--dock-shadow);
     }
 
-    /* Hide tooltips on touch devices */
+}
+
+/* Hide tooltips on touch devices, but keep them for pointer/keyboard users */
+@media (max-width: 768px) and (hover: none) {
     .dock-tooltip {
         display: none;
     }
