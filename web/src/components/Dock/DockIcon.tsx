@@ -39,6 +39,7 @@ const DockIcon: React.FC<DockIconProps> = ({
 
   // Tooltip visibility state
   const [isHovered, setIsHovered] = useState(false);
+  const [isFocusVisible, setIsFocusVisible] = useState(false);
 
   // Re-measure the icon's position whenever its size or the window layout changes
   useLayoutEffect(() => {
@@ -91,9 +92,12 @@ const DockIcon: React.FC<DockIconProps> = ({
       <NavLink
         ref={ref}
         to={path}
+        aria-label={label}
         className="dock-nav-link"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
+        onFocus={(event) => setIsFocusVisible(event.currentTarget.matches(":focus-visible"))}
+        onBlur={() => setIsFocusVisible(false)}
       >
         <motion.div
           className="dock-icon"
@@ -109,9 +113,10 @@ const DockIcon: React.FC<DockIconProps> = ({
 
       {/* Tooltip */}
       <AnimatePresence>
-        {isHovered && (
+        {(isHovered || isFocusVisible) && (
           <motion.div
             className="dock-tooltip"
+            aria-hidden="true"
             initial={{ opacity: 0, y: 10, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.9 }}
