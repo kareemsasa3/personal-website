@@ -172,7 +172,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
 }) => {
   const { showSuccess, showError } = useToast();
   const { theme, setTheme } = useTheme();
-  const { navMode, setNavMode } = useNavigationMode();
+  const { navMode, setNavMode, isDockAvailable } = useNavigationMode();
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const [showResetModal, setShowResetModal] = useState(false);
 
@@ -372,11 +372,15 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                 <SettingsSection title="Navigation">
                   <div className="setting-group">
                     <label className="setting-label">Navigation Style</label>
-                    <div className="setting-control">
-                      <NavigationModeToggle />
-                    </div>
+                    {isDockAvailable && (
+                      <div className="setting-control">
+                        <NavigationModeToggle />
+                      </div>
+                    )}
                     <div className="setting-description">
-                      Choose the dock menu or a traditional top header.
+                      {isDockAvailable
+                        ? "Choose the dock menu or a traditional top header."
+                        : "The dock is available on screens at least 430 px wide; this screen uses the header."}
                     </div>
                   </div>
 
