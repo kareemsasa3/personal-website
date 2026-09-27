@@ -1,8 +1,14 @@
 import { motion, type Variants } from "framer-motion";
-import { forwardRef, useMemo, type ForwardedRef } from "react";
+import { forwardRef, type ForwardedRef } from "react";
 import { useLocation } from "react-router-dom";
-import { isNavItemActive, navItems } from "../../data/navigation";
+import {
+  exploreNavItems,
+  isNavItemActive,
+  navItems,
+  type SiteNavItem,
+} from "../../data/navigation";
 import DockIcon from "./DockIcon";
+import DockExploreStack from "./DockExploreStack";
 import DockSettingsButton from "./DockSettingsButton";
 import { DockControls } from "./useDock";
 import { useSettings } from "../../contexts/SettingsContext";
@@ -25,6 +31,11 @@ const reducedMotionDockVariants: Variants = {
   animate: { opacity: 1 },
   exit: { opacity: 0 },
 };
+
+// Home and the core pages lead; exploration routes follow a separator.
+const primaryDockItems = navItems.filter((item) => item.group !== "explore");
+// Simulation child routes collapse the dock to a single return-to-index link.
+const simulationsDockItem = navItems.find((item) => item.path === "/simulations");
 
 const Dock = forwardRef<HTMLDivElement, DockProps>(DockContent);
 
@@ -49,10 +60,20 @@ function DockContent(
   // Mobile-specific presentation adjustments
   const effectiveMagnification = isMobile || reduceNavModeTransition ? 0 : magnification;
   const effectiveDockSize = isMobile ? Math.min(dockSize, 36) : dockSize;
-  const dockItems = useMemo(() => {
-    if (!isGameRoute) return navItems;
-    return navItems.filter((item) => item.path === "/simulations");
-  }, [isGameRoute]);
+
+  const renderIcon = (item: SiteNavItem) => (
+    <DockIcon
+      key={item.path}
+      path={item.path}
+      label={item.label}
+      icon={item.icon}
+      isActive={isNavItemActive(item, location.pathname)}
+      mouseX={mouseX}
+      stiffness={dockStiffness}
+      magnification={effectiveMagnification}
+      baseSize={effectiveDockSize} // Pass down the base size
+    />
+  );
 
   return (
     <motion.div
@@ -75,19 +96,23 @@ function DockContent(
           : { duration: 0.24, ease: "easeOut" }
       }
     >
-      {dockItems.map((item) => (
-        <DockIcon
-          key={item.path}
-          path={item.path}
-          label={item.label}
-          icon={item.icon}
-          isActive={isNavItemActive(item, location.pathname)}
-          mouseX={mouseX}
-          stiffness={dockStiffness}
-          magnification={effectiveMagnification}
-          baseSize={effectiveDockSize} // Pass down the base size
-        />
-      ))}
+      {isGameRoute ? (
+        simulationsDockItem && renderIcon(simulationsDockItem)
+      ) : (
+        <>
+          {primaryDockItems.map((item) => renderIcon(item))}
+          <div className="dock-separator" aria-hidden="true" />
+          {isMobile ? (
+            <DockExploreStack
+              items={exploreNavItems}
+              pathname={location.pathname}
+              baseSize={effectiveDockSize}
+            />
+          ) : (
+            exploreNavItems.map((item) => renderIcon(item))
+          )}
+        </>
+      )}
       <div className="dock-icon-container">
         <DockSettingsButton
           isOpen={isSettingsOpen}

@@ -206,6 +206,90 @@
     background-color: var(--dock-primary);
 }
 
+/* Separates Home and the core pages from the exploration routes. */
+.dock-separator {
+    flex: 0 0 auto;
+    align-self: stretch;
+    width: 1px;
+    margin: 6px 0;
+    background: color-mix(in srgb, var(--app-border) 80%, transparent);
+}
+
+.dock-explore__toggle {
+    display: flex;
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--dock-text);
+    cursor: pointer;
+}
+
+.dock-explore__toggle.active,
+.dock-explore__toggle[aria-expanded="true"] {
+    color: var(--dock-primary);
+}
+
+.dock-explore__toggle.active::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background-color: var(--dock-primary);
+}
+
+.dock-explore__panel {
+    position: absolute;
+    bottom: calc(100% + 12px);
+    left: 50%;
+    translate: -50% 0;
+    z-index: 10002;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    min-width: 11rem;
+    margin: 0;
+    padding: 0.4rem;
+    list-style: none;
+    border: 1px solid var(--app-border);
+    border-radius: 8px;
+    background: var(--app-surface);
+    box-shadow: 0 8px 24px var(--dock-shadow);
+}
+
+.dock-explore__panel[hidden] {
+    display: none;
+}
+
+.dock-explore__link {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-height: 2.75rem;
+    padding: 0 0.75rem;
+    border-radius: 6px;
+    color: var(--dock-text);
+    font-family: var(--font-family-mono);
+    font-size: 0.85rem;
+    text-decoration: none;
+}
+
+.dock-explore__link:hover,
+.dock-explore__link.active {
+    background: color-mix(in srgb, var(--brand-primary-soft) 14%, transparent);
+    color: var(--dock-primary);
+}
+
+.dock-nav-link:focus-visible,
+.dock-explore__toggle:focus-visible,
+.dock-explore__link:focus-visible {
+    outline: 2px solid var(--brand-primary);
+    outline-offset: 3px;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .dock-container {
