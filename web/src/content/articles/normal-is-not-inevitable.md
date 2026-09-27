@@ -1,0 +1,255 @@
+---
+slug: normal-is-not-inevitable
+title: Normal Is Not Inevitable
+subtitle: How profitable markets begin shaping the preferences they once only served
+kind: essay
+published: 2026-09-27
+description: >-
+  How markets built on real wants can reshape those wants, traced through
+  makeup, razors, gambling, pharmaceuticals, and subscriptions.
+---
+
+# Normal Is Not Inevitable
+
+### How profitable markets begin shaping the preferences they once only served
+
+---
+
+Do things become popular because they are profitable, or profitable because they are popular?
+
+The question sounds like a fork in the road. Either popularity is downstream of profit—firms manufacture desire and then harvest it—or profit is downstream of popularity, and markets are only the accounting system for what people already want. Both stories are available in the culture. Both are, as complete answers, false.
+
+A better starting point is more modest. People have needs and tastes that exist before any particular firm exists. Firms notice that serving those tastes can produce a surplus. Once that surplus exists, the firm acquires a new set of incentives: not merely to meet the original demand, but to protect, enlarge, regularize, and, where possible, make habitual the behavior that produces the revenue. The interesting question is not which side of the fork is true. It is how much of later demand is still the original preference, and how much is the residue of a system that learned to live off that preference.
+
+That is a causal question. It has to be answered case by case.
+
+## What has to be true for the loop to exist
+
+Begin with the thinnest possible model.
+
+A person wants something—status, safety, novelty, relief from pain, a sense of control over chance, the ability to use a tool without buying it outright. That want is not yet a market. A market appears when someone can package a response to the want at a cost below what people will pay. Profit is the gap. So far, nothing mysterious has happened. Profitability follows popularity, or at least follows willingness to pay.
+
+The next step is where the model becomes interesting. Profit is not a passive residue. It is a resource. It buys advertising, distribution, product redesign, political influence, cultural sponsorship, and research into how to keep the customer in the relationship. Those investments change the environment in which the original preference is expressed. They can make a behavior easier, more visible, more socially required, more frequent, or harder to exit. If they succeed, demand grows. If demand grows, so does the surplus that finances the next round of investment.
+
+The loop looks like this:
+
+human need or taste → demand → profitable offering → reinvestment in marketing, design, distribution, and norms → reinforcement or expansion of the behavior → more demand → more profit
+
+This is not a conspiracy theory. It does not require a central planner of desire. It only requires that firms rationally pursue revenue, retention, and growth, and that the aggregate of those pursuits can change what later generations treat as ordinary.
+
+It also does not explain everything. Plenty of products fail despite enormous promotion. Plenty of ancient practices persist with almost no commercial apparatus. Plenty of genuine problems would exist if every marketing department vanished tomorrow. The loop is a candidate mechanism, not a master key. The way to test it is to ask, in particular markets, what portion of demand predates the industry and what portion the industry learned to amplify.
+
+## Makeup: an old appetite, a new curriculum
+
+People have painted themselves for a very long time. Pigments on bodies appear in prehistoric contexts across cultures. Ancient Egypt supplies some of the earliest well-documented cosmetic formulas and kits: kohl, malachite, red ochre, and scented unguents were in use by the fourth millennium BCE, on men and women, for beauty, status, ritual, and, in some cases, practical protection from sun and glare. Rome later imported Egyptian products. The desire to mark and decorate the body is not a twentieth-century invention.¹
+
+What is modern is the conversion of that appetite into a continuous curriculum. After Victorian respectability pushed visible makeup underground in parts of the Anglo-American world, the early twentieth century rebuilt it as a mass product: safer chemistry, factory production, film and celebrity as proof of the look, and then advertising that treated the face as a project. Max Factor, working with cinema, helped make “makeup” a word and a kit. L’Oréal began in hair dye. Estée Lauder and Revlon built brands around the idea that beauty was something one bought in layers and kept current. Social media later added a new accelerator: tutorials, reviews, and influencers that make the next product feel like information rather than salesmanship.²
+
+Here the loop works in a qualified way. The underlying appetite—to be seen as attractive, marked, or finished—is independent of Revlon. What the industry can change is which features count as unfinished, how many steps a “normal” routine contains, how fast those steps expire, and how much unease attaches to appearing without them. A person in 1400 who used ochre and a person in 2026 who owns twelve serums are not doing the same thing merely because both are “doing beauty.” The second person is participating in a market that profits from complexity, seasonality, and the sense that last year’s face is slightly incomplete.
+
+That does not make the preference fake. Many people enjoy the craft. Many use makeup as play, armor, or art. The commercial system does not invent the wish to decorate. It specifies the syllabus and then sells the textbooks.
+
+The honest residual question is hard to measure and easy to overclaim: after a century of productized beauty, how much of the felt necessity is still the old appetite, and how much is the habit of living inside an industry whose revenue depends on ongoing maintenance? Archaeology can show that decoration is old. It cannot tell us what a modern teenager would want in a world without beauty advertising. That gap is inference, not evidence, and it should stay labeled as such.
+
+## Razors: where a real change in visibility met a company that needed a second market
+
+Hair grows. That fact is not a marketing department. Men have shaved, trimmed, or worn beards in cycles for centuries. Victorian Britain had a beard fashion after the Crimean War; clean-shaven faces returned with the safety razor and, more decisively, with the First World War. Armies required clean-shaven faces—gas-mask sealing is the conventional historical explanation—and the U.S. Army issued Gillette kits on a massive scale. Physical sets stamped “Property U.S. Army” survive. Company and collector records put 1918 military sales in the millions. A generation of men came home able to shave themselves daily. Gillette then sold them blades. Convenience, military requirement, and fashion moved together. Attributing the clean-shaven twentieth-century man solely to advertising would be lazy. Attributing him solely to spontaneous taste would ignore a firm that had every reason to make daily shaving feel like hygiene rather than a choice.³
+
+Women’s body-hair removal is a sharper test. Before the 1910s, most American women did not shave legs or underarms. Clothing covered those surfaces. The relevant exogenous change was fashion: rising hemlines and sleeveless dresses made skin newly visible. Gillette noticed a second market. In 1915 it released the Milady Décolleté. The surviving advertising copy does not leave much to inference. One ad, already circulating by 1915 and reprinted in a 1917 manual of advertisement typography, called the razor “a gift that is new, unique, very much up to date” and “one that solves an embarrassing personal problem.” It added that the product was “welcomed by women everywhere—now that a feature of good dressing and good grooming is to keep the underarm white and smooth.”⁴
+
+By mid-century the practice had hardened into a norm. Christine Hope’s 1982 paper reports that by 1964, 98 percent of American women aged 15–44 routinely removed body hair, and 70 percent of those older than 44 did so. Subsequent historians have relied on that figure; the underlying 1964 survey was not independently retrieved here, and it should not be treated as a government statistic. What the broader record does support is the direction of travel: from uncommon before the First World War, through magazine and catalog instruction in the 1920s and 1930s, through the wartime collapse of nylon stockings, to near-universal compliance among younger American women by the 1960s. Later ads moved the target from underarms to legs to pubic hair, and the moral language shifted from hygiene and delicacy toward sexuality and empowerment. The practice acquired what later researchers call extraordinary compliance.⁵
+
+This is one of the cleaner cases of commercially reinforced demand. The raw material was real: newly visible skin, an existing male shaving technology, and a culture already willing to treat women’s bodies as sites of evaluation. The industry did not invent hair, or even invent the idea that some hair is unsightly. It defined a new zone of unsightliness, attached embarrassment and modernity to it, and then sold the remedy on a recurring schedule. Hair grows back. That biological fact is, from the firm’s point of view, a feature.
+
+Even here the model needs a brake. Fashion was not invented by Gillette. Women were not empty vessels. Some would have removed hair without a branded razor because dress and peer norms were changing anyway. The counterfactual is not “no woman ever shaves unless advertised to.” It is whether hairlessness would have become a near-universal, multi-site, lifelong maintenance routine without firms that profit every time the hair returns. The historical sequence—product first, then decades of copy that treat the absence of the product as a defect—makes commercial amplification hard to dismiss.
+
+A further complication: facial hair on men later came back. Razor companies did not want that. Preference can move against an industry. That is a useful reminder that the loop is not omnipotent. It is a bias in the environment, not a law of history.
+
+## Gambling: an old appetite placed inside a machine designed to keep it running
+
+People have wagered for as long as they have had surplus and uncertainty. Dice, racing, cards, and lotteries long predate the casino corporation. The appetite is not mysterious. Variable rewards hook attention. Status, hope, boredom, and the feeling of almost winning are available without a pit boss.
+
+What casinos added was industrial design aimed at time. Mechanical slots in the late nineteenth century already automated chance. Over the twentieth century the machine became the main event. By the late twentieth century, slots and video machines were producing the majority of casino revenue in many U.S. markets.⁶
+
+Two design changes are easy to conflate and should not be. In 1984 Inge Telnaes received U.S. Patent 4,448,419 for an electronic gaming device that uses a random-number generator to select reel-stop positions. The physical reels became a display of a computer result rather than the game itself. The patent application stated the aim with unusual candor: to make a machine “perceived to present greater chances of payoff than it actually has, within the legal limitations that games of chance must operate.” That is virtual-reel mapping. A related but distinct later technique, discussed in gambling-research literature, is near-miss clustering: weighting the visible stops adjacent to jackpot symbols so that “almost won” appears more often than the underlying odds would lead a player to expect from the artwork. The first separates displayed chance from true odds. The second exploits the psychology of almost winning. Both serve the same economic function.⁷
+
+The industry’s own language is revealing: “time on device,” “continuous gaming productivity.” Players have their own name for the state it aims at: the “machine zone.” After years of fieldwork in Las Vegas, anthropologist Natasha Dow Schüll described players who were no longer trying to win so much as trying to stay inside a trance in which ordinary time disappears. A 2002 clinical study by Robert Breen and Mark Zimmerman compared treatment-seeking pathological gamblers whose primary game at onset was machines (*n* = 25) with those whose primary game was a more traditional form (*n* = 19). Mean latency from regular play to meeting diagnostic criteria was 1.08 years for the machine group and 3.58 years for the traditional group. That is one small clinical sample, not a literature. It is consistent with Schüll’s ethnography, not a substitute for it.⁸
+
+This is the loop in a concentrated form. The seed preference—attraction to risk and uncertain reward—is independent. The business model does not profit from a single roll. It profits from duration. Therefore the product is engineered, architecturally and algorithmically, to extend duration. Lighting, sound, seating, credit access, and the pace of play are not decorations around a game. They are the game’s economic function.
+
+Does that mean casinos create gambling? No. Does it mean the contemporary slot addict is simply revealing a timeless human taste? Also no. An appetite can be real and still be placed in an environment that extracts more of it than the person would have volunteered in a slower, social, or easily interrupted form. The preference and the apparatus co-produce the later behavior. After enough years inside that apparatus, asking whether the desire is “authentic” becomes almost a category error. The desire now includes the machine.
+
+## Pharmaceuticals: real disease, real cures, and a capital market that has favorites
+
+Disease is not a marketing campaign. Bacterial infection, cancer, heart failure, and schizophrenia would exist if Pfizer did not. The first-order story is the one we should not talk ourselves out of: pharmaceutical firms have produced vaccines, antibiotics, antiretrovirals, insulin formulations, and oncology drugs that prevent or shorten enormous amounts of suffering. Any account that treats the industry as only a machine for inventing illness is not serious.
+
+The second-order story is also real, and it is about allocation rather than invention from nothing. Drug development is expensive and slow. Private capital goes where expected returns are high enough to justify the risk. That means large, chronic, insured, rich-country markets beat small, acute, poor-country, or scientifically intractable ones unless policy changes the math. The Orphan Drug Act of 1983 did exactly that for rare diseases, using tax credits and exclusivity to pull investment into markets that had been ignored. That is evidence, not rhetoric, that incentives move the pipeline.⁹
+
+A 2025 National Academies report, *Aligning Investments in Therapeutic Development with Therapeutic Need*, argued the converse problem: U.S. therapeutic development does not systematically track disease burden and unmet need. The report’s own account is careful. Two major drivers of underinvestment relative to burden are scientific difficulty—poorly understood mechanisms, outcomes that are hard to measure—and market forces that make expected returns too low. Conditions that disable millions can be underfunded relative to their harm, while other areas attract money because the science is tractable, the patients are identifiable, or the pricing power is strong. The report is evidence about capital allocation. It is not evidence of disease mongering.¹⁰
+
+That second phenomenon has its own literature. “Disease mongering,” as used in medical and bioethical writing, does not usually mean inventing a fake plague. It means widening the definition of a treatable condition so that more people become candidates for a drug—medicalizing grief, broadening pain categories, promoting awareness campaigns that happen to match a product’s label. Marketing to physicians, direct-to-consumer advertising where it is legal, sponsored education, and patient groups can all shift the line between variation and pathology. The scientific arm of a firm can discover a useful drug while the marketing arm extends its use past the evidence. That is not always what happens. It happens often enough to be a structural temptation rather than a few bad actors. It should be argued from that literature, not smuggled in under the National Academies’ allocation findings.¹¹
+
+Notice the different shape of the loop here. In cosmetics and razors, the firm often benefits from a problem that never ends. In infectious disease, the firm can profit from a course of treatment that works. In chronic disease, the commercially attractive object is often long-term management. A cure can be a worse asset than a maintenance therapy. That incentive is not proof that cures are suppressed in secret. It is proof that a profit-seeking pipeline will, other things equal, prefer markets that recur. Public funding, prizes, advance-purchase commitments, and reimbursement rules exist partly because everyone who has looked at this closely knows that “follow the need” and “follow the return” are not the same vector.
+
+The careful conclusion is not “pharma invents disease” or “pharma merely answers disease.” It is that genuine need enters a filter. The filter is made of patents, regulators, payers, scientific feasibility, and expected cash flows. What comes out the other side is a patterned subset of possible medicines, plus a patterned way of talking about the conditions those medicines address. Need is real. The map of which needs become products is not a mirror of suffering. It is a mirror of suffering after it has been priced.
+
+## Subscriptions: a good solution that firms have a reason to make the default
+
+Leasing and subscription solve real problems. A student does not need to own a textbook forever. A startup may need software that updates faster than a boxed release cycle. A household that moves every two years may prefer not to own a car. Capital-intensive goods create risk, storage costs, and obsolescence. Access can be a rational answer.
+
+Sellers, however, have an independent reason to prefer access. A one-time sale produces a spike. A subscription produces a relationship. Relationships can be forecasted, leveraged, and defended. Adobe’s 2013 decision to stop releasing new perpetual Creative Suite versions and move Photoshop and its siblings onto Creative Cloud is the canonical case. Customers protested. A petition gathered tens of thousands of signatures. Adobe’s fiscal revenue was about $4.40 billion in 2012, dipped to $4.06 billion in 2013 during the transition, then rose to $4.80 billion in 2015, $9.03 billion in 2018, and $19.41 billion in 2023. Subscription pricing was not the only cause of that growth. The company also expanded cloud collaboration, Document Cloud, Experience Cloud, and the markets those products serve. Both things can be true: the model offered some customers lower monthly cost and continuous updates, and it removed the option of keeping a working major version without an ongoing payment.¹²
+
+Automakers have been running a related experiment. Whole-car subscriptions have often failed. Feature subscriptions—connectivity, driver assistance—have sometimes succeeded, especially when the buyer can believe they are paying for an ongoing service rather than for hardware already in the car. Housing, tools, fitness equipment, and appliances have all acquired versions of the same logic: the asset remains, the right to use it becomes a fee.¹³
+
+The loop here is almost transparent. The original demand is for use. The profitable form is recurring payment. Once recurring payment is the dominant form, non-recurring options thin out. Software that is no longer sold cannot be owned. A car whose advanced functions sit behind an account cannot be fully used after the seller loses interest. What began as flexibility becomes the available door. People then “prefer” subscriptions in the same way people “prefer” the road that is still open.
+
+This is the place to say the sentence that belongs here because the section earned it: don’t confuse normal with inevitable. A world in which most professional software is rented is now normal. It was not inevitable. It is the equilibrium of firms that discovered they could convert a purchase into an ongoing condition of use, plus customers who adapted because the alternative disappeared or became inconvenient.
+
+## Where the model weakens
+
+If the feedback story is treated as a universal solvent, it starts lying.
+
+First, some demand is stubbornly exogenous. Calories, warmth, antibiotics for sepsis, insulin for type 1 diabetes: no plausible advertising campaign created these. Firms can still wrap them in brands, devices, and pricing strategies, but the core want survives the death of the firm.
+
+Second, marketing fails constantly. Many new products fail. If corporations could manufacture demand at will, product launches would not have the mortality rate they have. John Kenneth Galbraith’s “dependence effect”—the claim that production creates the wants it satisfies—captured something about advertising-heavy affluent societies. It overstated the producer’s power. Chicago replies, which treat advertising as information or as a complement to the good rather than a taste-shifter, overstated the consumer’s immunity. The empirical middle is less grand: ads raise salience, shift beliefs about quality and price, cue memory of past consumption, and interact with habit. They do more than inform and less than hypnotize.¹⁴
+
+Third, preferences move against incumbents. Beards returned. Smoking collapsed in rich countries despite an industry optimized for retention. Some subscription grabs produced enough anger to be walked back. Open-source tools and used markets persist as exits. The loop has friction.¹⁵
+
+Fourth, popularity can be an input rather than only an output. Once enough people use a product, it becomes easier to learn, easier to find, easier to staff, easier to plug into other systems. Network effects, standards, and cultural legitimacy make the popular thing more valuable, which makes it more profitable, which finances the next round of distribution. Social platforms, payment systems, and professional software suites work this way. Here “popular because profitable” and “profitable because popular” are not alternatives. They are two readings of the same flywheel.
+
+Fifth, after several generations the two kinds of demand become hard to separate even in principle. A woman who has never seen a peer with unshaven legs does not have an “uninfluenced” preference sitting underneath her current one, waiting to be recovered by a clever survey. A designer who has only ever rented Photoshop does not have a latent demand for perpetual licenses in a form that can be cleanly measured. Constructed preferences are still preferences. They organize real feeling. The philosophical urge to sort them into authentic and fake often smuggles in a picture of a pre-social self that the evidence does not support.
+
+What we can still do—more modestly—is reconstruct the history.
+
+## A method instead of a score
+
+For any given market, ask:
+
+- What preference, need, or constraint existed at *t*₀?
+- What became profitable at *t*₁?
+- What behaviors did that business model reward—greater consumption, longer engagement, replacement cycles, continued dependence, recurring payment?
+- What did reinvestment change in products, availability, defaults, norms, or institutions?
+- By *t*₃, what has become normal, or difficult to imagine otherwise?
+
+The important claim is not that the *t*₃ preference is fake. It is a real preference formed inside an environment partly constructed by earlier economic activity. The market has become one of the causal inputs into the preference that the market subsequently measures as demand.
+
+That is a more precise object than advertising. It is path dependence. At *t*₀, some preference exists. At *t*₁, someone monetizes it. At *t*₂, the resulting profits alter products, institutions, availability, norms, and expectations. At *t*₃, people form preferences inside that altered environment. Asking whether the later preference is “natural” or “commercially created” is no longer especially useful. The distinction that survives is historical: what was present before the industry, what the industry rewarded, and what became difficult to imagine afterward.
+
+## The question after the fork
+
+Return to the original either/or. Do things become popular because they are profitable, or profitable because they are popular?
+
+In the early phase of a market, profitability usually follows a want that was already there, or a newly cheap way of serving it. Cosmetics ride an ancient decorative impulse. Casinos ride an ancient taste for chance. Drugs ride disease. Leases ride the mismatch between lump-sum prices and lumpy lives. Popularity, or at least willingness to pay, comes first.
+
+Once the surplus is large, the firm becomes a participant in the reproduction of the want. It funds the images that make the want feel obvious. It designs the product so that satisfaction is incomplete. It changes the default from owning to renting, from occasional to daily, from optional to hygienic. It benefits if the customer’s problem is not solved once. Over time the commercially convenient version of the behavior becomes the culturally normal version. Later observers then point to the behavior as proof that people “just want this,” which is true in the thin sense that they now do, and false in the thicker sense that the want has been through a refinery.
+
+No board meeting has to announce, “We shall now alter human nature.” It is enough that each firm maximizes retention and share, that successful tactics are copied, and that children grow up inside the result. Systems can have purposes that none of their operators experience as purposes.
+
+Neither extreme model survives this. Corporations do not manufacture whatever demand they want. Markets do not simply reveal fixed consumer preferences. Exchange remains one of the few ways we have of finding out what people will give up sleep or money for. That is not an accusation against companies, consumers, or markets. It is a warning against a particular complacency: taking whatever is widespread and well-monetized as a transparent window onto human nature.
+
+If the argument survives its own qualifications, it is this: markets do not only discover preferences. Successful markets become environments in which some preferences are easier to keep having than others. Profit is both a score and an instrument. Popularity is both a result and a raw material. The either/or breaks because the two arrows start sharing a circuit.
+
+Normal is a fact about the present. Inevitable is a claim about all possible presents. They are not the same, and industries that live on a behavior have no incentive to keep the difference visible.
+
+---
+
+## Post-article material
+
+### Abstract
+
+Do things become popular because they are profitable, or profitable because they are popular? This essay argues that the question is a false fork. Markets usually begin by serving a want that already exists, but once a surplus exists, profit becomes a resource that firms reinvest in advertising, design, distribution, defaults, and norms, and those investments change the environment in which later preferences form. The essay tests that loop across five markets: makeup, where an ancient decorative appetite became a continuous curriculum; razors, where rising hemlines met a company that needed a second market; gambling, where an old taste for chance was placed inside machines designed to extend time on device; pharmaceuticals, where real disease passes through a filter of expected returns; and subscriptions, where a sensible form of access became the default because sellers prefer recurring revenue. It then sets out where the model weakens: exogenous demand, constant marketing failure, preferences that move against incumbents, network effects, and the impossibility of recovering an uninfluenced preference after generations. In place of a verdict it offers a historical method, *t*₀ to *t*₃, for reconstructing what existed before an industry, what the industry rewarded, and what became difficult to imagine afterward. The conclusion is that successful markets become environments in which some preferences are easier to keep having than others, and that what is normal should not be mistaken for what is inevitable.
+
+### Sources
+
+Inspection scope: this list carries over the sources identified in the essay's research and fact-check notes, with locators as recorded there, plus sources added or corrected in a later source-verification pass. Presence here does not imply full-text access to every cited work. The **Note** column gives the superscript in the body that cites each source. Where the notes point to a body of literature rather than a single work, the entry says so and names no specific title that the notes did not name.
+
+| Note | Source | Metadata / locator | Use and limit |
+| ---- | ------ | ------------------ | ------------- |
+| 1 | *Encyclopaedia Britannica*. "Cosmetic." | Encyclopaedia Britannica | Ancient Egyptian cosmetic materials and uses; outline only |
+| 1 | *Britannica*. "Why Did We Start Wearing Makeup?" | Encyclopaedia Britannica | Long history of body decoration; outline only |
+| 1 | Special issue introduction on selling beauty | *Journal of Historical Research in Marketing*, 2025 | Overview of the long archaeological record of body coloring |
+| 2 | Library of Congress. *Business of Beauty: A Resource Guide*, "History of the Beauty Business." | Library of Congress research guide | Historical material on Estée Lauder, Elizabeth Arden, and Revlon |
+| 2 | Kathy Peiss. *Hope in a Jar: The Making of America's Beauty Culture.* | 1998 | Historical development of mass-market makeup in the United States, including Max Factor. Not cited as proof that Factor coined the word "makeup" |
+| 2 | American Cosmetic Association. "A History of the Cosmetics Industry." | Unattributed, undated historical overview published by a medical-professional association | L'Oréal's origin in hair dye, Estée Lauder and Revlon, and later social-media distribution. Not an authoritative cosmetics-industry history |
+| 2 | Cosmetics Info. "History of Cosmetics." | Industry history | Twentieth-century industrialization of cosmetics; the argument depends on the existence of the commercial apparatus, not on any one founding story |
+| 3 | Surviving Gillette "Khaki Set" military razor kits | Physical artifacts marked "Property U.S. Army" | Primary material evidence that the U.S. Army issued Gillette kits |
+| 3 | *The Gillette Blade* | Gillette house organ, January 1918 | Large wartime shipments of razors and blades to the American Expeditionary Forces |
+| 3 | Specialist Gillette collector histories | Secondary; no single title recorded | The 1918 contract, including the claim of roughly 3.5 million sets. The body says only "in the millions" |
+| 3 | Secondary military and grooming histories | Secondary; no single title recorded | Clean-shaven military requirement, with gas-mask sealing as the usual explanation. No primary War Department order stating that rationale was located |
+| 3, 15 | Dwight E. Robinson. "Fashions in Shaving and Trimming of the Beard: The Men of the *Illustrated London News*, 1842–1972." | *American Journal of Sociology* 81 (1976): 1133–1141 | Long cycles in beard fashion. Does not by itself establish the cause of any one cycle |
+| 4 | Gillette Safety Razor Company. Advertisement for the Milady Décolleté. | Reproduced in Gilbert P. Farrar, *The Typography of Advertisements That Pay* (New York: D. Appleton, 1917); already running in U.S. newspapers by December 1915, e.g. *Morning Oregonian*, 7 December 1915 | Primary advertising text for all quoted Milady Décolleté language |
+| 4 | Smithsonian Institution. "Hair Removal." | Smithsonian Institution | The 1915 Milady Décolleté and later targeting of legs and underarms as dress exposed them |
+| 5 | Christine Hope. "Caucasian Female Body Hair and American Culture." | *Journal of American Culture* 5, no. 1 (1982): 93–99 | Source of the 1964 figures (98 percent of women aged 15–44; 70 percent of those older than 44). The underlying 1964 survey was not independently retrieved |
+| 5 | Rebecca M. Herzig. *Plucked: A History of Hair Removal.* | New York: New York University Press, 2015 | Later historical summary relying on Hope's figure; trajectory of the practice |
+| 5 | "The smooth skin every woman wants!: A historical look at changing trends in advertisements for U.S. women's shaving and body hair removal products (1920s–2020s)." | *Women's Studies International Forum*, 2025 | Shift in advertising targets and moral language over time |
+| 5 | Marika Tiggemann and C. Lewis. "Attitudes Toward Women's Body Hair: Relationship with Disgust Sensitivity." | 2004 | High contemporary hair-removal compliance in the Global North; not to be collapsed into Hope's 1964 number |
+| 5 | Merran Toerien, Sue Wilkinson, and Precilla Y. L. Choi. "Body Hair Removal: The 'Mundane' Production of Normative Femininity." | *Sex Roles*, 2005 | Same |
+| 6, 8 | Natasha Dow Schüll. *Addiction by Design: Machine Gambling in Las Vegas.* | Princeton: Princeton University Press, 2012 | Ethnography of machine gambling; machines as the main source of casino revenue; "time on device" and the "machine zone" |
+| 6 | Natasha Dow Schüll. "Slot Machines Are Designed to Addict." | *New York Times*, 10 October 2013 | Same argument in brief |
+| 7 | Inge S. Telnaes. "Electronic Gaming Device Utilizing a Random Number Generator for Selecting the Reel Stop Positions." | U.S. Patent 4,448,419, issued 15 May 1984 | Primary source for virtual-reel mapping and the quoted statement of aim |
+| 7 | Kevin A. Harrigan. "Slot Machines: Pursuing Responsible Gaming Practices for Virtual Reels and Near Misses." | *International Journal of Mental Health and Addiction* 7, no. 1 (2009): 68–83 | Near-miss clustering as a subsequent, distinct design practice |
+| 8 | Robert B. Breen and Mark Zimmerman. "Rapid Onset of Pathological Gambling in Machine Gamblers." | *Journal of Gambling Studies* 18, no. 1 (2002): 31–43 | Latency comparison between machine (*n* = 25) and traditional (*n* = 19) groups; one small clinical study |
+| 9 | Orphan Drug Act of 1983 | Pub. L. No. 97-414 | Primary statute; tax credits and exclusivity for rare-disease development |
+| 9, 10 | National Academies of Sciences, Engineering, and Medicine. *Aligning Investments in Therapeutic Development with Therapeutic Need: Closing the Gap.* | Washington, DC: National Academies Press, 2025; chapter on existing incentive programs | Mismatch between therapeutic investment and disease burden, attributed to both scientific challenges and market forces; discussion of orphan-drug incentives. Not evidence of disease mongering |
+| 10 | National Academies of Sciences, Engineering, and Medicine. News release. | 14 July 2025 | Release of the 2025 report |
+| 11 | Emilia Kaczmarek. "Promoting Diseases to Promote Drugs: The Role of the Pharmaceutical Industry in Fostering Good and Bad Medicalization." | *British Journal of Clinical Pharmacology* 88, no. 1 (2022): 34–39 | Disease mongering and medicalization as a distinct literature |
+| 11 | Howard Brody and Donald W. Light. "The Inverse Benefit Law: How Drug Marketing Undermines Patient Safety and Public Health." | *American Journal of Public Health* 101, no. 3 (2011) | Source of the "scientific arm… marketing arm" framing |
+| 12 | Adobe. Announcement that Creative Suite 6 would be the last new perpetual release. | May 2013; contemporaneous company and press record | The move to Creative Cloud |
+| 12 | Adobe Inc. Form 10-K annual reports and related SEC filings, FY2012–FY2023. | SEC EDGAR: FY2012 $4.404 billion; FY2013 $4.055 billion; FY2015 $4.796 billion; FY2018 $9.030 billion; FY2023 $19.409 billion | Revenue figures only; not a causal attribution of growth to subscription pricing |
+| 12 | Change.org petition: "Adobe Systems Incorporated: Eliminate the mandatory 'creative cloud' subscription model." | Change.org, 2013 | Visible customer resistance to the change |
+| 13 | Industry analyses of vehicle subscriptions | Secondary; no single title recorded. Covers GM OnStar/Super Cruise and Tesla Full Self-Driving recurring revenue, and the closure of several whole-vehicle subscription programs | Mixed record of whole-car versus feature subscriptions |
+| 14 | John Kenneth Galbraith. *The Affluent Society.* | Boston: Houghton Mifflin, 1958 | The "dependence effect" |
+| 14 | Gary S. Becker and Kevin M. Murphy. "A Simple Theory of Advertising as a Good or Bad." | *Quarterly Journal of Economics* 108, no. 4 (November 1993): 941–964; reprinted in Gary S. Becker, *Accounting for Tastes* (Cambridge, MA: Harvard University Press, 1996) | Advertising as a complement to the good; part of the persuasive / informative / complementary survey literature |
+| 14 | Pedro Bordalo, Giovanni Burro, Nicola Gennaioli, Gad Nacamulli, and Andrei Shleifer. "Ads as Cues." | NBER Working Paper 34387, October 2025 | Recent empirical work on advertisements as memory cues |
+| 14 | Castellion and Markham. "Perspective: New Product Failure Rates: Influence of Argumentum ad Populum and Self-Interest." | *Journal of Product Innovation Management* 30, no. 5 (2013): 976–979 | Review of 19 empirical studies finding new-product failure rates around 40 percent, reaching roughly 49 percent for consumer goods |
+| 15 | World Health Organization. *WHO Global Report on Trends in Prevalence of Tobacco Use 2000–2024 and Projections 2025–2030.* | Geneva: WHO, 2025 | Measured decline in tobacco-use prevalence, including in high-income countries. Does not address industry retention strategy |
+| 15 | Procter & Gamble. Form 10-K for the fiscal year ended June 30, 2019, and related July 2019 SEC filings. | SEC EDGAR | The Gillette Shave Care impairment, attributed in part to contraction of the blades-and-razors market in developed markets due to lower shaving frequency. The filing does not attribute the decline to beards |
+| 15 | Reporting on BMW's withdrawal of its monthly heated-seat subscription, quoting BMW board member Pieter Nota | *Forbes* and *TechCrunch*, 7 September 2023 | One case of a feature subscription withdrawn after weak customer acceptance |
+
+### Fact-check table
+
+**SUPPORTED** means the claim is backed by the cited source as recorded in the essay's research notes or confirmed in the later source-verification pass. **QUALIFIED** marks a claim whose scope, attribution, or causal reading is bounded, with the bound stated. **UNCITED** marks a general factual claim the essay relies on without a specific source. **INFERENCE** marks the essay's own causal or counterfactual reasoning, which the sources do not establish.
+
+| Claim | Source | Status | Qualification |
+| ----- | ------ | ------ | ------------- |
+| Body decoration is prehistoric; Egyptian kohl, malachite, red ochre, and scented unguents were in use by the fourth millennium BCE | Britannica; *JHRM* 2025 overview (note 1) | QUALIFIED | Secure in outline. The essay makes no precise claims about the scale or organization of ancient commercial trade; "Rome later imported Egyptian products" is stated at that level only |
+| Twentieth-century cosmetics were rebuilt as a mass product through chemistry, factory production, film, celebrity, and advertising, with Max Factor, L'Oréal, Estée Lauder, and Revlon as examples | Library of Congress guide; Peiss 1998; industry web histories (note 2) | QUALIFIED | Standard business history. Max Factor's part in popularizing "makeup" rests on secondary histories; Peiss is cited for the development of mass-market makeup, not as proof that Factor coined the word. The argument depends on the apparatus existing, not on any one founding story |
+| The U.S. Army issued Gillette kits at scale, and 1918 military sales ran into the millions | Surviving "Property U.S. Army" kits; *The Gillette Blade*, January 1918; collector histories (note 3) | SUPPORTED | The 3.5 million figure comes from collector accounts; the body says only "in the millions" |
+| Clean-shaven military faces were required because of gas-mask sealing | Secondary military and grooming histories (note 3) | QUALIFIED | The conventional historical explanation, not a primary-order causal proof. No War Department order stating that rationale was located |
+| Gillette released the Milady Décolleté in 1915, advertised as solving "an embarrassing personal problem" and keeping "the underarm white and smooth" | Gillette advertisement, reproduced in Farrar 1917 and running by December 1915; Smithsonian (note 4) | SUPPORTED | Supported by primary advertising text |
+| Before the 1910s most American women did not shave legs or underarms; rising hemlines and sleeveless dresses made skin newly visible | Smithsonian; Herzig 2015; Hope 1982 (notes 4–5) | QUALIFIED | Historians' synthesis, not a measured prevalence |
+| By 1964, 98 percent of American women aged 15–44 routinely removed body hair, and 70 percent of those older than 44 | Hope 1982 (note 5) | QUALIFIED | Attributed explicitly to Christine Hope. The underlying 1964 survey was not independently retrieved and is not a government statistic |
+| Hair removal spread through the 1920s–1960s; later advertising moved from underarms to legs to pubic hair and from hygiene toward sexuality and empowerment; contemporary compliance is extraordinarily high | Herzig 2015; *WSIF* 2025 review; Tiggemann and Lewis 2004; Toerien et al. 2005 (note 5) | QUALIFIED | Direction of travel supported by secondary histories. Later prevalence estimates are kept separate from Hope's 1964 figure |
+| By the late twentieth century, slots and video machines produced the majority of casino revenue in many U.S. markets | Schüll 2012, 2013 (note 6) | QUALIFIED | "Many U.S. markets," not all |
+| Telnaes's 1984 patent uses a random-number generator to select reel stops and states the aim of a machine "perceived to present greater chances of payoff than it actually has" | U.S. Patent 4,448,419 (note 7) | SUPPORTED | Primary patent text |
+| Virtual-reel mapping and near-miss clustering are separate techniques | Telnaes patent; Harrigan 2009 (note 7) | QUALIFIED | Related but distinct mechanisms. The patent establishes virtual-reel mapping; near-miss clustering is a later practice described in gambling-research literature |
+| "Time on device," "continuous gaming productivity," and the "machine zone" describe the economics and experience of machine gambling | Schüll 2012 (notes 6, 8) | QUALIFIED | "Time on device" and "continuous gaming productivity" are industry terms; "machine zone" is players' terminology developed by Schüll as an analytical concept |
+| Machine gamblers reached diagnostic criteria faster than traditional gamblers (mean 1.08 versus 3.58 years) | Breen and Zimmerman 2002 (note 8) | QUALIFIED | One small clinical study of treatment-seeking gamblers (*n* = 25 machine, *n* = 19 traditional), not a broad literature. Consistent with Schüll's ethnography, not a substitute for it |
+| Pharmaceutical firms have produced vaccines, antibiotics, antiretrovirals, insulin formulations, and oncology drugs that prevent or shorten great suffering | None | UNCITED | General medical record; no specific source in the essay's notes |
+| The Orphan Drug Act of 1983 used tax credits and exclusivity to pull investment into rare-disease markets | Pub. L. No. 97-414; National Academies 2025 (note 9) | SUPPORTED | Evidence that incentives move the pipeline, not a measure of how much |
+| U.S. therapeutic development does not systematically track disease burden and unmet need | National Academies 2025 (note 10) | QUALIFIED | The report attributes the mismatch to both scientific difficulty and market forces. It is evidence about capital allocation, not evidence of disease mongering |
+| Disease mongering widens the definition of treatable conditions so that more people become candidates for a drug | Kaczmarek 2022; Brody and Light 2011 (note 11) | QUALIFIED | Argued from its own literature. The essay claims a structural temptation, not a universal practice |
+| Adobe announced in May 2013 that Creative Suite 6 would be the last new perpetual release, and customers petitioned against the change | Contemporaneous company and press record; Change.org petition (note 12) | SUPPORTED | "Tens of thousands of signatures" is the body's characterization, consistent with the petition's public supporter count |
+| Adobe revenue was about $4.40 billion in FY2012, $4.06 billion in FY2013, $4.80 billion in FY2015, $9.03 billion in FY2018, and $19.41 billion in FY2023 | Adobe Form 10-K and related SEC filings (note 12) | QUALIFIED | The growth is real. The essay does not assert that subscription pricing was its sole cause and names other contributors |
+| Whole-car subscriptions have often failed while some feature subscriptions have succeeded | Industry analyses (note 13) | QUALIFIED | Drawn from industry analyses rather than a single named study |
+| Galbraith's "dependence effect" held that production creates the wants it satisfies | Galbraith 1958 (note 14) | SUPPORTED | The essay's judgment that it overstated producer power is its own |
+| Economic views of advertising divide into persuasive, informative, and complementary; ads also act as memory cues | Becker and Murphy 1993; survey literature; Bordalo et al. 2025 (note 14) | QUALIFIED | The "empirical middle" summary is the essay's synthesis of that literature |
+| Many new products fail | Castellion and Markham 2013 (note 14) | SUPPORTED | The review finds failure rates around 40 percent, reaching roughly 49 percent for consumer goods. The essay makes no claim that most products fail |
+| Smoking collapsed in rich countries despite an industry optimized for retention | WHO 2025 (note 15) | QUALIFIED | WHO measures the decline in prevalence. "Despite an industry optimized for retention" is the essay's framing, not a WHO finding |
+| Beards returned, against the razor industry's interest | Robinson 1976; Procter & Gamble FY2019 SEC filings (notes 3, 15) | QUALIFIED | Robinson documents long cycles in beard fashion. P&G attributes part of its developed-market razor contraction to lower shaving frequency; it does not say beards caused the decline |
+| Some subscription grabs produced enough anger to be walked back | Reporting on BMW's September 2023 withdrawal of its heated-seat subscription (note 15) | QUALIFIED | One well-documented case, withdrawn after weak customer acceptance. Not evidence about how often subscription moves are reversed |
+| Profit is reinvested in ways that reshape the environment in which later preferences form | None | INFERENCE | The essay's candidate mechanism, tested case by case rather than assumed |
+| Constructed preferences cannot be sorted into an uninfluenced original and a commercial overlay | None | INFERENCE | A counterfactual that cannot generally be measured directly |
+| The *t*₀ → *t*₁ → *t*₂ → *t*₃ reconstruction is a better object than a verdict on authenticity | None | INFERENCE | The essay's proposed method, not an established framework |
+
+### Editorial note: original synthesis
+
+**Documented history and empirical evidence.** The antiquity of body decoration and Egyptian cosmetics. The industrialization of twentieth-century cosmetics. Gillette's wartime military sales and the Milady Décolleté advertising copy. Christine Hope's report of 1964 hair-removal prevalence, attributed to her. Telnaes's virtual-reel patent and, separately, near-miss clustering. Schüll's ethnography of machine gambling and Breen and Zimmerman's single clinical comparison. The Orphan Drug Act and the 2025 National Academies findings on investment mismatch. The disease-mongering literature, kept separate from those findings. Adobe's 2013 move to subscription and its reported revenue. Galbraith's dependence effect and the later economics of advertising.
+
+**Causal inference.** The feedback loop from preference to profit to reinvestment to reshaped preference is the essay's candidate mechanism. The sources document what firms did, what they said in their advertising and patents, and what later prevalence and revenue looked like. They do not, on their own, establish how much of later demand the firms caused. Where the essay draws that connection, as in reading the razor sequence as commercial amplification or in describing a pharmaceutical pipeline that prefers recurring markets, it is inference from the historical sequence and the incentives, not a measured effect.
+
+**Counterfactual limits.** The essay's central question asks what people would want without commercial influence. That counterfactual cannot generally be measured directly. Archaeology can show that decoration is old; it cannot show what a modern teenager would want in a world without beauty advertising. After several generations inside a market, the essay argues, there may be no uninfluenced preference left to recover. For that reason the essay offers a method of historical reconstruction rather than a score of authentic versus manufactured demand.
+
+**Corrected after review.** A source-verification pass changed three sentences. "Machine zone" is now attributed to players rather than listed as industry language. "Most new products die" became "Many new products fail," because a review of nineteen empirical studies puts failure rates near 40 percent. Heated seats were removed from the examples of feature subscriptions that have succeeded, since BMW withdrew its heated-seat subscription in 2023.
+
+**This essay's contribution.** The framing of popularity and profit as a false fork; the five-case comparison; the account of where the model weakens; the *t*₀ to *t*₃ method; and the distinction between normal and inevitable.
