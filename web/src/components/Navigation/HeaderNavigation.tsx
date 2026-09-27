@@ -1,4 +1,4 @@
-import { forwardRef } from "react";
+import { forwardRef, useCallback, useRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronDown, faCog } from "@fortawesome/free-solid-svg-icons";
 import { Link, useLocation } from "react-router-dom";
@@ -60,15 +60,25 @@ const HeaderLinkList = ({
 
 const HeaderNavigation = forwardRef<HTMLElement>(function HeaderNavigation(
   _props,
-  ref
+  forwardedRef
 ) {
   const { isSettingsOpen, toggleSettings } = useSettings();
   const { pathname } = useLocation();
-  const layout = useHeaderLayout();
-  const explore = useDisclosure<HTMLElement>(layout);
+  const headerRef = useRef<HTMLElement | null>(null);
+  const setHeaderRef = useCallback(
+    (node: HTMLElement | null) => {
+      headerRef.current = node;
+      if (typeof forwardedRef === "function") forwardedRef(node);
+      else if (forwardedRef) forwardedRef.current = node;
+    },
+    [forwardedRef]
+  );
   const activeExploreItem = exploreNavItems.find((item) =>
     isNavItemActive(item, pathname)
   );
+  const layout = useHeaderLayout(headerRef, activeExploreItem?.label ?? "");
+  const explore = useDisclosure<HTMLElement>(layout);
+  const menu = useDisclosure<HTMLElement>(layout);
   const isExploreDisclosed = layout !== "wide";
 
   const brand = (
@@ -123,6 +133,36 @@ const HeaderNavigation = forwardRef<HTMLElement>(function HeaderNavigation(
     </nav>
   );
 
+  const menuNav = (
+    <nav
+      ref={menu.containerRef}
+      className="site-header__nav site-header__menu"
+      aria-label="Primary navigation"
+      {...menu.containerProps}
+    >
+      <button {...menu.buttonProps} className="site-header__disclosure-toggle">
+        Menu
+        <FontAwesomeIcon className="site-header__caret" icon={faChevronDown} />
+      </button>
+      <div
+        id={menu.panelId}
+        className="site-header__panel site-header__menu-panel"
+        hidden={!menu.isOpen}
+      >
+        <HeaderLinkList items={coreNavItems} pathname={pathname} onNavigate={menu.close} />
+        <span id={EXPLORE_LABEL_ID} className="site-header__panel-heading">
+          Explore
+        </span>
+        <HeaderLinkList
+          items={exploreNavItems}
+          pathname={pathname}
+          labelledBy={EXPLORE_LABEL_ID}
+          onNavigate={menu.close}
+        />
+      </div>
+    </nav>
+  );
+
   const actions = (
     <div className="site-header__actions">
       <button
@@ -137,22 +177,36 @@ const HeaderNavigation = forwardRef<HTMLElement>(function HeaderNavigation(
     </div>
   );
 
+  let body;
+  if (layout === "menu") {
+    body = (
+      <>
+        {menuNav}
+        {actions}
+      </>
+    );
+  } else if (layout === "phone") {
+    body = (
+      <>
+        {exploreNav}
+        {actions}
+        {coreNav}
+      </>
+    );
+  } else {
+    body = (
+      <>
+        {coreNav}
+        {exploreNav}
+        {actions}
+      </>
+    );
+  }
+
   return (
-    <header ref={ref} className="site-header" data-layout={layout}>
+    <header ref={setHeaderRef} className="site-header" data-layout={layout}>
       {brand}
-      {layout === "phone" ? (
-        <>
-          {exploreNav}
-          {actions}
-          {coreNav}
-        </>
-      ) : (
-        <>
-          {coreNav}
-          {exploreNav}
-          {actions}
-        </>
-      )}
+      {body}
     </header>
   );
 });

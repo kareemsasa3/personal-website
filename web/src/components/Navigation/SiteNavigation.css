@@ -283,6 +283,44 @@
     font-size: 0.8rem;
 }
 
+/* Menu: fallback when the labeled core row no longer fits (e.g. enlarged text). */
+.site-header[data-layout="menu"] {
+    flex-wrap: wrap;
+    row-gap: 0.45rem;
+}
+
+.site-header__menu {
+    position: relative;
+    margin-left: auto;
+}
+
+.site-header__menu-panel {
+    width: min(18rem, calc(100vw - 2rem));
+    min-width: 0;
+    max-height: calc(100dvh - 5rem);
+    overflow-y: auto;
+}
+
+.site-header__panel .site-header__list {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.site-header__panel .site-header__list > li {
+    display: block;
+}
+
+.site-header__panel-heading {
+    margin-top: 0.2rem;
+    padding: 0.6rem 0.7rem 0.2rem;
+    border-top: 1px solid color-mix(in srgb, var(--app-border) 80%, transparent);
+    color: var(--app-text-muted);
+    font-family: var(--font-family-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
 /* Narrow mid band: drop the brand name and tighten labels before the row crowds. */
 @media (max-width: 900px) {
     .site-header {
