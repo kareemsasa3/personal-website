@@ -3,9 +3,13 @@ import {
   NavigationMode,
   NavigationModeContext,
 } from "./NavigationModeContextTypes";
+import { useMediaQuery } from "../hooks/useMediaQuery";
 
 const NAV_MODE_STORAGE_KEY = "web-nav-mode";
 const DEFAULT_NAV_MODE: NavigationMode = "header";
+
+// The dock is not phone-safe below this width; the header is used there instead.
+const DOCK_AVAILABLE_QUERY = "(min-width: 430px)";
 
 const isNavigationMode = (value: string | null): value is NavigationMode => {
   return value === "dock" || value === "header";
@@ -35,33 +39,38 @@ interface NavigationModeProviderProps {
 export const NavigationModeProvider: React.FC<NavigationModeProviderProps> = ({
   children,
 }) => {
-  const [navMode, setNavModeState] = useState<NavigationMode>(
+  const [preferredNavMode, setPreferredNavMode] = useState<NavigationMode>(
     resolveInitialNavigationMode
   );
+  const isDockAvailable = useMediaQuery(DOCK_AVAILABLE_QUERY);
+  const navMode: NavigationMode =
+    preferredNavMode === "dock" && !isDockAvailable ? "header" : preferredNavMode;
 
   useEffect(() => {
     try {
-      localStorage.setItem(NAV_MODE_STORAGE_KEY, navMode);
+      localStorage.setItem(NAV_MODE_STORAGE_KEY, preferredNavMode);
     } catch {
       // Ignore localStorage persistence failures.
     }
+  }, [preferredNavMode]);
 
+  useEffect(() => {
     applyNavigationModeToDocument(navMode);
   }, [navMode]);
 
   const setNavMode = (mode: NavigationMode) => {
-    setNavModeState(mode);
+    setPreferredNavMode(mode);
   };
 
   const toggleNavMode = () => {
-    setNavModeState((currentMode) =>
+    setPreferredNavMode((currentMode) =>
       currentMode === "dock" ? "header" : "dock"
     );
   };
 
   return (
     <NavigationModeContext.Provider
-      value={{ navMode, setNavMode, toggleNavMode }}
+      value={{ navMode, preferredNavMode, isDockAvailable, setNavMode, toggleNavMode }}
     >
       {children}
     </NavigationModeContext.Provider>

@@ -38,6 +38,9 @@
         function resolveNavMode() {
           try {
             var saved = localStorage.getItem(NAV_MODE_STORAGE_KEY);
+            if (saved === "dock" && !window.matchMedia("(min-width: 430px)").matches) {
+              return "header";
+            }
             if (saved === "dock" || saved === "header") {
               return saved;
             }

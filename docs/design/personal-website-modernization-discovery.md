@@ -214,11 +214,12 @@ Recommendation IDs are reused in the roadmap and prototype briefs. Each record i
 
 #### R02 — Give primary navigation a readable priority structure
 
-- **Status (updated 2026-09-27):** **Approved direction, validated by prototype. Not yet implemented.**
+- **Status (updated 2026-09-27):** **Approved direction, validated by prototype. Implemented on branch `feat/r02-navigation-hierarchy`; not yet merged.**
   - The comparison that this record proposed at discovery has been carried out in `docs/design/navigation-hierarchy-prototype.md`. Its static prototype is `docs/design/prototypes/navigation/index.html`, and both were committed in `480a54c`.
   - The owner then approved the responsive policy under "Approved direction" below, which is the prototype's own recommendation (prototype section 12).
   - The prototype document's original status line ("prototype evaluation only … not an approved product decision") and its proposed real-device A-vs-Menu head-to-head were written on 2026-09-26, before that approval. The document keeps that wording as historical and adds a 2026-09-27 decision note that explicitly supersedes it. On phone navigation at normal text size, the approval settles the choice in favor of labeled core links.
-  - This status covers direction only. No production navigation code has changed.
+  - This status covers direction only. Production navigation code has changed on the feature branch only; `main` is unchanged.
+  - *Implementation (added 2026-09-27):* implemented on branch `feat/r02-navigation-hierarchy`, commits `45da6a0`…`4c9b2d1`; not yet merged. Verified in Chromium only. The dev server was checked across 320–1440 px. The production preview (`npm run preview`) was checked with a reduced matrix: 320 px at default and 200% text, 1024 px, 1440 px at default and 200% text, and the 429/430 px dock boundary. 200% text was simulated by root font size. Open-panel viewport containment was asserted, not only screenshotted. Reduced motion was emulated, and light theme was screenshotted. Not verified: real iOS Safari/Android Chrome, Firefox, WebKit, VoiceOver, NVDA, real browser text-size settings, and whether first-time visitors read "Explore" as intentional (prototype §13 items 1–3, 6, 8). The Menu fallback is triggered by measured overflow rather than `em` media queries. The Menu fallback also re-measures on root text-size changes. The dock separator and Explore-stack visuals are awaiting owner screenshot review before merge.
 - **Current state (at discovery, 2026-09-26):** Home, Projects, Case Studies, Writing, Experience, Terminal, Journey, and Simulations occupy one primary list. Inactive labels disappear below 1180 px. The optional dock uses the same destinations.
 - **Subsequent evidence of the problem:**
   - *Prototype, measuring production code* (Chromium, local dev server at `fe4421d`; not the deployed site):
