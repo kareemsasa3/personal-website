@@ -333,8 +333,12 @@
         width: 2.15rem;
     }
 
+    .site-header[data-layout="phone"] .site-header__core .site-header__list {
+        gap: 0.1rem;
+    }
+
     .site-header[data-layout="phone"] .site-header__core .site-header__link {
-        padding: 0.5rem 0.2rem;
-        font-size: 0.74rem;
+        padding: 0.5rem 0.15rem;
+        font-size: 0.7rem;
     }
 }
