@@ -30,9 +30,9 @@ export const useHeaderLayout = (
   const isWide = useMediaQuery(WIDE_QUERY);
   const isPhone = useMediaQuery(PHONE_QUERY);
   const { width } = useWindowSize();
-  const [fontsEpoch, setFontsEpoch] = useState(0);
+  const [measureEpoch, setMeasureEpoch] = useState(0);
   const widthLayout: HeaderLayout = isWide ? "wide" : isPhone ? "phone" : "mid";
-  const measureKey = `${widthLayout}|${width}|${contentKey}|${fontsEpoch}`;
+  const measureKey = `${widthLayout}|${width}|${contentKey}|${measureEpoch}`;
   const [state, setState] = useState<{ key: string; layout: HeaderLayout }>({
     key: measureKey,
     layout: widthLayout,
@@ -48,12 +48,27 @@ export const useHeaderLayout = (
   useEffect(() => {
     let cancelled = false;
     document.fonts?.ready.then(() => {
-      if (!cancelled) setFontsEpoch((epoch) => epoch + 1);
+      if (!cancelled) setMeasureEpoch((epoch) => epoch + 1);
     });
     return () => {
       cancelled = true;
     };
   }, []);
+
+  // A text-size change with no viewport resize (e.g. a browser zoom/font-size
+  // setting) never touches useWindowSize, so it would otherwise go
+  // unmeasured. The probe's width is 1rem, so a root font-size change alone
+  // resizes it; observing it (never the header or its lists, whose own size
+  // changes with each step-down and would loop) re-triggers measurement.
+  useEffect(() => {
+    const probe = headerRef.current?.querySelector(".site-header__rem-probe");
+    if (!probe) return;
+    const observer = new ResizeObserver(() => {
+      setMeasureEpoch((epoch) => epoch + 1);
+    });
+    observer.observe(probe);
+    return () => observer.disconnect();
+  }, [headerRef]);
 
   // Runs after every render, before paint; steps down at most three times.
   // No deps array is intentional: this must re-check fit after every render

@@ -180,10 +180,10 @@ const HeaderNavigation = forwardRef<HTMLElement>(function HeaderNavigation(
   let body;
   if (layout === "menu") {
     body = (
-      <>
+      <div className="site-header__menu-row">
         {menuNav}
         {actions}
-      </>
+      </div>
     );
   } else if (layout === "phone") {
     body = (
@@ -205,6 +205,7 @@ const HeaderNavigation = forwardRef<HTMLElement>(function HeaderNavigation(
 
   return (
     <header ref={setHeaderRef} className="site-header" data-layout={layout}>
+      <span className="site-header__rem-probe" aria-hidden="true" />
       {brand}
       {body}
     </header>
