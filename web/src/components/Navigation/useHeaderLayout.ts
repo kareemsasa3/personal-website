@@ -38,12 +38,10 @@ export const useHeaderLayout = (
     layout: widthLayout,
   });
 
-  // Start again from the width band whenever width, labels or fonts change.
-  let layout = state.layout;
-  if (state.key !== measureKey) {
-    layout = widthLayout;
-    setState({ key: measureKey, layout });
-  }
+  // Start again from the width band whenever width, labels or fonts change:
+  // a step-down recorded under an older measureKey no longer applies. This is
+  // derived, not a render-phase setState, so no update can be lost on rebase.
+  const layout = state.key === measureKey ? state.layout : widthLayout;
 
   useEffect(() => {
     let cancelled = false;
@@ -79,7 +77,7 @@ export const useHeaderLayout = (
     const header = headerRef.current;
     if (!header || layout === "menu" || headerFits(header)) return;
     const next = FALLBACK[layout];
-    setState((current) => ({ ...current, layout: next }));
+    setState({ key: measureKey, layout: next });
   });
 
   return layout;
