@@ -55,7 +55,10 @@
 
 /* Dock Tooltip Styles */
 .dock-tooltip {
-    position: fixed;
+    position: absolute;
+    bottom: calc(100% + 10px);
+    left: 50%;
+    translate: -50% 0;
     background: var(--background-color);
     color: var(--text-color);
     padding: 0.5rem 0.75rem;
@@ -68,7 +71,6 @@
     pointer-events: none;
     border: 1px solid var(--border-color);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    transform: translateX(-50%);
     font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
 }
 

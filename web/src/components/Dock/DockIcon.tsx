@@ -81,12 +81,6 @@ const DockIcon: React.FC<DockIconProps> = ({
   // Derive font size from the animated size for scalability
   const fontSizeSpring = useTransform(sizeSpring, (s) => s * 0.6);
 
-  // Tooltip position
-  const tooltipX = iconCenter ?? 0;
-  const tooltipY = ref.current
-    ? ref.current.getBoundingClientRect().top - 10
-    : 0;
-
   return (
     <div className="dock-icon-container">
       <NavLink
@@ -121,10 +115,6 @@ const DockIcon: React.FC<DockIconProps> = ({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.9 }}
             transition={{ duration: 0.15, ease: "easeOut" }}
-            style={{
-              left: tooltipX,
-              top: tooltipY,
-            }}
           >
             {label}
           </motion.div>
