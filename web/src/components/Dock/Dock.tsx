@@ -1,7 +1,7 @@
 import { motion, type Variants } from "framer-motion";
 import { forwardRef, useMemo, type ForwardedRef } from "react";
 import { useLocation } from "react-router-dom";
-import { navItems } from "../../data/navigation";
+import { isNavItemActive, navItems } from "../../data/navigation";
 import DockIcon from "./DockIcon";
 import DockSettingsButton from "./DockSettingsButton";
 import { DockControls } from "./useDock";
@@ -78,7 +78,10 @@ function DockContent(
       {dockItems.map((item) => (
         <DockIcon
           key={item.path}
-          {...item}
+          path={item.path}
+          label={item.label}
+          icon={item.icon}
+          isActive={isNavItemActive(item, location.pathname)}
           mouseX={mouseX}
           stiffness={dockStiffness}
           magnification={effectiveMagnification}

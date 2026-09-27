@@ -6,7 +6,7 @@ import {
   MotionValue,
   AnimatePresence,
 } from "framer-motion";
-import { NavLink } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import "./Dock.css";
@@ -17,6 +17,7 @@ interface DockIconProps {
   path: string;
   icon: IconDefinition;
   label: string;
+  isActive: boolean;
   mouseX: MotionValue<number | null>;
   stiffness: number;
   magnification: number; // percentage (0-100)
@@ -27,6 +28,7 @@ const DockIcon: React.FC<DockIconProps> = ({
   path,
   icon,
   label,
+  isActive,
   mouseX,
   stiffness,
   magnification,
@@ -83,11 +85,12 @@ const DockIcon: React.FC<DockIconProps> = ({
 
   return (
     <div className="dock-icon-container">
-      <NavLink
+      <Link
         ref={ref}
         to={path}
         aria-label={label}
-        className="dock-nav-link"
+        aria-current={isActive ? "page" : undefined}
+        className={`dock-nav-link ${isActive ? "active" : ""}`}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         onFocus={(event) => setIsFocusVisible(event.currentTarget.matches(":focus-visible"))}
@@ -103,7 +106,7 @@ const DockIcon: React.FC<DockIconProps> = ({
         >
           <FontAwesomeIcon icon={icon} />
         </motion.div>
-      </NavLink>
+      </Link>
 
       {/* Tooltip */}
       <AnimatePresence>
