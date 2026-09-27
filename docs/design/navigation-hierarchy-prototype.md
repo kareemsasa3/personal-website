@@ -4,6 +4,18 @@ Date: 2026-09-26. Repository HEAD: `fe4421d`. Source: R02 in `docs/design/person
 
 Status: **prototype evaluation only.** This is not an approved product decision. No production code, CSS, tests, navigation data, dependencies, or the discovery report were changed.
 
+> **Decision note, 2026-09-27 (added after the evaluation; supersedes the status line above).**
+>
+> The evaluation below was conducted on 2026-09-26 and committed in `480a54c`. It was written before any approval, and its wording is preserved as it stood at that checkpoint.
+>
+> - **Approval.** On 2026-09-27 the owner approved this prototype's Variant C responsive strategy (section 12) as the direction for R02.
+> - **Superseded wording.** "Not an approved product decision" above, and "None of this is a product decision until validated" in section 12, describe the evaluation as it stood when written. The 2026-09-27 approval supersedes both.
+> - **Phone head-to-head.** The real-device A-phone vs C-menu comparison proposed in section 12 is no longer a decision gate for choosing the navigation strategy.
+> - **Phones at normal text size.** The approved direction is labeled core navigation (A's phone layout), not icon-only navigation.
+> - **Enlarged or constrained text.** A clearly labeled `Menu` fallback remains acceptable when the labeled core set cannot fit safely.
+> - **Remaining checks are implementation verification.** Section 13 lists them: real devices, other browsers, screen readers, text sizing (including the unverified `em` trigger), reduced motion, header integration, light theme, and dock behavior. These checks may reveal implementation defects or require responsive adjustments. They do not by themselves reopen the approved Variant C direction.
+> - **Dock below 430 px.** The current Dock remains unapproved below 430 px until it is phone-safe. This settles the owner decision left open in section 8 for narrow phones.
+
 Prototype: `docs/design/prototypes/navigation/index.html` is a self-contained static page. It lives outside the Vite root (`web/`) and nothing imports it. To run it:
 
 ```sh

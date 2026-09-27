@@ -4,6 +4,13 @@ Discovery date: 2026-09-26. Repository examined: `personal-website`, HEAD `1a4a1
 
 Scope: discovery and documentation reconciliation only. The initial discovery added this document; the subsequent user-directed clarification also adds a scoped supersession note to the older evidence-linked case-study specification. No application, site content, tests, dependencies, build output, infrastructure, branches, commits, or deployments were changed.
 
+**Reconciliation update, 2026-09-27:** Two later sources were reconciled into this report. They were added as annotations; the original discovery reasoning was kept.
+
+- **Navigation hierarchy prototype.** `docs/design/navigation-hierarchy-prototype.md` and `docs/design/prototypes/navigation/index.html` were committed in `480a54c`. After the prototype, the owner approved a direction for R02, so R02 is now an approved, prototype-validated direction rather than a prototype hypothesis.
+- **Visitor audit.** `docs/audits/personal-website-visitor-audit-2026-09-27.md` is a versioned repository artifact, retained as the rendered-experience evidence for this reconciliation. `docs/audits/*` is otherwise ignored; this file is kept through a specific `.gitignore` exception. It records a read-only traversal of the running public site. Section 15 reconciles it recommendation by recommendation.
+
+No other recommendation changes status. Everything except R02 remains a proposal.
+
 ## 1. Executive summary
 
 **Modernize toward an inspectable engineering portfolio: make the relationship between systems, engineering decisions, operational evidence, and writing immediately legible.** Keep the Matrix/terminal identity, the project roster, and the increasingly editorial presentation. The evidence does not support a wholesale redesign.
@@ -18,12 +25,19 @@ The highest-confidence work is practical: ordinary links for navigation, route f
 
 A separate navigation question remains: the older specification demotes Simulations from primary navigation, while recent intentional homepage work adds a wordless Simulations link. Some other provisions have shipped, notably the roster and removal of complexity ratings. The homepage/evidence clarification does not resolve or reinstate unrelated navigation requirements.
 
+*Update, 2026-09-27:* the header side of this question is now resolved by R02's approved direction. Simulations stays a labeled navigation destination, but it moves into a quieter Explore group with Terminal and Journey rather than being removed. The older specification's instruction to remove Simulations from primary navigation is now explicitly superseded by a 2026-09-27 supersession note in its Section 12, which aligns that section's navigation requirements with R02. That specification's homepage-prominence instruction is separate and not superseded; the related wordless-pills question remains open (section 13, question 4).
+
 ### Evidence and limits
 
 - **Source-confirmed:** component behavior, data relationships, CSS declarations, generator contracts, smoke assertions, and cited git decisions.
 - **Artifact-confirmed:** local project thumbnails were viewed; existing build files and local media sizes were inspected without rebuilding. The build directory predates the latest commits and is supporting evidence, not a verified build of HEAD.
 - **Design inference:** likely comprehension, density, hierarchy, and discoverability effects. These are hypotheses for prototypes, not results from visitor testing.
 - **Not verified:** rendered desktop/mobile layouts, actual computed styles, screen-reader behavior, keyboard journeys, network waterfalls, Core Web Vitals, deployed revision, or production response headers. The configured Playwright browser was missing, and the browser skill found no connected browser. Nothing was installed to work around that limitation.
+- **Subsequent rendered evidence (2026-09-27):** the list above describes this discovery's own evidence, and it remains accurate for that checkpoint. Two later sources supplied some rendered evidence:
+  - **Navigation prototype.** It measured current header and dock behavior in Chromium against the local dev server at `fe4421d`, then measured the prototype variants. It did not test Firefox, WebKit, real touch devices, or screen readers.
+  - **Visitor audit.** It observed the live site at 500 × 834 and 1363 × 936 CSS px. It did not use real phones, 320/375/390 px viewports, a breakpoint matrix, automated WCAG checks, performance measurement, or a screen reader.
+
+  Where either source tested the same question as a design inference here, section 15 and R02 record the result. The remaining "Not verified" items are still unverified.
 
 External sites were inspected through retrieved public page content. Comparisons below concern their information structure, content, and artifact relationships; they are not claims about motion quality or pixel-level visual audits. Research reflects sources retrieved on the discovery date. No private résumé or private project source was needed.
 
@@ -182,7 +196,7 @@ The common useful pattern is **specific work plus an intelligible route to its e
 
 ## 7. Recommendations by layer
 
-Recommendation IDs are reused in the roadmap and prototype briefs. Each record includes current state, opportunity, proposed technique, fit, visible effect, effort, risk, prerequisites, prototype decision, and likely implementation locations. File paths are relative to the repository root. These are proposals, not approved implementation tasks.
+Recommendation IDs are reused in the roadmap and prototype briefs. Each record includes current state, opportunity, proposed technique, fit, visible effect, effort, risk, prerequisites, prototype decision, and likely implementation locations. File paths are relative to the repository root. These are proposals, not approved implementation tasks. *Exception (2026-09-27):* R02's direction was approved after its prototype. That approval covers the direction only; implementation and its verification are still to come. Every other record remains a proposal. The "Subsequent evidence" lines point to section 15, and none of them approves work.
 
 ### 7.1 Information architecture
 
@@ -195,18 +209,81 @@ Recommendation IDs are reused in the roadmap and prototype briefs. Each record i
 - **Classification:** foundational. **Complexity:** medium. **Overdesign risk:** low.
 - **Prerequisites:** Coordinate with R03; explicitly exempt terminal input and immersive simulation focus where appropriate. Preserve `/work` and `/games` behavior.
 - **Prototype first:** No visual concept needed; test interaction with keyboard and screen reader.
+- **Subsequent evidence (2026-09-27):** the visitor audit confirmed that the homepage's primary navigation CTAs are exposed as buttons. The skip link and route-focus policy remain untested, because the audit only sampled keyboard use. See section 15.
 - **Files:** `web/src/components/Layout/Layout.tsx`, `GlobalSectionNavigation.tsx`, `web/src/pages/Home/Home.tsx`, `sections/HeroSection.tsx`, `sections/FeaturedProjectsSection.tsx`, `web/src/index.css`.
 
 #### R02 — Give primary navigation a readable priority structure
 
-- **Current state:** Home, Projects, Case Studies, Writing, Experience, Terminal, Journey, and Simulations occupy one primary list. Inactive labels disappear below 1180 px. The optional dock uses the same destinations.
+- **Status (updated 2026-09-27):** **Approved direction, validated by prototype. Not yet implemented.**
+  - The comparison that this record proposed at discovery has been carried out in `docs/design/navigation-hierarchy-prototype.md`. Its static prototype is `docs/design/prototypes/navigation/index.html`, and both were committed in `480a54c`.
+  - The owner then approved the responsive policy under "Approved direction" below, which is the prototype's own recommendation (prototype section 12).
+  - The prototype document's original status line ("prototype evaluation only … not an approved product decision") and its proposed real-device A-vs-Menu head-to-head were written on 2026-09-26, before that approval. The document keeps that wording as historical and adds a 2026-09-27 decision note that explicitly supersedes it. On phone navigation at normal text size, the approval settles the choice in favor of labeled core links.
+  - This status covers direction only. No production navigation code has changed.
+- **Current state (at discovery, 2026-09-26):** Home, Projects, Case Studies, Writing, Experience, Terminal, Journey, and Simulations occupy one primary list. Inactive labels disappear below 1180 px. The optional dock uses the same destinations.
+- **Subsequent evidence of the problem:**
+  - *Prototype, measuring production code* (Chromium, local dev server at `fe4421d`; not the deployed site):
+    - At 1024 px and below, seven of eight destinations are icon-only, and the narrowest target is 24 px wide at 320 px.
+    - `/` marks two elements `aria-current="page"`, and `/work` marks none.
+    - Dock links have no accessible names.
+    - The dock clips at 375 px and 320 px.
+  - *Visitor audit* (live site):
+    - At 500 × 834, inactive header destinations were icon-led, and Journey and Simulations in particular required interpretation (F02).
+    - The auditor judged hover labels insufficient for touch discovery. Touch itself was not tested.
+    - Dock mode exposed eight destination links with no names (F03).
+    - At 1363 × 936, the labeled header was clear.
+  - The audit therefore confirms the problem that R02 addresses. It did not evaluate any navigation variant, and it is not the source of the chosen direction.
 - **Opportunity:** Icon familiarity substitutes for information hierarchy, particularly on touch screens.
-- **Proposed technique:** Prototype a labeled core set—Case Studies, Projects, Writing, Experience—with Home on the brand and a clearly named secondary menu for Terminal, Journey, and Simulations. Compare against a fully labeled compact menu, rather than assuming four always-visible links fit 320 px.
+- **Original proposal (discovery, historical):** prototype a labeled core set (Case Studies, Projects, Writing, Experience) with Home on the brand and a clearly named secondary menu for Terminal, Journey, and Simulations. Compare it against a fully labeled compact menu rather than assuming four always-visible links fit 320 px. The prototype compared three variants:
+  - A: core links plus an Explore disclosure.
+  - B: two visible tiers.
+  - C: width-adaptive, combining A and B by width band.
+- **Approved direction: the Variant C responsive strategy.**
+  - **Wide layouts** (prototype band: 1181 px and wider): use B's hierarchy.
+    - All destinations can remain visible.
+    - Core professional destinations get stronger visual priority.
+    - Terminal, Journey, and Simulations form a quieter **Explore** group instead of competing equally with the professional routes.
+  - **Mid-width layouts** (roughly 641–1180 px): use A's structure.
+    - Case Studies, Projects, Writing, and Experience stay labeled.
+    - Home stays on the brand.
+    - Terminal, Journey, and Simulations move into a clearly labeled **Explore** menu.
+  - **Phones at normal text size:** keep readable, labeled core navigation (the prototype's A phone layout). Do not revert to unexplained icon-only navigation.
+  - **Enlarged or constrained text:** a clearly labeled **Menu** fallback is acceptable once the labeled core set no longer fits safely.
+- **What the prototype established** (Chromium only, [proto]/[prod] as labeled in the prototype):
+  - **641–1180 px:** the core/Explore split is clearly beneficial. At 1024 px there are zero icon-only destinations instead of seven, at the same 64 px header height.
+  - **Phones:** the split is also beneficial. It gives labeled targets of at least 38 px instead of 24 px icons, at a similar header height.
+  - **About 1440 px:** the labels already fit, so the gain is ranking professional destinations above exploratory ones rather than making labels fit.
+  - **Overflow:** B's two tiers need a content-based overflow fallback at wide widths under enlarged text. With 200% text at 1440 px, the Explore group was pushed off-screen.
+- **Dock decision and implementation requirements (owner-approved, 2026-09-27):**
+  - The current dock is **not** approved for narrow phones.
+  - Do not offer Dock mode below 430 px until it is phone-safe. The current dock clips at 375 px and 320 px [prod].
+  - Dock destinations need accessible names. The prototype treats this as a prerequisite fix separate from the hierarchy change, and the audit calls for it regardless of whether dock mode is the default.
+  - Handle narrow-width overflow deliberately. Neither the header nor the dock may rely on items silently overflowing or clipping.
+  - Fix the duplicate `/` current state, so the brand and Home are not both `aria-current="page"`.
+  - Preserve the `/work` → Experience mapping, and make `/work` mark Experience as current.
+  - Any secondary menu (Explore or Menu) must implement focus management, Escape, dismissal, and expanded-state semantics. It must also close on location change. The prototype's tested baseline is a `<button aria-expanded aria-controls>` disclosure over ordinary links, not `role="menu"` (prototype section 9).
 - **Why it fits / visible effect:** Professional evaluation gets a clear path while exploratory work stays discoverable and keeps its routes. Fewer unexplained icons reduce uncertainty.
 - **Classification:** information architecture. **Complexity:** medium. **Overdesign risk:** medium.
-- **Prerequisites:** Resolve the evidence specification's Simulations policy; decide whether dock mode intentionally retains all destinations. A menu needs focus, Escape, dismissal, and expanded-state behavior.
-- **Prototype first:** Yes, especially 320–430 px, 768–1180 px, and zoomed text.
-- **Files:** `web/src/data/navigation.ts`, `web/src/components/Navigation/HeaderNavigation.tsx`, `SiteNavigation.css`, `SiteNavigation.tsx`, `web/src/components/Dock/*`. Route metadata/sitemap review is required if navigation policy changes, even though URLs should remain.
+- **Prerequisites:**
+  - *Resolved by the approval:*
+    - **Simulations in the header.** Simulations stays a labeled destination in the Explore group. The older evidence specification's instruction to remove it from primary navigation is now explicitly superseded in that specification (Section 12 supersession note, 2026-09-27).
+    - **Dock at narrow widths.** This is decided as above.
+  - *Unchanged:* route metadata and sitemap review is still required, because navigation policy changes even though URLs do not.
+- **Prototype first:** Completed (discovery said: "Yes, especially 320–430 px, 768–1180 px, and zoomed text"). What remains is implementation verification, not choosing a variant. Prototype section 13 lists it:
+  - Real iOS Safari and Android Chrome.
+  - Browser text-size settings, including whether `em`-based breakpoints trigger the Menu fallback. This is unverified.
+  - VoiceOver and NVDA announcements.
+  - Integration with the `AnimatePresence` header and the measured header offset.
+  - Dock separator/stack interaction.
+  - Light theme.
+  - Firefox and WebKit.
+  - Reduced motion.
+  - Whether first-time visitors read "Explore" as intentional. This is untested.
+- **Open inside the approved direction:**
+  - **Core link order.** The prototype listed Case Studies first as a prototype choice, while `navigation.ts` and `homeDestinationPaths` start with Projects.
+  - **Explore descriptor copy.** It is placeholder, not approved.
+  - **Phone focus order.** In the phone layout, Explore's visual position does not match its focus order.
+  - **Dock grouping.** A desktop dock separator and a phone-width Explore stack remain candidates; neither interaction has been tested.
+- **Files:** `web/src/data/navigation.ts`, `web/src/components/Navigation/HeaderNavigation.tsx`, `SiteNavigation.css`, `SiteNavigation.tsx`, `web/src/components/Dock/*` (including `DockIcon.tsx` for accessible names), `web/scripts/generate-ai-context.mjs` if the navigation data shape changes. Route metadata/sitemap review is required if navigation policy changes, even though URLs should remain. Prototype section 14 has the full list.
 
 ### 7.2 Homepage
 
@@ -219,6 +296,7 @@ Recommendation IDs are reused in the roadmap and prototype briefs. Each record i
 - **Classification:** foundational. **Complexity:** medium. **Overdesign risk:** low.
 - **Prerequisites:** Cold/warm navigation traces, slow-network behavior, fallback-shell handoff, direct anchors, POP restoration, and Annals/Rhythm Lab exceptions. Do not promise exact time savings without measurement.
 - **Prototype first:** A small interaction spike; no visual redesign required.
+- **Subsequent evidence (2026-09-27):** the visitor audit confirmed the visitor-facing consequence. Routine route changes repeatedly showed an empty content area with theatrical messages, which became an interruption to comparison and reading (F01). The audit made no performance diagnosis. The mechanism and timings above are still source-derived, and measurement is still required. See section 15.
 - **Files:** `web/src/components/Layout/Layout.tsx`, `web/src/utils/lazyWithMinTime.ts`, `web/src/App.tsx`, `web/src/routes/index.tsx`, `web/index.html`, `web/src/pages/Home/Home.tsx`, `sections/HeroSection.tsx`, `web/src/components/TypeWriterText/TypeWriterText.tsx`, `web/docs/UX_LOADING_IMPROVEMENTS.md` for later decision documentation.
 
 #### R04 — Compose the homepage around identity, selected proof, and thinking
@@ -230,6 +308,7 @@ Recommendation IDs are reused in the roadmap and prototype briefs. Each record i
 - **Classification:** visual refinement. **Complexity:** medium. **Overdesign risk:** medium.
 - **Prerequisites:** Preserve Erebus and Arachne as featured systems; choose an artifact that supports a specific explanation and remains readable at actual sizes. Evidence readiness does not change homepage curation. Do not add another competing hero CTA or autoplay a large background video.
 - **Prototype first:** Yes, P1.
+- **Subsequent evidence (2026-09-27):** the visitor audit narrows the opportunity statement. The homepage communicated professional focus quickly and made Read Case Studies the obvious next action, which weakens this report's concern that identity arrives unreliably. The weaker answers were consequence and proof, the writing invitation, and the unlabeled pills (F15). The asymmetric artifact composition is still an untested hypothesis. See section 15.
 - **Files:** `web/src/pages/Home/Home.tsx`, `Home.css`, `sections/HeroSection.*`, `FeaturedProjectsSection.*`, `ExplorationChoiceSection.*`, `web/src/data/siteContent.ts`, `web/src/components/ProjectMedia/*`, `web/vite.config.ts` for semantic shell parity.
 
 ### 7.3 Projects
@@ -243,6 +322,7 @@ Recommendation IDs are reused in the roadmap and prototype briefs. Each record i
 - **Classification:** content presentation. **Complexity:** medium. **Overdesign risk:** low.
 - **Prerequisites:** Editorial review of each relation; no implication that a philosophical essay proves a project's implementation. Use only existing public content and centralized contact links.
 - **Prototype first:** Small content-layout prototype with R04/R09; no standalone relationship graph required.
+- **Subsequent evidence (2026-09-27):** confirmed and extended. The visitor audit observed that evidence, ownership, and context must be assembled across several pages. It names specific missing links: case study → writing, Journey → case study, Experience → technical evidence, Projects → writing, and simulation → design note. See section 15.
 - **Files:** `web/src/data/projects.ts`, `caseStudies.ts`, `siteContent.ts`, article frontmatter in `web/src/content/articles/`, `web/scripts/build-articles.mjs`, `web/src/components/ArticlePage/ArticlePage.tsx`, `CaseStudyPage/CaseStudyPage.tsx`, `Layout/Layout.tsx`, `web/vite.config.ts`.
 
 #### R06 — Strengthen the roster without making it a dashboard
@@ -254,6 +334,7 @@ Recommendation IDs are reused in the roadmap and prototype briefs. Each record i
 - **Classification:** content presentation. **Complexity:** medium. **Overdesign risk:** medium.
 - **Prerequisites:** Agree on metadata meanings and empty-filter behavior; do not make all seven projects produce a metric. Maintain live result announcements, full detail content, and existing sort choices.
 - **Prototype first:** Yes, P2; compare against the existing roster before adding a new facet.
+- **Subsequent evidence (2026-09-27):** the visitor audit adds friction that this record did not cover. Catalogue controls and statistics precede a roster of only seven projects (F06). Newest-first order places less-documented work before the case-study systems (F07). Status, date, and maturity terms are ambiguous (F08, F12). URL shareability was outside the audit's scope. See section 15.
 - **Files:** `web/src/components/ProjectRoster/ProjectRosterItem.tsx`, `ProjectRoster.css`, `web/src/pages/Projects/Projects.tsx`, `useProjects.ts`, `web/src/data/projects.ts`, `web/vite.config.ts`, and later corresponding smoke assertions.
 
 ### 7.4 Case studies
@@ -267,6 +348,7 @@ Recommendation IDs are reused in the roadmap and prototype briefs. Each record i
 - **Classification:** foundational. **Complexity:** high. **Overdesign risk:** medium.
 - **Prerequisites:** Verify publishable evidence. Aether may be the first evidence-linked implementation without replacing Erebus or Arachne on the homepage; featured selection is not a dependency. No private project/client artifacts should be activated from this discovery alone. Aether's existing numerical claims need supporting context, not amplification.
 - **Prototype first:** Yes, P3, using one supported claim and one honest evidence gap.
+- **Subsequent evidence (2026-09-27):** confirmed, and the visitor audit identifies it as the largest opportunity. It adds a self-contained evidence story to R07's scope: concrete problem, personal ownership, consequential decision, visible result, verification example, and known limit. Findings F10 and F11 add support. The claim-ID/registry mechanism was not evaluated. See section 15.
 - **Files:** `docs/evidence-linked-case-studies-spec.md`, `web/src/data/caseStudies.ts`, `web/src/components/CaseStudyPage/CaseStudyPage.tsx`, `CaseStudyPage.css`, `web/src/pages/CaseStudies/CaseStudies.tsx`, `web/src/data/structuredData.ts`, `aiContext.ts`, `web/scripts/generate-ai-context.mjs`, `web/vite.config.ts`, and future evidence-policy tests.
 
 #### R08 — Explain one system flow and make sections addressable
@@ -278,6 +360,7 @@ Recommendation IDs are reused in the roadmap and prototype briefs. Each record i
 - **Classification:** content presentation; optional interactive extension is experimental. **Complexity:** medium for static figures/navigation, high for stateful replay. **Overdesign risk:** low for static, high for interactive.
 - **Prerequisites:** R07's publishable boundaries; accessible figure description; stable anchors and header/dock offsets. Aether's publisher/readers, Erebus's recorded/inferred state, and Arachne's pipeline must remain distinct models.
 - **Prototype first:** Yes, P3. A static version must succeed before adding animation.
+- **Subsequent evidence (2026-09-27):** partially confirmed. Hero recordings had no visible captions, and each clip demonstrates something narrower than the nearby claim. Erebus's flow wrapped without page overflow at 500 px. The section rail was not assessed. See section 15.
 - **Files:** `web/src/data/caseStudies.ts`, `web/src/components/CaseStudyPage/CaseStudyPage.tsx`, `CaseStudyPage.css`, `web/src/components/Layout/GlobalSectionNavigation.tsx`, `web/src/components/ProjectMedia/ProjectMedia.tsx`, `web/vite.config.ts`; a small future `ArchitectureFigure` component if reuse is proven.
 
 ### 7.5 Writing
@@ -291,6 +374,13 @@ Recommendation IDs are reused in the roadmap and prototype briefs. Each record i
 - **Classification:** content presentation. **Complexity:** medium. **Overdesign risk:** medium.
 - **Prerequisites:** Preserve generator-owned IDs, no-JS content, series order, dates, provenance, and the current prose. Do not add headings to the unsectioned essay merely to populate a TOC. Syntax highlighting remains unnecessary for predominantly text diagrams; add it only for substantive future code samples, at build time.
 - **Prototype first:** Yes, P4; include a long article with tables and the unsectioned essay.
+- **Subsequent evidence (2026-09-27):** the visitor audit confirmed four points:
+  - Writing carries some of the strongest operational-reasoning evidence but is weakly connected to related systems.
+  - Wide ASCII diagrams need lateral scrolling at 500 px.
+  - Qualifications should sit near the claims they qualify.
+  - The article reading mode works.
+
+  It did **not** confirm that the series is visually undifferentiated; the audit found the series labeling clear. See section 15.
 - **Files:** `web/src/pages/Writing/Writing.tsx`, `Writing.css`, `web/src/components/ArticlePage/ArticlePage.tsx`, `ArticlePage.css`, `web/scripts/build-articles.mjs`, `web/src/content/articles/`, `web/src/utils/articleFormatting.ts`, `web/vite.config.ts`. Generated article data must later be regenerated, not hand-edited.
 
 ### 7.6 Experience
@@ -304,6 +394,7 @@ Recommendation IDs are reused in the roadmap and prototype briefs. Each record i
 - **Classification:** content presentation. **Complexity:** medium. **Overdesign risk:** low.
 - **Prerequisites:** Verify wording about ownership and shared delivery; avoid implying solo authorship or numerical outcomes absent evidence. Client case studies still require separate permission/evidence work.
 - **Prototype first:** Yes, P5, with the current consulting role and one earlier role.
+- **Subsequent evidence (2026-09-27):** confirmed and broadened. The visitor audit found ownership boundaries unclear, and it adds the need to make the boundary between professional engagements and independent work explicit near the work itself. The ownership-led timeline format is untested. See section 15.
 - **Files:** `web/src/data/workExperience.ts`, `web/src/pages/Work/Work.tsx`, `Work.css`, `web/src/components/WorkDetails/WorkDetails.tsx`, `WorkDetails.css`, `web/vite.config.ts`.
 
 ### 7.7 Visual language
@@ -341,6 +432,7 @@ Recommendation IDs are reused in the roadmap and prototype briefs. Each record i
 - **Classification:** interaction. **Complexity:** medium. **Overdesign risk:** low.
 - **Prerequisites:** Coordinate with R03 and R11; audit JS-driven motion separately from CSS. Preserve user pause settings and the existing frozen-frame reduced-motion background.
 - **Prototype first:** A motion comparison for one linked card, one passive decision, and an article; no elaborate motion system needed.
+- **Subsequent evidence (2026-09-27):** partially confirmed. Background rain, glow, and transparent surfaces sometimes competed with reading and controls. The audit favors reducing that selectively rather than removing it. The Journey image flip needs an "illustrative" label (F13). Hover-on-passive-surface behavior and reduced motion were not tested. See section 15.
 - **Files:** `web/src/styles/components.css`, `web/src/pages/Home/sections/*`, `web/src/components/WorkDetails/WorkDetails.css`, `TimelineItem/TimelineItem.tsx`, `AppBackground/AppBackground.tsx`, `web/src/providers/AppProviders.tsx`.
 
 ### 7.9 Technical frontend modernization
@@ -358,6 +450,7 @@ R15–R19 in section 8 address content boundaries, themes, media, platform trans
 - **Classification:** technical modernization. **Complexity:** medium. **Overdesign risk:** low.
 - **Prerequisites:** Follow the [WAI combobox pattern](https://www.w3.org/WAI/ARIA/apg/patterns/combobox/) if retaining a custom control. Validate focus return, selected option on open, Escape, close sequencing, body scroll, and nested dialogs. Native elements are a starting point, not an automatic accessibility pass.
 - **Prototype first:** Interaction spike for filters and one dialog; roster migration is optional if it complicates R06's URL behavior.
+- **Subsequent evidence (2026-09-27):** the category-menu keyboard concern is still a hypothesis. One Down/Return attempt left All selected, which the audit says warrants a focused reproduction, not a diagnosis. Escape dismissal of Technical Coverage and Settings worked. New findings: the fixed header overlaps panel and window controls (F04, F05), and Spider cards were not exposed as named controls. See section 15.
 - **Files:** `web/src/components/TerminalDropdown/TerminalDropdown.tsx`, `TerminalDropdown.css`, `web/src/pages/Projects/Projects.tsx`, `web/src/components/ProjectRoster/ProjectRosterItem.tsx`, `web/src/components/common/Modal.tsx`, `web/src/components/SettingsPanel/SettingsPanel.tsx`, `web/src/index.css`, `web/src/components/ArticlePage/ArticlePage.css`.
 
 ### 7.11 Performance
@@ -401,6 +494,7 @@ R05–R10 form one coherent content direction: purpose and scope in summaries; t
 - **Classification:** technical modernization. **Complexity:** medium. **Overdesign risk:** low.
 - **Prerequisites:** Render actual image sizes, inspect low-bandwidth behavior and video duration/audio, and assess current external image rights/source choices before any local asset replacement. Preserve user pause and reduced motion. Guidance: [LCP optimization](https://web.dev/articles/optimize-lcp), [media preload behavior](https://web.dev/articles/fast-playback-with-preload).
 - **Prototype first:** Small caption/still layout in P3; loading changes need runtime verification, not a design concept.
+- **Subsequent evidence (2026-09-27):** the missing visible captions were confirmed. The visitor audit adds a new need: at narrow widths, recordings establish that a system exists but are hard to inspect in detail, with no visible larger view, seek, or fullscreen control (F09). It also found Journey and Projects dates inconsistent (F12). Journey's preload behavior was not tested. See section 15.
 - **Files:** `web/src/components/TimelineItem/TimelineItem.tsx`, `TimelineItem.css`, `web/src/data/timelineData.ts`, `web/src/components/ProjectMedia/ProjectMedia.tsx`, `ProjectMedia.css`, `web/src/data/projects.ts`, `web/src/components/CaseStudyPage/CaseStudyPage.tsx`; related public media only with later authorization.
 
 #### R18 — Treat native page transitions as a replaceable experiment
@@ -432,7 +526,9 @@ R05–R10 form one coherent content direction: purpose and scope in summaries; t
 | Finding and confidence | Existing protection | Recommended resolution |
 | --- | --- | --- |
 | No standard-shell skip link or route focus policy found; navigation CTAs use buttons | Main landmark/ID, route titles, real header links | R01; test focus after delayed content, not just URL change |
-| Header destinations become visually icon-led at common widths | Accessible names, titles, active label, focus tooltip | R02; readable touch navigation, measured target spacing |
+| Header destinations become visually icon-led at common widths. *Subsequently measured:* seven of eight are icon-only at 1024 px and below, with 24 px targets at 320 px (prototype [prod]); the visitor audit observed the same at 500 px (F02) | Accessible names, titles, active label, focus tooltip | R02's approved direction: labeled core destinations and a labeled Explore/Menu disclosure |
+| *Subsequent (2026-09-27):* dock links have no accessible names (visitor audit F03; prototype [prod] accessibility snapshot) | Header mode exposes names | R02 dock requirement; fix independently of hierarchy work |
+| *Subsequent (2026-09-27):* the fixed header overlaps Technical Coverage, Settings, and Terminal controls at 500 × 834 (visitor audit F04, F05) | Escape dismissed Technical Coverage and Settings | Not covered by an existing record; see section 15 |
 | White Live badge on `#51cf66`: approximately 2.01:1; white Completed badge on `#74c0fc`: approximately 1.96:1 | Tech tags already improved to approximately 4.86:1 | R12; shared badge declarations fail normal-text contrast if those pairs are rendered |
 | Light-theme secondary text `#4a4a4a` on media frame `#181818`: approximately 2.00:1 | Media controls have labels and focus outline | R12; inspect the computed light-theme bar/control pair |
 | Multiword `Active development` becomes two CSS classes in shared badges; no matching shared multiword status modifier was found | Roster independently normalizes status names correctly | R12; reuse a consistent status-key mapping |
@@ -444,7 +540,7 @@ R05–R10 form one coherent content direction: purpose and scope in summaries; t
 
 The contrast values above were calculated from declared opaque sRGB color pairs, not sampled from rendered screenshots. [WCAG contrast guidance](https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html) requires 4.5:1 for ordinary text, with a lower threshold for qualifying large text. Small badges do not qualify merely because they are bold. Blended surfaces, focus indicators, placeholders, and disabled states still need rendered inspection.
 
-Do not label every control below 44 px a WCAG failure. WCAG 2.2's AA target-size criterion is 24 by 24 CSS px with defined exceptions/spacing provisions; larger targets remain a useful touch design aim. Current narrow navigation widths need measurement, while project actions already reach 44 px on small screens. [WCAG target-size guidance](https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html)
+Do not label every control below 44 px a WCAG failure. WCAG 2.2's AA target-size criterion is 24 by 24 CSS px with defined exceptions/spacing provisions; larger targets remain a useful touch design aim. Current narrow navigation widths need measurement, while project actions already reach 44 px on small screens. *Update (2026-09-27):* the prototype measured current header targets of 24 px at 320 px [prod]. Its variants raise the minimum to 38 px. [WCAG target-size guidance](https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html)
 
 ### Performance evidence
 
@@ -488,6 +584,7 @@ Start with comprehension and correctness that do not require a new visual direct
 3. **Narrow R13/R11 refinements:** remove false hover affordances; scope the Work header collision; give summaries consistent focus treatment. These support recent design decisions rather than undoing them.
 4. **R17's Journey loading fix and R15's measured content-splitting spike.** Good technical return; retain existing public behavior. Confirm the current production baseline before claiming performance improvement.
 5. **Small R05 links/contact and R19 preview study.** Useful only when curated; avoid turning every page ending into a large conversion panel.
+6. *Added 2026-09-27:* **dock accessible names and fixed-header layering** (visitor audit F03–F05; prototype [prod]). These are observed defects rather than design hypotheses. The prototype treats dock names as a prerequisite that can ship separately from R02.
 
 Exit condition: the existing site is faster to understand and operate, small text is legible in both themes, and no content/navigation invariants regress. A new visual identity is not an exit condition.
 
@@ -496,7 +593,7 @@ Exit condition: the existing site is faster to understand and operate, small tex
 Build a coherent presentation around evidence:
 
 1. Develop **R07** with evidence qualification separate from homepage curation. Aether may be the first implementation; Erebus and Arachne remain featured. Evidence preparation is the largest dependency; UI work cannot substitute for it.
-2. Prototype **R04 homepage** with **R02 navigation** and **R05 relationships**. This has high visitor impact but moderate identity risk; retain the current composition as the control.
+2. Implement **R02** following its approved, prototype-validated direction, as its own unit. *(Discovery wording: "Prototype R04 homepage with R02 navigation and R05 relationships." The R02 prototype is complete; see R02.)* Prototype **R04 homepage** with **R05 relationships** against the approved navigation rather than as a joint navigation experiment. This has high visitor impact but moderate identity risk; retain the current composition as the control.
 3. Develop **R08 static architecture and contextual anchors** alongside R07. Static explanation has better initial effort/benefit than interactive replay.
 4. Refine **R09 writing** and **R10 ownership timeline** using shared **R11** type/surface roles. Keep authorial voice and existing series/provenance contracts.
 5. Adopt **R06 metadata/shareability**, **R14 native control simplification**, **R15 data boundaries**, and **R16 theme/event cleanup** in small independent units. Do not couple every refactor to a homepage redesign.
@@ -516,8 +613,8 @@ These are bounded hypotheses, not a backlog that must all ship. Command search, 
 
 ### P1 — Homepage as a concise engineering introduction
 
-- **Target:** Hero, Featured Systems, writing entry, and responsive primary navigation.
-- **Change:** Compare existing centered composition with copy/artifact asymmetry, a quieter proof line, clearly labeled writing access, and a readable compact menu.
+- **Target:** Hero, Featured Systems, and writing entry. *(Update 2026-09-27: responsive primary navigation has been removed from P1. It was settled by the completed R02 prototype and the owner's approval, and P1 should use the approved R02 navigation.)*
+- **Change:** Compare existing centered composition with copy/artifact asymmetry, a quieter proof line, and clearly labeled writing access. *(The discovery version also compared "a readable compact menu"; R02 now covers that.)*
 - **Question:** Can a first-time visitor identify both systems implementation and operational/AI judgment without additional hero copy?
 - **Success:** After a brief look, participants can state the engineering focus, identify one system, and choose the right route for proof, writing, or professional experience. At 320–430 px the reading order and actions remain obvious.
 - **Must remain:** Name and positioning voice; Erebus and Arachne as the featured systems; Case Studies as a clear action; access to all current routes; contact; Matrix identity; optional wordless pills; honest evidence availability. Evidence qualification remains independent of homepage curation. No new copy claims or automatic promotion of a project.
@@ -577,13 +674,20 @@ These are bounded hypotheses, not a backlog that must all ship. Command search, 
 1. **Which audience gets the first path?** Hiring engineers, consulting buyers, peers reading systems essays, or some ordered combination? The inferred primary audience is a technical evaluator; validate before choosing the homepage lead artifact.
 2. **How explicit should AI/governance positioning become?** Existing projects and writing support stronger discovery. They do not automatically support a new professional title or additional implementation claims.
 3. **How much visible navigation should the exploration layer occupy?** Reconcile the older Simulations-demotion instruction with the recent deliberate blue pill and current full navigation.
-4. **Should wordless pills remain intentionally cryptic?** They can stay so if explicit Writing/Simulations entry points do the navigation work. Do not erase the deliberate metaphor without testing that alternative.
+
+   *Resolved for header and dock, 2026-09-27:* see R02's approved direction and dock constraints.
+
+   Still open:
+   - Whether the core link order follows the approval's listing or `navigation.ts`.
+   - What Dock mode does for visitors below 430 px who already have it enabled.
+
+4. **Should wordless pills remain intentionally cryptic?** They can stay so if explicit Writing/Simulations entry points do the navigation work. Do not erase the deliberate metaphor without testing that alternative. *Update (2026-09-27):* the visitor audit observed that the pills' destinations are not visible (F15) and recommends persistent labels or a caption while keeping the form. That recommendation conflicts with the deliberate wordless choice in `a7c5767`. The prototype argues that a labeled Explore layer strengthens the case for leaving the pills wordless. This remains an owner decision.
 5. **Which evidence can be made publicly inspectable?** Claim-linking is high value only when the artifacts exist and are publishable. Recordings, repository snapshots, and measured reports answer different questions.
 6. **Should reading surfaces automatically quiet the background, or expose a reading preference?** Test sustained reading and retain reduced-motion/user pause behavior either way.
 7. **Is a new font worth a network request?** Improve hierarchy with current fonts first. No specific font purchase or dependency is proposed.
 8. **Does writing need repeat-reader distribution?** Seven articles exceed the original design's revisit threshold; RSS or a simple series landing page should follow reader demand and publication cadence.
 9. **How literal is the current single-column roster contract?** The strong recommendation is to preserve it; metadata density, primary actions, and URL state can evolve within that contract.
-10. **What do real visitors struggle with?** No analytics, user interviews, or field performance measurements were used. Timed comprehension and focused usability checks should decide among the prototypes.
+10. **What do real visitors struggle with?** No analytics, user interviews, or field performance measurements were used. Timed comprehension and focused usability checks should decide among the prototypes. *Update (2026-09-27):* the visitor audit adds observations from one expert traversal (section 15). It is a simulated visitor interpretation, not a timed study or a multi-participant test, so this question stays open.
 
 ## 14. Appendix: inspection and references
 
@@ -627,6 +731,7 @@ Inspection ranged from full component reads to targeted searches/samples; this l
 | `b06a723`, `df72a2c`, `9290739`, `319e39e`, `9189e81` | Project media, crops, and full-width recordings are recent additions, not missing capabilities |
 | `52293ca` | Forward-navigation scroll reset is recent and must survive loading changes |
 | `1a4a117` | Writing index spacing was just refined; prototype against current spacing rather than stale assumptions |
+| `480a54c` | *Added 2026-09-27:* R02 navigation hierarchy prototype and evaluation (`docs/design/navigation-hierarchy-prototype.md`, `docs/design/prototypes/navigation/index.html`); basis for R02's approved direction |
 
 Recent history was examined with `git log -25/-65 --oneline` and targeted `git show` metadata/stat reads. Older docs were treated as evidence of intent at the time, not automatic descriptions of current behavior.
 
@@ -663,4 +768,91 @@ An attempted retrieval of Daniel Wirtz's site returned an error and supports no 
 - The initial discovery wrote only this requested Markdown document. The subsequent user-directed clarification updated this report and added a scoped supersession note to `docs/evidence-linked-case-studies-spec.md`, preserving its historical text. No implementation, publication, or validation status was advanced. No `npm install`, build, generated-content command, application test, branch creation, commit, push, or deploy was performed.
 - Documentation checks: `git diff --check` and a final working-tree status review; document structure and local file references were checked separately because a new untracked file is not included in a normal tracked diff.
 - Remaining manual review: rendered prototypes, responsive interaction/accessibility validation, actual production performance, and the explicit product questions in section 13.
+- *Reconciliation, 2026-09-27:* documentation and repository configuration only. The reconciliation set consists of:
+  - this report, which records R02's approved direction and adds section 15;
+  - a dated decision note in `docs/design/navigation-hierarchy-prototype.md`, recording the approval and superseding its pre-approval status wording, with the original evaluation preserved;
+  - the visitor audit `docs/audits/personal-website-visitor-audit-2026-09-27.md`, retained as a versioned artifact;
+  - a narrow `.gitignore` exception retaining that one audit, while `docs/audits/*` otherwise stays ignored.
+
+  Inputs read: the navigation prototype document and HTML (`480a54c`), the visitor audit, and the Simulations/navigation provisions of `docs/evidence-linked-case-studies-spec.md`. The prototype HTML, the evidence specification, and all application code are untouched.
+  - Validation: `git diff --check`, plus a stale-language scan for R02 prototype and unresolved wording.
 - Suggested future documentation commit message: `docs(design): document modernization discovery and separate curation from evidence`.
+
+## 15. Reconciliation with the visitor audit (2026-09-27)
+
+Source: `docs/audits/personal-website-visitor-audit-2026-09-27.md`. It is a versioned repository artifact, retained as the rendered-experience evidence for this reconciliation. `docs/audits/*` is generally ignored, and this audit is retained through a specific `.gitignore` exception. Finding IDs F01–F20 refer to its "Friction and Confusion" log.
+
+### How the two layers relate
+
+This discovery is mainly repository, research, and design analysis. It labeled most visitor-experience conclusions as hypotheses because rendered inspection was unavailable. The visitor audit traversed the running public site through a browser on 2026-09-26/27. It therefore supplies empirical visitor observations for some of those hypotheses. It is not a replacement for this report, and this report is not a summary of it.
+
+The audit's limits govern how far its evidence reaches:
+
+- **Viewports.** Most review used 500 × 834 CSS px, with some desktop observation at 1363 × 936. There was no breakpoint matrix, no 320/375/390 px viewport, and no real phone or touch testing.
+- **Tooling not used.** No automated WCAG suite, contrast measurement, performance benchmark, or screen reader. Keyboard use was sampled only.
+- **Nature of the evidence.** The audit is one simulated visitor interpretation, not a timed or multi-participant study.
+- **Scope of reading.** No source files were read, and four article bodies were not read.
+- **Observation versus diagnosis.** The audit separates what happened from its likely interpretation. This section keeps that separation.
+
+The audit is not the source of R02's approved direction. That comes from the prototype and the owner's approval (see R02). The audit's R02-relevant observations validate the problem only.
+
+Relationship key:
+
+1. **Confirmed:** confirmed by visitor observation.
+2. **Partial:** partially confirmed; the recommendation needs narrower wording.
+3. **Hypothesis:** still a hypothesis, or needs dedicated testing.
+4. **New:** a new visitor finding that this report did not adequately represent.
+5. **Out of scope:** the recommendation remains valid but lay outside what the audit tested.
+
+### Recommendation-by-recommendation
+
+| Rec | Relationship | Visitor-audit evidence | Effect on the recommendation |
+| --- | --- | --- | --- |
+| R01 | 1 for CTA semantics; 5 for focus policy | Homepage primary CTAs are exposed as buttons while other route navigation uses links, which the audit notes can deny open-in-new-tab. The article TOC jump settled about 143 px below the header. | CTA link semantics confirmed. Skip link, route focus, and announcement policy were not tested; the audit sampled keyboard use only. Section-dot fragments were not assessed. |
+| R02 | 1 for the problem; the solution comes from the prototype | F02: at 500 px, inactive destinations were icon-led, and Journey and Simulations required interpretation. The auditor judged hover labels insufficient for touch; touch was not tested. F03: dock links had no names. At 1363 px the labeled header was clear. | Strengthens the need for readable names and hierarchy. The approved Variant C direction rests on the prototype and the owner's approval, not on the audit. |
+| R03 | 1 for the visitor consequence; 3 for the mechanism | F01: many route changes showed an empty content area with messages such as "COMPILING KERNELS". This was amusing at first and then a repeated interruption. The trust section adds that "fake-sounding route-loading operations" weaken the terminal language. | The consequence is confirmed. The audit explicitly makes no performance claim, so the source-derived mechanism (minimum import time plus layout loader) and any time savings still need measurement. The audit also accepts "a brief first-entry identity moment", which is compatible with R03's preserved anti-flicker goal. The 2-second subtitle delay was not recorded by the audit. |
+| R04 | 2 | The homepage quickly communicated professional focus, and Read Case Studies was unmistakably the next action. The featured Erebus/Arachne pair is restrained and defensible. At narrow width the credibility panels began below the first screen, and much of the page was still positioning. "Why should I care?" was the weakest answer. How I Work adds assertions to assertions. The contextual invitation to Writing is weak. The pills' destinations are unclear (F15). | Narrower wording: the identity sentence and primary action already work, which weakens this report's inference that immediate identity is undependable. The gaps are consequence and proof cues in the featured summaries, one example per How I Work principle, and a clearer writing entry. The asymmetric copy/artifact composition was not tested and remains a hypothesis for P1. Erebus and Arachne stay featured. |
+| R05 | 1, plus 4 for specific links | "Visitors must assemble evidence, ownership, outcomes, and context across several pages." The Content Connections table found case studies link only to other studies, Journey's named systems don't link to their studies, Experience has no technical-evidence links, and Projects has no writing links. The newest essay's in-context project links are cited as the model to follow. | Confirmed. The audit's specific pairs (for example, Erebus → "The Machine Should Explain Itself", with philosophy clearly distinguished from implementation proof) are candidate curated relations, still subject to R05's editorial review. The shared-contact-footer idea lay outside the audit, which found contact direct on Home and Experience. |
+| R06 | 4 for the preamble, ordering, and terminology; 5 for shareability | F06: intro, filters, and statistics push the work below the first viewport for only seven projects. F07: newest-first order puts Mnemosyne, kctl, and OS Audit before the case-study systems. F08: "Live" returned only Personal Website, which is ambiguous against Aether's deployment language. The Technical Coverage count of 29 mixes kinds of item. "Architecture recognized publicly" is unsupported. The Projects/Case Studies split was upheld. | Under-represented here: this record focused on URL state and metadata, not on control-before-content weight or status vocabulary. The audit is *medium* confidence on preferred ordering, because returning readers may want chronology. It is an input to an owner decision, not a change to the roster contract. Keep the single-column roster, and keep Projects as a roster distinct from Case Studies. URL filters and anchors were not tested. |
+| R07 | 1, plus 4 for scope | The audit's largest opportunity is to make each flagship study self-contained evidence: concrete problem, personal ownership, consequential decision, visible result, verification example, and known limit (the known limit appears in its recommendation). F10: Erebus evidence cards describe private or sanitized evidence without exposing an inspectable result, and a "sanitized summary" that describes the same page is not an additional artifact. F11: Aether's ~92 ms and 300+ LED figures appear in Projects but not in the study. The audit found no consistent role/context/date summary near the top of each study. | Confirmed as the central structural gap. The audit adds a compact role/context/result summary and one worked example per study; R07's claim-level linking did not explicitly include these. Both sources reject invented metrics and require measurement scope. The claim-ID/registry mechanism is an implementation choice the audit did not evaluate. Homepage curation stays independent. |
+| R08 | 2 | Hero recordings had no visible explanatory captions. Each clip demonstrates something narrower than its nearby claim: collection rather than inference correctness, a consumer rather than latency, functionality rather than robustness. A sanitized Erebus troubleshooting and replay example would be "disproportionately valuable". Erebus's flow wrapped without page overflow at 500 px. | Supports a static explanation and a single failure/recovery sequence where evidence permits. The labeled contents rail and the dot-rail problem were not assessed. |
+| R09 | 1 for discoverability and diagrams; 2 for series presentation | Writing contains some of the strongest evidence of operational reasoning but is not connected strongly enough to related systems. Wide ASCII diagrams need lateral scrolling at 500 px. Qualifications should appear where the claim is made (Bottlenecks). The article typography and provenance disclosures work. Series labeling was judged clear, and seven articles need no search or filter. The abstract appears after the body. F14: an unexplained "the deck" reference. | Discoverability and the diagram treatment are confirmed. The audit did **not** confirm that the series is "visually undifferentiated", so the series introduction and the list-versus-card comparison remain hypotheses. New: a brief opening orientation for long essays. F14 is an editorial content fix outside R09's presentation scope. |
+| R10 | 1, plus 4 for the professional/independent boundary | Ownership boundaries (designed, implemented, reviewed, deployed, maintained) and the growth of responsibility within the current role are unclear. The homepage places Lead Software Consultant beside independent flagship systems without labeling context. Experience does not link to Journey or to technical evidence. The audit warns against fabricating metrics or disclosing client work. | Confirmed. The audit adds an explicit professional-versus-independent context label near the work (case-study openings, Experience), without implying that personal projects were client deliverables. A sanitized consulting study depends on permission (see the R10 prerequisites). The ownership-led timeline format itself was not tested. |
+| R11 | 2 | Small dim metadata, green glow, animated rain, and transparent surfaces sometimes competed for attention. The article reading mode is an effective accommodation. Uniform case-study scaffolding with similar outcome phrasing can create a generated-summary impression; the audit says this does not establish how the text was written. | Supports distinct reading and interface surface roles and selective reduction of interference, not removal of the identity. The fixed-header overlap (F04, F05) is a layering defect this record does not cover; see the new findings below. The boxed-in, flat, and typography qualities in section 4 were not assessed. |
+| R12 | 3 | No contrast ratios were measured. Light-theme sampling of homepage contact and capability text stayed legible, which the audit says is not a full theme audit. | Adds no confirmation of the calculated badge and media-frame ratios. A rendered state sheet is still required. |
+| R13 | 2 | Rain, glow, and transparency sometimes compete behind reading and controls; the audit recommends selective reduction. F13: Journey's "View image" revealed a symbolic spider illustration with no caption saying it is illustrative. | Supports a quiet-reading or static-background test and explicit image toggles. It adds labeling illustration as illustration. Hover on passive surfaces, entrance staggering, and system-level reduced motion were not tested. |
+| R14 | 3 for the filter; 4 for the dock, overlap, and Spider | One category-menu Down/Return attempt left All selected; the audit calls this insufficient for a diagnosis. Escape closed Technical Coverage (returning focus) and Settings. F03: dock links unnamed. F04/F05: header overlaps dialog and panel controls. Spider cards appeared as plain text, not named controls. | The combobox keyboard concern is still a hypothesis needing a focused reproduction. The dock naming requirement is recorded under R02 and Horizon 1. Spider keyboard and screen-reader playability is a new finding outside this record's control scope. |
+| R15 | 5 | None. The audit made no performance measurements. | Unchanged. |
+| R16 | 5, with an adjacent observation | Article TOC targets settled below the fixed header. The theme and background toggles worked. | Unchanged. Whether F04/F05 comes from the header-offset contract was not diagnosed. |
+| R17 | 1 for captions; 4 for inspection | F09: at 500 px, terminal logs and UI in the recordings were too small to inspect in detail. Pause worked, but no visible seek or fullscreen control was exposed. Accessibility tooling received video descriptions, but no visible captions were present. F12: Aether is dated 2024 in Projects and Dec 2025 in Journey. | Visible explanation confirmed. New: a larger inspection view or native controls, plus a readable still where text is central. F12 belongs with the maturity and date terminology finding below. Journey's eager preload was not tested; the audit reports no network or performance inspection. |
+| R18 | 5 | F01 (see R03). | Unchanged. It supports sequencing R18 after R03. |
+| R19 | 5 | None. | Unchanged. |
+
+### New visitor findings not adequately represented in this discovery
+
+These are recorded as inputs, not as approved work. Each keeps the audit's own confidence level.
+
+- **Fixed-header layering (F04, F05).** The header covers the Technical Coverage title and Close area, the Settings heading and upper controls, and the Terminal window controls at 500 × 834. No existing record owns this. It is closest to R02/R16 (header geometry) and R14 (dialogs). It is listed in Horizon 1 as an observed defect.
+- **Status, date, and maturity terminology (F08, F12, trust section).** The scopes of Live, Completed, Demo-ready, Active development, "production-grade", "production-ready", and "production-oriented" are unclear, and some dates conflict across Projects, Journey, and the studies. This is related to R06's "agree on metadata meanings" and R12's status-key mapping, but it concerns meaning, not styling.
+- **Catalogue weight before content (F06).** See R06.
+- **Unsupported credibility prompt.** Aether's "Architecture recognized publicly" needs a source or a qualification.
+- **Experiment onboarding (F16–F20).** Terminal `ls about` does not match the advertised syntax. Unavailable simulations are listed before playable ones. Snake has no visible instructions or touch guidance. Rhythm Lab metrics are inconsistent and it shows an "Unknown song" fallback. The Annals chronicle initially looks empty. This report's section 2 said only that Simulations "needs proportionate prominence".
+- **Field-note independence (F14).** An editorial content fix.
+- **Visible pill destinations (F15).** See section 13, question 4.
+
+### Audit conclusions that corroborate this report's preservation guidance
+
+- **Identity.** The systems-engineering and technical-editorial identity works and should be preserved. Neither source recommends making it generic. See strengths 1 and 10, and the rejected ideas in section 12.
+- **Roster versus narrative.** Projects as a roster and Case Studies as a selected narrative and evidence layer serve different needs. Improve their connection rather than merging them.
+- **Optional exploration.** Terminal, Journey, Simulations, and the Annals add meaningful character. They should stay optional and must not become required paths to professional evidence. This is consistent with R02's Explore group, which keeps every route.
+- **Provenance.** Article provenance, honest private/public/sanitized disclosure, and the proportional reading typography should all be kept.
+
+### Remaining conflicts and unresolved decisions
+
+*Resolved, 2026-09-27:* the prototype document's pre-approval status wording is now superseded by its own dated decision note, so it no longer conflicts with R02.
+
+*Resolved, 2026-09-27:* `docs/evidence-linked-case-studies-spec.md` now contains a Section 12 supersession note aligning its navigation requirements with approved R02. Its homepage-prominence provisions are unaffected.
+
+1. **Homepage pills.** The audit recommends persistent labels (F15), which conflicts with the intentionally wordless pills (`a7c5767`). This is an owner decision.
+2. **Roster ordering.** The audit suggests prioritizing the best-documented systems (medium confidence), while the current newest-first default is part of the roster behavior. This is an owner decision.
+3. **R02 details.** Still open: core link order, Explore descriptor copy, Dock behavior below 430 px for visitors who already enabled it, and the `em`-based Menu trigger (unverified).

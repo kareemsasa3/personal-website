@@ -19,7 +19,7 @@ This direction takes precedence throughout the document. The original dated spec
 - **Homepage curation:** preserve Erebus and Arachne as the current featured systems. Do not derive homepage selection from evidence eligibility, promote Aether automatically, or demote Erebus/Arachne because their evidence packages are incomplete.
 - **Evidence qualification:** qualify claims and their supporting artifacts independently of homepage curation. Aether may be the first evidence-linked implementation; that implementation order does not assign homepage flagship status.
 - **Conflicting implementation requirements:** the Aether-only flagship configuration, evidence-gated homepage selection, associated promotion/demotion copy, and tests or acceptance criteria enforcing those policies are superseded. This applies wherever repeated, including sections 1–2, 4, 6–7, 9, 11–12, 14–19, and 22. Do not propagate the superseded coupling into static shells, metadata, sitemap priorities, generated AI context, or test fixtures. No separate case-study-index promotion is authorized merely by this clarification.
-- **Unchanged scope:** non-conflicting claim/evidence schema, qualification logic, disclosure rules, privacy protections, and publication safeguards remain applicable. Unrelated navigation, rollout, and implementation requirements are not superseded by this clarification. The separate Simulations navigation question remains recorded in the discovery report.
+- **Unchanged scope:** non-conflicting claim/evidence schema, qualification logic, disclosure rules, privacy protections, and publication safeguards remain applicable. Unrelated navigation, rollout, and implementation requirements are not superseded by this clarification. The separate Simulations navigation question remains recorded in the discovery report. *Update, 2026-09-27:* the navigation question is now resolved by the approved R02 direction and the Section 12 supersession note below. Simulations remains available through the quieter Explore navigation hierarchy. The separate question of Simulations' homepage prominence remains governed by this specification unless separately superseded.
 
 This is documentation reconciliation only: no implementation, publication, deployment, or stakeholder-validation state is advanced. The [modernization discovery report](design/personal-website-modernization-discovery.md) reflects the same distinction in its recommendations, roadmap, and prototypes.
 
@@ -574,6 +574,16 @@ Update the curated terminal artifact in `web/src/data/fileContents.ts` from “P
 Historical audit/refactor documents under `docs/` and `web/docs/` are not part of this public-copy cleanup and should not be rewritten in Phase 1.
 
 ## 12. Information architecture and navigation
+
+> **Supersession note, 2026-09-27:** The navigation requirements in this section were written before the R02 navigation hierarchy prototype and subsequent owner approval. Where this section specifies the composition, grouping, ordering, or removal of destinations in site navigation, the later approved R02 direction now governs.
+>
+> Under R02, **Home remains on the brand**; **Case Studies, Projects, Writing, and Experience** form the core professional navigation set; and **Terminal, Journey, and Simulations** remain available as labeled destinations in a quieter **Explore** group. On mid-width and normal phone layouts, the exploratory destinations move behind a clearly labeled **Explore** disclosure; on wide layouts they may remain visible as a visually secondary group. A clearly labeled **Menu** fallback is permitted for enlarged or constrained text when the labeled core set cannot fit safely.
+>
+> This supersedes this section's earlier primary-navigation list, its removal of Simulations from primary site navigation, and follow-on instructions whose only purpose was to preserve access after that removal. It does **not** settle the still-open ordering among the approved core destinations, nor does it prescribe the final Dock grouping or generated-navigation representation; those must follow the approved R02 hierarchy when implemented.
+>
+> The approved responsive policy is recorded in `docs/design/personal-website-modernization-discovery.md` and the dated decision note in `docs/design/navigation-hierarchy-prototype.md`.
+>
+> This supersession does **not** change this specification's separate requirements concerning homepage prominence, flagship selection, evidence qualification, case-study structure, or other presentation decisions. Those provisions remain in force unless separately superseded.
 
 ### Primary navigation
 
