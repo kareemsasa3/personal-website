@@ -1181,7 +1181,7 @@ Stage (line 846): branch its contents:
                 onStart={() => {
                   void startGame();
                 }}
-                tutorialActionLabel="Start tutorial"
+                tutorialActionLabel="New here? Start tutorial"
                 onStartTutorial={startTutorial}
               />
             )}
@@ -1245,11 +1245,11 @@ This is synthetic, not a real touch device. Do not report it as iOS/Android vali
 
 | Row | Viewport | Action | Expected |
 | --- | --- | --- | --- |
-| F1 | 1280×800 | Load `/simulations/rhythm-lab` | Ready Check shows Start and "Start tutorial"; no console errors |
-| F2 | 1280×800 | Click "Start tutorial" | Header shows "Simulations · Exit tutorial" (no Tutorial chip); HUD hidden; prompt "Tutorial 1 / 3", "Tap the tile"; Center tile falls |
+| F1 | 1280×800 | Load `/simulations/rhythm-lab` | Ready Check shows Start and "New here? Start tutorial"; no console errors |
+| F2 | 1280×800 | Click "New here? Start tutorial" | Header shows "Simulations · Exit tutorial" (no Tutorial chip); HUD hidden; prompt "Tutorial 1 / 3", "Tap the tile"; Center tile falls |
 | F3 | 1280×800 | Wait ≥ 3 s, do nothing | Tile rests on the hit line; prompt "Tap the tile" + "Center lane · S / K / Down"; no Miss readout; still frozen after 10 s |
 | F4 | 1280×800 | Press `a` while frozen | Hint "Tap the tile on the line."; no Miss; tile still frozen |
-| F5 | 1280×800 | Restart step via Exit then Start tutorial; press `s` at ~1 s (before freeze) | Hint "Wait until the tile reaches the line."; no Miss; tile keeps falling and freezes |
+| F5 | 1280×800 | Restart step via Exit then "New here? Start tutorial"; press `s` at ~1 s (before freeze) | Hint "Wait until the tile reaches the line."; no Miss; tile keeps falling and freezes |
 | F6 | 1280×800 | Press `s` while frozen | Readout "Perfect" with "0ms"; tile disappears; prompt "Perfect — hit tiles when they reach the line." + focused Continue |
 | F7 | 1280×800 | Continue; step 2 with mouse click on the Left tap zone when frozen | Same as F3/F6 for the Left lane; success copy for step 2 |
 | F8 | 1280×800 | Continue; step 3; press no keys | Three notes pass without stopping; three "Miss" readouts; "Almost — hit at least 2 of the 3 tiles. Try again." + "Try again" button |
@@ -1262,7 +1262,7 @@ This is synthetic, not a real touch device. Do not report it as iOS/Android vali
 | P4 | 1280×800 | After S1 completes or ends, check History tab | Exactly one new entry (the Starter run), none for the tutorial |
 | K1 | 1280×800 | During step 1 (falling), press Space and Enter | Main starter does **not** start; tutorial unaffected |
 | K2 | 1280×800 | During step 1, press Escape | Nothing happens (no pause menu, no exit) |
-| K3 | 1280×800 | On the Ready Check with focus on "Start tutorial", press Enter | Tutorial starts (the button activates); main game does not start |
+| K3 | 1280×800 | On the Ready Check with focus on "New here? Start tutorial", press Enter | Tutorial starts (the button activates); main game does not start |
 | V1 | 1280×800 | In step 3, at ~1.5 s, open and select a second tab (Playwright `browser_tabs`) for ~3 s, then return | Notes resume from their prior position; no burst of auto-misses. If automation does not fire `visibilitychange` (check `document.visibilityState` from the first tab afterwards), record V1 as **not verified** and test it by hand in a normal browser |
 | R1 | 1280×800 | Exit tutorial mid-step 2 | Returns to the main Ready Check; no marker saved (Task 4 checks the marker); no History change |
 | R2 | 1280×800 | Replay tutorial from completion panel | Step 1 restarts cleanly with the prompt "Tutorial 1 / 3" |
@@ -1271,7 +1271,7 @@ This is synthetic, not a real touch device. Do not report it as iOS/Android vali
 | M2 | 320×640 | Same as M1 | Same assertions; headline wraps rather than overflowing |
 | M3 | 375×740 | At freeze, run the touch-equivalent snippet on the tile's centre | Returned label is the target lane (`"Center lane"`); Perfect registers |
 | M4 | 375×740 | Completion panel | Buttons stack full-width; all visible without covering controls |
-| A1 | 1280×800 | Keyboard only: Tab to Start tutorial, Enter, complete all steps with keys, Enter on Continue each time | Completes without a pointer; Continue/Try again receive visible focus |
+| A1 | 1280×800 | Keyboard only: Tab to "New here? Start tutorial", Enter, complete all steps with keys, Enter on Continue each time | Completes without a pointer; Continue/Try again receive visible focus |
 | A2 | any | Emulate `prefers-reduced-motion: reduce` | Freeze and prompts behave the same; the judgment readout is static (existing rule) |
 
 Measurement snippet for M1/M2:
@@ -1355,7 +1355,7 @@ Replace the Task 3 no-op:
   }, []);
 ```
 
-In the `ReadyCheckPanel` usage, replace `tutorialActionLabel="Start tutorial"` with:
+In the `ReadyCheckPanel` usage, replace `tutorialActionLabel="New here? Start tutorial"` with:
 
 ```tsx
                 tutorialActionLabel={
