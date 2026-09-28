@@ -23,6 +23,7 @@ import ActiveSessionHeader from "./ActiveSessionHeader";
 import ChartControls from "./ChartControls";
 import PauseMenu from "./PauseMenu";
 import ReadyCheckPanel from "./ReadyCheckPanel";
+import RhythmLabTutorial from "./RhythmLabTutorial";
 import RhythmHighway from "./RhythmHighway";
 import RunAnalyticsPanel from "./RunAnalyticsPanel";
 import RunHistoryPanel from "./RunHistoryPanel";
@@ -196,6 +197,7 @@ const RhythmLab = () => {
   } = game;
   const [endReason, setEndReason] = useState<RunEndReason>("completed");
   const [setupTab, setSetupTab] = useState<SetupTab>("setup");
+  const [isTutorialActive, setIsTutorialActive] = useState(false);
 
   // Update the ref so useRecordedCharts callbacks use the real resetGame
   resetGameRef.current = resetGame;
@@ -327,6 +329,25 @@ const RhythmLab = () => {
     resetGame();
     focusGame();
   }, [focusGame, pausePlayback, resetGame]);
+
+  const startTutorial = useCallback(() => {
+    stopPreview();
+    pausePlayback();
+    setVisibleJudgment(null);
+    setIsTutorialActive(true);
+  }, [pausePlayback, stopPreview]);
+
+  const exitTutorial = useCallback(() => {
+    setIsTutorialActive(false);
+    focusGame();
+  }, [focusGame]);
+
+  const completeTutorial = useCallback(() => {}, []);
+
+  const playStarterAfterTutorial = useCallback(() => {
+    setIsTutorialActive(false);
+    void startGame();
+  }, [startGame]);
 
   const handleAudioFileChange = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
@@ -464,6 +485,9 @@ const RhythmLab = () => {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
+      // The tutorial runs its own engine and key handler.
+      if (isTutorialActive) return;
+
       // Let modal dialogs handle their own keyboard events.
       if (chartPendingDelete || pendingImportPayload) return;
 
@@ -511,7 +535,7 @@ const RhythmLab = () => {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [chartPendingDelete, handleLaneInput, isRecording, pauseRun, pendingImportPayload, phase, restartGame, resumeRun]);
+  }, [chartPendingDelete, handleLaneInput, isRecording, isTutorialActive, pauseRun, pendingImportPayload, phase, restartGame, resumeRun]);
 
   const confirmDeleteChart = useCallback(() => {
     if (!chartPendingDelete) return;
@@ -674,7 +698,7 @@ const RhythmLab = () => {
     <div
       ref={gameRef}
       className={`rhythm-lab ${isRecording ? "rhythm-lab-recording" : ""} ${
-        isActiveSession ? "rhythm-lab-active-session" : ""
+        isActiveSession || isTutorialActive ? "rhythm-lab-active-session" : ""
       } ${
         isHotStreak ? "rhythm-lab-hot-streak" : ""
       }`}
@@ -683,7 +707,27 @@ const RhythmLab = () => {
     >
       <header className="rhythm-lab-header">
         <div className="rhythm-lab-header-copy">
-          {isActiveSession ? (
+          {isTutorialActive ? (
+            <div
+              className="rhythm-lab-active-bar"
+              aria-label="Tutorial controls"
+            >
+              <Link className="rhythm-lab-back-link" to="/simulations">
+                Simulations
+              </Link>
+              {/* Spacer; the prompt band already shows the tutorial step. */}
+              <div className="rhythm-lab-active-context" />
+              <div className="rhythm-lab-active-actions">
+                <button
+                  className="rhythm-lab-compact-action"
+                  type="button"
+                  onClick={exitTutorial}
+                >
+                  Exit tutorial
+                </button>
+              </div>
+            </div>
+          ) : isActiveSession ? (
             <ActiveSessionHeader
               fileName={fileName}
               activeChartModeLabel={activeChartModeLabel}
@@ -835,59 +879,72 @@ const RhythmLab = () => {
             </>
           )}
         </div>
-        <div className="rhythm-lab-hud" aria-live="polite">
-          <span>Score {score}</span>
-          <span>Combo {combo}</span>
-          <span>Best {maxCombo}</span>
-        </div>
+        {!isTutorialActive && (
+          <div className="rhythm-lab-hud" aria-live="polite">
+            <span>Score {score}</span>
+            <span>Combo {combo}</span>
+            <span>Best {maxCombo}</span>
+          </div>
+        )}
       </header>
       <audio ref={audioRef} preload="metadata" />
 
       <main className="rhythm-lab-stage">
-        <RhythmHighway
-          visibleNotes={visibleNotes}
-          inputFeedbackExpiries={inputFeedbackExpiries}
-          hitFeedbackExpiries={hitFeedbackExpiries}
-          visibleJudgment={visibleJudgment}
-          phase={phase}
-          isRecording={isRecording}
-          recordingCount={recordingCount}
-          onLanePointerDown={handleLanePointerDown}
-        >
-          {phase === "ready" && !isRecording && (
-            <ReadyCheckPanel
-              chartTitle={chart.title}
-              chartModeLabel={chartModeLabel}
-              onStart={() => {
-                void startGame();
-              }}
-            />
-          )}
+        {isTutorialActive ? (
+          <RhythmLabTutorial
+            canPlayStarter={activeChartMode === "starter" && !hasSelectedFile}
+            onComplete={completeTutorial}
+            onPlayStarter={playStarterAfterTutorial}
+            onExit={exitTutorial}
+          />
+        ) : (
+          <RhythmHighway
+            visibleNotes={visibleNotes}
+            inputFeedbackExpiries={inputFeedbackExpiries}
+            hitFeedbackExpiries={hitFeedbackExpiries}
+            visibleJudgment={visibleJudgment}
+            phase={phase}
+            isRecording={isRecording}
+            recordingCount={recordingCount}
+            onLanePointerDown={handleLanePointerDown}
+          >
+            {phase === "ready" && !isRecording && (
+              <ReadyCheckPanel
+                chartTitle={chart.title}
+                chartModeLabel={chartModeLabel}
+                onStart={() => {
+                  void startGame();
+                }}
+                tutorialActionLabel="New here? Start tutorial"
+                onStartTutorial={startTutorial}
+              />
+            )}
 
-          {phase === "paused" && !isRecording && (
-            <PauseMenu
-              onResume={() => {
-                void resumeRun();
-              }}
-              onRestart={() => {
-                void restartGame();
-              }}
-              onEndSong={endRunEarly}
-            />
-          )}
+            {phase === "paused" && !isRecording && (
+              <PauseMenu
+                onResume={() => {
+                  void resumeRun();
+                }}
+                onRestart={() => {
+                  void restartGame();
+                }}
+                onEndSong={endRunEarly}
+              />
+            )}
 
-          {phase === "complete" && !isRecording && (
-            <RunSummaryPanel
-              runSummary={runSummary}
-              bestRun={bestRun}
-              runStorageError={runStorageError}
-              onRestart={() => {
-                void restartGame();
-              }}
-              onReturnToSetup={returnToSetup}
-            />
-          )}
-        </RhythmHighway>
+            {phase === "complete" && !isRecording && (
+              <RunSummaryPanel
+                runSummary={runSummary}
+                bestRun={bestRun}
+                runStorageError={runStorageError}
+                onRestart={() => {
+                  void restartGame();
+                }}
+                onReturnToSetup={returnToSetup}
+              />
+            )}
+          </RhythmHighway>
+        )}
       </main>
 
       {chartPendingDelete && (
