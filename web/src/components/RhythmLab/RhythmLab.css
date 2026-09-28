@@ -1354,6 +1354,55 @@
   font-size: clamp(1.6rem, 4vw, 2.4rem);
 }
 
+/* ── Tutorial prompt ── */
+
+.rhythm-lab-tutorial-prompt {
+  position: absolute;
+  top: 2.4rem;
+  left: 0.75rem;
+  right: 0.75rem;
+  /* Below notes (4) so falling tiles stay visible; tap zones (6) start at the hit line. */
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  text-align: center;
+  pointer-events: none;
+}
+
+.rhythm-lab-tutorial-step {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.rhythm-lab-tutorial-headline {
+  margin: 0;
+  color: var(--terminal-primary, #4caf50);
+  font-size: clamp(1.1rem, 3.6vw, 1.6rem);
+  font-weight: 700;
+  line-height: 1.25;
+  text-shadow: 0 0 12px rgba(0, 0, 0, 0.9);
+  overflow-wrap: anywhere;
+}
+
+.rhythm-lab-tutorial-detail {
+  margin: 0.25rem 0 0;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.85rem;
+  text-shadow: 0 0 10px rgba(0, 0, 0, 0.9);
+  overflow-wrap: anywhere;
+}
+
+.rhythm-lab-tutorial-action {
+  margin-top: 0.35rem;
+  pointer-events: auto;
+}
+
 .rhythm-lab-primary-action {
   display: inline-flex;
   align-items: center;
