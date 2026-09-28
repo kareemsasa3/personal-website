@@ -217,7 +217,8 @@ TutorialStepRunner (per mount):
 ## 6. Persistence strategy for tutorial completion
 
 - **Key:** localStorage `rhythmLab.tutorial.v1`.
-- **Value:** `{"schemaVersion":1,"completedAtMs":<epoch ms>}`.
+- **Value:** the string `"1"`. A missing key, or any value other than exactly `"1"`, means incomplete.
+- **Rationale:** the version is carried by the key name (`rhythmLab.tutorial.v1`), so the value is deliberately just `"1"`. This MVP needs no timestamp and no migration object; a materially different tutorial would use a new key (for example `.v2`).
 - **Accessors:** `loadTutorialCompleted(): boolean` and `saveTutorialCompleted(): void` in `helpers.ts`. Both wrap storage access in try/catch like the run-history accessors. When storage is unavailable, the tutorial still runs and the Ready Check simply keeps the first-run label.
 - **Effect:** the marker changes only the Ready Check tutorial button label and emphasis. It never hides the tutorial.
 
@@ -1127,11 +1128,8 @@ Header copy (line 686): put a tutorial branch in front of the existing ternary:
               <Link className="rhythm-lab-back-link" to="/simulations">
                 Simulations
               </Link>
-              <div className="rhythm-lab-active-context">
-                <span className="rhythm-lab-active-chip rhythm-lab-active-chart">
-                  Tutorial
-                </span>
-              </div>
+              {/* Spacer; the prompt band already shows the tutorial step. */}
+              <div className="rhythm-lab-active-context" />
               <div className="rhythm-lab-active-actions">
                 <button
                   className="rhythm-lab-compact-action"
@@ -1146,6 +1144,8 @@ Header copy (line 686): put a tutorial branch in front of the existing ternary:
 ```
 
 Leave the rest of the existing ternary unchanged.
+
+There is no separate header "Tutorial" chip. An earlier draft had one, but at 320 px it was clipped (to "TUTORI") by the existing `overflow: hidden` on `.rhythm-lab-active-context`, so it was intentionally omitted. The prompt band's "Tutorial n / 3" text already communicates the step context. The empty `.rhythm-lab-active-context` element keeps the bar's existing layout, with Simulations at the start and Exit tutorial at the end.
 
 HUD (line 838): hide it while the tutorial is active, because the main score would read 0 beside a real tutorial Perfect:
 
@@ -1246,7 +1246,7 @@ This is synthetic, not a real touch device. Do not report it as iOS/Android vali
 | Row | Viewport | Action | Expected |
 | --- | --- | --- | --- |
 | F1 | 1280×800 | Load `/simulations/rhythm-lab` | Ready Check shows Start and "Start tutorial"; no console errors |
-| F2 | 1280×800 | Click "Start tutorial" | Header shows "Simulations · Tutorial · Exit tutorial"; HUD hidden; prompt "Tutorial 1 / 3", "Tap the tile"; Center tile falls |
+| F2 | 1280×800 | Click "Start tutorial" | Header shows "Simulations · Exit tutorial" (no Tutorial chip); HUD hidden; prompt "Tutorial 1 / 3", "Tap the tile"; Center tile falls |
 | F3 | 1280×800 | Wait ≥ 3 s, do nothing | Tile rests on the hit line; prompt "Tap the tile" + "Center lane · S / K / Down"; no Miss readout; still frozen after 10 s |
 | F4 | 1280×800 | Press `a` while frozen | Hint "Tap the tile on the line."; no Miss; tile still frozen |
 | F5 | 1280×800 | Restart step via Exit then Start tutorial; press `s` at ~1 s (before freeze) | Hint "Wait until the tile reaches the line."; no Miss; tile keeps falling and freezes |
@@ -1306,22 +1306,18 @@ git commit -m "feat(rhythm-lab): launch the tutorial from the ready check"
 
 ```ts
 // ---------------------------------------------------------------------------
-// Tutorial progress — localStorage persistence
+// Tutorial completion — localStorage persistence
 // ---------------------------------------------------------------------------
 
-const TUTORIAL_PROGRESS_STORAGE_KEY = "rhythmLab.tutorial.v1";
+// The key's version suffix identifies the tutorial; "1" means completed.
+const TUTORIAL_COMPLETED_STORAGE_KEY = "rhythmLab.tutorial.v1";
+const TUTORIAL_COMPLETED_VALUE = "1";
 
 export const loadTutorialCompleted = (): boolean => {
   try {
-    const raw = localStorage.getItem(TUTORIAL_PROGRESS_STORAGE_KEY);
-    if (!raw) return false;
-
-    const parsed: unknown = JSON.parse(raw);
     return (
-      Boolean(parsed) &&
-      typeof parsed === "object" &&
-      (parsed as Record<string, unknown>).schemaVersion === 1 &&
-      typeof (parsed as Record<string, unknown>).completedAtMs === "number"
+      localStorage.getItem(TUTORIAL_COMPLETED_STORAGE_KEY) ===
+      TUTORIAL_COMPLETED_VALUE
     );
   } catch {
     return false;
@@ -1331,8 +1327,8 @@ export const loadTutorialCompleted = (): boolean => {
 export const saveTutorialCompleted = (): void => {
   try {
     localStorage.setItem(
-      TUTORIAL_PROGRESS_STORAGE_KEY,
-      JSON.stringify({ schemaVersion: 1, completedAtMs: Date.now() })
+      TUTORIAL_COMPLETED_STORAGE_KEY,
+      TUTORIAL_COMPLETED_VALUE
     );
   } catch {
     // Silently fail — the tutorial stays replayable without the marker.
@@ -1376,9 +1372,9 @@ Expected: all exit 0.
 | --- | --- | --- |
 | T1 | Fresh profile, load page | Button reads "New here? Start tutorial"; `localStorage.getItem("rhythmLab.tutorial.v1")` is `null` |
 | T2 | Exit the tutorial during step 2 | Key still `null`; label unchanged |
-| T3 | Complete the tutorial | Key is `{"schemaVersion":1,"completedAtMs":<number>}` |
+| T3 | Complete the tutorial | Key is exactly `"1"` |
 | T4 | Reload the page | Button reads "Replay tutorial"; clicking it runs step 1 |
-| T5 | Complete again via Replay | `completedAtMs` updates; nothing else in localStorage changes (compare key list before and after) |
+| T5 | Complete again via Replay | Key is still exactly `"1"`; nothing else in localStorage changes (compare key list before and after) |
 | T6 | Set the key to `"garbage"`, reload | Label falls back to "New here? Start tutorial"; no console error |
 | P5 | Repeat P1–P3 from Task 3 around a full completion | History, `runs` count, and prefs unchanged |
 | S2 | Start the Starter Phrase from the Ready Check (not the handoff) | Plays normally; Enter/Space still starts it from the Ready Check when focus is not on a button |
