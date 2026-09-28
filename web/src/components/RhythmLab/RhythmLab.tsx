@@ -47,7 +47,9 @@ import {
   formatScore,
   JUDGMENT_READOUT_MS,
   keyToLane,
+  loadTutorialCompleted,
   type RunHistoryChartSnapshot,
+  saveTutorialCompleted,
 } from "./helpers";
 import { useChartRuns } from "./useChartRuns";
 import { useLaneFeedback } from "./useLaneFeedback";
@@ -198,6 +200,9 @@ const RhythmLab = () => {
   const [endReason, setEndReason] = useState<RunEndReason>("completed");
   const [setupTab, setSetupTab] = useState<SetupTab>("setup");
   const [isTutorialActive, setIsTutorialActive] = useState(false);
+  const [isTutorialCompleted, setIsTutorialCompleted] = useState(
+    loadTutorialCompleted
+  );
 
   // Update the ref so useRecordedCharts callbacks use the real resetGame
   resetGameRef.current = resetGame;
@@ -342,7 +347,10 @@ const RhythmLab = () => {
     focusGame();
   }, [focusGame]);
 
-  const completeTutorial = useCallback(() => {}, []);
+  const completeTutorial = useCallback(() => {
+    saveTutorialCompleted();
+    setIsTutorialCompleted(true);
+  }, []);
 
   const playStarterAfterTutorial = useCallback(() => {
     setIsTutorialActive(false);
@@ -915,7 +923,11 @@ const RhythmLab = () => {
                 onStart={() => {
                   void startGame();
                 }}
-                tutorialActionLabel="New here? Start tutorial"
+                tutorialActionLabel={
+                  isTutorialCompleted
+                    ? "Replay tutorial"
+                    : "New here? Start tutorial"
+                }
                 onStartTutorial={startTutorial}
               />
             )}

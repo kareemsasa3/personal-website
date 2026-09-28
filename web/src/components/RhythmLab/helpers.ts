@@ -365,6 +365,36 @@ export const clearRunHistory = (): void => {
   }
 };
 
+// ---------------------------------------------------------------------------
+// Tutorial completion — localStorage persistence
+// ---------------------------------------------------------------------------
+
+// The key's version suffix identifies the tutorial; "1" means completed.
+const TUTORIAL_COMPLETED_STORAGE_KEY = "rhythmLab.tutorial.v1";
+const TUTORIAL_COMPLETED_VALUE = "1";
+
+export const loadTutorialCompleted = (): boolean => {
+  try {
+    return (
+      localStorage.getItem(TUTORIAL_COMPLETED_STORAGE_KEY) ===
+      TUTORIAL_COMPLETED_VALUE
+    );
+  } catch {
+    return false;
+  }
+};
+
+export const saveTutorialCompleted = (): void => {
+  try {
+    localStorage.setItem(
+      TUTORIAL_COMPLETED_STORAGE_KEY,
+      TUTORIAL_COMPLETED_VALUE
+    );
+  } catch {
+    // Silently fail — the tutorial stays replayable without the marker.
+  }
+};
+
 export const createRunHistoryEntry = (params: {
   runId: string;
   summary: RhythmRunSummary;
