@@ -23,6 +23,10 @@ import { useRhythmLab } from "./useRhythmLab";
 import { useTutorialClock } from "./useTutorialClock";
 
 const TUTORIAL_HINT_MS = 1400;
+const TUTORIAL_COMPLETE_ANNOUNCEMENT = "You’re ready.";
+
+const joinAnnouncement = (headline: string, detail: string | null) =>
+  detail ? `${headline}${/[.!?]$/.test(headline) ? "" : "."} ${detail}` : headline;
 
 type TutorialProgress =
   | { kind: "step"; index: number; attempt: number }
@@ -34,6 +38,7 @@ interface TutorialStepRunnerProps {
   stepCount: number;
   onPassed: () => void;
   onRetry: () => void;
+  onAnnounce: (message: string) => void;
 }
 
 // Mounted fresh for every step attempt, so mount is the step start.
@@ -43,6 +48,7 @@ const TutorialStepRunner = ({
   stepCount,
   onPassed,
   onRetry,
+  onAnnounce,
 }: TutorialStepRunnerProps) => {
   const { getElapsedMs, start: startClock } = useTutorialClock(
     getFreezeAtMs(step)
@@ -67,6 +73,10 @@ const TutorialStepRunner = ({
     useState<NoteJudgment | null>(null);
   const hintTimeoutRef = useRef<number | null>(null);
   const actionRef = useRef<HTMLButtonElement>(null);
+  const stepLabelRef = useRef<HTMLParagraphElement>(null);
+  // An assisted step ends on its first hit; later taps in the same frame
+  // would otherwise reach the engine as empty-input misses.
+  const hasAssistedHitRef = useRef(false);
 
   const outcome =
     phase === "complete" ? evaluateTutorialStep(step, judgments) : null;
@@ -75,6 +85,10 @@ const TutorialStepRunner = ({
     startClock();
     startGame();
   }, [startClock, startGame]);
+
+  useEffect(() => {
+    stepLabelRef.current?.focus({ preventScroll: true });
+  }, []);
 
   useEffect(() => {
     setVisibleJudgment(lastJudgment);
@@ -105,14 +119,17 @@ const TutorialStepRunner = ({
       window.clearTimeout(hintTimeoutRef.current);
     }
     setHint(nextHint);
+    onAnnounce(tutorialHintCopy[nextHint]);
     hintTimeoutRef.current = window.setTimeout(() => {
       setHint(null);
       hintTimeoutRef.current = null;
     }, TUTORIAL_HINT_MS);
-  }, []);
+  }, [onAnnounce]);
 
   const handleLaneInput = useCallback(
     (lane: LaneIndex) => {
+      if (hasAssistedHitRef.current) return;
+
       showInputFeedback(lane);
 
       const decision = decideTutorialInput(step, lane, getElapsedMs());
@@ -123,6 +140,7 @@ const TutorialStepRunner = ({
 
       const judgment = hitLane(lane);
       if (judgment?.kind === "note-hit") {
+        if (step.assisted) hasAssistedHitRef.current = true;
         showHitFeedback(judgment.lane);
       }
     },
@@ -153,11 +171,17 @@ const TutorialStepRunner = ({
   };
 
   const targetLane = lanes[step.targetLane];
-  const detail = hint
-    ? tutorialHintCopy[hint]
-    : outcome === null && step.assisted
+  const laneDetail =
+    outcome === null && step.assisted
       ? `${targetLane.label} lane · ${targetLane.keys}`
       : null;
+  const detail = hint ? tutorialHintCopy[hint] : laneDetail;
+  const headline = getTutorialHeadline(step, { elapsedMs, outcome });
+  const stepAnnouncement = joinAnnouncement(headline, laneDetail);
+
+  useEffect(() => {
+    onAnnounce(stepAnnouncement);
+  }, [onAnnounce, stepAnnouncement]);
 
   return (
     <RhythmHighway
@@ -171,13 +195,15 @@ const TutorialStepRunner = ({
       onLanePointerDown={handleLanePointerDown}
     >
       <div className="rhythm-lab-tutorial-prompt">
-        <p className="rhythm-lab-tutorial-step">
+        <p
+          ref={stepLabelRef}
+          className="rhythm-lab-tutorial-step"
+          tabIndex={-1}
+        >
           Tutorial {stepNumber} / {stepCount}
         </p>
-        <div role="status" aria-live="polite">
-          <p className="rhythm-lab-tutorial-headline">
-            {getTutorialHeadline(step, { elapsedMs, outcome })}
-          </p>
+        <div>
+          <p className="rhythm-lab-tutorial-headline">{headline}</p>
           {detail && <p className="rhythm-lab-tutorial-detail">{detail}</p>}
         </div>
         {outcome && (
@@ -214,6 +240,8 @@ const RhythmLabTutorial = ({
     attempt: 0,
   });
   const completeActionRef = useRef<HTMLButtonElement>(null);
+  // One live region for the whole tutorial, so it survives step remounts.
+  const [announcement, setAnnouncement] = useState("");
   // Read through a ref so completion fires once per transition, even if the
   // parent passes a new callback on every render.
   const onCompleteRef = useRef(onComplete);
@@ -246,70 +274,89 @@ const RhythmLabTutorial = ({
     if (progress.kind !== "complete") return;
 
     onCompleteRef.current();
+    setAnnouncement(TUTORIAL_COMPLETE_ANNOUNCEMENT);
     completeActionRef.current?.focus();
   }, [progress.kind]);
+
+  const announcer = (
+    <p
+      className="rhythm-lab-tutorial-announcer"
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+    >
+      {announcement}
+    </p>
+  );
 
   if (progress.kind === "step") {
     const step = tutorialSteps[progress.index];
 
     return (
-      <TutorialStepRunner
-        key={`${step.id}-${progress.attempt}`}
-        step={step}
-        stepNumber={progress.index + 1}
-        stepCount={tutorialSteps.length}
-        onPassed={advance}
-        onRetry={retry}
-      />
+      <>
+        {announcer}
+        <TutorialStepRunner
+          key={`${step.id}-${progress.attempt}`}
+          step={step}
+          stepNumber={progress.index + 1}
+          stepCount={tutorialSteps.length}
+          onPassed={advance}
+          onRetry={retry}
+          onAnnounce={setAnnouncement}
+        />
+      </>
     );
   }
 
   return (
-    <RhythmHighway
-      visibleNotes={[]}
-      inputFeedbackExpiries={{}}
-      hitFeedbackExpiries={{}}
-      visibleJudgment={null}
-      phase="complete"
-      isRecording={false}
-      recordingCount={0}
-      onLanePointerDown={(event) => event.preventDefault()}
-    >
-      <div className="rhythm-lab-overlay">
-        <div className="rhythm-lab-overlay-panel">
-          <p>Tutorial complete</p>
-          <h2>You&rsquo;re ready.</h2>
-          <div className="rhythm-lab-summary-actions">
-            {canPlayStarter && (
+    <>
+      {announcer}
+      <RhythmHighway
+        visibleNotes={[]}
+        inputFeedbackExpiries={{}}
+        hitFeedbackExpiries={{}}
+        visibleJudgment={null}
+        phase="complete"
+        isRecording={false}
+        recordingCount={0}
+        onLanePointerDown={(event) => event.preventDefault()}
+      >
+        <div className="rhythm-lab-overlay">
+          <div className="rhythm-lab-overlay-panel">
+            <p>Tutorial complete</p>
+            <h2>You&rsquo;re ready.</h2>
+            <div className="rhythm-lab-summary-actions">
+              {canPlayStarter && (
+                <button
+                  ref={completeActionRef}
+                  className="rhythm-lab-primary-action"
+                  type="button"
+                  onClick={onPlayStarter}
+                >
+                  Play Practice Chart
+                </button>
+              )}
               <button
-                ref={completeActionRef}
-                className="rhythm-lab-primary-action"
+                ref={canPlayStarter ? undefined : completeActionRef}
+                className="rhythm-lab-secondary-action"
                 type="button"
-                onClick={onPlayStarter}
+                onClick={replay}
               >
-                Play Practice Chart
+                Replay tutorial
               </button>
-            )}
-            <button
-              ref={canPlayStarter ? undefined : completeActionRef}
-              className="rhythm-lab-secondary-action"
-              type="button"
-              onClick={replay}
-            >
-              Replay tutorial
-            </button>
-            <button
-              className="rhythm-lab-secondary-action"
-              type="button"
-              onClick={onExit}
-            >
-              Back to Rhythm Lab
-            </button>
+              <button
+                className="rhythm-lab-secondary-action"
+                type="button"
+                onClick={onExit}
+              >
+                Back to Rhythm Lab
+              </button>
+            </div>
+            <span>A/S/D | J/K/L | Arrow keys | tap zones</span>
           </div>
-          <span>A/S/D | J/K/L | Arrow keys | tap zones</span>
         </div>
-      </div>
-    </RhythmHighway>
+      </RhythmHighway>
+    </>
   );
 };
 

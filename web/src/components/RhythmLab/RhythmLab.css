@@ -1380,6 +1380,29 @@
   text-transform: uppercase;
 }
 
+.rhythm-lab-tutorial-step:focus {
+  outline: none;
+}
+
+.rhythm-lab-tutorial-step:focus-visible {
+  border-radius: 0.2rem;
+  outline: 1px solid rgba(76, 175, 80, 0.7);
+  outline-offset: 0.2rem;
+}
+
+.rhythm-lab-tutorial-announcer {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
 .rhythm-lab-tutorial-headline {
   margin: 0;
   color: var(--terminal-primary, #4caf50);
