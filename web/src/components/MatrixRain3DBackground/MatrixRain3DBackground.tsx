@@ -1,10 +1,10 @@
+// @refresh reset
+// Recreate procedural stream state when the renderer changes during development.
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Theme } from "../../contexts/ThemeContext";
 import "./MatrixRain3DBackground.css";
 
 const MATRIX_GLYPHS = "0123456789ABCDEF";
-const FAR_PLANE = 1200;
-const NEAR_PLANE = 140;
 const DARK_BACKGROUND_FILL = "#050506";
 const DARK_TRAIL_FADE_ALPHA = 0.28;
 const LIGHT_TRAIL_FADE_ALPHA = 0.18;
@@ -25,11 +25,12 @@ interface MatrixRain3DBackgroundProps {
 interface Stream {
   x: number;
   y: number;
-  z: number;
+  depth: number;
   speed: number;
   length: number;
   opacity: number;
   glyphs: string[];
+  glyphChangeMs: number[];
 }
 
 interface ViewportConfig {
@@ -37,10 +38,8 @@ interface ViewportConfig {
   height: number;
   dpr: number;
   isCompactViewport: boolean;
-  focalLength: number;
   streamCount: number;
   maxLength: number;
-  glyphStep: number;
   minFontSize: number;
   maxFontSize: number;
   headGlowBlurBase: number;
@@ -70,12 +69,10 @@ const createViewportConfig = (
     height,
     dpr,
     isCompactViewport,
-    focalLength: Math.max(260, width * (isCompactViewport ? 0.42 : 0.5)),
-    streamCount: Math.max(24, Math.floor(width / (isCompactViewport ? 34 : 28))),
-    maxLength: isCompactViewport ? 16 : 20,
-    glyphStep: isCompactViewport ? 16 : 18,
+    streamCount: Math.max(isCompactViewport ? 8 : 24, Math.floor(width / (isCompactViewport ? 40 : 30))),
+    maxLength: isCompactViewport ? 13 : 20,
     minFontSize: isCompactViewport ? 9 : 8,
-    maxFontSize: isCompactViewport ? 24 : 22,
+    maxFontSize: isCompactViewport ? 18 : 22,
     headGlowBlurBase: isCompactViewport ? 4.5 : 6,
     headGlowBlurRange: isCompactViewport ? 7 : 10,
   };
@@ -106,20 +103,30 @@ const getResizeMode = (
   return "full";
 };
 
-const createStream = (config: ViewportConfig, initial = false): Stream => {
-  const length = Math.floor(Math.random() * (config.maxLength - 8)) + 8;
+const glyphChangeInterval = () => 900 + Math.random() * 3100;
+
+const streamFontSize = (stream: Stream, config: ViewportConfig) =>
+  config.minFontSize + stream.depth * (config.maxFontSize - config.minFontSize);
+
+const createStream = (config: ViewportConfig, column: number, initial = false): Stream => {
+  const minLength = config.isCompactViewport ? 6 : 8;
+  const length = Math.floor(Math.random() * (config.maxLength - minLength + 1)) + minLength;
   const glyphs = Array.from({ length }, randomGlyph);
+  // Bias toward distant streams, with a few larger, brighter foreground ones.
+  const depth = Math.pow(Math.random(), 1.8);
 
   return {
-    x: (Math.random() - 0.5) * config.width * 1.2,
+    // Distribute in screen space so distant streams also reach the outer edges.
+    x: ((column + 0.2 + Math.random() * 0.6) / config.streamCount) * config.width,
     y: initial
-      ? (Math.random() - 0.5) * config.height * 1.4
-      : -config.height * (0.65 + Math.random() * 0.55),
-    z: NEAR_PLANE + Math.random() * (FAR_PLANE - NEAR_PLANE),
+      ? Math.random() * config.height
+      : -40 - Math.random() * config.height * 0.3,
+    depth,
     speed: 0.45 + Math.random() * 0.95,
     length,
-    opacity: 0.35 + Math.random() * 0.4,
+    opacity: 0.25 + depth * 0.4 + Math.random() * 0.1,
     glyphs,
+    glyphChangeMs: glyphs.map(() => glyphChangeInterval()),
   };
 };
 
@@ -137,8 +144,9 @@ const resizeStreamToViewport = (
 
   return {
     ...stream,
-    x: stream.x * widthRatio,
+    x: stream.x * widthRatio * previousViewport.streamCount / nextViewport.streamCount,
     y: stream.y * heightRatio,
+    length: Math.min(stream.length, nextViewport.maxLength),
   };
 };
 
@@ -169,9 +177,15 @@ const MatrixRain3DBackground = ({
   const viewportRef = useRef<ViewportConfig | null>(null);
   const resizeFrameRef = useRef<number | null>(null);
   const streamsRef = useRef<Stream[]>([]);
+  const motionSpeedRef = useRef(motionSpeed);
   const lastTimeRef = useRef<number | null>(null);
   const drawFrameRef = useRef<() => void>(() => {});
   const [isVisible, setIsVisible] = useState(true);
+
+  useEffect(() => {
+    // Speed changes should preserve the active loop and its accumulated trails.
+    motionSpeedRef.current = motionSpeed;
+  }, [motionSpeed]);
 
   const syncCanvasStyleToViewport = useCallback(
     (canvas: HTMLCanvasElement, viewport: ViewportConfig) => {
@@ -187,17 +201,18 @@ const MatrixRain3DBackground = ({
       const context = canvas?.getContext("2d");
       const viewport = viewportRef.current;
       if (!canvas || !context || !viewport) return;
+      const currentMotionSpeed = motionSpeedRef.current;
 
       const backgroundFill = theme === "dark" ? DARK_BACKGROUND_FILL : "#f5f5f5";
       const glyphRgb = theme === "dark" ? [102, 255, 136] : [44, 44, 44];
       const leadRgb = theme === "dark" ? "232, 255, 238" : "255, 255, 255";
-      const trailAlpha = animate
-        ? theme === "dark"
-          ? DARK_TRAIL_FADE_ALPHA
-          : LIGHT_TRAIL_FADE_ALPHA
-        : 1;
-      const centerX = viewport.width / 2;
-      const centerY = viewport.height / 2;
+      const baseTrailAlpha = theme === "dark" ? DARK_TRAIL_FADE_ALPHA : LIGHT_TRAIL_FADE_ALPHA;
+      // Normalize both erasing and depositing ink to elapsed time, including on
+      // high-refresh displays, so the trails don't become brighter or shorter.
+      const frameAlpha = (alpha: number) => animate
+        ? 1 - Math.pow(1 - alpha, deltaMultiplier)
+        : alpha;
+      const trailAlpha = animate ? frameAlpha(baseTrailAlpha) : 1;
 
       context.setTransform(viewport.dpr, 0, 0, viewport.dpr, 0, 0);
       context.fillStyle =
@@ -214,35 +229,42 @@ const MatrixRain3DBackground = ({
       context.textAlign = "center";
       context.textBaseline = "middle";
 
-      for (const stream of streamsRef.current) {
+      for (const [column, stream] of streamsRef.current.entries()) {
         if (animate) {
-          stream.y += stream.speed * motionSpeed * deltaMultiplier * 2.2;
+          stream.y += stream.speed * currentMotionSpeed * deltaMultiplier * 2.2 * (0.35 + stream.depth * 0.65);
 
-          if (stream.y > viewport.height * 1.1) {
-            Object.assign(stream, createStream(viewport, false));
+          const tailY = stream.y - (stream.length - 1) * streamFontSize(stream, viewport) * 1.3;
+          if (tailY > viewport.height + 40) {
+            Object.assign(stream, createStream(viewport, column));
+          }
+
+          for (let index = 0; index < stream.length; index += 1) {
+            stream.glyphChangeMs[index] -= deltaMultiplier * 16.67 * currentMotionSpeed;
+            if (stream.glyphChangeMs[index] <= 0) {
+              stream.glyphs[index] = randomGlyph();
+              stream.glyphChangeMs[index] = glyphChangeInterval();
+            }
           }
         }
 
-        const depth = FAR_PLANE - stream.z;
-        const perspective = viewport.focalLength / (depth + viewport.focalLength);
-        const screenX = centerX + stream.x * perspective;
-        const headY = centerY + stream.y * perspective;
-        const fontSize = Math.max(
-          viewport.minFontSize,
-          Math.min(viewport.maxFontSize, 12 + perspective * 10)
-        );
-        const proximityBoost = Math.min(1, Math.max(0, (perspective - 0.16) / 0.72));
+        const screenX = stream.x;
+        const headY = stream.y;
+        const fontSize = streamFontSize(stream, viewport);
+        const glyphStep = fontSize * 1.3;
+        const proximityBoost = stream.depth;
+        const centerDistance = (screenX / viewport.width - 0.5) / 0.23;
+        const contentDimming = 1 - 0.3 * Math.exp(-centerDistance * centerDistance);
 
         context.font = `${fontSize}px 'Courier New', monospace`;
 
         for (let index = 0; index < stream.length; index += 1) {
-          const glyphY = headY - index * viewport.glyphStep * perspective;
+          const glyphY = headY - index * glyphStep;
           if (glyphY < -30 || glyphY > viewport.height + 30) continue;
 
-          const fade = Math.max(0, 1 - index / stream.length);
-          const alpha = fade * stream.opacity * Math.max(0.28, perspective);
+          const fade = Math.pow(1 - index / stream.length, 1.6);
+          const alpha = fade * stream.opacity * contentDimming;
           if (index === 0) {
-            const headAlpha = Math.min(0.98, alpha + 0.24 + proximityBoost * 0.08);
+            const headAlpha = Math.min(0.95, (stream.opacity + 0.12 + proximityBoost * 0.15) * contentDimming);
             context.shadowBlur =
               viewport.headGlowBlurBase +
               proximityBoost * viewport.headGlowBlurRange;
@@ -250,7 +272,7 @@ const MatrixRain3DBackground = ({
               theme === "dark"
                 ? `rgba(142, 255, 172, ${Math.min(DARK_HEAD_GLOW_ALPHA_CAP, headAlpha * 0.32)})`
                 : `rgba(255, 255, 255, ${Math.min(0.3, headAlpha * 0.35)})`;
-            context.fillStyle = `rgba(${leadRgb}, ${headAlpha})`;
+            context.fillStyle = `rgba(${leadRgb}, ${frameAlpha(headAlpha)})`;
           } else {
             const depthTint = 0.7 + proximityBoost * 0.3;
             const greenAlpha = alpha * (0.78 + fade * 0.18);
@@ -259,7 +281,7 @@ const MatrixRain3DBackground = ({
             context.shadowColor = "transparent";
             context.fillStyle = `rgba(${Math.round(red * depthTint)}, ${Math.round(
               green * depthTint
-            )}, ${Math.round(blue * (0.76 + proximityBoost * 0.24))}, ${greenAlpha})`;
+            )}, ${Math.round(blue * (0.76 + proximityBoost * 0.24))}, ${frameAlpha(greenAlpha)})`;
           }
           context.fillText(stream.glyphs[index], screenX, glyphY);
         }
@@ -268,7 +290,7 @@ const MatrixRain3DBackground = ({
         context.shadowColor = "transparent";
       }
     },
-    [motionSpeed, theme]
+    [theme]
   );
 
   const drawStaticFrame = useCallback(() => {
@@ -331,8 +353,8 @@ const MatrixRain3DBackground = ({
 
     if (!previousViewport) {
       syncCanvasToViewport(canvas, viewport);
-      streamsRef.current = Array.from({ length: viewport.streamCount }, () =>
-        createStream(viewport, true)
+      streamsRef.current = Array.from({ length: viewport.streamCount }, (_, column) =>
+        createStream(viewport, column, true)
       );
     } else if (resizeMode === "light") {
       syncCanvasStyleToViewport(canvas, viewport);
@@ -348,7 +370,9 @@ const MatrixRain3DBackground = ({
 
       if (streamDelta > 0) {
         resizedStreams.push(
-          ...Array.from({ length: streamDelta }, () => createStream(viewport, true))
+          ...Array.from({ length: streamDelta }, (_, column) =>
+            createStream(viewport, resizedStreams.length + column, true)
+          )
         );
       } else if (streamDelta < 0) {
         resizedStreams.length = viewport.streamCount;
