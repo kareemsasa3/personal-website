@@ -10,8 +10,6 @@ const DARK_TRAIL_FADE_ALPHA = 0.28;
 const LIGHT_TRAIL_FADE_ALPHA = 0.18;
 const DARK_HEAD_GLOW_ALPHA_CAP = 0.28;
 const COMPACT_VIEWPORT_WIDTH = 768;
-const MOBILE_HEIGHT_IGNORE_THRESHOLD = 24;
-const MOBILE_HEIGHT_LIGHT_RESIZE_THRESHOLD = 160;
 
 type ResizeMode = "ignore" | "light" | "full";
 
@@ -91,16 +89,11 @@ const getResizeMode = (
     return "full";
   }
 
-  const heightDelta = Math.abs(previousViewport.height - nextHeight);
-  if (heightDelta <= MOBILE_HEIGHT_IGNORE_THRESHOLD) {
+  if (previousViewport.height === nextHeight) {
     return "ignore";
   }
 
-  if (heightDelta <= MOBILE_HEIGHT_LIGHT_RESIZE_THRESHOLD) {
-    return "light";
-  }
-
-  return "full";
+  return "light";
 };
 
 const glyphChangeInterval = () => 900 + Math.random() * 3100;
@@ -147,22 +140,6 @@ const resizeStreamToViewport = (
     x: stream.x * widthRatio * previousViewport.streamCount / nextViewport.streamCount,
     y: stream.y * heightRatio,
     length: Math.min(stream.length, nextViewport.maxLength),
-  };
-};
-
-const resizeStreamHeightOnly = (
-  stream: Stream,
-  previousViewport: ViewportConfig,
-  nextViewport: ViewportConfig
-): Stream => {
-  const heightRatio =
-    previousViewport.height > 0
-      ? nextViewport.height / previousViewport.height
-      : 1;
-
-  return {
-    ...stream,
-    y: stream.y * heightRatio,
   };
 };
 
@@ -339,15 +316,42 @@ const MatrixRain3DBackground = ({
 
     const { width, height } = readWindowViewport();
     const previousViewport = viewportRef.current;
-    const resizeMode = force ? "full" : getResizeMode(previousViewport, width, height);
+    const isCompactViewport = width <= COMPACT_VIEWPORT_WIDTH;
+    const dpr = clampDpr(isCompactViewport);
+    const resizeMode = force || previousViewport?.dpr !== dpr
+      ? "full"
+      : getResizeMode(previousViewport, width, height);
 
     if (resizeMode === "ignore") {
       return;
     }
 
-    const isCompactViewport = width <= COMPACT_VIEWPORT_WIDTH;
-    const dpr = clampDpr(isCompactViewport);
     const viewport = createViewportConfig(width, height, dpr);
+
+    if (resizeMode === "light") {
+      // Resizing a canvas clears its bitmap. Save it first, then restore at 1:1
+      // device pixels so existing glyphs and trails neither move nor stretch.
+      const context = canvas.getContext("2d");
+      const snapshot = document.createElement("canvas");
+      snapshot.width = canvas.width;
+      snapshot.height = canvas.height;
+      const snapshotContext = snapshot.getContext("2d");
+      if (!context || !snapshotContext) return;
+
+      snapshotContext.drawImage(canvas, 0, 0);
+      syncCanvasToViewport(canvas, viewport);
+      context.setTransform(1, 0, 0, 1, 0, 0);
+      context.drawImage(snapshot, 0, 0);
+      if (canvas.height > snapshot.height) {
+        context.fillStyle = theme === "dark" ? DARK_BACKGROUND_FILL : "#f5f5f5";
+        context.fillRect(0, snapshot.height, canvas.width, canvas.height - snapshot.height);
+      }
+      context.setTransform(viewport.dpr, 0, 0, viewport.dpr, 0, 0);
+      viewportRef.current = viewport;
+      // Stream coordinates and the active animation remain intact, including
+      // when paused. A static redraw here would discard the preserved trails.
+      return;
+    }
 
     viewportRef.current = viewport;
 
@@ -355,11 +359,6 @@ const MatrixRain3DBackground = ({
       syncCanvasToViewport(canvas, viewport);
       streamsRef.current = Array.from({ length: viewport.streamCount }, (_, column) =>
         createStream(viewport, column, true)
-      );
-    } else if (resizeMode === "light") {
-      syncCanvasStyleToViewport(canvas, viewport);
-      streamsRef.current = streamsRef.current.map((stream) =>
-        resizeStreamHeightOnly(stream, previousViewport, viewport)
       );
     } else {
       syncCanvasToViewport(canvas, viewport);
@@ -382,7 +381,7 @@ const MatrixRain3DBackground = ({
     }
 
     drawFrameRef.current();
-  }, [syncCanvasStyleToViewport, syncCanvasToViewport]);
+  }, [syncCanvasToViewport, theme]);
 
   useEffect(() => {
     const handleVisibilityChange = () => {
