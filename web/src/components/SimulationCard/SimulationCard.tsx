@@ -82,6 +82,16 @@ const SimulationCard: React.FC<SimulationCardProps> = ({
             <div className="annals-preview-line"></div>
           </div>
         );
+      case "orbital":
+        return (
+          <svg viewBox="0 0 240 140" width="240" height="140" aria-hidden="true" style={{ maxWidth: "100%", color: "var(--brand-primary)" }}>
+            <ellipse cx="120" cy="70" rx="90" ry="45" fill="none" stroke="currentColor" opacity="0.6" />
+            <ellipse cx="120" cy="70" rx="52" ry="26" fill="none" stroke="currentColor" opacity="0.4" />
+            <circle cx="120" cy="70" r="10" fill="currentColor" />
+            <circle cx="210" cy="70" r="6" fill="currentColor" />
+            <circle cx="120" cy="44" r="4" fill="currentColor" />
+          </svg>
+        );
       case "placeholder":
       default:
         return <div className="placeholder" aria-hidden="true">[ &#43; ]</div>;

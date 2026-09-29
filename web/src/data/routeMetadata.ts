@@ -82,6 +82,13 @@ const staticRouteMetadata: RouteMetadata[] = [
     sitemap: { changefreq: "monthly", priority: "0.4" },
   },
   {
+    path: "/simulations/orbital-simulator",
+    title: "Orbital Simulator - Kareem Sasa",
+    description: "Explore gravitational dynamics with interactive planetary orbits, binary stars, and three-body encounters. Change mass and velocity to see orbital behavior emerge.",
+    canonicalPath: "/simulations/orbital-simulator",
+    sitemap: { changefreq: "monthly", priority: "0.3" },
+  },
+  {
     path: "/simulations/snake",
     title: "Snake - Kareem Sasa",
     description:

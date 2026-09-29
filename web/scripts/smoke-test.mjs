@@ -1,9 +1,13 @@
+import { execFileSync } from "node:child_process";
 import { readdir, readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
 const projectRoot = resolve(import.meta.dirname, "..");
 const buildDir = resolve(projectRoot, "build");
 const siteUrl = "https://kareemsasa.dev";
+
+// Run the independent physics suite using the existing TypeScript compiler.
+execFileSync(process.execPath, ["--import", resolve(projectRoot, "scripts/orbital-test-loader.mjs"), resolve(projectRoot, "scripts/orbital.test.mjs")], { stdio: "inherit" });
 
 const readBuildFile = async (relativePath) =>
   readFile(resolve(buildDir, relativePath), "utf8");
@@ -111,6 +115,10 @@ const main = async () => {
   const erebusCaseStudy = await readBuildFile("case-studies/erebus/index.html");
   const experience = await readBuildFile("experience/index.html");
   const simulations = await readBuildFile("simulations/index.html");
+  const orbital = await readBuildFile("simulations/orbital-simulator/index.html");
+  assertIncludes(orbital, "Orbital Simulator", "orbital route shell");
+  assertIncludes(orbital, 'href="https://kareemsasa.dev/simulations/orbital-simulator"', "orbital canonical URL");
+  assertIncludes(simulations, 'href="/simulations/orbital-simulator"', "simulations launch link");
   const snake = await readBuildFile("simulations/snake/index.html");
   const spider = await readBuildFile("simulations/spider/index.html");
   const terminal = await readBuildFile("terminal/index.html");
@@ -217,6 +225,7 @@ const main = async () => {
     { html: erebusCaseStudy, path: "/case-studies/erebus" },
     { html: experience, path: "/experience" },
     { html: simulations, path: "/simulations" },
+    { html: orbital, path: "/simulations/orbital-simulator" },
     { html: snake, path: "/simulations/snake" },
     { html: spider, path: "/simulations/spider" },
     { html: terminal, path: "/terminal" },
@@ -422,6 +431,7 @@ const main = async () => {
     "https://kareemsasa.dev/case-studies/arachne",
     "https://kareemsasa.dev/case-studies/aether",
     "https://kareemsasa.dev/experience",
+    "https://kareemsasa.dev/simulations/orbital-simulator",
   ]) {
     assertIncludes(sitemap, `<loc>${route}</loc>`, "sitemap canonical routes");
   }
