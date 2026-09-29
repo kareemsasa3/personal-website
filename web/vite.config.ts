@@ -190,6 +190,7 @@ const primaryRouteShellPaths = [
   "/experience",
   "/journey",
   "/simulations",
+  "/simulations/orbital-simulator",
   "/simulations/snake",
   "/simulations/spider",
   "/simulations/rhythm-lab",
@@ -227,13 +228,23 @@ const primaryRouteShellDetails: Record<
     heading: "Simulations",
     highlights: [
       "Interactive systems exploring state, rules, feedback loops, and emergent behavior.",
-      "Includes Traffic Simulator, Rhythm Lab, Snake, and Spider Solitaire.",
+      "Includes Orbital Simulator, Traffic Simulator, Rhythm Lab, Snake, and Spider Solitaire.",
     ],
     links: [
+      { label: "Open Orbital Simulator", href: "/simulations/orbital-simulator" },
       { label: "Open Snake", href: "/simulations/snake" },
       { label: "Open Spider Solitaire", href: "/simulations/spider" },
       { label: "Open Rhythm Lab", href: "/simulations/rhythm-lab" },
     ],
+  },
+  "/simulations/orbital-simulator": {
+    eyebrow: "Interactive System",
+    heading: "Orbital Simulator",
+    highlights: [
+      "Explore planetary orbits, binary stars, and three-body encounters with pairwise gravity.",
+      "Change mass, position, and velocity in a live numerical simulation. JavaScript is required for the interactive field.",
+    ],
+    links: [{ label: "Back to simulations", href: "/simulations" }],
   },
   "/simulations/snake": {
     eyebrow: "Interactive System",

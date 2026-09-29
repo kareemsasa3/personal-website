@@ -3,6 +3,7 @@ export type SimulationPreviewType =
   | "spider"
   | "rhythm-lab"
   | "annals"
+  | "orbital"
   | "placeholder";
 
 export interface SimulationData {
@@ -46,9 +47,9 @@ export const simulationsData: SimulationData[] = [
     description:
       "Gravitational dynamics engine for exploring planetary orbits, stellar masses, scale, and multi-body interaction.",
     path: "/simulations/orbital-simulator",
-    previewType: "placeholder",
-    isAvailable: false,
-    statusLabel: "Planned",
+    previewType: "orbital",
+    isAvailable: true,
+    modeLabel: "Interactive simulation",
   },
   {
     id: "rhythm-lab",
