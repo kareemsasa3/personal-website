@@ -11,6 +11,8 @@ Scope: discovery and documentation reconciliation only. The initial discovery ad
 
 No other recommendation changes status. Everything except R02 remains a proposal.
 
+**R02 update, 2026-09-28:** R02 is **shipped**. It merged to `main` as `42989b6` (PR #9) on 2026-09-27, and the owner closed the screenshot-review gate before merge. It is now closed as a design decision. What remains is validation debt (see R02), which does not block other work. No other recommendation changes status.
+
 ## 1. Executive summary
 
 **Modernize toward an inspectable engineering portfolio: make the relationship between systems, engineering decisions, operational evidence, and writing immediately legible.** Keep the Matrix/terminal identity, the project roster, and the increasingly editorial presentation. The evidence does not support a wholesale redesign.
@@ -196,7 +198,7 @@ The common useful pattern is **specific work plus an intelligible route to its e
 
 ## 7. Recommendations by layer
 
-Recommendation IDs are reused in the roadmap and prototype briefs. Each record includes current state, opportunity, proposed technique, fit, visible effect, effort, risk, prerequisites, prototype decision, and likely implementation locations. File paths are relative to the repository root. These are proposals, not approved implementation tasks. *Exception (2026-09-27):* R02's direction was approved after its prototype. That approval covers the direction only; implementation and its verification are still to come. Every other record remains a proposal. The "Subsequent evidence" lines point to section 15, and none of them approves work.
+Recommendation IDs are reused in the roadmap and prototype briefs. Each record includes current state, opportunity, proposed technique, fit, visible effect, effort, risk, prerequisites, prototype decision, and likely implementation locations. File paths are relative to the repository root. These are proposals, not approved implementation tasks. *Exception (2026-09-27):* R02's direction was approved after its prototype. That approval covers the direction only. *Update (2026-09-28):* R02 has since shipped in `42989b6`; its record lists the remaining validation debt. Every other record remains a proposal. The "Subsequent evidence" lines point to section 15, and none of them approves work.
 
 ### 7.1 Information architecture
 
@@ -214,12 +216,33 @@ Recommendation IDs are reused in the roadmap and prototype briefs. Each record i
 
 #### R02 — Give primary navigation a readable priority structure
 
-- **Status (updated 2026-09-27):** **Approved direction, validated by prototype. Implemented on branch `feat/r02-navigation-hierarchy`; not yet merged.**
+- **Status (updated 2026-09-28):** **Shipped. Merged to `main` as `42989b6` (PR #9, 2026-09-27). Closed as a design decision; open validation debt is listed below and does not block other work.**
+  - *Shipped behavior* (PR #9 body; `web/src/data/navigation.ts`):
+    - **Core order:** Projects → Case Studies → Writing → Experience. This is the implemented and approved order. Home is on the brand.
+    - **Explore group:** Terminal, Journey, Simulations.
+    - **Explore descriptors:** intentionally omitted. The prototype's descriptor lines were placeholder copy, not approved content.
+    - **Width bands:** two visible tiers at 1181 px and wider; core links plus an Explore disclosure at 641–1180 px; a labeled core row with Explore in the brand row at 640 px and narrower. When labels do not fit, the header measures itself and steps down to a labeled **Menu**. The step-down is triggered by measured overflow, not `em` media queries, and re-measures when root text size changes.
+    - **Dock:** named links with focus-visible labels; a desktop separator before the Explore icons; an upward-opening Explore stack at 430–768 px. Dock mode is not offered below 430 px: the header renders instead, and a saved Dock preference is kept.
+    - **`aria-current`:** one element on `/` (the brand); `/work` marks Experience.
+  - *Screenshot review (closed before merge):* the owner reviewed five screenshots at `f2878f5`. The dock separator and Explore stack were approved, and the Explore stack panel overlapping page content when open was accepted.
+  - *Verification at merge:* `npm run typecheck`, `npm run lint`, and `npm test` passed at `f2878f5`. Chromium only, via Playwright against the dev server (320–1440 px at default and simulated 200% text, the 429/430 px dock boundary, open-panel containment asserted by measurement, emulated reduced motion, light-theme screenshots), plus a reduced matrix against `npm run preview`. There are no automated tests for navigation behavior.
+  - *Validation debt (does not block other work):*
+    - Real iOS Safari and Android Chrome (fixed header, safe-area insets, dynamic toolbar, Menu height).
+    - Firefox and WebKit.
+    - VoiceOver and NVDA announcements.
+    - Real browser text-size settings (200% was simulated by root font size).
+    - Whether first-time visitors read "Explore" as intentional.
+    - Phone focus order: whether Explore's position in the brand row matches its focus order. Not recorded as checked.
+  - *Known follow-ups recorded in PR #9 (not done):*
+    - The pre-hydration home shell in `web/vite.config.ts` has an `<h2>Explore</h2>` over the **core** destinations, which conflicts with R02's Explore group. Changing `vite.config.ts` needs separate approval.
+    - `web/scripts/generate-ai-context.mjs` fails on `main` with `ERR_MODULE_NOT_FOUND` for `generated/articles.mjs`. This predates R02; changing the script needs approval.
+    - Deferred minors: focus drops to `<body>` when the dock stack unmounts at the 768 px crossing; the phone Explore button and Menu toggle carry no current-route cue; any width change closes an open Menu; the 100 ms resize debounce allows brief overflow while dragging; `fonts.ready` is observed once; at 200% text and 320 px, the "Case Studies" Menu label is 7 px wider than its link box but stays inside the panel.
+  - *History (2026-09-27, before merge):* the entries below record how the approval was reached and are kept as written.
   - The comparison that this record proposed at discovery has been carried out in `docs/design/navigation-hierarchy-prototype.md`. Its static prototype is `docs/design/prototypes/navigation/index.html`, and both were committed in `480a54c`.
   - The owner then approved the responsive policy under "Approved direction" below, which is the prototype's own recommendation (prototype section 12).
   - The prototype document's original status line ("prototype evaluation only … not an approved product decision") and its proposed real-device A-vs-Menu head-to-head were written on 2026-09-26, before that approval. The document keeps that wording as historical and adds a 2026-09-27 decision note that explicitly supersedes it. On phone navigation at normal text size, the approval settles the choice in favor of labeled core links.
-  - This status covers direction only. Production navigation code has changed on the feature branch only; `main` is unchanged.
-  - *Implementation (added 2026-09-27):* implemented on branch `feat/r02-navigation-hierarchy`, commits `45da6a0`…`4c9b2d1`; not yet merged. Verified in Chromium only. The dev server was checked across 320–1440 px. The production preview (`npm run preview`) was checked with a reduced matrix: 320 px at default and 200% text, 1024 px, 1440 px at default and 200% text, and the 429/430 px dock boundary. 200% text was simulated by root font size. Open-panel viewport containment was asserted, not only screenshotted. Reduced motion was emulated, and light theme was screenshotted. Not verified: real iOS Safari/Android Chrome, Firefox, WebKit, VoiceOver, NVDA, real browser text-size settings, and whether first-time visitors read "Explore" as intentional (prototype §13 items 1–3, 6, 8). The Menu fallback is triggered by measured overflow rather than `em` media queries. The Menu fallback also re-measures on root text-size changes. The dock separator and Explore-stack visuals are awaiting owner screenshot review before merge.
+  - This status covers direction only. Production navigation code has changed on the feature branch only; `main` is unchanged. *(Superseded 2026-09-28: merged to `main` in `42989b6`.)*
+  - *Implementation (added 2026-09-27; merged 2026-09-27 as `42989b6`, final branch head `f2878f5`):* implemented on branch `feat/r02-navigation-hierarchy`, commits `45da6a0`…`4c9b2d1` at the time of this note. Verified in Chromium only. The dev server was checked across 320–1440 px. The production preview (`npm run preview`) was checked with a reduced matrix: 320 px at default and 200% text, 1024 px, 1440 px at default and 200% text, and the 429/430 px dock boundary. 200% text was simulated by root font size. Open-panel viewport containment was asserted, not only screenshotted. Reduced motion was emulated, and light theme was screenshotted. Not verified: real iOS Safari/Android Chrome, Firefox, WebKit, VoiceOver, NVDA, real browser text-size settings, and whether first-time visitors read "Explore" as intentional (prototype §13 items 1–3, 6, 8). The Menu fallback is triggered by measured overflow rather than `em` media queries. The Menu fallback also re-measures on root text-size changes. The dock separator and Explore-stack visuals are awaiting owner screenshot review before merge. *(Resolved 2026-09-27: the owner reviewed five screenshots at `f2878f5` before merge, approved the dock separator and Explore stack, and accepted the open stack panel overlapping page content.)*
 - **Current state (at discovery, 2026-09-26):** Home, Projects, Case Studies, Writing, Experience, Terminal, Journey, and Simulations occupy one primary list. Inactive labels disappear below 1180 px. The optional dock uses the same destinations.
 - **Subsequent evidence of the problem:**
   - *Prototype, measuring production code* (Chromium, local dev server at `fe4421d`; not the deployed site):
@@ -269,7 +292,7 @@ Recommendation IDs are reused in the roadmap and prototype briefs. Each record i
     - **Simulations in the header.** Simulations stays a labeled destination in the Explore group. The older evidence specification's instruction to remove it from primary navigation is now explicitly superseded in that specification (Section 12 supersession note, 2026-09-27).
     - **Dock at narrow widths.** This is decided as above.
   - *Unchanged:* route metadata and sitemap review is still required, because navigation policy changes even though URLs do not.
-- **Prototype first:** Completed (discovery said: "Yes, especially 320–430 px, 768–1180 px, and zoomed text"). What remains is implementation verification, not choosing a variant. Prototype section 13 lists it:
+- **Prototype first:** Completed (discovery said: "Yes, especially 320–430 px, 768–1180 px, and zoomed text"). What remains is implementation verification, not choosing a variant. *(Update 2026-09-28: before merge, reduced motion (emulated), light theme (screenshots), and the dock separator/stack were exercised in Chromium, and the dock visuals were screenshot-approved. PR #9 does not separately record a check of the `AnimatePresence` header integration or the measured header offset. The `em`-breakpoint question no longer applies because the Menu fallback uses measured overflow. The rest is validation debt, listed under Status.)* Prototype section 13 lists it:
   - Real iOS Safari and Android Chrome.
   - Browser text-size settings, including whether `em`-based breakpoints trigger the Menu fallback. This is unverified.
   - VoiceOver and NVDA announcements.
@@ -279,11 +302,11 @@ Recommendation IDs are reused in the roadmap and prototype briefs. Each record i
   - Firefox and WebKit.
   - Reduced motion.
   - Whether first-time visitors read "Explore" as intentional. This is untested.
-- **Open inside the approved direction:**
-  - **Core link order.** The prototype listed Case Studies first as a prototype choice, while `navigation.ts` and `homeDestinationPaths` start with Projects.
-  - **Explore descriptor copy.** It is placeholder, not approved.
-  - **Phone focus order.** In the phone layout, Explore's visual position does not match its focus order.
-  - **Dock grouping.** A desktop dock separator and a phone-width Explore stack remain candidates; neither interaction has been tested.
+- **Open inside the approved direction** *(historical, 2026-09-27; resolutions added 2026-09-28)*:
+  - **Core link order.** The prototype listed Case Studies first as a prototype choice, while `navigation.ts` and `homeDestinationPaths` start with Projects. *Resolved:* Projects → Case Studies → Writing → Experience is the implemented and approved order.
+  - **Explore descriptor copy.** It is placeholder, not approved. *Resolved:* descriptors are intentionally omitted; none shipped.
+  - **Phone focus order.** In the phone layout, Explore's visual position does not match its focus order. *Not resolved:* carried into validation debt above.
+  - **Dock grouping.** A desktop dock separator and a phone-width Explore stack remain candidates; neither interaction has been tested. *Resolved:* both shipped, were tested in Chromium, and were approved at the owner's screenshot review.
 - **Files:** `web/src/data/navigation.ts`, `web/src/components/Navigation/HeaderNavigation.tsx`, `SiteNavigation.css`, `SiteNavigation.tsx`, `web/src/components/Dock/*` (including `DockIcon.tsx` for accessible names), `web/scripts/generate-ai-context.mjs` if the navigation data shape changes. Route metadata/sitemap review is required if navigation policy changes, even though URLs should remain. Prototype section 14 has the full list.
 
 ### 7.2 Homepage
@@ -585,7 +608,7 @@ Start with comprehension and correctness that do not require a new visual direct
 3. **Narrow R13/R11 refinements:** remove false hover affordances; scope the Work header collision; give summaries consistent focus treatment. These support recent design decisions rather than undoing them.
 4. **R17's Journey loading fix and R15's measured content-splitting spike.** Good technical return; retain existing public behavior. Confirm the current production baseline before claiming performance improvement.
 5. **Small R05 links/contact and R19 preview study.** Useful only when curated; avoid turning every page ending into a large conversion panel.
-6. *Added 2026-09-27:* **dock accessible names and fixed-header layering** (visitor audit F03–F05; prototype [prod]). These are observed defects rather than design hypotheses. The prototype treats dock names as a prerequisite that can ship separately from R02.
+6. *Added 2026-09-27:* **dock accessible names and fixed-header layering** (visitor audit F03–F05; prototype [prod]). These are observed defects rather than design hypotheses. The prototype treats dock names as a prerequisite that can ship separately from R02. *Update (2026-09-28):* dock accessible names (F03) shipped with R02 in `42989b6`. Fixed-header layering (F04, F05) is still an open defect; R02 did not address it.
 
 Exit condition: the existing site is faster to understand and operate, small text is legible in both themes, and no content/navigation invariants regress. A new visual identity is not an exit condition.
 
@@ -594,7 +617,7 @@ Exit condition: the existing site is faster to understand and operate, small tex
 Build a coherent presentation around evidence:
 
 1. Develop **R07** with evidence qualification separate from homepage curation. Aether may be the first implementation; Erebus and Arachne remain featured. Evidence preparation is the largest dependency; UI work cannot substitute for it.
-2. Implement **R02** following its approved, prototype-validated direction, as its own unit. *(Discovery wording: "Prototype R04 homepage with R02 navigation and R05 relationships." The R02 prototype is complete; see R02.)* Prototype **R04 homepage** with **R05 relationships** against the approved navigation rather than as a joint navigation experiment. This has high visitor impact but moderate identity risk; retain the current composition as the control.
+2. Implement **R02** following its approved, prototype-validated direction, as its own unit. *(Done 2026-09-27: shipped in `42989b6`; see R02 for validation debt.)* *(Discovery wording: "Prototype R04 homepage with R02 navigation and R05 relationships." The R02 prototype is complete; see R02.)* Prototype **R04 homepage** with **R05 relationships** against the approved navigation rather than as a joint navigation experiment. This has high visitor impact but moderate identity risk; retain the current composition as the control.
 3. Develop **R08 static architecture and contextual anchors** alongside R07. Static explanation has better initial effort/benefit than interactive replay.
 4. Refine **R09 writing** and **R10 ownership timeline** using shared **R11** type/surface roles. Keep authorial voice and existing series/provenance contracts.
 5. Adopt **R06 metadata/shareability**, **R14 native control simplification**, **R15 data boundaries**, and **R16 theme/event cleanup** in small independent units. Do not couple every refactor to a homepage redesign.
@@ -678,9 +701,9 @@ These are bounded hypotheses, not a backlog that must all ship. Command search, 
 
    *Resolved for header and dock, 2026-09-27:* see R02's approved direction and dock constraints.
 
-   Still open:
-   - Whether the core link order follows the approval's listing or `navigation.ts`.
-   - What Dock mode does for visitors below 430 px who already have it enabled.
+   Previously open, resolved by the R02 implementation (`42989b6`, 2026-09-27):
+   - Whether the core link order follows the approval's listing or `navigation.ts`. *Resolved:* Projects → Case Studies → Writing → Experience.
+   - What Dock mode does for visitors below 430 px who already have it enabled. *Resolved:* the header renders instead, and the saved Dock preference is kept.
 
 4. **Should wordless pills remain intentionally cryptic?** They can stay so if explicit Writing/Simulations entry points do the navigation work. Do not erase the deliberate metaphor without testing that alternative. *Update (2026-09-27):* the visitor audit observed that the pills' destinations are not visible (F15) and recommends persistent labels or a caption while keeping the form. That recommendation conflicts with the deliberate wordless choice in `a7c5767`. The prototype argues that a labeled Explore layer strengthens the case for leaving the pills wordless. This remains an owner decision.
 5. **Which evidence can be made publicly inspectable?** Claim-linking is high value only when the artifacts exist and are publishable. Recordings, repository snapshots, and measured reports answer different questions.
@@ -733,6 +756,7 @@ Inspection ranged from full component reads to targeted searches/samples; this l
 | `52293ca` | Forward-navigation scroll reset is recent and must survive loading changes |
 | `1a4a117` | Writing index spacing was just refined; prototype against current spacing rather than stale assumptions |
 | `480a54c` | *Added 2026-09-27:* R02 navigation hierarchy prototype and evaluation (`docs/design/navigation-hierarchy-prototype.md`, `docs/design/prototypes/navigation/index.html`); basis for R02's approved direction |
+| `42989b6` | *Added 2026-09-28:* R02 implementation merged to `main` (PR #9, squash of branch head `f2878f5`); shipped behavior, screenshot-review outcome, verification scope, and follow-ups are recorded in R02 |
 
 Recent history was examined with `git log -25/-65 --oneline` and targeted `git show` metadata/stat reads. Older docs were treated as evidence of intent at the time, not automatic descriptions of current behavior.
 
@@ -778,6 +802,9 @@ An attempted retrieval of Daniel Wirtz's site returned an error and supports no 
   Inputs read: the navigation prototype document and HTML (`480a54c`), the visitor audit, and the Simulations/navigation provisions of `docs/evidence-linked-case-studies-spec.md`. The prototype HTML, the evidence specification, and all application code are untouched.
   - Validation: `git diff --check`, plus a stale-language scan for R02 prototype and unresolved wording.
 - Suggested future documentation commit message: `docs(design): document modernization discovery and separate curation from evidence`.
+- *R02 reconciliation, 2026-09-28:* documentation only; this report is the only file changed. It records R02 as shipped in `42989b6` with validation debt, and updates every R02 statement that read as unmerged or undecided (the opening status, the section 7 exception, the R02 record, Horizon 1 item 6, Horizon 2 item 2, section 13 question 3, section 15 conflict 3, and appendix B). No other recommendation or audit finding changed status.
+  - Inputs: the PR #9 description (`gh pr view 9`), `web/src/data/navigation.ts`, and owner statements of 2026-09-28. The owner confirmed that the five-screenshot review happened before merge and that the accepted overlap was the dock Explore stack panel over page content. The owner also confirmed the core order and that the Explore descriptors were omitted on purpose.
+  - Validation: `git diff --check`, plus a scan for stale R02 "not yet merged", "still open" and "awaiting" wording.
 
 ## 15. Reconciliation with the visitor audit (2026-09-27)
 
@@ -856,4 +883,4 @@ These are recorded as inputs, not as approved work. Each keeps the audit's own c
 
 1. **Homepage pills.** The audit recommends persistent labels (F15), which conflicts with the intentionally wordless pills (`a7c5767`). This is an owner decision.
 2. **Roster ordering.** The audit suggests prioritizing the best-documented systems (medium confidence), while the current newest-first default is part of the roster behavior. This is an owner decision.
-3. **R02 details.** Still open: core link order, Explore descriptor copy, Dock behavior below 430 px for visitors who already enabled it, and the `em`-based Menu trigger (unverified).
+3. **R02 details.** *Resolved, 2026-09-28:* R02 shipped in `42989b6`. The core order is Projects → Case Studies → Writing → Experience. Explore descriptors are intentionally omitted. Below 430 px the header replaces the dock while the saved preference is kept. The Menu fallback uses measured overflow rather than an `em` trigger. What remains is validation debt, recorded in R02; it is not an open decision.
