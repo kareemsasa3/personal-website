@@ -1,0 +1,26 @@
+/* #portal-root sits above the application/navigation context. These small
+   local layers order terminal UI, non-modal settings, modal dialogs, and the
+   existing notifications produced by settings actions. */
+.viewport-layer {
+  --viewport-safe-top: max(var(--site-header-measured-offset, 0px), env(safe-area-inset-top));
+  --viewport-safe-bottom: max(var(--site-dock-safe-space, 0px), env(safe-area-inset-bottom));
+  --viewport-available-height: calc(100dvh - var(--viewport-safe-top) - var(--viewport-safe-bottom));
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100dvh;
+  pointer-events: none;
+}
+
+.viewport-layer > * { pointer-events: auto; }
+.viewport-layer--terminal { z-index: 1; }
+.viewport-layer--panel {
+  --settings-sidebar-width: 360px;
+  --settings-sidebar-gap: clamp(0.75rem, 1.4vw, 1.25rem);
+  z-index: 2;
+}
+.viewport-layer--modal { z-index: 3; }
+.viewport-layer--notification { z-index: 4; }
+
+/* Preserve terminal styling without inheriting the route's positioning. */
+.viewport-layer.terminal-screen { position: fixed; height: 100dvh; }

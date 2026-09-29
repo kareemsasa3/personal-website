@@ -1,6 +1,8 @@
 /* TerminalWindow.css - Styles for the window chrome component */
 
 .terminal-container {
+    display: flex;
+    flex-direction: column;
     background: var(--terminal-window-bg);
     border: 1px solid var(--terminal-border);
     border-radius: 8px;
@@ -9,7 +11,6 @@
     font-size: 14px;
     line-height: 1.4;
     overflow: hidden;
-    transition: all 0.3s ease;
     user-select: none;
 }
 
@@ -23,6 +24,7 @@
 }
 
 .terminal-header {
+    flex-shrink: 0;
     background: var(--terminal-header-bg);
     border-bottom: 1px solid var(--terminal-border);
     display: flex;
@@ -38,6 +40,7 @@
 }
 
 .terminal-buttons {
+    flex-shrink: 0;
     display: flex;
     gap: 8px;
 }
@@ -49,6 +52,11 @@
     border: none;
     cursor: pointer;
     transition: all 0.2s ease;
+}
+
+.terminal-button:focus-visible {
+    outline: 2px solid var(--terminal-text-primary);
+    outline-offset: 3px;
 }
 
 .terminal-button.close {

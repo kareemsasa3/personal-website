@@ -16,6 +16,7 @@ import TerminalWindow from "./TerminalWindow";
 import TerminalView from "./TerminalView";
 import TerminalOverlays from "./TerminalOverlays";
 import TerminalErrorBoundary from "./TerminalErrorBoundary";
+import ViewportPortal from "../common/ViewportPortal";
 
 interface TerminalProps {
   isIntro: boolean;
@@ -70,6 +71,8 @@ const Terminal: React.FC<TerminalProps> = ({ isIntro }) => {
 
   // Input typed before history navigation started, restored past the newest entry
   const historyDraftRef = useRef("");
+  const sidecarRef = useRef<HTMLButtonElement>(null);
+  const wasMinimizedRef = useRef(false);
 
   // Handle terminal close
   const handleTerminalClose = useCallback(() => {
@@ -85,6 +88,24 @@ const Terminal: React.FC<TerminalProps> = ({ isIntro }) => {
     isIntro,
     onClose: handleTerminalClose,
   });
+
+  // A minimized window unmounts its focused button. Move focus to its restore
+  // control, then back to the remounted minimize button when reopened.
+  useEffect(() => {
+    let restoreFrame: number | undefined;
+    if (windowManagement.isMinimized) {
+      sidecarRef.current?.focus({ preventScroll: true });
+    } else if (wasMinimizedRef.current) {
+      // Run after the remounted command input's autofocus.
+      restoreFrame = requestAnimationFrame(() => {
+        document.querySelector<HTMLButtonElement>(".terminal-button.minimize")?.focus({ preventScroll: true });
+      });
+    }
+    wasMinimizedRef.current = windowManagement.isMinimized;
+    return () => {
+      if (restoreFrame !== undefined) cancelAnimationFrame(restoreFrame);
+    };
+  }, [windowManagement.isMinimized]);
 
   // Use the body scroll lock hook
   useLockBodyScroll(isIntro);
@@ -229,7 +250,7 @@ const Terminal: React.FC<TerminalProps> = ({ isIntro }) => {
   useEffect(() => {
     if (!windowManagement.isMaximized) return;
     const restore = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && !coreState.isManPage && !topState.isTopCommand && !coreState.isReverseSearch) {
+      if (event.key === "Escape" && event.target instanceof HTMLElement && event.target.closest(".terminal-container") && !coreState.isManPage && !topState.isTopCommand && !coreState.isReverseSearch) {
         windowManagement.handleMaximize();
       }
     };
@@ -261,6 +282,7 @@ const Terminal: React.FC<TerminalProps> = ({ isIntro }) => {
         {isStateLoaded && windowManagement.showSidecar && (
           <button
             className="terminal-sidecar"
+            ref={sidecarRef}
             onClick={windowManagement.handleMinimize}
             aria-label="Restore terminal window"
           >
@@ -270,57 +292,59 @@ const Terminal: React.FC<TerminalProps> = ({ isIntro }) => {
           </button>
         )}
 
-        {/* Overlays */}
-        <TerminalOverlays
-          // Man page props
-          isManPage={coreState.isManPage}
-          currentManPage={coreState.currentManPage}
-          manPageScrollPosition={coreState.manPageScrollPosition}
-          onHideManPage={coreHandlers.hideManPage}
-          onSetManPageScroll={coreHandlers.setManPageScroll}
-          // Top command props
-          isTopCommand={topState.isTopCommand}
-          topProcesses={topState.topProcesses}
-          topSortBy={topState.topSortBy}
-          topSortOrder={topState.topSortOrder}
-          topRefreshRate={topState.topRefreshRate}
-          topSelectedPid={topState.topSelectedPid}
-          onHideTopCommand={topHandlers.hideTopCommand}
-          onSetTopSort={topHandlers.setTopSort}
-          onKillTopProcess={topHandlers.killTopProcess}
-          onSetTopSelectedPid={topHandlers.setTopSelectedPid}
-        />
-
-        {/* Main terminal window */}
-        {!windowManagement.isMinimized && <TerminalWindow
-          containerStyles={windowManagement.containerStyles}
-          isMaximized={windowManagement.isMaximized}
-          isDragging={windowManagement.isDragging}
-          currentDirectory={coreState.currentDirectory}
-          onMouseDown={windowManagement.handleMouseDown}
-          onClose={windowManagement.handleClose}
-          onMinimize={windowManagement.handleMinimize}
-          onMaximize={windowManagement.handleMaximize}
-        >
-          <TerminalView
-            commandHistory={coreState.commandHistory}
-            currentCommand={coreState.currentCommand}
-            showPrompt={coreState.showPrompt}
-            currentDirectory={coreState.currentDirectory}
-            hasShownIntro={hasShownIntro}
-            isReverseSearch={coreState.isReverseSearch}
-            reverseSearchTerm={coreState.reverseSearchTerm}
-            reverseSearchResults={coreState.reverseSearchResults}
-            reverseSearchIndex={coreState.reverseSearchIndex}
-            autocompleteSuggestions={coreState.autocompleteSuggestions}
-            autocompleteIndex={coreState.autocompleteIndex}
-            onCommandChange={handleCommandChange}
-            onCommandSubmit={handleCommandSubmit}
-            onKeyDown={handleKeyDown}
-            onIntroComplete={handleIntroComplete}
-            terminalRef={coreHandlers.terminalRef}
+        <ViewportPortal layer="terminal" className="terminal-screen">
+          {/* Overlays stay above the window, but below site settings and modals. */}
+          <TerminalOverlays
+            // Man page props
+            isManPage={coreState.isManPage}
+            currentManPage={coreState.currentManPage}
+            manPageScrollPosition={coreState.manPageScrollPosition}
+            onHideManPage={coreHandlers.hideManPage}
+            onSetManPageScroll={coreHandlers.setManPageScroll}
+            // Top command props
+            isTopCommand={topState.isTopCommand}
+            topProcesses={topState.topProcesses}
+            topSortBy={topState.topSortBy}
+            topSortOrder={topState.topSortOrder}
+            topRefreshRate={topState.topRefreshRate}
+            topSelectedPid={topState.topSelectedPid}
+            onHideTopCommand={topHandlers.hideTopCommand}
+            onSetTopSort={topHandlers.setTopSort}
+            onKillTopProcess={topHandlers.killTopProcess}
+            onSetTopSelectedPid={topHandlers.setTopSelectedPid}
           />
-        </TerminalWindow>}
+
+          {/* Main terminal window */}
+          {!windowManagement.isMinimized && <TerminalWindow
+            containerStyles={windowManagement.containerStyles}
+            isMaximized={windowManagement.isMaximized}
+            isDragging={windowManagement.isDragging}
+            currentDirectory={coreState.currentDirectory}
+            onMouseDown={windowManagement.handleMouseDown}
+            onClose={windowManagement.handleClose}
+            onMinimize={windowManagement.handleMinimize}
+            onMaximize={windowManagement.handleMaximize}
+          >
+            <TerminalView
+              commandHistory={coreState.commandHistory}
+              currentCommand={coreState.currentCommand}
+              showPrompt={coreState.showPrompt}
+              currentDirectory={coreState.currentDirectory}
+              hasShownIntro={hasShownIntro}
+              isReverseSearch={coreState.isReverseSearch}
+              reverseSearchTerm={coreState.reverseSearchTerm}
+              reverseSearchResults={coreState.reverseSearchResults}
+              reverseSearchIndex={coreState.reverseSearchIndex}
+              autocompleteSuggestions={coreState.autocompleteSuggestions}
+              autocompleteIndex={coreState.autocompleteIndex}
+              onCommandChange={handleCommandChange}
+              onCommandSubmit={handleCommandSubmit}
+              onKeyDown={handleKeyDown}
+              onIntroComplete={handleIntroComplete}
+              terminalRef={coreHandlers.terminalRef}
+            />
+          </TerminalWindow>}
+        </ViewportPortal>
       </div>
     </TerminalErrorBoundary>
   );

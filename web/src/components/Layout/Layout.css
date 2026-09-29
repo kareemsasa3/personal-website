@@ -2,8 +2,6 @@
 
 /* This is the new container for all interactive content */
 .layout-foreground {
-    --settings-sidebar-width: 360px;
-    --settings-sidebar-gap: clamp(0.75rem, 1.4vw, 1.25rem);
     --app-shell-header-height: 5.5rem;
     position: relative;
     /* This is fine, it establishes a context for its children */
@@ -40,7 +38,6 @@
     .layout-foreground {
 	        display: flex;
 	        flex-direction: column;
-	        --settings-sidebar-gap: 0;
 	    }
 
     .app-content {

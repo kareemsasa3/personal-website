@@ -1,10 +1,11 @@
 import FocusTrap from "focus-trap-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { countLabel, pluralize } from "../../utils/countLabel";
 import "./Projects.css";
 import ProjectRoster from "../../components/ProjectRoster";
 import TerminalDropdown from "../../components/TerminalDropdown";
 import { useProjects } from "./useProjects";
+import ViewportPortal from "../../components/common/ViewportPortal";
 
 type SortByType = "date" | "name" | "category";
 
@@ -13,22 +14,6 @@ const Projects = () => {
     useProjects();
   const [isTechStackVisible, setIsTechStackVisible] = useState(false);
   const projects = data.filteredAndSortedProjects;
-
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setIsTechStackVisible(false);
-      }
-    };
-
-    if (isTechStackVisible) {
-      document.addEventListener("keydown", handleKeyDown);
-    }
-
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [isTechStackVisible]);
 
   return (
     <div className="page-content">
@@ -135,41 +120,49 @@ const Projects = () => {
           </div>
 
           {isTechStackVisible && (
-            <FocusTrap>
-              <div
-                className="tech-stack-modal"
-                onClick={() => setIsTechStackVisible(false)}
-              >
+            <ViewportPortal layer="modal">
+              <FocusTrap focusTrapOptions={{ escapeDeactivates: false, delayInitialFocus: false }}>
                 <div
-                  className="tech-stack-content"
-                  onClick={(e) => e.stopPropagation()}
-                  role="dialog"
-                  aria-modal="true"
-                  aria-labelledby="tech-stack-title"
+                  className="tech-stack-modal"
+                  onKeyDown={(event) => {
+                    if (event.key === "Escape") {
+                      event.stopPropagation();
+                      setIsTechStackVisible(false);
+                    }
+                  }}
+                  onClick={() => setIsTechStackVisible(false)}
                 >
-                  <div className="tech-stack-header">
-                    <h3 id="tech-stack-title">Technical Coverage</h3>
-                    <button
-                      className="close-tech-stack"
-                      onClick={() => setIsTechStackVisible(false)}
-                      aria-label="Close technology list"
-                    >
-                      Close
-                    </button>
-                  </div>
-                  <div className="tech-stack-grid">
-                    {data.allTechnologies.map((tech) => (
-                      <div key={tech} className="tech-item">
-                        <span className="tech-name">{tech}</span>
-                        <span className="tech-count">
-                          ({countLabel(stats.techProjectCounts.get(tech) || 0, "project")})
-                        </span>
-                      </div>
-                    ))}
+                  <div
+                    className="tech-stack-content"
+                    onClick={(e) => e.stopPropagation()}
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="tech-stack-title"
+                  >
+                    <div className="tech-stack-header">
+                      <h3 id="tech-stack-title">Technical Coverage</h3>
+                      <button
+                        className="close-tech-stack"
+                        onClick={() => setIsTechStackVisible(false)}
+                        aria-label="Close technology list"
+                      >
+                        Close
+                      </button>
+                    </div>
+                    <div className="tech-stack-grid" tabIndex={0} role="region" aria-label="Technologies by project">
+                      {data.allTechnologies.map((tech) => (
+                        <div key={tech} className="tech-item">
+                          <span className="tech-name">{tech}</span>
+                          <span className="tech-count">
+                            ({countLabel(stats.techProjectCounts.get(tech) || 0, "project")})
+                          </span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
-              </div>
-            </FocusTrap>
+              </FocusTrap>
+            </ViewportPortal>
           )}
 
           <div className="projects-content">

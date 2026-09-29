@@ -16,7 +16,7 @@ interface WindowState {
 
 type WindowAction =
   | { type: "INITIALIZE"; payload: { width: number; height: number } }
-  | { type: "DRAG_START"; payload: { clientX: number; clientY: number } }
+  | { type: "DRAG_START"; payload: { clientX: number; clientY: number; position: Position } }
   | { type: "DRAG_MOVE"; payload: { clientX: number; clientY: number } }
   | { type: "DRAG_END" }
   | { type: "MAXIMIZE" }
@@ -47,13 +47,14 @@ const windowReducer = (
 
     case "DRAG_START": {
       if (!state.position || state.isMaximized) return state;
-      const { clientX, clientY } = action.payload;
+      const { clientX, clientY, position } = action.payload;
       return {
         ...state,
+        position,
         isDragging: true,
         dragOffset: {
-          x: clientX - state.position.x,
-          y: clientY - state.position.y,
+          x: clientX - position.x,
+          y: clientY - position.y,
         },
       };
     }
@@ -64,12 +65,12 @@ const windowReducer = (
       const newX = clientX - state.dragOffset.x;
       const newY = clientY - state.dragOffset.y;
 
-      // Keep within viewport bounds (will be refined by RESIZE action)
+      // The CSS viewport constraints clamp the rendered position.
       return {
         ...state,
         position: {
-          x: Math.max(0, Math.min(newX, window.innerWidth - 100)), // 100 is placeholder
-          y: Math.max(0, Math.min(newY, window.innerHeight - 100)),
+          x: newX,
+          y: newY,
         },
       };
     }
@@ -195,7 +196,9 @@ export const useWindowManagement = (options: UseWindowManagementOptions) => {
   const handleMaximize = useCallback(() => {
     if (state.isMaximized) {
       dispatch({ type: "RESTORE" });
-      requestAnimationFrame(() => maximizeOpenerRef.current?.focus());
+      // The window remains mounted; restore synchronously so a queued frame
+      // cannot steal focus from the user's next Tab keystroke.
+      maximizeOpenerRef.current?.focus({ preventScroll: true });
     } else {
       maximizeOpenerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
       dispatch({ type: "MAXIMIZE" });
@@ -214,9 +217,14 @@ export const useWindowManagement = (options: UseWindowManagementOptions) => {
         return;
       }
 
+      const bounds = e.currentTarget.getBoundingClientRect();
       dispatch({
         type: "DRAG_START",
-        payload: { clientX: e.clientX, clientY: e.clientY },
+        payload: {
+          clientX: e.clientX,
+          clientY: e.clientY,
+          position: { x: bounds.left, y: bounds.top },
+        },
       });
     },
     [state.isMaximized, state.position]
@@ -230,7 +238,7 @@ export const useWindowManagement = (options: UseWindowManagementOptions) => {
         top: 0,
         left: 0,
         width: "100%",
-        height: "100vh",
+        height: "100dvh",
         transform: "none",
         opacity: 1,
         pointerEvents: "auto" as const,
@@ -267,8 +275,10 @@ export const useWindowManagement = (options: UseWindowManagementOptions) => {
 
     return {
       position: "fixed" as const,
-      left: state.position.x,
-      top: state.position.y,
+      // CSS owns the usable viewport, including the measured header/dock.
+      // Clamp on every layout (also after zoom/resize), not only drag events.
+      left: `clamp(0px, ${state.position.x}px, calc(100% - var(--terminal-window-width)))`,
+      top: `clamp(var(--terminal-safe-top), ${state.position.y}px, calc(100dvh - var(--terminal-safe-bottom) - var(--terminal-window-height)))`,
       transform: "none",
       opacity: 1,
       pointerEvents: "auto" as const,

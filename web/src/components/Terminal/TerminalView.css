@@ -4,8 +4,8 @@
     background: var(--terminal-window-bg);
     color: var(--terminal-text-primary);
     padding: 16px;
-    height: calc(100% - 40px);
-    /* Subtract header height */
+    flex: 1;
+    min-height: 0;
     overflow-y: auto;
     overflow-x: hidden;
     font-family: 'Courier New', monospace;

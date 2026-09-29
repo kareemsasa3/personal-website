@@ -295,11 +295,10 @@ primary comprehension layer.
     justify-content: center;
     align-items: center;
     position: fixed;
-    z-index: 10000;
     top: 0;
     left: 0;
     width: 100%;
-    height: 100%;
+    height: 100dvh;
     background: rgba(0, 0, 0, 0.8);
     backdrop-filter: blur(5px);
     cursor: pointer;
@@ -310,7 +309,7 @@ primary comprehension layer.
     flex-direction: column;
     max-width: 800px;
     width: 90%;
-    max-height: 80vh;
+    max-height: min(80dvh, calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 2rem));
     background: var(--card-background);
     border: 2px solid var(--terminal-primary, #4CAF50);
     border-radius: 12px;
@@ -362,6 +361,8 @@ primary comprehension layer.
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     gap: 1rem;
     flex-grow: 1;
+    min-height: 0;
+    overscroll-behavior: contain;
     padding: 1.5rem;
     overflow-y: auto;
 }
@@ -471,7 +472,7 @@ primary comprehension layer.
 
     .tech-stack-content {
         width: 95%;
-        max-height: 90vh;
+        max-height: min(90dvh, calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 2rem));
     }
 
     .tech-stack-grid {

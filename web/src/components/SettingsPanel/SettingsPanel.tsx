@@ -27,6 +27,7 @@ import {
 import { useTheme } from "../../contexts/ThemeContext";
 import { useNavigationMode } from "../../contexts/NavigationModeContext";
 import { Modal, useToast } from "../common";
+import ViewportPortal from "../common/ViewportPortal";
 import "./SettingsPanel.css";
 
 interface SettingsPanelProps {
@@ -321,7 +322,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
   };
 
   return (
-    <>
+    <ViewportPortal layer="panel">
       <AnimatePresence>
         {isOpen && (
           <>
@@ -556,7 +557,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
         </p>
 
       </Modal>
-    </>
+    </ViewportPortal>
   );
 };
 

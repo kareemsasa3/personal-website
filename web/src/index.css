@@ -53,6 +53,13 @@ body {
   visibility: visible;
 }
 
+/* Viewport surfaces escape the app's animated/isolated stacking contexts.
+   Their own local ordering is defined in ViewportPortal.css. */
+#portal-root {
+  position: relative;
+  z-index: 2;
+}
+
 /* App layout - no overflow rules to avoid nested scrolling */
 .app-layout {
   /* Remove overflow rules - let body handle scrolling */

@@ -3,6 +3,7 @@ import { AnimatePresence } from "framer-motion";
 import Toast, { ToastProps } from "./Toast";
 import { ToastContext, ToastContextType } from "./ToastContext";
 import "./ToastContainer.css";
+import ViewportPortal from "./ViewportPortal";
 
 interface ToastContainerProps {
   children: React.ReactNode;
@@ -62,13 +63,15 @@ export const ToastContainer: React.FC<ToastContainerProps> = ({ children }) => {
   return (
     <ToastContext.Provider value={contextValue}>
       {children}
-      <div className="toast-container">
-        <AnimatePresence>
-          {toasts.map((toast) => (
-            <Toast key={toast.id} {...toast} />
-          ))}
-        </AnimatePresence>
-      </div>
+      <ViewportPortal layer="notification">
+        <div className="toast-container">
+          <AnimatePresence>
+            {toasts.map((toast) => (
+              <Toast key={toast.id} {...toast} />
+            ))}
+          </AnimatePresence>
+        </div>
+      </ViewportPortal>
     </ToastContext.Provider>
   );
 };
