@@ -125,6 +125,10 @@ const main = async () => {
   const sitemap = await readBuildFile("sitemap.xml");
   const writingIndex = await readBuildFile("writing/index.html");
   const articleSlugs = [
+    "the-centaur-era",
+    "what-the-second-agent-is-for",
+    "normal-is-not-inevitable",
+    "when-programming-became-the-smaller-part",
     "what-should-the-agent-have-to-figure-out",
     "the-work-the-agent-stopped-doing",
     "the-system-gets-a-brake-one-way-or-another",
@@ -447,6 +451,10 @@ const main = async () => {
 
   // 1. The index lists every published article.
   for (const title of [
+    "The Centaur Era: Half Human, Half Machine",
+    "What the Second Agent Is For",
+    "Normal Is Not Inevitable",
+    "When Programming Became the Smaller Part",
     "What Should the Agent Have to Figure Out?",
     "The Work the Agent Stopped Doing",
     "The System Gets a Brake One Way or Another",
@@ -460,6 +468,14 @@ const main = async () => {
   //    its title — an empty shell for long-form content would be the worst
   //    possible regression.
   const distinctiveProse = {
+    "the-centaur-era":
+      "Collaboration was itself a skill.",
+    "what-the-second-agent-is-for":
+      "The phrase is doing too much work.",
+    "normal-is-not-inevitable":
+      "Both are, as complete answers, false.",
+    "when-programming-became-the-smaller-part":
+      "My degree emphasized software engineering and cybersecurity.",
     "what-should-the-agent-have-to-figure-out":
       "You have hidden an assumption in infrastructure.",
     "the-work-the-agent-stopped-doing":
@@ -491,6 +507,10 @@ const main = async () => {
   // 4. Sitemap covers the index and every article.
   for (const route of [
     "https://kareemsasa.dev/writing",
+    "https://kareemsasa.dev/writing/the-centaur-era",
+    "https://kareemsasa.dev/writing/what-the-second-agent-is-for",
+    "https://kareemsasa.dev/writing/normal-is-not-inevitable",
+    "https://kareemsasa.dev/writing/when-programming-became-the-smaller-part",
     "https://kareemsasa.dev/writing/what-should-the-agent-have-to-figure-out",
     "https://kareemsasa.dev/writing/the-work-the-agent-stopped-doing",
     "https://kareemsasa.dev/writing/the-system-gets-a-brake-one-way-or-another",
@@ -502,6 +522,10 @@ const main = async () => {
 
   // 5. Each article shell carries an Article node whose headline matches.
   const expectedHeadlines = {
+    "the-centaur-era": "The Centaur Era: Half Human, Half Machine",
+    "what-the-second-agent-is-for": "What the Second Agent Is For",
+    "normal-is-not-inevitable": "Normal Is Not Inevitable",
+    "when-programming-became-the-smaller-part": "When Programming Became the Smaller Part",
     "what-should-the-agent-have-to-figure-out":
       "What Should the Agent Have to Figure Out?",
     "the-work-the-agent-stopped-doing": "The Work the Agent Stopped Doing",
@@ -538,12 +562,21 @@ const main = async () => {
   ]);
 
   // 6. Every contents link resolves to a heading in the same document. A TOC
-  //    whose anchors miss their targets is a silently broken control.
+  //    whose anchors miss their targets is a silently broken control. An
+  //    article with no body sections has no TOC entries and renders no nav.
+  const articlesWithoutToc = new Set(["when-programming-became-the-smaller-part"]);
   for (const slug of articleSlugs) {
     const html = articleShells[slug];
     const toc = html.match(
       /<nav class="route-fallback__toc"[\s\S]*?<\/nav>/
     );
+
+    if (articlesWithoutToc.has(slug)) {
+      if (toc) {
+        throw new Error(`Expected ${slug} shell to have no contents nav`);
+      }
+      continue;
+    }
 
     if (!toc) {
       throw new Error(`Expected ${slug} shell to include a contents nav`);
