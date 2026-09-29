@@ -7,6 +7,9 @@ published: 2026-09-28
 description: >-
   “Multi-agent” now names incompatible working arrangements. What matters is
   how agents are related, not how many of them are running.
+series:
+  name: Agent Systems
+  part: 5
 ---
 
 # What the Second Agent Is For

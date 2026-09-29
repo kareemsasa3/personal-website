@@ -588,6 +588,11 @@ const main = async () => {
     "the-centaur-era": {
       part: 4,
       previous: "what-should-the-agent-have-to-figure-out",
+      next: "what-the-second-agent-is-for",
+    },
+    "what-the-second-agent-is-for": {
+      part: 5,
+      previous: "the-centaur-era",
       next: null,
     },
   };
@@ -659,13 +664,13 @@ const main = async () => {
   ].map((m) => m[1]);
 
   const expectedIndexOrder = [
-    "what-the-second-agent-is-for",
-    "normal-is-not-inevitable",
-    "when-programming-became-the-smaller-part",
     "the-machine-should-explain-itself",
     "the-work-the-agent-stopped-doing",
     "what-should-the-agent-have-to-figure-out",
     "the-centaur-era",
+    "what-the-second-agent-is-for",
+    "normal-is-not-inevitable",
+    "when-programming-became-the-smaller-part",
     "the-system-gets-a-brake-one-way-or-another",
     "bottlenecks-dont-disappear",
   ];
