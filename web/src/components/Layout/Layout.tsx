@@ -20,10 +20,6 @@ const pageVariants = {
     opacity: 1,
     y: 0,
   },
-  out: {
-    opacity: 0,
-    y: -20,
-  },
 };
 
 const pageTransition = {
@@ -31,11 +27,6 @@ const pageTransition = {
   ease: "anticipate",
   duration: 0.4, // Slightly longer duration to allow sections to settle
 };
-
-// Bright, sheet-style pages flicker hard against the dark loader interstitial
-// (dark loader → bright sheet is a large luminance swing), so they skip the
-// forced loader and go straight through the page transition instead.
-const LOADER_EXEMPT_PATHS = new Set(["/simulations/annals"]);
 
 // AnimatePresence keeps the exiting wrapper mounted while it animates out, but
 // a live <Outlet /> inside it would already render the incoming route. Capture
@@ -52,33 +43,10 @@ const Layout = () => {
   const navigationType = useNavigationType();
   const { mainContentAreaRef } = useLayoutContext();
   const { navMode } = useNavigationMode();
-  const [isLoading, setIsLoading] = useState(true);
-  const hasMarkedAppReady = useRef(false);
-  const isInitialLoad = useRef(true);
   const pendingScrollReset = useRef(false);
 
   // Memoize the key to prevent unnecessary re-renders
   const pageKey = useMemo(() => location.pathname, [location.pathname]);
-
-  // Show loading state on route change
-  useEffect(() => {
-    if (LOADER_EXEMPT_PATHS.has(location.pathname)) {
-      setIsLoading(false);
-      isInitialLoad.current = false;
-      return;
-    }
-
-    setIsLoading(true);
-    const minimumLoadDuration = isInitialLoad.current ? 300 : 500;
-
-    // Use a shorter minimum on first load while preserving the existing route transition timing.
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-      isInitialLoad.current = false;
-    }, minimumLoadDuration);
-
-    return () => clearTimeout(timer);
-  }, [location.pathname]);
 
   // Start each newly navigated page at the top. Back/forward (POP) keeps the
   // browser's restoration, and #anchor links scroll themselves.
@@ -92,21 +60,14 @@ const Layout = () => {
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
   }, [location.pathname, location.hash, navigationType]);
 
-  // Reset again once the page replaces the loader: a touch fling still in
+  // Reset again once the incoming page mounts: a touch fling still in
   // progress (e.g. iOS momentum scrolling) can override the first reset.
-  useEffect(() => {
-    if (!isLoading && pendingScrollReset.current) {
+  const handleExitComplete = () => {
+    if (pendingScrollReset.current) {
       pendingScrollReset.current = false;
       window.scrollTo({ top: 0, left: 0, behavior: "instant" });
     }
-  }, [isLoading]);
-
-  useEffect(() => {
-    if (!isLoading && !hasMarkedAppReady.current) {
-      document.documentElement.classList.add("app-ready");
-      hasMarkedAppReady.current = true;
-    }
-  }, [isLoading]);
+  };
 
   return (
     // Use a simple fragment, or a div with NO positioning/transform styles
@@ -125,25 +86,24 @@ const Layout = () => {
           className="app-content"
         >
           <ErrorBoundary>
-            {isLoading ? (
-              <PageLoader />
-            ) : (
-              <AnimatePresence mode="wait" initial={false}>
-                <motion.div
-                  key={pageKey}
-                  initial="initial"
-                  animate="in"
-                  exit="out"
-                  variants={pageVariants}
-                  transition={pageTransition}
-                  style={{ width: "100%", minHeight: "100%" }}
-                >
-                  <Suspense fallback={<PageLoader />}>
-                    <FrozenOutlet />
-                  </Suspense>
-                </motion.div>
-              </AnimatePresence>
-            )}
+            <AnimatePresence
+              mode="wait"
+              initial={false}
+              onExitComplete={handleExitComplete}
+            >
+              <motion.div
+                key={pageKey}
+                initial="initial"
+                animate="in"
+                variants={pageVariants}
+                transition={pageTransition}
+                style={{ width: "100%", minHeight: "100%" }}
+              >
+                <Suspense fallback={<PageLoader />}>
+                  <FrozenOutlet />
+                </Suspense>
+              </motion.div>
+            </AnimatePresence>
           </ErrorBoundary>
         </main>
       </div>

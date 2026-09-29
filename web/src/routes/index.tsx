@@ -1,7 +1,6 @@
 import React from "react";
 import { Terminal } from "../components/Terminal";
 import GamesRedirect from "../components/GamesRedirect";
-import { lazyWithMinTime } from "../utils/lazyWithMinTime";
 
 // Helper for route object typing
 interface AppRoute {
@@ -10,31 +9,25 @@ interface AppRoute {
   index?: boolean;
 }
 
-// Lazy load all page components with a minimum display time for the loader
-const Home = lazyWithMinTime(() => import("../pages/Home"));
-const Projects = lazyWithMinTime(() => import("../pages/Projects"));
-const CaseStudies = lazyWithMinTime(() => import("../pages/CaseStudies"));
-const CaseStudyAether = lazyWithMinTime(
-  () => import("../pages/CaseStudyAether")
-);
-const CaseStudyErebus = lazyWithMinTime(
-  () => import("../pages/CaseStudyErebus")
-);
-const CaseStudyArachne = lazyWithMinTime(
-  () => import("../pages/CaseStudyArachne")
-);
-const Writing = lazyWithMinTime(() => import("../pages/Writing"));
-const Article = lazyWithMinTime(() => import("../pages/Article"));
-const Simulations = lazyWithMinTime(() => import("../pages/Simulations"));
-const OrbitalSimulator = lazyWithMinTime(() => import("../pages/OrbitalSimulator"), 0);
-const Annals = lazyWithMinTime(() => import("../pages/Annals"), 0);
-const SnakeGame = lazyWithMinTime(() => import("../pages/SnakeGame"));
-const SpiderSolitaire = lazyWithMinTime(() => import("../pages/SpiderSolitaire"));
-const RhythmLab = lazyWithMinTime(() => import("../pages/RhythmLab"), 0);
-const Work = lazyWithMinTime(() => import("../pages/Work"));
-const Journey = lazyWithMinTime(() => import("../pages/Journey"));
+// Lazy load all page components so each route is its own chunk
+const Home = React.lazy(() => import("../pages/Home"));
+const Projects = React.lazy(() => import("../pages/Projects"));
+const CaseStudies = React.lazy(() => import("../pages/CaseStudies"));
+const CaseStudyAether = React.lazy(() => import("../pages/CaseStudyAether"));
+const CaseStudyErebus = React.lazy(() => import("../pages/CaseStudyErebus"));
+const CaseStudyArachne = React.lazy(() => import("../pages/CaseStudyArachne"));
+const Writing = React.lazy(() => import("../pages/Writing"));
+const Article = React.lazy(() => import("../pages/Article"));
+const Simulations = React.lazy(() => import("../pages/Simulations"));
+const OrbitalSimulator = React.lazy(() => import("../pages/OrbitalSimulator"));
+const Annals = React.lazy(() => import("../pages/Annals"));
+const SnakeGame = React.lazy(() => import("../pages/SnakeGame"));
+const SpiderSolitaire = React.lazy(() => import("../pages/SpiderSolitaire"));
+const RhythmLab = React.lazy(() => import("../pages/RhythmLab"));
+const Work = React.lazy(() => import("../pages/Work"));
+const Journey = React.lazy(() => import("../pages/Journey"));
 
-const NotFound = lazyWithMinTime(() => import("../pages/NotFound"));
+const NotFound = React.lazy(() => import("../pages/NotFound"));
 
 // Main routes that use the Layout component
 const routes: AppRoute[] = [
