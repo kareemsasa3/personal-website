@@ -125,6 +125,7 @@ const main = async () => {
   const sitemap = await readBuildFile("sitemap.xml");
   const writingIndex = await readBuildFile("writing/index.html");
   const articleSlugs = [
+    "presence-is-not-a-control",
     "the-centaur-era",
     "what-the-second-agent-is-for",
     "normal-is-not-inevitable",
@@ -451,6 +452,7 @@ const main = async () => {
 
   // 1. The index lists every published article.
   for (const title of [
+    "Presence Is Not a Control",
     "The Centaur Era: Half Human, Half Machine",
     "What the Second Agent Is For",
     "Normal Is Not Inevitable",
@@ -468,6 +470,8 @@ const main = async () => {
   //    its title — an empty shell for long-form content would be the worst
   //    possible regression.
   const distinctiveProse = {
+    "presence-is-not-a-control":
+      "The reviewer is looking at a map drawn by the agent that traversed the territory.",
     "the-centaur-era":
       "Collaboration was itself a skill.",
     "what-the-second-agent-is-for":
@@ -507,6 +511,7 @@ const main = async () => {
   // 4. Sitemap covers the index and every article.
   for (const route of [
     "https://kareemsasa.dev/writing",
+    "https://kareemsasa.dev/writing/presence-is-not-a-control",
     "https://kareemsasa.dev/writing/the-centaur-era",
     "https://kareemsasa.dev/writing/what-the-second-agent-is-for",
     "https://kareemsasa.dev/writing/normal-is-not-inevitable",
@@ -522,6 +527,7 @@ const main = async () => {
 
   // 5. Each article shell carries an Article node whose headline matches.
   const expectedHeadlines = {
+    "presence-is-not-a-control": "Presence Is Not a Control",
     "the-centaur-era": "The Centaur Era: Half Human, Half Machine",
     "what-the-second-agent-is-for": "What the Second Agent Is For",
     "normal-is-not-inevitable": "Normal Is Not Inevitable",
@@ -697,6 +703,7 @@ const main = async () => {
   ].map((m) => m[1]);
 
   const expectedIndexOrder = [
+    "presence-is-not-a-control",
     "the-machine-should-explain-itself",
     "the-work-the-agent-stopped-doing",
     "what-should-the-agent-have-to-figure-out",
