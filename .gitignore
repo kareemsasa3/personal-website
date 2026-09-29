@@ -60,13 +60,7 @@ web/.vite
 docs/audits/*
 docs/private/*
 
-# Private article working/source artifacts
-docs/articles/*.drafting-notes.md
-docs/articles/Bottlenecks don’t disappear.pdf
-
 .playwright-mcp/
 
 # Retain visitor audit used as modernization decision evidence
 !docs/audits/personal-website-visitor-audit-2026-09-27.md
-
-docs/articles/critiques/
