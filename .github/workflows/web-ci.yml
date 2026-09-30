@@ -93,6 +93,7 @@ jobs:
             ghcr.io/${{ github.repository }}/web:latest
           build-args: |
             VITE_TURNSTILE_SITE_KEY=${{ secrets.VITE_TURNSTILE_SITE_KEY }}
+            BUILD_SHA=${{ github.sha }}
 
       - name: Scan web image with Trivy (local)
         if: github.ref != 'refs/heads/main'
