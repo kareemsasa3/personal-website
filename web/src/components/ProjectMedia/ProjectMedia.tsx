@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useReducedMotion } from "framer-motion";
 import type { ProjectMedia as ProjectMediaData } from "../../data/projects";
+import MediaCaption from "./MediaCaption";
+import MediaInspector, { type InspectorResult, type InspectorView } from "./MediaInspector";
 import "./ProjectMedia.css";
 
 interface ProjectMediaProps {
@@ -27,7 +29,14 @@ const ProjectMedia = ({
   const reduceMotion = useReducedMotion();
   const videoRef = useRef<HTMLVideoElement>(null);
   const userPausedRef = useRef(false);
+  const inspectingRef = useRef(false);
+  const openerRef = useRef<HTMLButtonElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [inspection, setInspection] = useState<{
+    view: InspectorView;
+    startTime: number;
+    wasPlaying: boolean;
+  } | null>(null);
   const video = mode === "video" ? media.video : undefined;
   const still = (mode === "poster" && media.thumbnail) || media.poster;
   const shouldAutoplay = Boolean(video) && !reduceMotion;
@@ -41,7 +50,7 @@ const ProjectMedia = ({
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting && !userPausedRef.current) {
+        if (entry.isIntersecting && !userPausedRef.current && !inspectingRef.current) {
           // Muted autoplay is normally allowed; if a browser still blocks it, the poster stays up and the play button works.
           element.play().catch(() => undefined);
         } else if (!entry.isIntersecting) {
@@ -68,6 +77,32 @@ const ProjectMedia = ({
       userPausedRef.current = true;
       element.pause();
     }
+  };
+
+  // Hand playback to the larger viewer so only one copy runs at a time.
+  const openInspector = (view: InspectorView, opener: HTMLButtonElement) => {
+    const element = videoRef.current;
+    const wasPlaying = Boolean(element && !element.paused);
+    openerRef.current = opener;
+    inspectingRef.current = true;
+    element?.pause();
+    setInspection({ view, startTime: element?.currentTime ?? 0, wasPlaying });
+  };
+
+  // Carry the viewer's position and play/pause choice back to the inline loop.
+  const closeInspector = ({ currentTime, playing, userPaused }: InspectorResult) => {
+    const element = videoRef.current;
+    inspectingRef.current = false;
+    if (element) {
+      element.currentTime = currentTime;
+      if (userPaused) {
+        userPausedRef.current = true;
+      } else if (playing || inspection?.wasPlaying) {
+        userPausedRef.current = false;
+        element.play().catch(() => undefined);
+      }
+    }
+    setInspection(null);
   };
 
   const classes = ["project-media", className].filter(Boolean).join(" ");
@@ -117,6 +152,42 @@ const ProjectMedia = ({
           decoding="async"
         />
       )}
+      {video && (
+        <div className="project-media__actions">
+          <button
+            type="button"
+            className="project-media__control"
+            aria-haspopup="dialog"
+            aria-label={`Inspect ${label} recording with playback controls`}
+            onClick={(event) => openInspector("recording", event.currentTarget)}
+          >
+            ⤢ inspect recording
+          </button>
+          {video.textualEvidence && (
+            <button
+              type="button"
+              className="project-media__control"
+              aria-haspopup="dialog"
+              aria-label={`Read ${label} still frame`}
+              onClick={(event) => openInspector("still", event.currentTarget)}
+            >
+              ▤ read still frame
+            </button>
+          )}
+        </div>
+      )}
+      {video && inspection && (
+        <MediaInspector
+          media={{ ...media, video }}
+          label={label}
+          initialView={inspection.view}
+          startTime={inspection.startTime}
+          autoplay={inspection.wasPlaying}
+          returnFocus={() => openerRef.current}
+          onClose={closeInspector}
+        />
+      )}
+      {video && <MediaCaption as="figcaption" video={video} />}
     </figure>
   );
 };

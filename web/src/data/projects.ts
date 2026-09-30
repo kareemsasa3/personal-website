@@ -26,7 +26,14 @@ export interface ProjectMedia {
   poster: ProjectMediaAsset & { alt: string };
   /** Card-sized still for when the full poster is unreadable at thumbnail scale; falls back to poster. */
   thumbnail?: ProjectMediaAsset & { alt: string };
-  video?: ProjectMediaAsset & { label: string };
+  video?: ProjectMediaAsset & {
+    /** What the recording shows; its accessible name and visible caption. */
+    label: string;
+    /** Why the recording matters as evidence, and what it does not show. */
+    significance: string;
+    /** The evidence is mostly text (logs, UI), so the full-size poster is offered as a readable still. */
+    textualEvidence?: boolean;
+  };
 }
 
 export interface Project {
@@ -86,6 +93,8 @@ export const projectsData: Project[] = [
         width: 1344,
         height: 784,
         label: "Running erebus events --follow: events from Erebus's network, window focus, thermal, UPS and GPU emitters stream in as they happen, alongside periodic belief re-evaluation ticks.",
+        significance: "These emitter events are the raw timeline Erebus records and reasons over. The clip shows collection; inferred beliefs, replay and search are not shown.",
+        textualEvidence: true,
       },
     },
     highlights: [
@@ -123,6 +132,7 @@ export const projectsData: Project[] = [
         width: 960,
         height: 706,
         label: "Aether's terminal visualizer reacting to live audio, cycling through the Phosphor, Neon Wave, Matrix Rain, Aurora and Cyberpunk styles.",
+        significance: "Its seven-band spectrum readout matches the seven-band analysis this study describes. The clip shows the visualizer responding to live audio; it is not a latency measurement.",
       },
     },
     githubUrl: "https://github.com/kareemsasa3/aether",
@@ -168,6 +178,8 @@ export const projectsData: Project[] = [
         width: 1360,
         height: 1000,
         label: "Arachne walkthrough: submitting a scrape job, watching it complete, generating an AI summary, browsing version history and the analytics dashboard, searching scraped content, and asking the assistant about a job.",
+        significance: "It follows one job from submission to AI summary, then shows the version history and full-text search this study describes. It shows a successful run; load and failure handling are not shown.",
+        textualEvidence: true,
       },
     },
     githubUrl: "https://github.com/kareemsasa3/arachne",
