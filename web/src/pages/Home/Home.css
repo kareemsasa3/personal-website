@@ -129,6 +129,11 @@ TABLE OF CONTENTS
   transform: translateY(-2px) scale(1.05);
 }
 
+/* Brand green on the light gray hover fill is below 4.5:1; the dark green passes. */
+[data-theme="light"] .btn-secondary:hover {
+  color: var(--primary-color-dark);
+}
+
 .btn-outline {
   background: transparent;
   border: 2px solid var(--primary-color);

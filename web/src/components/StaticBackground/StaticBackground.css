@@ -8,7 +8,7 @@
   z-index: -1;
   pointer-events: none;
   overflow: hidden;
-  background: linear-gradient(180deg, var(--app-bg-secondary) 0%, var(--app-bg) 100%);
+  background: var(--bg-canvas-fill);
 }
 
 .static-background::after {
@@ -28,10 +28,10 @@
 
 .static-background__base {
   background:
-    radial-gradient(circle at 12% 14%, rgba(255, 255, 255, 0.68), transparent 28%),
-    radial-gradient(circle at 85% 16%, rgba(255, 255, 255, 0.4), transparent 26%),
+    radial-gradient(circle at 12% 14%, rgba(255, 255, 255, 0.34), transparent 28%),
+    radial-gradient(circle at 85% 16%, rgba(255, 255, 255, 0.2), transparent 26%),
     radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.08), transparent 30%),
-    linear-gradient(180deg, var(--app-bg-secondary) 0%, var(--app-bg) 100%);
+    var(--bg-canvas-fill);
 }
 
 .static-background__grid {

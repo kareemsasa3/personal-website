@@ -105,6 +105,9 @@
 }
 
 [data-theme="light"] .settings-panel {
+    /* Elevated surface: the light page canvas and content surfaces sit
+       below it, so it reads as floating without heavier chrome. */
+    background: var(--app-surface);
     --settings-danger: #b42318;
 }
 

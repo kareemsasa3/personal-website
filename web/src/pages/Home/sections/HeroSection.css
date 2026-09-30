@@ -133,6 +133,24 @@
   line-height: 1.45;
 }
 
+/* Light theme: tonal depth instead of neon glow and a heavy drop shadow.
+   The strip sits at content level and its cells one step above it. */
+[data-theme="light"] .hero-title {
+  text-shadow: 0 0 20px color-mix(in srgb, var(--primary-color) 14%, transparent);
+}
+
+[data-theme="light"] .hero-subtitle {
+  text-shadow: 0 0 15px color-mix(in srgb, var(--primary-color) 18%, transparent);
+}
+
+[data-theme="light"] .hero-proof-strip {
+  box-shadow: 0 12px 36px var(--shadow-color);
+}
+
+[data-theme="light"] .hero-proof-item {
+  background: var(--app-surface);
+}
+
 @media (max-width: 1024px) {
   .hero-title {
     font-size: 3rem;

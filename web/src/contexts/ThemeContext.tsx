@@ -27,10 +27,10 @@ const applyThemeToDocument = (theme: Theme) => {
   root.setAttribute("data-theme", theme);
   root.style.colorScheme = theme;
 
-  root.style.setProperty("--app-bg", isLight ? "#f5f5f5" : "#1a1a1a");
+  root.style.setProperty("--app-bg", isLight ? "#fafaf7" : "#1a1a1a");
   root.style.setProperty(
     "--app-bg-secondary",
-    isLight ? "#fafafa" : "#2d2d2d"
+    isLight ? "#fdfdfb" : "#2d2d2d"
   );
   root.style.setProperty("--app-surface", isLight ? "#ffffff" : "#2d2d2d");
   root.style.setProperty(
@@ -39,7 +39,7 @@ const applyThemeToDocument = (theme: Theme) => {
   );
   root.style.setProperty(
     "--app-overlay",
-    isLight ? "rgba(245, 245, 245, 0.88)" : "rgba(26, 26, 26, 0.88)"
+    isLight ? "rgba(250, 250, 247, 0.88)" : "rgba(26, 26, 26, 0.88)"
   );
   root.style.setProperty("--app-text", isLight ? "#2c2c2c" : "#f8f9fa");
   root.style.setProperty(
@@ -50,14 +50,14 @@ const applyThemeToDocument = (theme: Theme) => {
     "--app-text-muted",
     isLight ? "#6a6a6a" : "#a0a8b0"
   );
-  root.style.setProperty("--app-border", isLight ? "#d0d0d0" : "#495057");
+  root.style.setProperty("--app-border", isLight ? "#cfcec8" : "#495057");
   root.style.setProperty(
     "--app-shadow",
     isLight ? "rgba(0, 0, 0, 0.08)" : "rgba(0, 0, 0, 0.3)"
   );
   root.style.setProperty(
     "--brand-primary",
-    isLight ? "#007a00" : "#4CAF50"
+    isLight ? "#2a7331" : "#4CAF50"
   );
   root.style.setProperty(
     "--brand-primary-soft",
@@ -69,9 +69,9 @@ const applyThemeToDocument = (theme: Theme) => {
   );
   root.style.setProperty(
     "--brand-primary-dark",
-    isLight ? "#005a00" : "#388E3C"
+    isLight ? "#1b5e20" : "#388E3C"
   );
-  root.style.setProperty("--bg-canvas-fill", isLight ? "#f5f5f5" : "#0f0f0f");
+  root.style.setProperty("--bg-canvas-fill", isLight ? "#f4f4f0" : "#0f0f0f");
   root.style.setProperty(
     "--bg-canvas-glyph",
     isLight ? "44, 44, 44" : "0, 255, 0"
@@ -82,19 +82,19 @@ const applyThemeToDocument = (theme: Theme) => {
   );
   root.style.setProperty(
     "--bg-grid-major",
-    isLight ? "rgba(0, 0, 0, 0.095)" : "rgba(129, 199, 132, 0.08)"
+    isLight ? "rgba(0, 0, 0, 0.11)" : "rgba(129, 199, 132, 0.08)"
   );
   root.style.setProperty(
     "--bg-grid-minor",
-    isLight ? "rgba(0, 0, 0, 0.045)" : "rgba(129, 199, 132, 0.03)"
+    isLight ? "rgba(0, 0, 0, 0.055)" : "rgba(129, 199, 132, 0.03)"
   );
   root.style.setProperty(
     "--bg-topology",
-    isLight ? "rgba(0, 122, 0, 0.11)" : "rgba(129, 199, 132, 0.12)"
+    isLight ? "rgba(42, 115, 49, 0.16)" : "rgba(129, 199, 132, 0.12)"
   );
   root.style.setProperty(
     "--bg-signal",
-    isLight ? "rgba(0, 122, 0, 0.06)" : "rgba(129, 199, 132, 0.16)"
+    isLight ? "rgba(42, 115, 49, 0.08)" : "rgba(129, 199, 132, 0.16)"
   );
   root.style.setProperty(
     "--bg-center-lift",
@@ -117,11 +117,11 @@ const applyThemeToDocument = (theme: Theme) => {
   );
   root.style.setProperty(
     "--background-color-transparent",
-    isLight ? "rgba(245, 245, 245, 0.7)" : "rgba(26, 26, 26, 0.7)"
+    isLight ? "rgba(250, 250, 247, 0.7)" : "rgba(26, 26, 26, 0.7)"
   );
   root.style.setProperty(
     "--background-color-overlay",
-    isLight ? "rgba(245, 245, 245, 0.95)" : "rgba(26, 26, 26, 0.95)"
+    isLight ? "rgba(250, 250, 247, 0.95)" : "rgba(26, 26, 26, 0.95)"
   );
   root.style.setProperty("--card-background", "var(--app-surface)");
   root.style.setProperty("--panel-bg-color", "var(--app-surface)");

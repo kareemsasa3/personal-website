@@ -14,7 +14,7 @@ primary comprehension layer.
 }
 
 [data-theme="light"] {
-    --terminal-primary: #007a00;
+    --terminal-primary: var(--brand-primary);
     --terminal-text-light: #2c2c2c;
     --terminal-text-muted: #6a6a6a;
     --terminal-error: #d73a49;
