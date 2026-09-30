@@ -196,7 +196,7 @@ try {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto(`${base}/projects`);
   await keyboardOpen(button("Open settings"));
-  await page.locator(".theme-toggle").click();
+  await button("Light").click();
   await page.evaluate(() => { document.documentElement.style.fontSize = "200%"; });
   await reachable(button("Close settings"));
   await shot("375-enlarged-settings");

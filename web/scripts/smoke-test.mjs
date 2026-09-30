@@ -450,6 +450,23 @@ const main = async () => {
     throw new Error(`Expected no build sourcemaps, found: ${sourceMaps.join(", ")}`);
   }
 
+  // The resolved build commit (CI BUILD_SHA, else the local checkout) must be
+  // baked into the bundle for Settings > About.
+  let expectedBuildSha = process.env.BUILD_SHA?.trim().toLowerCase();
+  if (!expectedBuildSha) {
+    try {
+      expectedBuildSha = execFileSync("git", ["rev-parse", "HEAD"], { cwd: projectRoot, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
+    } catch {
+      expectedBuildSha = undefined;
+    }
+  }
+  if (expectedBuildSha) {
+    const bundles = await Promise.all((await findFilesByExtension(buildDir, ".js")).map((file) => readFile(file, "utf8")));
+    if (!bundles.some((bundle) => bundle.includes(expectedBuildSha))) {
+      throw new Error(`Expected the build bundle to include commit ${expectedBuildSha}`);
+    }
+  }
+
   // 1. The index lists every published article.
   for (const title of [
     "Presence Is Not a Control",

@@ -2,6 +2,7 @@ import { defineConfig, loadEnv } from "vite";
 import type { Plugin, ViteDevServer } from "vite";
 import react from "@vitejs/plugin-react";
 import * as os from "node:os";
+import { execFileSync } from "node:child_process";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { caseStudiesData, caseStudyCards } from "./src/data/caseStudies";
@@ -21,6 +22,7 @@ import {
   sitemapRouteMetadata,
 } from "./src/data/routeMetadata";
 import { getStructuredDataJson } from "./src/data/structuredData";
+import type { BuildInfo } from "./src/types/buildInfo";
 
 const DEFAULT_DEV_HOST = "0.0.0.0";
 const DEFAULT_DEV_PORT = 5173;
@@ -83,6 +85,41 @@ const devBannerPlugin = (
     });
   },
 });
+
+const FULL_SHA_PATTERN = /^[0-9a-f]{40}$/;
+
+const runGit = (args: string[]) =>
+  execFileSync("git", args, {
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "ignore"],
+  }).trim();
+
+// CI passes the exact commit the image is built and tagged from. Otherwise use
+// the local checkout; Docker builds exclude .git and resolve to "none".
+const resolveBuildInfo = (env: Record<string, string>): BuildInfo => {
+  const ciSha = env.BUILD_SHA?.trim().toLowerCase();
+  if (ciSha) {
+    if (!FULL_SHA_PATTERN.test(ciSha)) {
+      throw new Error(`BUILD_SHA must be a full 40-character commit SHA, got "${ciSha}"`);
+    }
+    return { source: "ci", sha: ciSha };
+  }
+
+  try {
+    const sha = runGit(["rev-parse", "HEAD"]);
+    if (FULL_SHA_PATTERN.test(sha)) {
+      return {
+        source: "local",
+        sha,
+        dirty: runGit(["status", "--porcelain"]).length > 0,
+      };
+    }
+  } catch {
+    // No git binary or no checkout available.
+  }
+
+  return { source: "none" };
+};
 
 interface StaticRouteShell {
   path: string;
@@ -936,6 +973,9 @@ export default defineConfig(({ command, mode }) => {
     .filter(Boolean);
 
   return {
+    define: {
+      __BUILD_INFO__: JSON.stringify(resolveBuildInfo(env)),
+    },
     plugins:
       command === "serve"
         ? [react(), devBannerPlugin(tailscaleIp, devPort)]
