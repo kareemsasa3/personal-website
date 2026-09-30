@@ -249,7 +249,7 @@ template {
   --app-overlay: rgba(26, 26, 26, 0.88);
   --app-text: #f8f9fa;
   --app-text-secondary: #adb5bd;
-  --app-text-muted: #6c757d;
+  --app-text-muted: #a0a8b0;
   --app-border: #495057;
   --app-shadow: rgba(0, 0, 0, 0.3);
   --brand-primary: #4CAF50;
@@ -361,6 +361,15 @@ select {
 :where(a, button, input, textarea, select, [tabindex]):focus-visible {
   outline: 2px solid var(--primary-color);
   outline-offset: 2px;
+}
+
+/* Set by ThemeContext for the frame the theme tokens change, so every surface
+   switches together instead of each fading at its own speed. */
+html.theme-switching,
+html.theme-switching *,
+html.theme-switching *::before,
+html.theme-switching *::after {
+  transition: none !important;
 }
 
 /* Respect user's reduced motion preference */
