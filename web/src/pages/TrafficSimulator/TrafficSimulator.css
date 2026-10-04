@@ -1,0 +1,415 @@
+.traffic-container {
+  /* Keep in sync with the canvas palette in components/TrafficSimulator/renderer.ts. */
+  --traffic-moving: #d9e4de;
+  --traffic-slow: #ffc857;
+  --traffic-stopped: #ff7a66;
+  --traffic-green: #4fdb7a;
+  --traffic-yellow: #ffcc33;
+  --traffic-red: #ff5252;
+  max-width: 1400px;
+  margin: 0 auto;
+  color: var(--app-text);
+  font-family: var(--font-family-mono, monospace);
+  line-height: 1.55;
+}
+[data-theme="light"] .traffic-container {
+  --traffic-moving: #2b3a33;
+  --traffic-slow: #a86400;
+  --traffic-stopped: #c62828;
+  --traffic-green: #1d8a3c;
+  --traffic-yellow: #c28f00;
+  --traffic-red: #d32f2f;
+}
+.traffic-header {
+  margin-bottom: 1.5rem;
+}
+.traffic-header a {
+  color: var(--brand-primary);
+}
+.traffic-header h1 {
+  color: var(--brand-primary);
+  font-size: clamp(1.7rem, 4vw, 2.8rem);
+  line-height: 1.15;
+  margin: 0.4rem 0 0.75rem;
+}
+.traffic-header p {
+  margin: 0.5rem 0;
+}
+.traffic-eyebrow {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--app-text-secondary);
+  padding-top: 1rem;
+}
+.traffic-panel {
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: 8px;
+  padding: 1rem;
+  min-width: 0;
+}
+.traffic-container h2 {
+  font-size: 1rem;
+  margin: 0 0 0.8rem;
+  color: var(--brand-primary);
+}
+.traffic-container label {
+  font-size: 0.8rem;
+}
+.traffic-controls label,
+.traffic-select {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+}
+.traffic-container :is(button, select) {
+  font: inherit;
+  font-size: 0.8rem;
+  color: var(--app-text);
+  border: 1px solid var(--app-border);
+  border-radius: 4px;
+  background: var(--app-bg);
+  min-height: 44px;
+  padding: 0.5rem 0.65rem;
+  max-width: 100%;
+}
+.traffic-container select {
+  width: 100%;
+}
+.traffic-container button {
+  cursor: pointer;
+}
+.traffic-container button:hover:not(:disabled) {
+  border-color: var(--brand-primary);
+  background: var(--app-surface-elevated);
+}
+.traffic-container button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.traffic-container .traffic-primary {
+  border-color: var(--brand-primary);
+  color: var(--brand-primary);
+  font-weight: 700;
+  min-width: 85px;
+}
+.traffic-controls {
+  display: flex;
+  align-items: end;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+.traffic-controls > label {
+  flex: 0 1 170px;
+}
+.traffic-controls > .traffic-scenario {
+  flex: 1 1 200px;
+}
+.traffic-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.traffic-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 320px);
+  gap: 1rem;
+  align-items: start;
+}
+.traffic-field {
+  padding: 0;
+  overflow: hidden;
+}
+.traffic-status {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.4rem 1rem;
+  padding: 0.7rem 1rem;
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  border-bottom: 1px solid var(--app-border);
+}
+.traffic-status > span:first-child {
+  color: var(--brand-primary);
+}
+.traffic-canvas {
+  display: block;
+  width: 100%;
+  /* Roughly the corridor's own proportions, so the whole map fills the field. */
+  aspect-ratio: 2.8 / 1;
+  min-height: 240px;
+}
+.traffic-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.1rem;
+  margin: 0;
+  padding: 0.7rem 1rem;
+  list-style: none;
+  font-size: 0.75rem;
+  color: var(--app-text-secondary);
+  border-top: 1px solid var(--app-border);
+}
+.traffic-legend li {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.traffic-swatch {
+  display: inline-block;
+  width: 14px;
+  height: 7px;
+  border-radius: 1px;
+}
+.traffic-swatch-moving {
+  background: var(--traffic-moving);
+}
+.traffic-swatch-slow {
+  background: var(--traffic-slow);
+}
+.traffic-swatch-stopped {
+  background: var(--traffic-stopped);
+}
+.traffic-parameters {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.traffic-group {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+.traffic-group legend {
+  padding: 0;
+  margin-bottom: 0.7rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--brand-primary);
+}
+.traffic-slider {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+.traffic-slider-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.75rem;
+  font-size: 0.8rem;
+}
+.traffic-slider output {
+  font-variant-numeric: tabular-nums;
+  color: var(--app-text-secondary);
+  text-align: right;
+}
+.traffic-slider input[type="range"] {
+  width: 100%;
+  min-height: 32px;
+  margin: 0;
+  accent-color: var(--brand-primary);
+  cursor: pointer;
+}
+.traffic-slider input[type="range"]:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.traffic-note {
+  font-size: 0.75rem;
+  color: var(--app-text-secondary);
+  margin: 0.75rem 0;
+}
+.traffic-parameters .traffic-note {
+  margin: 0;
+}
+.traffic-metrics {
+  margin-top: 1rem;
+}
+.traffic-metrics > .traffic-note:first-of-type {
+  margin-top: 0;
+}
+.traffic-tiles {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 0 0 1rem;
+}
+.traffic-tiles > div {
+  border: 1px solid var(--app-border);
+  border-radius: 6px;
+  padding: 0.6rem 0.75rem;
+  background: var(--app-bg);
+}
+.traffic-tiles dt {
+  font-size: 0.72rem;
+  color: var(--app-text-secondary);
+}
+.traffic-tiles dd {
+  margin: 0.2rem 0 0;
+  font-size: 0.72rem;
+  color: var(--app-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+.traffic-tile-value {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--app-text);
+}
+.traffic-sparks {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+.traffic-spark {
+  margin: 0;
+  min-width: 0;
+}
+.traffic-spark figcaption {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--app-text-secondary);
+  margin-bottom: 0.3rem;
+}
+.traffic-spark-value {
+  color: var(--app-text);
+  font-variant-numeric: tabular-nums;
+}
+.traffic-spark svg {
+  display: block;
+  width: 100%;
+  height: 72px;
+  touch-action: pan-y;
+}
+.traffic-spark-line {
+  fill: none;
+  stroke: var(--brand-primary);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+.traffic-spark-base,
+.traffic-spark-cross {
+  stroke: var(--app-border);
+  stroke-width: 1;
+}
+.traffic-spark-cross {
+  stroke: var(--app-text-secondary);
+}
+.traffic-tables {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+.traffic-tables table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+}
+.traffic-tables caption {
+  text-align: left;
+  font-weight: 700;
+  color: var(--brand-primary);
+  padding-bottom: 0.4rem;
+}
+.traffic-tables :is(th, td) {
+  text-align: left;
+  padding: 0.4rem 0.5rem 0.4rem 0;
+  border-bottom: 1px solid var(--app-border);
+  white-space: nowrap;
+}
+.traffic-tables thead th {
+  color: var(--app-text-secondary);
+  font-weight: 400;
+  white-space: normal;
+  vertical-align: bottom;
+}
+.traffic-light {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  margin-right: 0.4rem;
+  vertical-align: baseline;
+}
+.traffic-light-green {
+  background: var(--traffic-green);
+}
+.traffic-light-yellow {
+  background: var(--traffic-yellow);
+}
+.traffic-light-red {
+  background: var(--traffic-red);
+}
+.traffic-context {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-top: 1rem;
+  font-size: 0.85rem;
+}
+.traffic-context p {
+  margin: 0.75rem 0 0;
+}
+@media (max-width: 1100px) {
+  .traffic-tiles {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (max-width: 900px) {
+  .traffic-workspace,
+  .traffic-tables,
+  .traffic-context {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .traffic-context {
+    gap: 1.4rem;
+  }
+}
+@media (max-width: 600px) {
+  /* Tall canvas: the renderer turns the corridor vertical. */
+  .traffic-canvas {
+    aspect-ratio: auto;
+    height: min(620px, 150vw);
+  }
+  .traffic-sparks {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .traffic-tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 480px) {
+  .traffic-controls {
+    gap: 0.8rem;
+  }
+  .traffic-controls > label {
+    flex-basis: 100%;
+  }
+  .traffic-status,
+  .traffic-legend {
+    padding: 0.6rem;
+  }
+  .traffic-eyebrow {
+    letter-spacing: 0;
+  }
+  .traffic-tables table {
+    font-size: 0.72rem;
+  }
+  .traffic-tables :is(th, td) {
+    padding-right: 0.3rem;
+  }
+  .traffic-light {
+    margin-right: 0.25rem;
+  }
+}

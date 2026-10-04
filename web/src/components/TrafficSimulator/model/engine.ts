@@ -173,6 +173,14 @@ export class TrafficEngine {
     for (let i = Math.round(seconds / DT); i > 0; i--) this.step();
   }
 
+  /** Vehicles generated but still waiting off-map for room to enter, per entry. */
+  waitingByEntry() {
+    return this.entries.map((entry) => ({
+      lane: entry.spec.lanes[0],
+      waiting: entry.backlog.length,
+    }));
+  }
+
   vehicleCount() {
     return this.lanes.reduce((n, lane) => n + lane.vehicles.length, 0);
   }
