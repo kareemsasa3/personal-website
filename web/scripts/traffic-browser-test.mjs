@@ -244,6 +244,13 @@ try {
   await r.button("Play").waitFor();
   await reducedPage.waitForTimeout(800);
   assert.equal(await r.elapsed(), 0);
+  // Paused at 0:00, a new scenario must still repaint (Green wave starts with different lights).
+  const steady = await reducedPage.locator("canvas.traffic-canvas").screenshot();
+  await reducedPage.getByLabel("Scenario", { exact: true }).selectOption("green-wave");
+  await reducedPage.waitForTimeout(150);
+  assert.equal(await r.elapsed(), 0);
+  assert.notDeepEqual(await reducedPage.locator("canvas.traffic-canvas").screenshot(), steady, "canvas repainted");
+  await reducedPage.getByLabel("Scenario", { exact: true }).selectOption("balanced");
   await r.button("Step 1 s").click();
   assert.equal(await r.elapsed(), 1);
   await r.button("Play").click();

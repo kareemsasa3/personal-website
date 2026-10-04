@@ -344,6 +344,47 @@ test("a red light builds a stationary queue at the stop line that discharges on 
   assert.ok(served() > servedAtRed + 10, `${served()} vs ${servedAtRed}`);
 });
 
+test("yellow: drivers who can stop comfortably do; drivers too close go through", () => {
+  // East–west green until 25 s, yellow 25–28 s, red from 28 s.
+  const engine = new TrafficEngine({
+    demand: { eastbound: 0, westbound: 0, cross: 0 },
+    plan: fixedPlan({ cycle: 60, split: 0.5 }),
+    seed: 1,
+  });
+  engine.run(24.9);
+  const [lane1, lane2] = engine.lanes.filter((l) => l.spec.route === "EB");
+  const stop = firstStop(lane1).position;
+  const car = (id, position) => ({
+    id,
+    position,
+    speed: 13,
+    length: VEHICLE_LENGTH,
+    desiredSpeed: 13,
+    arrivedAt: engine.time,
+    stops: 0,
+    stopped: false,
+    yieldingAt: null,
+  });
+  const far = car(1e6, stop - 46); // needs ~1.9 m/s² to stop: should stop
+  const near = car(1e6 + 1, stop - 16); // needs ~5.4 m/s²: should continue
+  lane1.vehicles.push(far);
+  lane2.vehicles.push(near);
+  let hardest = 0,
+    nearCrossedAt = null;
+  for (let i = 0; i < 100; i++) {
+    const speed = far.speed;
+    engine.step();
+    hardest = Math.max(hardest, (speed - far.speed) / DT);
+    if (nearCrossedAt === null && near.position > stop) nearCrossedAt = engine.time;
+    assert.ok(far.position <= stop, `far car crossed at ${engine.time}`);
+  }
+  assert.ok(nearCrossedAt !== null && nearCrossedAt < 28, `near car crossed at ${nearCrossedAt}`);
+  assert.equal(near.stops, 0, "near car never stopped");
+  assert.ok(far.speed < 0.3 && far.stops === 1, `far car stopped (${far.speed} m/s)`);
+  assert.ok(stop - far.position < 3, "far car waits at the line");
+  assert.ok(hardest < 4.5, `far car braked smoothly (peak ${hardest.toFixed(1)} m/s²)`);
+});
+
 test("spillback: drivers keep the box clear, and a blocked box holds crossing traffic", () => {
   // Signal 2 runs 30 s behind signal 1, so it is red while signal 1 shows
   // the arterial green. Fill block 1→2 with a stopped queue, and strand one
