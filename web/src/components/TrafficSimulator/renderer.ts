@@ -71,7 +71,7 @@ export function layoutRoad(engine: TrafficEngine, width: number): RoadLayout | R
   const { scenario } = engine;
   if (scenario.topology === "ring") {
     const size = Math.min(width, 420);
-    return { kind: "ring", radius: size / 2 - 36, height: size };
+    return { kind: "ring", radius: Math.max(8, size / 2 - 36), height: size };
   }
   const usable = Math.max(120, width - 2 * PAD_X);
   const rows = Math.max(1, Math.ceil(scenario.length / (usable / MIN_PIXELS_PER_METRE)));

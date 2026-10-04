@@ -49,7 +49,7 @@ export default function TrafficSimulator() {
               <span>{simulation.playing ? "Running" : "Paused"}</span>
               <span>{scenario.name}</span>
               <span>
-                Elapsed <output aria-label="Elapsed simulated time">{elapsed(state.metrics.time)}</output>
+                Elapsed <output aria-label="Elapsed simulated time" aria-live="off">{elapsed(state.metrics.time)}</output>
               </span>
             </div>
             <RoadCanvas engine={simulation.engine} />
@@ -114,8 +114,8 @@ export default function TrafficSimulator() {
               it costs the drivers behind, weighted by politeness (MOBIL).
             </p>
             <p>
-              On yellow, a driver stops only if they can do so comfortably;
-              otherwise they continue through. Arrivals are random but seeded:
+              On yellow, a driver who would need more than gentle braking to
+              stop at the line continues through instead. Arrivals are random but seeded:
               Restart run replays the same traffic so settings can be compared
               fairly. Open roads start after a short warm-up so the road is not empty.
             </p>
