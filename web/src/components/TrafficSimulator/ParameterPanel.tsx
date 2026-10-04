@@ -28,7 +28,9 @@ function Slider({
     <div className="traffic-slider">
       <div className="traffic-slider-label">
         <label htmlFor={id}>{label}</label>
-        <output htmlFor={id}>{display}</output>
+        <output htmlFor={id} aria-live="off">
+          {display}
+        </output>
       </div>
       <input
         id={id}

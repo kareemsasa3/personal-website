@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { SimulationClock } from "./model/clock";
 import { TrafficEngine, type Demand } from "./model/engine";
 import { presets, type TrafficPreset } from "./model/presets";
@@ -19,8 +19,10 @@ export function useTrafficSimulation() {
   const [playing, setPlaying] = useState(() => !reducedMotion());
   const [speed, setSpeed] = useState(1);
   const [limited, setLimited] = useState(false);
+  const revision = useRef(0);
   const snapshot = useCallback(
     () => ({
+      revision: ++revision.current,
       stats: engine.current.stats(),
       history: engine.current.history.slice(),
       waiting: engine.current.waitingByEntry(),

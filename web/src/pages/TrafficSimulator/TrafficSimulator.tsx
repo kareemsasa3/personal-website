@@ -38,7 +38,7 @@ export default function TrafficSimulator() {
             <div className="traffic-status">
               <span>{simulation.playing ? "Running" : "Paused"}</span>
               <span>
-                Elapsed <output aria-label="Elapsed simulated time">{clockTime(stats.time)}</output>
+                Elapsed <output aria-label="Elapsed simulated time" aria-live="off">{clockTime(stats.time)}</output>
               </span>
               <span>{simulation.plan.mode === "fixed" ? "Fixed-time signals" : "Actuated signals"}</span>
             </div>
@@ -46,7 +46,7 @@ export default function TrafficSimulator() {
               engine={simulation.engine}
               playing={simulation.playing}
               focus={focus}
-              frameKey={stats.time}
+              frameKey={simulation.revision}
               waiting={simulation.waiting}
               label={`Traffic corridor at ${clockTime(stats.time)}: ${stats.onRoad} vehicles on the road, ${stats.stopped} stopped; ${signalSummary}. Exact figures are in the measurements below.`}
             />

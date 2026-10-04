@@ -7,7 +7,7 @@ interface Props {
   engine: { current: TrafficEngine };
   playing: boolean;
   focus: Focus;
-  /** Changes whenever the paused state changes (step, reset, restart). */
+  /** Changes with every state snapshot (step, reset, restart, scenario change). */
   frameKey: number;
   waiting: readonly { lane: number; waiting: number }[];
   label: string;
@@ -20,6 +20,8 @@ interface Props {
 export default function TrafficCanvas({ engine, playing, focus, frameKey, waiting, label }: Props) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const { theme } = useTheme();
+  // While playing the loop draws every frame anyway; don't restart it on each readout.
+  const pausedFrame = playing ? -1 : frameKey;
   const latestWaiting = useRef(waiting);
   useEffect(() => {
     latestWaiting.current = waiting;
@@ -60,7 +62,7 @@ export default function TrafficCanvas({ engine, playing, focus, frameKey, waitin
       cancelAnimationFrame(frame);
       resize.disconnect();
     };
-  }, [engine, playing, focus, theme, frameKey]);
+  }, [engine, playing, focus, theme, pausedFrame]);
   return (
     <canvas ref={canvas} className="traffic-canvas" role="img" aria-label={label}>
       {label}
