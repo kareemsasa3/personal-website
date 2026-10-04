@@ -24,6 +24,7 @@ import {
   findScenario,
   scenarios,
 } from "../src/components/TrafficSimulator/model/scenarios.ts";
+import { simulationsData } from "../src/data/simulationsData.ts";
 
 const near = (a, b, tolerance = 1e-9) =>
   assert.ok(Math.abs(a - b) <= tolerance, `${a} ≈ ${b} (±${tolerance})`);
@@ -261,4 +262,12 @@ test("the clock is frame-rate independent and bounds stalls", () => {
   assert.ok(steps <= MAX_SUBSTEPS);
   assert.throws(() => clock.advance(0.016, 3, () => {}), /Invalid/);
   assert.throws(() => clock.advance(-1, 1, () => {}), /Invalid/);
+});
+
+test("the Traffic Simulator card is launchable at its existing slug", () => {
+  const traffic = simulationsData.find((s) => s.id === "traffic-simulator");
+  assert.equal(traffic.path, "/simulations/traffic-simulator");
+  assert.equal(traffic.isAvailable, true);
+  assert.equal(traffic.statusLabel, undefined);
+  assert.equal(traffic.previewType, "traffic");
 });
