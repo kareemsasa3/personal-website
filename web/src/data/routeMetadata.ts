@@ -89,6 +89,13 @@ const staticRouteMetadata: RouteMetadata[] = [
     sitemap: { changefreq: "monthly", priority: "0.3" },
   },
   {
+    path: "/simulations/traffic-simulator",
+    title: "Traffic Simulator - Kareem Sasa",
+    description: "Run a signal-controlled corridor: change traffic demand and signal timing to watch queues, spillback, and green waves emerge from simple driver rules.",
+    canonicalPath: "/simulations/traffic-simulator",
+    sitemap: { changefreq: "monthly", priority: "0.3" },
+  },
+  {
     path: "/simulations/snake",
     title: "Snake - Kareem Sasa",
     description:

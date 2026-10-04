@@ -228,6 +228,7 @@ const primaryRouteShellPaths = [
   "/journey",
   "/simulations",
   "/simulations/orbital-simulator",
+  "/simulations/traffic-simulator",
   "/simulations/snake",
   "/simulations/spider",
   "/simulations/rhythm-lab",
@@ -269,6 +270,7 @@ const primaryRouteShellDetails: Record<
     ],
     links: [
       { label: "Open Orbital Simulator", href: "/simulations/orbital-simulator" },
+      { label: "Open Traffic Simulator", href: "/simulations/traffic-simulator" },
       { label: "Open Snake", href: "/simulations/snake" },
       { label: "Open Spider Solitaire", href: "/simulations/spider" },
       { label: "Open Rhythm Lab", href: "/simulations/rhythm-lab" },
@@ -280,6 +282,15 @@ const primaryRouteShellDetails: Record<
     highlights: [
       "Explore planetary orbits, binary stars, and three-body encounters with pairwise gravity.",
       "Change mass, position, and velocity in a live numerical simulation. JavaScript is required for the interactive field.",
+    ],
+    links: [{ label: "Back to simulations", href: "/simulations" }],
+  },
+  "/simulations/traffic-simulator": {
+    eyebrow: "Interactive System",
+    heading: "Traffic Simulator",
+    highlights: [
+      "A three-signal arterial with multi-lane flow, fixed-time or actuated signals, and live throughput, delay, and queue measurements.",
+      "Change demand, cycle length, green split, and offsets to see congestion and green waves emerge. JavaScript is required for the interactive corridor.",
     ],
     links: [{ label: "Back to simulations", href: "/simulations" }],
   },

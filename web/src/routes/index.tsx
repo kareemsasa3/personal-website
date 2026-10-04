@@ -20,6 +20,7 @@ const Writing = React.lazy(() => import("../pages/Writing"));
 const Article = React.lazy(() => import("../pages/Article"));
 const Simulations = React.lazy(() => import("../pages/Simulations"));
 const OrbitalSimulator = React.lazy(() => import("../pages/OrbitalSimulator"));
+const TrafficSimulator = React.lazy(() => import("../pages/TrafficSimulator"));
 const Annals = React.lazy(() => import("../pages/Annals"));
 const SnakeGame = React.lazy(() => import("../pages/SnakeGame"));
 const SpiderSolitaire = React.lazy(() => import("../pages/SpiderSolitaire"));
@@ -49,6 +50,7 @@ const routes: AppRoute[] = [
   { path: "writing/:slug", element: React.createElement(Article) },
   { path: "simulations", element: React.createElement(Simulations) },
   { path: "simulations/orbital-simulator", element: React.createElement(OrbitalSimulator) },
+  { path: "simulations/traffic-simulator", element: React.createElement(TrafficSimulator) },
   { path: "simulations/annals", element: React.createElement(Annals) },
   { path: "simulations/snake", element: React.createElement(SnakeGame) },
   { path: "simulations/spider", element: React.createElement(SpiderSolitaire) },

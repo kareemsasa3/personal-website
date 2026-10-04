@@ -92,6 +92,24 @@ const SimulationCard: React.FC<SimulationCardProps> = ({
             <circle cx="120" cy="44" r="4" fill="currentColor" />
           </svg>
         );
+      case "traffic":
+        return (
+          <svg viewBox="0 0 240 140" width="240" height="140" aria-hidden="true" style={{ maxWidth: "100%", color: "var(--brand-primary)" }}>
+            <rect x="0" y="52" width="240" height="36" fill="currentColor" opacity="0.14" />
+            <rect x="104" y="0" width="32" height="140" fill="currentColor" opacity="0.14" />
+            <line x1="0" y1="70" x2="104" y2="70" stroke="currentColor" opacity="0.5" />
+            <line x1="136" y1="70" x2="240" y2="70" stroke="currentColor" opacity="0.5" />
+            <line x1="0" y1="61" x2="104" y2="61" stroke="currentColor" opacity="0.35" strokeDasharray="6 6" />
+            <line x1="0" y1="79" x2="104" y2="79" stroke="currentColor" opacity="0.35" strokeDasharray="6 6" />
+            <rect x="80" y="73" width="16" height="7" rx="1" fill="currentColor" />
+            <rect x="58" y="73" width="16" height="7" rx="1" fill="currentColor" />
+            <rect x="36" y="73" width="16" height="7" rx="1" fill="currentColor" opacity="0.7" />
+            <rect x="72" y="82" width="16" height="7" rx="1" fill="currentColor" opacity="0.7" />
+            <rect x="150" y="55" width="16" height="7" rx="1" fill="currentColor" opacity="0.7" />
+            <rect x="123" y="18" width="7" height="16" rx="1" fill="currentColor" />
+            <circle cx="98" cy="96" r="4" fill="currentColor" />
+          </svg>
+        );
       case "placeholder":
       default:
         return <div className="placeholder" aria-hidden="true">[ &#43; ]</div>;

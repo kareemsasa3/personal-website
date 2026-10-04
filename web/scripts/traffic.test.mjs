@@ -31,6 +31,7 @@ import {
   SimulationClock,
 } from "../src/components/TrafficSimulator/model/clock.ts";
 import { presets } from "../src/components/TrafficSimulator/model/presets.ts";
+import { simulationsData } from "../src/data/simulationsData.ts";
 
 const preset = (id) => {
   const found = presets.find((p) => p.id === id);
@@ -537,4 +538,13 @@ test("clock: stalled frames are bounded and malformed input rejected", () => {
     [1, 3],
   ])
     assert.throws(() => clock.advance(seconds, speed, () => {}));
+});
+
+test("registry: Traffic Simulator is a playable simulation, not a placeholder", () => {
+  const traffic = simulationsData.find((s) => s.id === "traffic-simulator");
+  assert.equal(traffic.path, "/simulations/traffic-simulator");
+  assert.equal(traffic.isAvailable, true);
+  assert.equal(traffic.statusLabel, undefined);
+  assert.equal(traffic.previewType, "traffic");
+  assert.equal(traffic.externalUrl, undefined);
 });
