@@ -37,8 +37,8 @@ A vehicle never crosses a stop line that is closed to it.
 
 **Signals.** Both controllers share one state machine. Every change of right of way goes green → 3 s yellow → 2 s all-red → green on the other street, and every green lasts at least 5 s, including when the plan is edited mid-cycle.
 
-- *Fixed time:* cycle = east–west green + north–south green + 10 s. The split divides the green time. Signal *k* runs its cycle *k* × offset seconds behind signal 1.
-- *Actuated:* a detector covers 35 m before each stop line. A green holds while vehicles are on its detectors. It ends when the other street is waiting and its own detectors empty (gap-out), or at 40 s (max-out). With no competing demand it rests in green.
+- *Fixed time:* cycle = east–west green + north–south green + 10 s. The split divides the green time. Each signal runs its cycle one offset behind its western neighbour: signal 2 by one offset, signal 3 by two.
+- *Actuated:* a detector covers 35 m before each stop line. A green holds while vehicles are on its detectors. It ends only when the other street is waiting: as soon as its own detectors empty (gap-out), or at 40 s even if they don't (max-out). With no competing demand it rests in green.
 
 **Measurements.** Delay is a trip's actual time, including any wait to enter, minus the route length divided by the driver's preferred speed. A stop is a drop below 0.3 m/s; the vehicle must exceed 3 m/s before another counts. Tiles and tables cover trips finished in the last 60 s. The trend charts sample every 5 s and keep 6 minutes. Queues count vehicles under 2 m/s approaching each signal.
 
@@ -62,9 +62,10 @@ node --import ./scripts/traffic-test-loader.mjs scripts/traffic.test.mjs
 
 `npm test` builds production assets and runs the orbital and traffic suites. It then checks generated route shells, canonical metadata, breadcrumbs, sitemap entries, and the Simulations launch links. The traffic loader mirrors the orbital one: it uses the existing TypeScript compiler and Node's module registration API.
 
-The 25 traffic tests cover:
+The 26 traffic tests cover:
 
 - car following, and fixed-time timing, offsets, mid-cycle plan changes, and actuated rest/gap-out/max-out;
+- the yellow decision: a driver who can stop comfortably does, and one too close goes through;
 - plan and demand validation;
 - determinism;
 - per-step invariants for 15 simulated minutes of every preset: no overlap, no entry on red, no shared intersection box, and vehicle conservation;
@@ -73,7 +74,7 @@ The 25 traffic tests cover:
 - forced spillback, with box blocking and crossing traffic held;
 - live metrics, bounded history and backlogs, the frame clock, and the registry entry.
 
-The red-light, box-occupancy, and storage rules were each disabled once to confirm a test fails without them.
+The red-light, yellow-decision, box-occupancy, and storage rules were each disabled once to confirm a test fails without them.
 
 The browser regression script uses an existing Playwright installation:
 
