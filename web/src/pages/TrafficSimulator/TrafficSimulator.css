@@ -345,6 +345,16 @@ html[data-theme="light"] .traffic-container {
 .traffic-table :is(th, td):first-child {
   text-align: left;
 }
+.traffic-table caption {
+  caption-side: top;
+  text-align: left;
+  padding-bottom: 0.35rem;
+  color: var(--app-text-secondary);
+}
+.traffic-slow-table :is(th, td) {
+  text-align: left;
+  overflow-wrap: anywhere;
+}
 .traffic-context {
   display: grid;
   grid-template-columns: 1fr 1fr;

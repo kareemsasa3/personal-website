@@ -7,7 +7,20 @@ import {
   drawSpaceTime,
   spaceTimeFrame,
 } from "./renderer";
-import type { TrafficEngine } from "./model/engine";
+import { slowStretches, type SlowStretch } from "./model/congestion";
+import { DT } from "./model/idm";
+import { SAMPLE_INTERVAL, type TrafficEngine } from "./model/engine";
+
+const TABLE_AGES = [0, 30, 60, 90]; // s before the newest sample
+
+const describe = (stretch: SlowStretch, length: number) => {
+  const m = Math.round;
+  const span =
+    stretch.from <= stretch.to
+      ? `${m(stretch.from)}–${m(stretch.to)} m`
+      : `${m(stretch.from)}–${m(length)} m and 0–${m(stretch.to)} m`;
+  return `${span} (${stretch.vehicles} vehicles)`;
+};
 
 interface SpaceTimeCanvasProps {
   engine: { current: TrafficEngine };
@@ -93,6 +106,42 @@ export default function SpaceTimeCanvas({ engine, playing, revision }: SpaceTime
           ? `${pointer.ago < 0.5 ? "now" : `${pointer.ago.toFixed(0)} s ago`} · ${Math.round(pointer.position)} m from the ${engine.current.scenario.topology === "ring" ? "detector" : "entrance"}`
           : "Point at the diagram to read time and position."}
       </p>
+      <SlowTrafficTable engine={engine.current} />
     </>
+  );
+}
+
+/** The diagram's dark bands as text: where traffic was slow at a few moments in the window. */
+function SlowTrafficTable({ engine }: { engine: TrafficEngine }) {
+  const { samples, scenario } = engine;
+  const ring = scenario.topology === "ring";
+  const rows = TABLE_AGES.flatMap((age) => {
+    const sample = samples[samples.length - 1 - Math.round(age / (SAMPLE_INTERVAL * DT))];
+    return sample ? [{ age, stretches: slowStretches(sample, scenario.length, ring) }] : [];
+  });
+  if (rows.length === 0) return null;
+  return (
+    <details className="traffic-table">
+      <summary>Data table</summary>
+      <table className="traffic-slow-table">
+        <caption>
+          Slow traffic (below 30% of the speed limit), in metres from the {ring ? "detector" : "entrance"}
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col">Time</th>
+            <th scope="col">Slow stretches</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map(({ age, stretches }) => (
+            <tr key={age}>
+              <td>{age === 0 ? "now" : `${age} s ago`}</td>
+              <td>{stretches.length ? stretches.map((s) => describe(s, scenario.length)).join("; ") : "none"}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </details>
   );
 }

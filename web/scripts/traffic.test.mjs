@@ -24,6 +24,7 @@ import {
   findScenario,
   scenarios,
 } from "../src/components/TrafficSimulator/model/scenarios.ts";
+import { slowStretches } from "../src/components/TrafficSimulator/model/congestion.ts";
 import { simulationsData } from "../src/data/simulationsData.ts";
 
 const near = (a, b, tolerance = 1e-9) =>
@@ -276,6 +277,36 @@ test("ring road: dense even flow is unstable; a brake tap sets off the jam early
   assert.ok(sparse.engine.metrics().minSpeed > sparse.before * 0.8, "the tap fades at low density");
   const responsive = perturbed({ acceleration: 1.5 });
   assert.ok(responsive.engine.metrics().minSpeed > responsive.before * 0.8, "and with quicker drivers");
+});
+
+test("slow stretches: the diagram's dark bands as text", () => {
+  const sample = (pairs) => ({
+    time: 0,
+    x: Float32Array.from(pairs.map(([x]) => x)),
+    speed: Float32Array.from(pairs.map(([, speed]) => speed)),
+    signals: [],
+  });
+  const open = slowStretches(sample([[100, 0], [110, 0.1], [125, 0.2], [300, 0.05], [500, 0], [520, 0], [545, 0.25], [560, 0.9]]), 1000, false);
+  assert.deepEqual(open, [
+    { from: 100, to: 125, vehicles: 3 },
+    { from: 500, to: 545, vehicles: 3 },
+  ], "joins nearby slow vehicles, drops isolated ones, ignores fast ones");
+  const ring = slowStretches(sample([[5, 0], [15, 0], [580, 0], [590, 0]]), 600, true);
+  assert.deepEqual(ring, [{ from: 580, to: 15, vehicles: 4 }], "a ring stretch can wrap past the detector");
+  // On the dense ring, the jam's downstream end moves backward while cars move forward.
+  const engine = build("ring");
+  run(engine, 20);
+  engine.perturb();
+  run(engine, 40);
+  const front = () => slowStretches(engine.samples.at(-1), 600, true).sort((a, b) => b.vehicles - a.vehicles)[0].to;
+  const before = front();
+  run(engine, 10);
+  const moved = ((front() - before + 900) % 600) - 300; // signed, around the loop
+  assert.ok(moved < -10, `jam front moved ${moved.toFixed(1)} m in 10 s`);
+  // At a saturated lane drop, slow traffic sits upstream of the drop.
+  const merge = run(build("bottleneck", { demand: 4500 }), 600);
+  const stretches = slowStretches(merge.samples.at(-1), merge.scenario.length, false);
+  assert.ok(stretches.length > 0 && stretches.every((s) => s.to < merge.scenario.laneDrop.x + 50), JSON.stringify(stretches));
 });
 
 test("parameter edits are validated and atomic", () => {
