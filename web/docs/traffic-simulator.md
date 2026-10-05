@@ -5,7 +5,7 @@ Local implementation at `/simulations/traffic-simulator`. The existing registry 
 ## Structure
 
 - `src/components/TrafficSimulator/model/idm.ts`: Intelligent Driver Model acceleration, the fixed step (`DT = 0.1 s`), and the equilibrium speed for a given gap.
-- `model/signals.ts`: fixed-cycle signal timing (green, 3 s yellow, red) and offsets for green-wave, simultaneous, and reverse-wave coordination.
+- `model/signals.ts`: fixed-cycle signal timing (green, 3 s yellow, red), offsets for green-wave, simultaneous, and reverse-wave coordination, and the shown-light sequence that keeps timing edits safe.
 - `model/engine.ts`: vehicle state, per-lane ordering, stop-line decisions, MOBIL lane changes, ballistic integration, entrance queue, exits, ring wrap-around, space-time samples, and metrics.
 - `model/scenarios.ts`: the three scenarios, their vehicle classes, seeds, warm-up, and control ranges.
 - `model/clock.ts`: wall-time accumulator, fixed substeps, stall/work limits (same approach as the Orbital Simulator).
@@ -22,6 +22,8 @@ Units are metres, seconds, and metres per second. Each vehicle's front bumper po
 **Car following.** IDM: `a·[1 − (v/v0)⁴ − (s*/s)²]` with `s* = s0 + max(0, vT + vΔv / 2√(ab))`. A driver takes the minimum of the response to the vehicle ahead and to any stationary obstacle (a stop line it has chosen to obey, or the end of its lane). Deceleration is clamped at 9 m/s². Integration is ballistic; vehicles never reverse. A guard pass would clamp any overlap and count it; tests require that count to stay zero.
 
 **Signals.** All signals share one cycle and green share; coordination changes only the offsets. A green wave delays each downstream signal by its distance from the first divided by the speed limit. When a signal is not green, a driver obeys it only if stopping needs no more than 3 m/s² (yellow) or 7 m/s² (red); otherwise the driver commits to clearing that signal and ignores it until past the line.
+
+Each signal shows its fixed-time schedule exactly until the timing is edited. An edit can jump the schedule mid-cycle, so the light a driver sees only ever steps green → yellow → red → green: a light that is green when its new schedule says red shows a full 3 s yellow first, a yellow is never cut short, and a red holds until the schedule next turns green. (The experimental artifact at `7420cc7` applied edits to the lights instantly; under abrupt edits drivers too close to stop crossed on red. The tests now cover that case.)
 
 **Lane changes.** MOBIL with symmetric rules: a change happens when the driver's gain plus politeness × the net gain of the old and new followers exceeds 0.15 m/s², the new follower would brake by no more than 4 m/s², and the physical gaps fit. Each vehicle re-evaluates every 0.5 s with a 3 s cooldown. In the lane-drop scenario, the ending lane is closed to entry within 400 m of its end and leaving it carries a 3 m/s² bias. Drawn lateral movement eases over 1.5 s; it has no physical effect.
 

@@ -1,6 +1,15 @@
 import { DT, MAX_DECELERATION, equilibriumSpeed, idm, type DriverModel } from "./idm.ts";
 import { createRandom, exponential } from "./random.ts";
-import { signalPhase, signalTiming, type SignalState, type SignalTiming } from "./signals.ts";
+import {
+  lightRemaining,
+  nextLight,
+  scheduledLight,
+  signalPhase,
+  signalTiming,
+  type SignalLight,
+  type SignalState,
+  type SignalTiming,
+} from "./signals.ts";
 import type { Scenario, TrafficParams, VehicleClass } from "./scenarios.ts";
 
 export interface Vehicle {
@@ -51,7 +60,7 @@ export interface HistoryPoint {
 }
 
 const COMFORT_STOP = 3; // m/s² a driver accepts to stop for yellow
-const HARD_STOP = 7; // beyond this a red cannot be obeyed (only after abrupt timing edits)
+const HARD_STOP = 7; // beyond this a red cannot be obeyed (a fallback; lights always show a full yellow first)
 const B_SAFE = 4; // MOBIL: most braking a lane change may impose
 const LANE_CHANGE_THRESHOLD = 0.15; // m/s² minimum net advantage
 const LANE_DROP_BIAS = 3; // m/s² extra incentive to leave a lane that ends
@@ -99,6 +108,8 @@ export class TrafficEngine {
   /** Times a position had to be clamped to prevent overlap. Should stay zero. */
   guardEvents = 0;
   private timing: SignalTiming;
+  /** What each signal is showing; follows `timing` but never skips or shortens yellow. */
+  private lights: SignalLight[];
   private random: () => number;
   private nextArrival = 0;
   private nextId = 0;
@@ -110,6 +121,7 @@ export class TrafficEngine {
     this.random = createRandom(scenario.seed);
     this.lanes = Array.from({ length: scenario.lanes }, () => []);
     this.timing = this.computeTiming();
+    this.lights = scenario.signals.map((_, index) => scheduledLight(0, this.timing.offsets[index], this.timing));
     if (scenario.topology === "ring") this.placeRing();
     else this.nextArrival = exponential(this.random, this.params.demand / 3600);
     const warmup = Math.round(scenario.warmup / DT);
@@ -124,7 +136,11 @@ export class TrafficEngine {
     return this.lanes.flat();
   }
 
-  /** Live parameter edit. Vehicle count on the ring requires a new engine instead. */
+  /**
+   * Live parameter edit. Vehicle count on the ring requires a new engine instead.
+   * New signal timing takes effect through the lights' normal sequence: a light
+   * that is green when its schedule jumps to red shows a full yellow first.
+   */
   setParams(next: Partial<TrafficParams>) {
     const params = { ...this.params, ...next };
     validateParams(this.scenario, params);
@@ -148,7 +164,8 @@ export class TrafficEngine {
   signalStates() {
     return this.scenario.signals.map((x, index) => ({
       x,
-      ...signalPhase(this.time, this.timing.offsets[index], this.timing),
+      state: this.lights[index].state,
+      remaining: lightRemaining(this.lights[index], this.time, this.timing.offsets[index], this.timing),
     }));
   }
 
@@ -162,6 +179,7 @@ export class TrafficEngine {
     this.accelerate();
     this.integrate();
     this.steps++;
+    this.updateLights();
     if (this.scenario.topology === "ring") this.wrapRing();
     else {
       this.removeExits();
@@ -234,6 +252,12 @@ export class TrafficEngine {
     this.entered = count;
   }
 
+  private updateLights() {
+    this.lights = this.lights.map((light, index) =>
+      nextLight(light, signalPhase(this.time, this.timing.offsets[index], this.timing).state, this.time),
+    );
+  }
+
   /** Each driver decides whether the next signal is one to stop for. */
   private updateStopLines() {
     const { signals } = this.scenario;
@@ -244,7 +268,7 @@ export class TrafficEngine {
           vehicle.committed = -1;
         const index = signals.findIndex((x) => x > vehicle.x);
         if (index < 0 || vehicle.committed === index) continue;
-        const { state } = signalPhase(this.time, this.timing.offsets[index], this.timing);
+        const { state } = this.lights[index];
         if (state === "green") continue;
         const distance = Math.max(signals[index] - vehicle.x, 0.1);
         const required = (vehicle.v * vehicle.v) / (2 * distance);

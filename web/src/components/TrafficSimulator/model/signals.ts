@@ -40,3 +40,37 @@ export function signalPhase(time: number, offset: number, timing: SignalTiming) 
     return { state: "yellow" as SignalState, remaining: timing.green + YELLOW - t };
   return { state: "red" as SignalState, remaining: timing.cycle - t };
 }
+
+/** The state a signal is actually showing, and since when. */
+export interface SignalLight {
+  state: SignalState;
+  since: number;
+}
+
+/** A light showing its schedule at `time`, with a yellow dated from when the schedule began it. */
+export function scheduledLight(time: number, offset: number, timing: SignalTiming): SignalLight {
+  const { state, remaining } = signalPhase(time, offset, timing);
+  return { state, since: state === "yellow" ? time - (YELLOW - remaining) : time };
+}
+
+/**
+ * Advances a shown light toward the schedule without ever skipping yellow or
+ * cutting it short. Under a fixed plan this is exactly the schedule; it only
+ * departs from it after a timing edit jumps the schedule mid-cycle.
+ */
+export function nextLight(light: SignalLight, scheduled: SignalState, time: number): SignalLight {
+  if (light.state === "green")
+    return scheduled === "green" ? light : { state: "yellow", since: time };
+  if (light.state === "yellow")
+    return time - light.since < YELLOW - 1e-6 ? light : { state: "red", since: time };
+  return scheduled === "green" ? { state: "green", since: time } : light;
+}
+
+/** Seconds until the shown light is due to change. */
+export function lightRemaining(light: SignalLight, time: number, offset: number, timing: SignalTiming) {
+  if (light.state === "yellow") return Math.max(0, light.since + YELLOW - time);
+  const scheduled = signalPhase(time, offset, timing);
+  if (light.state === "green") return scheduled.remaining;
+  // Red holds until the schedule's next green.
+  return scheduled.state === "green" ? 0 : mod(offset - time, timing.cycle);
+}

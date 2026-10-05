@@ -133,32 +133,82 @@ test("vehicles are conserved", () => {
   assert.equal(ring.vehicles.length, ring.params.vehicles);
 });
 
-test("drivers stop for red; only drivers committed on yellow cross after it turns", () => {
-  const engine = build("corridor", { demand: 1800 });
+/**
+ * Watches every signal's shown state and every stop-line crossing.
+ * Returns the illegal transitions, the shortest yellow, and crossings made on red.
+ */
+const watchSignals = (engine, seconds, each) => {
   const { signals } = engine.scenario;
-  let crossings = 0,
-    latestIntoRed = 0;
-  const previous = new Map();
-  run(engine, 900, (e) => {
-    const timing = e.signalTiming;
-    const redLength = timing.cycle - timing.green - YELLOW;
+  const shown = engine.signalStates().map((s) => s.state);
+  const yellowSince = shown.map((state) => (state === "yellow" ? engine.time : null));
+  const legal = { green: ["green", "yellow"], yellow: ["yellow", "red"], red: ["red", "green"] };
+  const previous = new Map(engine.vehicles.map((v) => [v.id, v.x]));
+  const result = { engine, illegal: [], shortestYellow: Infinity, redCrossings: 0, crossings: 0 };
+  run(engine, seconds, (e) => {
+    each?.(e);
+    e.signalStates().forEach(({ state }, index) => {
+      const before = shown[index];
+      if (!legal[before].includes(state)) result.illegal.push(`${before}→${state} at S${index + 1}, t=${e.time.toFixed(1)}`);
+      if (before !== "yellow" && state === "yellow") yellowSince[index] = e.time;
+      if (before === "yellow" && state !== "yellow" && yellowSince[index] !== null)
+        result.shortestYellow = Math.min(result.shortestYellow, e.time - yellowSince[index]);
+      shown[index] = state;
+    });
     for (const v of e.vehicles) {
       const before = previous.get(v.id);
       if (before !== undefined)
         signals.forEach((x, index) => {
           if (before < x && v.x >= x) {
-            crossings++;
-            const phase = signalPhase(e.time, timing.offsets[index], timing);
-            if (phase.state === "red")
-              latestIntoRed = Math.max(latestIntoRed, redLength - phase.remaining);
+            result.crossings++;
+            if (shown[index] === "red") result.redCrossings++;
           }
         });
       previous.set(v.id, v.x);
     }
   });
-  assert.ok(crossings > 600, `${crossings} stop-line crossings observed`);
-  assert.ok(latestIntoRed <= 2, `latest crossing ${latestIntoRed.toFixed(2)} s into red`);
-  assert.ok(engine.exits.some((x) => x.stops > 0), "some drivers did stop");
+  return result;
+};
+
+test("signals only step green → yellow → red → green, and nobody crosses on red", () => {
+  const watched = watchSignals(build("corridor", { demand: 1800 }), 900);
+  assert.deepEqual(watched.illegal, []);
+  near(watched.shortestYellow, YELLOW, DT / 2);
+  assert.ok(watched.crossings > 600, `${watched.crossings} stop-line crossings observed`);
+  assert.equal(watched.redCrossings, 0);
+  assert.ok(watched.engine.exits.some((x) => x.stops > 0), "some drivers did stop");
+});
+
+test("abrupt timing edits mid-run still show a full yellow before red; nobody crosses on red", () => {
+  // Regression: edits used to jump a signal straight from green to red (or cut a
+  // yellow short) under approaching traffic, and drivers too close to stop crossed on red.
+  const cycles = [40, 120, 65, 90],
+    coordinations = ["green-wave", "reverse", "simultaneous"],
+    shares = [0.3, 0.7];
+  let edits = 0;
+  const watched = watchSignals(build("corridor", { demand: 1800 }), 1800, (e) => {
+    if (e.steps % 370 !== 0) return;
+    e.setParams({
+      cycle: cycles[edits % cycles.length],
+      coordination: coordinations[edits % coordinations.length],
+      greenShare: shares[edits % shares.length],
+    });
+    edits++;
+  });
+  assert.ok(edits >= 45, `${edits} edits`);
+  assert.deepEqual(watched.illegal, []);
+  assert.ok(watched.shortestYellow >= YELLOW - DT / 2, `shortest yellow ${watched.shortestYellow}`);
+  assert.equal(watched.redCrossings, 0, `${watched.redCrossings} of ${watched.crossings} crossings on red`);
+});
+
+test("without edits, every signal shows exactly its fixed-time schedule", () => {
+  for (const coordination of ["green-wave", "simultaneous", "reverse"]) {
+    const engine = build("corridor", { coordination, cycle: 75, greenShare: 0.4 });
+    run(engine, 600, (e) =>
+      e.signalStates().forEach((signal, index) =>
+        assert.equal(signal.state, signalPhase(e.time, e.signalTiming.offsets[index], e.signalTiming).state),
+      ),
+    );
+  }
 });
 
 test("coordination: a green wave beats simultaneous and reverse offsets on the same traffic", () => {
