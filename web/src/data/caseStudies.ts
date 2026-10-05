@@ -401,6 +401,155 @@ export const caseStudiesData: CaseStudy[] = [
     ],
     focusAreas: ["Research automation", "Service design", "Search systems"],
   },
+  {
+    slug: "where-the-specification-lived",
+    kind: "experiment",
+    status: "Completed",
+    title: "Where the Specification Lived",
+    shortDescription:
+      "Two agents built the same Traffic Simulator in the same repository, one from a 38-word prompt and one from a 615-word specification. A blinded review of both artifacts shows what each prompt bought, and why prompt length and specification load are different variables.",
+    media: {
+      poster: {
+        src: "/media/spec-experiment-card.webp",
+        width: 672,
+        height: 494,
+        alt: "Left: the Simple-prompt simulator's time-space diagram, with queues as bright bands at each signal. Right: the Detailed-prompt simulator zoomed to one intersection, with queued cars on both streets.",
+      },
+    },
+    sectionTitles: {
+      problem: "Question",
+      constraints: "Experimental Setup",
+      architecture: "What Each Agent Built",
+      decisions: "How the Artifacts Were Judged",
+      implementation: "What the Evaluation Found",
+      outcome: "Outcome",
+    },
+    constraintTitles: ["Held constant", "Varied", "Not controlled"],
+    problem:
+      "How much of an agent's specification has to arrive in the prompt when the agent works inside a mature repository? Two agents were given the same task in the same repository: finish the Traffic Simulator that the site listed as in development. One prompt was 38 words. The other was 615. The working thesis was that prompt length and specification load are different variables, because much of the effective specification may already live in the repository.",
+    constraints: {
+      technicalLimitations:
+        "Same repository and base commit (ac5fe45), same task, and the same standing instructions: work in an isolated worktree, commit in coherent chunks, do not push. Both sessions ran Claude Opus 5.5 in Claude Code 2.1.289, and the prompts were submitted five seconds apart.",
+      environment:
+        "Only the invocation prompt. The Simple prompt asked the agent to inspect the repository and existing simulations, implement the simulator completely, and verify it. The Detailed prompt restated the placeholder's concept, required specific behaviours, named conventions to follow, and set testing, validation, and reporting requirements.",
+      tradeoffs:
+        "One pair of runs, not a crossover. Agent variance and tool-use luck are uncontrolled. The two agents first collided in the same worktree, each overwrote one of the other's files, told the other, and moved to separate worktrees. The experiment is quasi-controlled, not lab-clean.",
+    },
+    architecture: [
+      "The Simple run built a three-scenario lab for emergent congestion: a signal corridor with three coordination modes, a three-lane highway that loses a lane (drivers merge using the MOBIL lane-change rule), and a ring road with a brake-tap button. Drivers follow the Intelligent Driver Model. A time-space diagram plots every vehicle's position over the last two minutes.",
+      "The Detailed run built one deeper system: a two-way arterial with three signals and cross streets. Its signal controller always passes through yellow and all-red and holds a minimum green, including when the plan is edited mid-run. It offers fixed-time and detector-actuated control, a rule against entering an intersection you cannot clear, per-signal zoom, and per-direction measurements.",
+      "Both wired the simulator into the same places: route, simulation card, page metadata, sitemap, static route shell, and smoke test. The Simple prompt named none of them; the Detailed prompt listed the kinds of mechanism but not where they lived. The Detailed run also added breadcrumb structured data and a browser regression script.",
+    ],
+    keyTechnicalDecisions: [
+      {
+        title: "Evaluate blind",
+        rationale:
+          "The evaluator compared the two branches without knowing which prompt produced which. Branch names, commit counts, elapsed time, and verbosity were excluded as quality signals.",
+      },
+      {
+        title: "Use both simulators",
+        rationale:
+          "Every scenario and control was exercised in production builds at desktop and phone widths, in both themes and with reduced motion, while watching for console errors.",
+      },
+      {
+        title: "Probe past the shipped tests",
+        rationale:
+          "Independent runs held every control at its extremes for 30 simulated minutes and checked invariants at every step. Claims in each project's documentation were re-measured, across ten random seeds where seeds applied.",
+      },
+      {
+        title: "Break rules on purpose",
+        rationale:
+          "Each important model rule was disabled or altered one at a time, and the shipped test suite was run against each change. A suite that still passes with a rule removed is not constraining that rule.",
+      },
+      {
+        title: "No composite score",
+        rationale:
+          "The artifacts were compared dimension by dimension. Breadth, rigour, and fit pull in different directions, and a single number would hide exactly that.",
+      },
+    ],
+    implementationHighlights: [
+      {
+        title: "Both passed every repository gate",
+        detail:
+          "Typecheck, lint, production build, and the smoke suite passed for both. Neither broke an invariant in the 30-minute probe runs: no overlapping vehicles, no reversing, and no invalid numbers.",
+      },
+      {
+        title: "Breadth on one side, depth on the other",
+        detail:
+          "The Simple artifact shows three structurally different phenomena. The Detailed artifact goes further into one of them, signal control: both travel directions, cross traffic, safe transitions, and actuation.",
+      },
+      {
+        title: "The time-space diagram made emergence visible",
+        detail:
+          "In the Simple artifact, signal coordination, the merge queue, and the ring road's backward-travelling wave all appear as shapes. The Detailed artifact reports comparable effects as numbers in tiles and tables.",
+      },
+      {
+        title: "Test strength diverged",
+        detail:
+          "Against the Simple suite, 25 of 51 single-rule breakages went unnoticed; about five of those change nothing the model can show. The Detailed suite caught breakages of its red-light, yellow, intersection, signal-sequence, and actuation rules, and missed changes to how metrics were defined and to a few parameters.",
+      },
+      {
+        title: "A correctness bug its author did not report",
+        detail:
+          "Editing signal timing mid-run in the Simple artifact switched lights straight from green to red. In 49 abrupt edits there were 12 crossings on red, 11 of them more than 2 s after the light turned. Its red-light test allowed crossings up to 2 s into red, and its own review had reported no engine bugs.",
+      },
+      {
+        title: "Rules the presets never exercise",
+        detail:
+          "The Detailed artifact's rules against blocking an intersection never fired in its shipped presets: zero times in 52.2 million checks over 30-minute runs. Its report disclosed that its spillback test forces the situation, but its page description still promised spillback.",
+      },
+    ],
+    outcome: [
+      "Before learning which prompt produced which branch, the evaluator recommended publishing the Simple artifact. Its breadth and its time-space diagram fit what this site's Simulations page is for: interactive explorations of rules, state, feedback, and emergence.",
+      "The same evaluation judged the Detailed artifact the better-engineered one: safer signal transitions, stronger tests, and deeper treatment of the problem it chose.",
+      "The Detailed run took 56 min 34 s to the Simple run's 26 min 55 s, about 2.1 times as long. That is a cost, not a quality score.",
+    ],
+    artifacts: [
+      {
+        title: "Simple-prompt artifact",
+        kind: "Repository provenance",
+        status: "Public",
+        description:
+          "The Simple run's final commit, merged unchanged into this site's history before any post-evaluation fix.",
+        href: "https://github.com/kareemsasa3/personal-website/commit/7420cc7a83abe51d25aa3073c66ae642afe548ae",
+      },
+      {
+        title: "Detailed-prompt artifact",
+        kind: "Repository provenance",
+        status: "Public",
+        description:
+          "The Detailed run's final commit, preserved on its own branch as the comparison artifact.",
+        href: "https://github.com/kareemsasa3/personal-website/commit/0e62d2ce376b0586e648c6f34250ed5704e28e22",
+      },
+      {
+        title: "Blinded evaluation record",
+        kind: "Evaluation record",
+        status: "Public",
+        description:
+          "The evaluation written before the prompt mapping was revealed, the exact prompts and closing reports, probe and mutation results, captured media, and the scripts that produced them.",
+        href: "https://github.com/kareemsasa3/personal-website/tree/main/docs/evidence/traffic-simulator-experiment",
+      },
+      {
+        title: "Session transcripts",
+        kind: "Local system evidence",
+        status: "Private",
+        description:
+          "The two authoring sessions' transcripts are the source of the prompts, timings, models, and closing reports quoted here.",
+        note: "The transcripts stay local; the evaluation record reproduces the prompts and closing reports verbatim.",
+      },
+    ],
+    links: [
+      { label: "Open the Traffic Simulator", href: "/simulations/traffic-simulator" },
+      {
+        label: "Evaluation evidence on GitHub",
+        href: "https://github.com/kareemsasa3/personal-website/tree/main/docs/evidence/traffic-simulator-experiment",
+        external: true,
+      },
+      { label: "Related: What Should the Agent Have to Figure Out?", href: "/writing/what-should-the-agent-have-to-figure-out" },
+      { label: "Related: What the Second Agent Is For", href: "/writing/what-the-second-agent-is-for" },
+    ],
+    focusAreas: ["Agent-assisted development", "Specification", "Blinded review"],
+  },
 ];
 
 export const caseStudyBySlug = caseStudiesData.reduce<
@@ -421,6 +570,7 @@ export const caseStudyCards: CaseStudyCard[] = [
   "erebus",
   "aether",
   "arachne",
+  "where-the-specification-lived",
 ].map((slug) => caseStudyBySlug[slug]).flatMap(
   (caseStudy) => {
   const project = projectsData.find(

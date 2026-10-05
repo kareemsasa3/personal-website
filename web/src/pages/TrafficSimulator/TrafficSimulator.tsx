@@ -123,6 +123,11 @@ export default function TrafficSimulator() {
               This is a one-direction teaching model, not a calibrated traffic
               study. Motion starts paused when reduced motion is preferred.
             </p>
+            <p>
+              An agent built this simulator in an experiment comparing two
+              prompts; it was reviewed and corrected before publication. Read{" "}
+              <Link to="/case-studies/where-the-specification-lived">Where the Specification Lived</Link>.
+            </p>
           </div>
         </section>
       </div>

@@ -13,6 +13,7 @@ import {
   type CaseStudyBlock,
   type CaseStudySectionId,
 } from "./src/data/caseStudies";
+import { caseStudyBlocksBySlug } from "./src/data/caseStudyBlocks";
 import { projectsData } from "./src/data/projects";
 import {
   featuredProjectIds,
@@ -512,7 +513,7 @@ const renderCaseStudyBlocks = (blocks: CaseStudyBlock[] | undefined) =>
     })
     .join("");
 
-const blocksFor = (caseStudy: CaseStudy) => caseStudy.blocks;
+const blocksFor = (caseStudy: CaseStudy) => caseStudy.blocks ?? caseStudyBlocksBySlug[caseStudy.slug];
 const blocksBefore = (caseStudy: CaseStudy, id: CaseStudySectionId) =>
   renderCaseStudyBlocks(blocksFor(caseStudy)?.[id]?.before);
 const blocksAfter = (caseStudy: CaseStudy, id: CaseStudySectionId) =>

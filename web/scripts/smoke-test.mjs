@@ -114,6 +114,7 @@ const main = async () => {
   const aetherCaseStudy = await readBuildFile("case-studies/aether/index.html");
   const arachneCaseStudy = await readBuildFile("case-studies/arachne/index.html");
   const erebusCaseStudy = await readBuildFile("case-studies/erebus/index.html");
+  const specificationCaseStudy = await readBuildFile("case-studies/where-the-specification-lived/index.html");
   const experience = await readBuildFile("experience/index.html");
   const simulations = await readBuildFile("simulations/index.html");
   const orbital = await readBuildFile("simulations/orbital-simulator/index.html");
@@ -233,6 +234,7 @@ const main = async () => {
     { html: aetherCaseStudy, path: "/case-studies/aether" },
     { html: arachneCaseStudy, path: "/case-studies/arachne" },
     { html: erebusCaseStudy, path: "/case-studies/erebus" },
+    { html: specificationCaseStudy, path: "/case-studies/where-the-specification-lived" },
     { html: experience, path: "/experience" },
     { html: simulations, path: "/simulations" },
     { html: orbital, path: "/simulations/orbital-simulator" },
@@ -274,6 +276,11 @@ const main = async () => {
     "Case Studies",
     "Erebus",
   ]);
+  assertBreadcrumb(
+    structuredDataNodes(specificationCaseStudy),
+    "/case-studies/where-the-specification-lived",
+    ["Home", "Case Studies", "Where the Specification Lived"]
+  );
   assertBreadcrumb(structuredDataNodes(experience), "/experience", [
     "Home",
     "Experience",
@@ -401,6 +408,38 @@ const main = async () => {
     "https://github.com/kareemsasa3/arachne"
   );
   assertCaseStudySourceShape(erebusCaseStudy, "erebus");
+  assertCaseStudySourceShape(specificationCaseStudy, "where-the-specification-lived");
+
+  // The experiment case study: its shell carries the argument, both exact prompts,
+  // and links to the live simulator; the simulator links back; its media ships.
+  assertIncludes(
+    specificationCaseStudy,
+    "<title>Where the Specification Lived Case Study - Kareem Sasa</title>",
+    "specification case study title"
+  );
+  assertIncludes(
+    specificationCaseStudy,
+    'href="https://kareemsasa.dev/case-studies/where-the-specification-lived"',
+    "specification case study canonical URL"
+  );
+  for (const text of [
+    "Experiment Case Study",
+    "Where specification can live",
+    "Inspect the repository and existing site/simulations, then implement it completely and verify your work.",
+    "Prefer a small coherent model with understandable behavior over superficial complexity.",
+    "What changed before publication",
+    "Limitations",
+  ]) {
+    assertIncludes(specificationCaseStudy, text, "specification case study content");
+  }
+  assertIncludes(specificationCaseStudy, 'href="/simulations/traffic-simulator"', "case study links to the simulator");
+  assertIncludes(traffic, 'href="/case-studies/where-the-specification-lived"', "simulator links to the case study");
+  assertIncludes(caseStudiesIndex, 'href="/case-studies/where-the-specification-lived"', "case studies index lists the experiment");
+  const mediaPaths = [...specificationCaseStudy.matchAll(/href="(\/media\/[^"]+)"/g)].map((match) => match[1]);
+  if (mediaPaths.length < 6) {
+    throw new Error(`Expected the specification case study shell to link its media, found ${mediaPaths.length}`);
+  }
+  for (const path of mediaPaths) await readBuildFile(path.slice(1));
 
   assertIncludes(
     caseStudiesIndex,
@@ -441,6 +480,7 @@ const main = async () => {
     "https://kareemsasa.dev/case-studies/erebus",
     "https://kareemsasa.dev/case-studies/arachne",
     "https://kareemsasa.dev/case-studies/aether",
+    "https://kareemsasa.dev/case-studies/where-the-specification-lived",
     "https://kareemsasa.dev/experience",
     "https://kareemsasa.dev/simulations/orbital-simulator",
     "https://kareemsasa.dev/simulations/traffic-simulator",

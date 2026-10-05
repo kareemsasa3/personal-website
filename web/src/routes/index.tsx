@@ -16,6 +16,7 @@ const CaseStudies = React.lazy(() => import("../pages/CaseStudies"));
 const CaseStudyAether = React.lazy(() => import("../pages/CaseStudyAether"));
 const CaseStudyErebus = React.lazy(() => import("../pages/CaseStudyErebus"));
 const CaseStudyArachne = React.lazy(() => import("../pages/CaseStudyArachne"));
+const CaseStudySpecification = React.lazy(() => import("../pages/CaseStudySpecification"));
 const Writing = React.lazy(() => import("../pages/Writing"));
 const Article = React.lazy(() => import("../pages/Article"));
 const Simulations = React.lazy(() => import("../pages/Simulations"));
@@ -45,6 +46,10 @@ const routes: AppRoute[] = [
   {
     path: "case-studies/arachne",
     element: React.createElement(CaseStudyArachne),
+  },
+  {
+    path: "case-studies/where-the-specification-lived",
+    element: React.createElement(CaseStudySpecification),
   },
   { path: "writing", element: React.createElement(Writing) },
   { path: "writing/:slug", element: React.createElement(Article) },

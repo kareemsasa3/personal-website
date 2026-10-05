@@ -329,5 +329,46 @@ await run({ reducedMotion: "reduce", storage: { theme: "light" } }, async (page)
   console.log("PASS reduced motion + light theme: no autoplay, no overlay animation, caption visible");
 });
 
+// The experiment case study: phone-width stills never scale past their own size, recordings
+// load nothing until played, play only on screen, and never autoplay under reduced motion.
+const specification = `${base}/case-studies/where-the-specification-lived`;
+for (const [width, height] of [[1440, 900], [375, 667], [320, 568]]) {
+  await run({}, async (page) => {
+    await page.setViewportSize({ width, height });
+    await page.goto(specification);
+    const stills = page.locator(".case-study-figure img");
+    await stills.first().waitFor();
+    for (const still of await stills.evaluateAll((images) =>
+      images.map((image) => ({ shown: image.getBoundingClientRect().width, own: image.naturalWidth / 2 || Number(image.getAttribute("width")) / 2 }))
+    ))
+      assert.ok(still.shown <= still.own + 0.5, `${width}px: still shown at ${still.shown}px, larger than ${still.own}px`);
+    const recordings = page.locator("#main-content-area video");
+    assert.equal(await recordings.count(), 2);
+    assert.deepEqual(await recordings.evaluateAll((videos) => videos.map((video) => video.getAttribute("preload"))), ["none", "none"]);
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    assert.ok(overflow <= 0, `${width}px: page overflows by ${overflow}px`);
+  });
+}
+await run({}, async (page) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto(specification);
+  const ring = page.locator("#main-content-area video").first();
+  await ring.scrollIntoViewIfNeeded();
+  await page.waitForFunction(() => document.querySelector("#main-content-area video")?.paused === false);
+  await page.evaluate(() => scrollTo({ top: 0, behavior: "instant" }));
+  await page.waitForTimeout(400);
+  assert.equal(await isPaused(ring), true, "the recording pauses off screen");
+  console.log("PASS specification case study: stills at their own size, recordings play only on screen");
+});
+await run({ reducedMotion: "reduce" }, async (page) => {
+  await page.setViewportSize({ width: 375, height: 667 });
+  await page.goto(specification);
+  const ring = page.locator("#main-content-area video").first();
+  await ring.scrollIntoViewIfNeeded();
+  await page.waitForTimeout(800);
+  assert.equal(await isPaused(ring), true);
+  console.log("PASS specification case study, reduced motion: no autoplay");
+});
+
 assert.deepEqual(errors, []);
 await browser.close();
