@@ -127,7 +127,7 @@ export const scenarios: Scenario[] = [
     description:
       "One lane, no signals, no merges: identical drivers on a 600 m loop, started evenly spaced at the speed that spacing allows.",
     experiment:
-      "Press Brake one car. At high density the disturbance grows into a stop-and-go wave that travels backward while cars move forward. Reduce the number of vehicles or raise driver acceleration and the same tap fades out.",
+      "At this density even flow is unstable: left alone, tiny differences grow until a stop-and-go wave forms on its own, after roughly 15 to 20 simulated minutes. Press Brake one car to set off the same wave now; it travels backward while cars move forward. Reduce the number of vehicles or raise driver acceleration and the tap fades out instead.",
     topology: "ring",
     length: 600,
     lanes: 1,

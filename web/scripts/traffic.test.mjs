@@ -251,9 +251,16 @@ test("lane drop: a queue forms upstream of the merge only when demand exceeds it
   assert.ok(downstream.every((v) => v.lane < 2), "only two lanes continue past the drop");
 });
 
-test("ring road: uniform flow persists; a brief brake grows into a jam only at high density", () => {
-  const steady = run(build("ring"), 300);
-  assert.ok(deviation(speeds(steady)) < 0.1, "unperturbed equilibrium stays uniform");
+test("ring road: dense even flow is unstable; a brake tap sets off the jam early and fades at low density", () => {
+  // Left alone, the default ring stays even for minutes, then jams by itself:
+  // the tap is an intervention that triggers the instability, not its only cause.
+  const unperturbed = build("ring");
+  run(unperturbed, 300);
+  assert.ok(deviation(speeds(unperturbed)) < 0.1, "even flow holds for the first minutes");
+  run(unperturbed, 1200);
+  assert.ok(deviation(speeds(unperturbed)) > 3, "and then breaks down without any tap");
+  const belowThreshold = run(build("ring", { vehicles: 25 }), 1500);
+  assert.ok(deviation(speeds(belowThreshold)) < 0.1, "at lower density even flow is stable");
   const perturbed = (params) => {
     const engine = build("ring", params);
     run(engine, 20);
