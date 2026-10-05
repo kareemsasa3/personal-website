@@ -1,0 +1,292 @@
+[
+  {
+    "name": "c2-mobile-corridor",
+    "kind": "still",
+    "clip": {
+      "x": 8,
+      "y": 779,
+      "width": 359,
+      "height": 731
+    },
+    "elapsed": "1:36",
+    "candidate": 2,
+    "scenario": "Rush hour",
+    "settings": "defaults, 390 px viewport @2x"
+  },
+  {
+    "name": "c2-mobile",
+    "errors": []
+  },
+  {
+    "name": "c1-mobile-ring",
+    "kind": "still",
+    "clip": {
+      "x": 8,
+      "y": 906,
+      "width": 359,
+      "height": 539
+    },
+    "elapsed": "1:04",
+    "candidate": 1,
+    "scenario": "Ring road",
+    "settings": "defaults, one brake tap, 390 px viewport @2x"
+  },
+  {
+    "name": "c1-mobile-timespace",
+    "kind": "still",
+    "clip": {
+      "x": 8,
+      "y": 1735,
+      "width": 359,
+      "height": 490
+    },
+    "elapsed": "1:04",
+    "candidate": 1,
+    "scenario": "Ring road",
+    "settings": "defaults, one brake tap, 390 px viewport @2x"
+  },
+  {
+    "name": "c1-mobile",
+    "errors": []
+  },
+  {
+    "name": "c1-corridor-greenwave",
+    "kind": "still",
+    "clip": {
+      "x": 24,
+      "y": 324,
+      "width": 1297,
+      "height": 1176
+    },
+    "elapsed": "8:59",
+    "candidate": 1,
+    "scenario": "Signal corridor",
+    "settings": "Green wave, defaults otherwise"
+  },
+  {
+    "name": "c1-lanedrop",
+    "kind": "still",
+    "clip": {
+      "x": 24,
+      "y": 324,
+      "width": 1297,
+      "height": 1041
+    },
+    "elapsed": "8:31",
+    "candidate": 1,
+    "scenario": "Lane drop",
+    "settings": "defaults (3600 veh/h)"
+  },
+  {
+    "name": "c1-lanedrop",
+    "errors": []
+  },
+  {
+    "name": "c1-corridor-greenwave-timespace",
+    "kind": "still",
+    "clip": {
+      "x": 24,
+      "y": 1084,
+      "width": 775,
+      "height": 416
+    },
+    "elapsed": "8:59",
+    "candidate": 1,
+    "scenario": "Signal corridor",
+    "settings": "Green wave, defaults otherwise"
+  },
+  {
+    "name": "c1-corridor-greenwave",
+    "errors": []
+  },
+  {
+    "name": "c2-greenwave-offset15",
+    "kind": "still",
+    "clip": {
+      "x": 24,
+      "y": 324,
+      "width": 1297,
+      "height": 1359
+    },
+    "elapsed": "4:00",
+    "candidate": 2,
+    "scenario": "Green wave",
+    "settings": "offset 15 s, preset otherwise"
+  },
+  {
+    "name": "c2-greenwave-offset15-measurements",
+    "kind": "still",
+    "clip": {
+      "x": 24,
+      "y": 1177,
+      "width": 1297,
+      "height": 507
+    },
+    "elapsed": "4:00",
+    "candidate": 2,
+    "scenario": "Green wave",
+    "settings": "offset 15 s"
+  },
+  {
+    "name": "c2-greenwave-15",
+    "errors": []
+  },
+  {
+    "name": "c1-corridor-reversewave",
+    "kind": "still",
+    "clip": {
+      "x": 24,
+      "y": 324,
+      "width": 1297,
+      "height": 1176
+    },
+    "elapsed": "8:59",
+    "candidate": 1,
+    "scenario": "Signal corridor",
+    "settings": "Reverse wave, defaults otherwise"
+  },
+  {
+    "name": "c1-corridor-reversewave-timespace",
+    "kind": "still",
+    "clip": {
+      "x": 24,
+      "y": 1084,
+      "width": 775,
+      "height": 416
+    },
+    "elapsed": "8:59",
+    "candidate": 1,
+    "scenario": "Signal corridor",
+    "settings": "Reverse wave, defaults otherwise"
+  },
+  {
+    "name": "c1-corridor-reversewave",
+    "errors": []
+  },
+  {
+    "name": "c2-greenwave-offset0",
+    "kind": "still",
+    "clip": {
+      "x": 24,
+      "y": 324,
+      "width": 1297,
+      "height": 1359
+    },
+    "elapsed": "4:00",
+    "candidate": 2,
+    "scenario": "Green wave",
+    "settings": "offset 0 s, preset otherwise"
+  },
+  {
+    "name": "c2-greenwave-offset0-measurements",
+    "kind": "still",
+    "clip": {
+      "x": 24,
+      "y": 1177,
+      "width": 1297,
+      "height": 507
+    },
+    "elapsed": "4:00",
+    "candidate": 2,
+    "scenario": "Green wave",
+    "settings": "offset 0 s"
+  },
+  {
+    "name": "c2-greenwave-0",
+    "errors": []
+  },
+  {
+    "name": "c1-ring-brake",
+    "kind": "video",
+    "clip": {
+      "x": 24,
+      "y": 571,
+      "width": 1297,
+      "height": 972
+    },
+    "frames": 1438,
+    "seconds": 24,
+    "candidate": 1,
+    "scenario": "Ring road",
+    "settings": "defaults (34 vehicles, 0.6 m/s²), 2× playback, Brake one car at ~2.5 s"
+  },
+  {
+    "name": "c1-ring-jam",
+    "kind": "still",
+    "clip": {
+      "x": 24,
+      "y": 324,
+      "width": 1297,
+      "height": 1219
+    },
+    "elapsed": "2:04",
+    "candidate": 1,
+    "scenario": "Ring road",
+    "settings": "defaults, one brake tap"
+  },
+  {
+    "name": "c1-ring-jam-timespace",
+    "kind": "still",
+    "clip": {
+      "x": 24,
+      "y": 1127,
+      "width": 775,
+      "height": 416
+    },
+    "elapsed": "2:04",
+    "candidate": 1,
+    "scenario": "Ring road",
+    "settings": "defaults, one brake tap"
+  },
+  {
+    "name": "c1-ring",
+    "errors": []
+  },
+  {
+    "name": "c2-rush-signal1",
+    "kind": "video",
+    "clip": {
+      "x": 24,
+      "y": 444,
+      "width": 1297,
+      "height": 733
+    },
+    "frames": 1439,
+    "seconds": 24,
+    "candidate": 2,
+    "scenario": "Rush hour",
+    "settings": "defaults (EB 2000, WB 1200, side 400 veh/h), View: Signal 1, 4× playback after ~64 s at 8×"
+  },
+  {
+    "name": "c2-rush-signal1",
+    "kind": "still",
+    "clip": {
+      "x": 24,
+      "y": 324,
+      "width": 1297,
+      "height": 853
+    },
+    "elapsed": "5:44",
+    "candidate": 2,
+    "scenario": "Rush hour",
+    "settings": "defaults, View: Signal 1"
+  },
+  {
+    "name": "c2-rush-measurements",
+    "kind": "still",
+    "clip": {
+      "x": 24,
+      "y": 1177,
+      "width": 1297,
+      "height": 507
+    },
+    "elapsed": "5:44",
+    "candidate": 2,
+    "scenario": "Rush hour",
+    "settings": "defaults"
+  },
+  {
+    "name": "c2-rush",
+    "errors": []
+  }
+]
