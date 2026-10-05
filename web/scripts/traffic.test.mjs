@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   DT,
+  MAX_DECELERATION,
   equilibriumSpeed,
   idm,
 } from "../src/components/TrafficSimulator/model/idm.ts";
@@ -11,6 +12,8 @@ import {
   signalTiming,
 } from "../src/components/TrafficSimulator/model/signals.ts";
 import {
+  EXIT_CAPACITY,
+  FLOW_WINDOW,
   HISTORY_CAPACITY,
   SAMPLE_CAPACITY,
   TrafficEngine,
@@ -212,6 +215,60 @@ test("without edits, every signal shows exactly its fixed-time schedule", () => 
   }
 });
 
+test("drivers who can stop for yellow do so without emergency braking", () => {
+  // A driver stops for yellow only when 3 m/s² is enough, so nobody should need the 9 m/s² limit.
+  for (const params of [{}, { demand: 1800 }, { demand: 1800, acceleration: 2 }]) {
+    const engine = build("corridor", params);
+    let emergencies = 0;
+    run(engine, 900, (e) => {
+      for (const v of e.vehicles) if (v.acc <= -MAX_DECELERATION + 1e-9) emergencies++;
+    });
+    assert.ok(emergencies < 10, `${emergencies} emergency-braking steps with ${JSON.stringify(params)}`);
+  }
+});
+
+/** Lane changes observed step by step, with the braking each imposed on its new follower. */
+const laneChangeEffects = (engine, seconds) => {
+  const out = { changes: 0, worstImposed: 0, imposed: 0, tightGaps: 0, closureEntries: 0 };
+  const drop = engine.scenario.laneDrop;
+  let lanes = new Map(engine.vehicles.map((v) => [v.id, v.lane]));
+  run(engine, seconds, (e) => {
+    for (const lane of e.lanes)
+      lane.forEach((v, i) => {
+        const before = lanes.get(v.id);
+        if (before === undefined || before === v.lane) return;
+        out.changes++;
+        if (drop && v.lane === drop.lane && v.x > drop.x - 400) out.closureEntries++;
+        const follower = lane[i + 1];
+        if (!follower) return;
+        const gap = v.x - v.length - follower.x;
+        if (gap < follower.s0 / 2) out.tightGaps++;
+        const driver = { v0: follower.v0, T: follower.T, a: e.params.acceleration * follower.accelerationScale, b: follower.b, s0: follower.s0 };
+        const imposed = Math.min(0, idm(follower.v, gap, v.v, driver));
+        out.worstImposed = Math.min(out.worstImposed, imposed);
+        out.imposed += imposed;
+      });
+    lanes = new Map(e.vehicles.map((v) => [v.id, v.lane]));
+  });
+  return { ...out, meanImposed: out.imposed / Math.max(1, out.changes) };
+};
+
+test("lane changes are safe for the new follower, polite, and stay out of the closing lane", () => {
+  for (const params of [{}, { demand: 5400, politeness: 0 }]) {
+    const effects = laneChangeEffects(build("bottleneck", params), 900);
+    assert.ok(effects.changes > 300, `${effects.changes} lane changes`);
+    assert.ok(effects.worstImposed >= -4, `worst braking imposed ${effects.worstImposed.toFixed(2)} m/s²`);
+    assert.equal(effects.tightGaps, 0, "no change cuts in closer than half the jam gap");
+    assert.equal(effects.closureEntries, 0, "nobody moves into the ending lane in its last 400 m");
+  }
+  const polite = laneChangeEffects(build("bottleneck", { politeness: 1 }), 900);
+  const selfish = laneChangeEffects(build("bottleneck", { politeness: 0 }), 900);
+  assert.ok(
+    polite.meanImposed > selfish.meanImposed + 0.2,
+    `politeness spares followers: ${polite.meanImposed.toFixed(2)} vs ${selfish.meanImposed.toFixed(2)} m/s²`,
+  );
+});
+
 test("coordination: a green wave beats simultaneous and reverse offsets on the same traffic", () => {
   const outcome = (coordination) => {
     const engine = run(build("corridor", { coordination }), 900);
@@ -309,6 +366,29 @@ test("slow stretches: the diagram's dark bands as text", () => {
   assert.ok(stretches.length > 0 && stretches.every((s) => s.to < merge.scenario.laneDrop.x + 50), JSON.stringify(stretches));
 });
 
+test("admission: arrivals enter no faster than the vehicle they join, and the ring starts in equilibrium", () => {
+  const engine = build("bottleneck", { demand: 5400 });
+  const seen = new Set(engine.vehicles.map((v) => v.id));
+  let admitted = 0;
+  run(engine, 600, (e) => {
+    for (const lane of e.lanes)
+      lane.forEach((v, i) => {
+        if (seen.has(v.id)) return;
+        seen.add(v.id);
+        admitted++;
+        const leader = lane[i - 1];
+        if (leader && leader.x - leader.length < 150)
+          assert.ok(v.v <= leader.v + 1e-6, `entered at ${v.v.toFixed(2)} behind a leader at ${leader.v.toFixed(2)} m/s`);
+      });
+  });
+  assert.ok(admitted > 300, `${admitted} vehicles admitted`);
+  assert.equal(engine.guardEvents, 0);
+  const ring = build("ring");
+  const ringSpeeds = speeds(ring);
+  assert.ok(Math.min(...ringSpeeds) > 5, "ring vehicles start moving at the speed their spacing allows");
+  assert.ok(deviation(ringSpeeds) < 1e-9);
+});
+
 test("parameter edits are validated and atomic", () => {
   const engine = build("corridor");
   const before = { ...engine.params };
@@ -323,10 +403,46 @@ test("parameter edits are validated and atomic", () => {
   assert.throws(() => new TrafficEngine(findScenario("ring"), { ...findScenario("ring").defaults, vehicles: 500 }));
 });
 
-test("space-time samples and flow history stay bounded", () => {
+test("trip accounting: open roads start warmed up, trips include the entrance wait, and vehicles leave by the rear bumper", () => {
+  for (const id of ["corridor", "bottleneck"]) {
+    const engine = build(id);
+    near(engine.time, engine.scenario.warmup, DT / 2);
+    assert.ok(engine.vehicles.length > 10, `${id} starts with traffic on the road`);
+  }
+  const engine = build("corridor", { demand: 3000 });
+  const enteredAt = new Map(engine.vehicles.map((v) => [v.id, engine.time]));
+  const onRoad = [];
+  let frontPastExit = 0;
+  run(engine, 600, (e) => {
+    const present = new Set();
+    for (const v of e.vehicles) {
+      present.add(v.id);
+      if (!enteredAt.has(v.id)) enteredAt.set(v.id, e.time);
+      if (v.x > e.scenario.length) frontPastExit++;
+    }
+    for (const [id, t] of enteredAt)
+      if (!present.has(id)) {
+        onRoad.push(e.time - t);
+        enteredAt.delete(id);
+      }
+  });
+  const recentOnRoad = onRoad.slice(-50).reduce((a, b) => a + b, 0) / 50;
+  assert.ok(engine.waiting.length > 100, "the entrance queue is long");
+  assert.ok(
+    engine.metrics().tripTime > recentOnRoad + 60,
+    `trip ${engine.metrics().tripTime.toFixed(0)} s vs ${recentOnRoad.toFixed(0)} s on the road`,
+  );
+  assert.ok(frontPastExit > 0, "a vehicle stays until its rear clears the end");
+});
+
+test("space-time samples, exits, detector passages, and flow history stay bounded", () => {
   const engine = run(build("corridor"), 900);
   assert.equal(engine.samples.length, SAMPLE_CAPACITY);
   assert.equal(engine.history.length, HISTORY_CAPACITY);
+  const heavy = run(build("bottleneck", { demand: 5400 }), 600);
+  assert.ok(heavy.exited > EXIT_CAPACITY && heavy.exits.length <= EXIT_CAPACITY, `${heavy.exits.length} exit records`);
+  const ring = run(build("ring"), 600);
+  assert.ok(ring.crossings.length > 0 && ring.crossings.every((t) => t >= ring.time - FLOW_WINDOW));
   const last = engine.samples.at(-1);
   assert.equal(last.x.length, last.speed.length);
   assert.equal(last.signals.length, 3);
@@ -348,6 +464,13 @@ test("the clock is frame-rate independent and bounds stalls", () => {
   let steps = 0;
   assert.equal(clock.advance(5, 16, () => steps++), true, "a stalled frame reports limiting");
   assert.ok(steps <= MAX_SUBSTEPS);
+  // A long frame advances at most 0.1 s of wall time; the rest is dropped, not caught up.
+  for (const speed of [1, 16]) {
+    const capped = new SimulationClock();
+    let n = 0;
+    assert.equal(capped.advance(0.5, speed, () => n++), true);
+    assert.equal(n, Math.round((0.1 * speed) / DT), `${speed}× after a 0.5 s frame`);
+  }
   assert.throws(() => clock.advance(0.016, 3, () => {}), /Invalid/);
   assert.throws(() => clock.advance(-1, 1, () => {}), /Invalid/);
 });
