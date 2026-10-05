@@ -1,0 +1,70 @@
+[
+  {
+    "name": "phone-detailed-signal1",
+    "kind": "still",
+    "clip": {
+      "x": 8,
+      "y": 779,
+      "width": 359,
+      "height": 731
+    },
+    "elapsed": "2:32",
+    "candidate": 2,
+    "scenario": "Rush hour",
+    "settings": "defaults, View: Signal 1; 390 px viewport @2x; paused for capture"
+  },
+  {
+    "name": "phone-detailed-signal1",
+    "errors": []
+  },
+  {
+    "name": "phone-simple-corridor-road",
+    "kind": "still",
+    "clip": {
+      "x": 8,
+      "y": 1131,
+      "width": 359,
+      "height": 529
+    },
+    "elapsed": "8:24",
+    "candidate": 1,
+    "scenario": "Signal corridor",
+    "settings": "Green wave, defaults otherwise; 390 px viewport @2x; paused for capture"
+  },
+  {
+    "name": "phone-simple-timespace-greenwave",
+    "kind": "still",
+    "clip": {
+      "x": 8,
+      "y": 2197,
+      "width": 359,
+      "height": 490
+    },
+    "elapsed": "8:24",
+    "candidate": 1,
+    "scenario": "Signal corridor",
+    "settings": "Green wave, defaults otherwise; 390 px viewport @2x; paused for capture"
+  },
+  {
+    "name": "phone-simple-greenwave",
+    "errors": []
+  },
+  {
+    "name": "phone-simple-timespace-reversewave",
+    "kind": "still",
+    "clip": {
+      "x": 8,
+      "y": 2197,
+      "width": 359,
+      "height": 490
+    },
+    "elapsed": "8:24",
+    "candidate": 1,
+    "scenario": "Signal corridor",
+    "settings": "Reverse wave, defaults otherwise; 390 px viewport @2x; paused for capture"
+  },
+  {
+    "name": "phone-simple-reversewave",
+    "errors": []
+  }
+]

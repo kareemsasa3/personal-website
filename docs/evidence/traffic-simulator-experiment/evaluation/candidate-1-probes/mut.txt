@@ -1,0 +1,51 @@
+red ignored (only yellow obeyed) => caught (3): drivers stop for red; only drivers committed on yellow cross after it turns | coordination: a green wave beats simultaneous and reverse offsets on the same traffic | demand above signal capacity builds an entrance queue; demand below it does not
+red/yellow both ignored => caught (3): drivers stop for red; only drivers committed on yellow cross after it turns | coordination: a green wave beats simultaneous and reverse offsets on the same traffic | demand above signal capacity builds an entrance queue; demand below it does not
+yellow: always commit (never stop on yellow) => caught (3): drivers stop for red; only drivers committed on yellow cross after it turns | coordination: a green wave beats simultaneous and reverse offsets on the same traffic | demand above signal capacity builds an entrance queue; demand below it does not
+yellow: never commit (always try to stop) => NOT CAUGHT
+red: HARD_STOP=0 (always run red) => caught (3): drivers stop for red; only drivers committed on yellow cross after it turns | coordination: a green wave beats simultaneous and reverse offsets on the same traffic | demand above signal capacity builds an entrance queue; demand below it does not
+red: HARD_STOP=3.5 => NOT CAUGHT
+committed never cleared (ignores later signals too) => NOT CAUGHT
+stop line ignored in accel (decision kept) => caught (3): drivers stop for red; only drivers committed on yellow cross after it turns | coordination: a green wave beats simultaneous and reverse offsets on the same traffic | demand above signal capacity builds an entrance queue; demand below it does not
+IDM interaction term (dv) removed => caught (5): IDM: free-road acceleration, desired speed, and equilibrium gap | no overlap, reversal, or lane overrun at every control extreme | drivers stop for red; only drivers committed on yellow cross after it turns | coordination: a green wave beats simultaneous and reverse offsets on the same traffic | ring road: uniform flow persists; a brief brake grows into a jam only at high density
+IDM: gap term squared -> linear => caught (2): no overlap, reversal, or lane overrun at every control extreme | ring road: uniform flow persists; a brief brake grows into a jam only at high density
+IDM: free term exponent 4 -> 1 => caught (1): coordination: a green wave beats simultaneous and reverse offsets on the same traffic
+MOBIL safety (B_SAFE) check removed => NOT CAUGHT
+MOBIL B_SAFE=50 => NOT CAUGHT
+lane-change physical gap checks removed => NOT CAUGHT
+lane-change follower gap check removed => NOT CAUGHT
+MOBIL politeness sign flipped => NOT CAUGHT
+lane changes disabled => caught (1): lane drop: a queue forms upstream of the merge only when demand exceeds it
+lane-drop bias removed => NOT CAUGHT
+lane-drop approach closure removed => NOT CAUGHT
+lane end not an obstacle => caught (2): no overlap, reversal, or lane overrun at every control extreme | lane drop: a queue forms upstream of the merge only when demand exceeds it
+insert at wrong index after lane change => caught (6): no overlap, reversal, or lane overrun at every control extreme | vehicles are conserved | drivers stop for red; only drivers committed on yellow cross after it turns | coordination: a green wave beats simultaneous and reverse offsets on the same traffic | demand above signal capacity builds an entrance queue; demand below it does not | lane drop: a queue forms upstream of the merge only when demand exceeds it
+entry headway check removed => caught (1): lane drop: a queue forms upstream of the merge only when demand exceeds it
+entry: always enter at v0 => NOT CAUGHT
+overlap guard removed => NOT CAUGHT
+overlap guard silent (no count) => NOT CAUGHT
+decel clamp 9 -> 3 => NOT CAUGHT
+no reversal clamp => caught (4): no overlap, reversal, or lane overrun at every control extreme | drivers stop for red; only drivers committed on yellow cross after it turns | lane drop: a queue forms upstream of the merge only when demand exceeds it | ring road: uniform flow persists; a brief brake grows into a jam only at high density
+signal offsets all zero => caught (2): signal timing: green wave offsets and a complete green/yellow/red cycle | coordination: a green wave beats simultaneous and reverse offsets on the same traffic
+green-wave direction flipped => caught (2): signal timing: green wave offsets and a complete green/yellow/red cycle | coordination: a green wave beats simultaneous and reverse offsets on the same traffic
+green-wave progression speed x0.6 => caught (2): signal timing: green wave offsets and a complete green/yellow/red cycle | coordination: a green wave beats simultaneous and reverse offsets on the same traffic
+yellow 3 -> 0 => NOT CAUGHT
+signal phase off-by-one (green <=) => caught (1): signal timing: green wave offsets and a complete green/yellow/red cycle
+ring wrap: lead car sees free road => caught (2): no overlap, reversal, or lane overrun at every control extreme | ring road: uniform flow persists; a brief brake grows into a jam only at high density
+ring wrap: wrap distance off by 50 m => caught (2): no overlap, reversal, or lane overrun at every control extreme | ring road: uniform flow persists; a brief brake grows into a jam only at high density
+ring: start at v=0 => NOT CAUGHT
+ring jitter removed => NOT CAUGHT
+perturb no-op => caught (1): ring road: uniform flow persists; a brief brake grows into a jam only at high density
+clock substep cap 200 -> 1e6 => NOT CAUGHT
+clock frame cap 0.1 s removed => NOT CAUGHT
+clock remainder dropped => caught (1): the clock is frame-rate independent and bounds stalls
+exits buffer unbounded => NOT CAUGHT
+crossings never trimmed => NOT CAUGHT
+samples unbounded => caught (1): space-time samples and flow history stay bounded
+stops: no hysteresis => NOT CAUGHT
+stops never counted => caught (2): drivers stop for red; only drivers committed on yellow cross after it turns | coordination: a green wave beats simultaneous and reverse offsets on the same traffic
+trip time excludes entrance wait => NOT CAUGHT
+exit on front bumper => NOT CAUGHT
+unseeded randomness => caught (1): same scenario and parameters replay identically
+no warm-up => NOT CAUGHT
+demand edit ignored => caught (2): demand above signal capacity builds an entrance queue; demand below it does not | lane drop: a queue forms upstream of the merge only when demand exceeds it
+validation: range check removed => caught (1): parameter edits are validated and atomic

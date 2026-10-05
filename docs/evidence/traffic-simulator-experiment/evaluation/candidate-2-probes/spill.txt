@@ -1,0 +1,28 @@
+balanced        default                occupancy-holds(green,<30m) 0 storage-holds 0 {} queue-at-upstream-exit steps 0
+balanced        eb2400                 occupancy-holds(green,<30m) 0 storage-holds 0 {} queue-at-upstream-exit steps 0
+balanced        allmax                 occupancy-holds(green,<30m) 0 storage-holds 0 {} queue-at-upstream-exit steps 0
+balanced        eb2400 off30           occupancy-holds(green,<30m) 0 storage-holds 0 {} queue-at-upstream-exit steps 0
+balanced        eb2400 off45           occupancy-holds(green,<30m) 0 storage-holds 0 {} queue-at-upstream-exit steps 0
+balanced        eb2400 split.2         occupancy-holds(green,<30m) 0 storage-holds 0 {} queue-at-upstream-exit steps 0
+balanced        eb2400 split.8 cyc40   occupancy-holds(green,<30m) 0 storage-holds 0 {} queue-at-upstream-exit steps 0
+green-wave      default                occupancy-holds(green,<30m) 0 storage-holds 0 {} queue-at-upstream-exit steps 0
+green-wave      eb2400                 occupancy-holds(green,<30m) 0 storage-holds 0 {} queue-at-upstream-exit steps 0
+green-wave      allmax                 occupancy-holds(green,<30m) 0 storage-holds 0 {} queue-at-upstream-exit steps 0
+green-wave      eb2400 off30           occupancy-holds(green,<30m) 0 storage-holds 0 {} queue-at-upstream-exit steps 0
+green-wave      eb2400 off45           occupancy-holds(green,<30m) 0 storage-holds 0 {} queue-at-upstream-exit steps 0
+green-wave      eb2400 split.2         occupancy-holds(green,<30m) 0 storage-holds 0 {} queue-at-upstream-exit steps 0
+green-wave      eb2400 split.8 cyc40   occupancy-holds(green,<30m) 0 storage-holds 0 {} queue-at-upstream-exit steps 0
+rush-hour       default                occupancy-holds(green,<30m) 0 storage-holds 0 {} queue-at-upstream-exit steps 0
+rush-hour       eb2400                 occupancy-holds(green,<30m) 0 storage-holds 0 {} queue-at-upstream-exit steps 0
+rush-hour       allmax                 occupancy-holds(green,<30m) 0 storage-holds 0 {} queue-at-upstream-exit steps 0
+rush-hour       eb2400 off30           occupancy-holds(green,<30m) 0 storage-holds 0 {} queue-at-upstream-exit steps 0
+rush-hour       eb2400 off45           occupancy-holds(green,<30m) 0 storage-holds 0 {} queue-at-upstream-exit steps 0
+rush-hour       eb2400 split.2         occupancy-holds(green,<30m) 0 storage-holds 0 {} queue-at-upstream-exit steps 0
+rush-hour       eb2400 split.8 cyc40   occupancy-holds(green,<30m) 0 storage-holds 0 {} queue-at-upstream-exit steps 0
+night-actuated  default                occupancy-holds(green,<30m) 0 storage-holds 0 {} queue-at-upstream-exit steps 0
+night-actuated  eb2400                 occupancy-holds(green,<30m) 0 storage-holds 0 {} queue-at-upstream-exit steps 0
+night-actuated  allmax                 occupancy-holds(green,<30m) 0 storage-holds 0 {} queue-at-upstream-exit steps 0
+night-actuated  eb2400 off30           occupancy-holds(green,<30m) 0 storage-holds 0 {} queue-at-upstream-exit steps 0
+night-actuated  eb2400 off45           occupancy-holds(green,<30m) 0 storage-holds 0 {} queue-at-upstream-exit steps 0
+night-actuated  eb2400 split.2         occupancy-holds(green,<30m) 0 storage-holds 0 {} queue-at-upstream-exit steps 0
+night-actuated  eb2400 split.8 cyc40   occupancy-holds(green,<30m) 0 storage-holds 0 {} queue-at-upstream-exit steps 0
