@@ -5,7 +5,14 @@ import * as os from "node:os";
 import { execFileSync } from "node:child_process";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
-import { caseStudiesData, caseStudyCards } from "./src/data/caseStudies";
+import {
+  caseStudiesData,
+  caseStudyCards,
+  sectionTitle,
+  type CaseStudy,
+  type CaseStudyBlock,
+  type CaseStudySectionId,
+} from "./src/data/caseStudies";
 import { projectsData } from "./src/data/projects";
 import {
   featuredProjectIds,
@@ -292,7 +299,10 @@ const primaryRouteShellDetails: Record<
       "Explore how congestion emerges from simple driver rules: coordinated signals, a lane drop, and stop-and-go waves on a ring road.",
       "Retime signals and change demand in a live traffic model with throughput and a time-space diagram. JavaScript is required for the interactive road.",
     ],
-    links: [{ label: "Back to simulations", href: "/simulations" }],
+    links: [
+      { label: "Back to simulations", href: "/simulations" },
+      { label: "Read the case study: Where the Specification Lived", href: "/case-studies/where-the-specification-lived" },
+    ],
   },
   "/simulations/snake": {
     eyebrow: "Interactive System",
@@ -448,6 +458,66 @@ const renderCaseStudiesIndexBody = () => `
   </main>
 `;
 
+// Mirrors CaseStudyBlocks: prose, prompts, captions, and tables as plain HTML; media as links.
+const renderCaseStudyBlocks = (blocks: CaseStudyBlock[] | undefined) =>
+  (blocks ?? [])
+    .map((block) => {
+      const heading = "heading" in block && block.heading ? `<h3>${escapeHtml(block.heading)}</h3>` : "";
+      switch (block.kind) {
+        case "prose":
+          return `${heading}${block.paragraphs.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join("")}`;
+        case "list":
+          return `${heading}${renderList(block.items)}`;
+        case "prompts":
+          return `${heading}${block.prompts
+            .map(
+              (prompt) => `
+                <details>
+                  <summary>${escapeHtml(prompt.label)} (${escapeHtml(prompt.summary)})</summary>
+                  <blockquote>${prompt.text
+                    .split("\n\n")
+                    .map((paragraph) => `<p>${escapeHtml(paragraph).replaceAll("\n", "<br />")}</p>`)
+                    .join("")}</blockquote>
+                </details>
+              `
+            )
+            .join("")}`;
+        case "images":
+          return `<figure>${renderLinkList(
+            block.images.map((image) => ({ label: `Image: ${image.alt}`, href: image.src }))
+          )}<figcaption>${escapeHtml(block.caption)}</figcaption></figure>`;
+        case "recording":
+          return `<figure>${renderLinkList([
+            { label: `Recording: ${block.media.video.label}`, href: block.media.video.src },
+          ])}<figcaption>${escapeHtml(block.media.video.significance)}</figcaption></figure>`;
+        case "comparison":
+          return `
+            <table>
+              <caption>${escapeHtml(block.caption)}</caption>
+              <thead><tr><td></td>${block.columns.map((column) => `<th scope="col">${escapeHtml(column)}</th>`).join("")}</tr></thead>
+              <tbody>${block.rows
+                .map(
+                  (row) =>
+                    `<tr><th scope="row">${escapeHtml(row.label)}</th>${row.values
+                      .map((value) => `<td>${escapeHtml(value)}</td>`)
+                      .join("")}</tr>`
+                )
+                .join("")}</tbody>
+            </table>
+            ${block.note ? `<p>${escapeHtml(block.note)}</p>` : ""}
+          `;
+        default:
+          return "";
+      }
+    })
+    .join("");
+
+const blocksFor = (caseStudy: CaseStudy) => caseStudy.blocks;
+const blocksBefore = (caseStudy: CaseStudy, id: CaseStudySectionId) =>
+  renderCaseStudyBlocks(blocksFor(caseStudy)?.[id]?.before);
+const blocksAfter = (caseStudy: CaseStudy, id: CaseStudySectionId) =>
+  renderCaseStudyBlocks(blocksFor(caseStudy)?.[id]?.after);
+
 const renderCaseStudyBody = (slug: string) => {
   const caseStudy = caseStudiesData.find((entry) => entry.slug === slug);
 
@@ -462,7 +532,9 @@ const renderCaseStudyBody = (slug: string) => {
       <p class="route-fallback__breadcrumbs"><a href="/case-studies">Case Studies</a> / ${escapeHtml(
         caseStudy.title
       )}</p>
-      <p class="route-fallback__eyebrow">Engineering Case Study</p>
+      <p class="route-fallback__eyebrow">${
+        caseStudy.kind === "experiment" ? "Experiment Case Study" : "Engineering Case Study"
+      }</p>
       <h1 class="route-fallback__title">${escapeHtml(caseStudy.title)}</h1>
       <p class="route-fallback__summary">${escapeHtml(
         caseStudy.shortDescription
@@ -477,35 +549,42 @@ const renderCaseStudyBody = (slug: string) => {
       </div>
 
       <section class="route-fallback__section">
-        <h2>Problem</h2>
+        <h2>${escapeHtml(sectionTitle(caseStudy, "problem", "Problem"))}</h2>
+        ${blocksBefore(caseStudy, "problem")}
         <p>${escapeHtml(caseStudy.problem)}</p>
+        ${blocksAfter(caseStudy, "problem")}
       </section>
 
       <section class="route-fallback__section">
-        <h2>Constraints</h2>
+        <h2>${escapeHtml(sectionTitle(caseStudy, "constraints", "Constraints"))}</h2>
+        ${blocksBefore(caseStudy, "constraints")}
         <div class="route-fallback__grid">
           <article class="route-fallback__card">
-            <h3>Technical Constraints</h3>
+            <h3>${escapeHtml(caseStudy.constraintTitles?.[0] ?? "Technical Constraints")}</h3>
             <p>${escapeHtml(caseStudy.constraints.technicalLimitations)}</p>
           </article>
           <article class="route-fallback__card">
-            <h3>Environment</h3>
+            <h3>${escapeHtml(caseStudy.constraintTitles?.[1] ?? "Environment")}</h3>
             <p>${escapeHtml(caseStudy.constraints.environment)}</p>
           </article>
           <article class="route-fallback__card">
-            <h3>Tradeoffs</h3>
+            <h3>${escapeHtml(caseStudy.constraintTitles?.[2] ?? "Tradeoffs")}</h3>
             <p>${escapeHtml(caseStudy.constraints.tradeoffs)}</p>
           </article>
         </div>
+        ${blocksAfter(caseStudy, "constraints")}
       </section>
 
       <section class="route-fallback__section">
-        <h2>Architecture</h2>
+        <h2>${escapeHtml(sectionTitle(caseStudy, "architecture", "Architecture"))}</h2>
+        ${blocksBefore(caseStudy, "architecture")}
         ${renderList(caseStudy.architecture)}
+        ${blocksAfter(caseStudy, "architecture")}
       </section>
 
       <section class="route-fallback__section">
-        <h2>Key Technical Decisions</h2>
+        <h2>${escapeHtml(sectionTitle(caseStudy, "decisions", "Key Technical Decisions"))}</h2>
+        ${blocksBefore(caseStudy, "decisions")}
         <div class="route-fallback__grid">
           ${caseStudy.keyTechnicalDecisions
             .map(
@@ -518,10 +597,18 @@ const renderCaseStudyBody = (slug: string) => {
             )
             .join("")}
         </div>
+        ${blocksAfter(caseStudy, "decisions")}
       </section>
 
       <section class="route-fallback__section">
-        <h2>${caseStudy.slug === "erebus" ? "Operational Capabilities" : "Implementation Highlights"}</h2>
+        <h2>${escapeHtml(
+          sectionTitle(
+            caseStudy,
+            "implementation",
+            caseStudy.slug === "erebus" ? "Operational Capabilities" : "Implementation Highlights"
+          )
+        )}</h2>
+        ${blocksBefore(caseStudy, "implementation")}
         <div class="route-fallback__grid">
           ${caseStudy.implementationHighlights
             .map(
@@ -534,11 +621,16 @@ const renderCaseStudyBody = (slug: string) => {
             )
             .join("")}
         </div>
+        ${blocksAfter(caseStudy, "implementation")}
       </section>
 
       <section class="route-fallback__section">
-        <h2>${caseStudy.slug === "erebus" ? "Current Outcome" : "Outcome"}</h2>
+        <h2>${escapeHtml(
+          sectionTitle(caseStudy, "outcome", caseStudy.slug === "erebus" ? "Current Outcome" : "Outcome")
+        )}</h2>
+        ${blocksBefore(caseStudy, "outcome")}
         ${renderList(caseStudy.outcome)}
+        ${blocksAfter(caseStudy, "outcome")}
       </section>
 
       <section class="route-fallback__section">
@@ -733,7 +825,7 @@ const renderHomeBody = () => {
                   <h3>${escapeHtml(caseStudy.title)}</h3>
                   <div class="route-fallback__meta">
                     <span class="route-fallback__pill">${escapeHtml(
-                      caseStudy.project.status
+                      caseStudy.status
                     )}</span>
                   </div>
                   <p>${escapeHtml(caseStudy.shortDescription)}</p>

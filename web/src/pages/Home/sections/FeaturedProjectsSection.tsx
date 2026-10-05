@@ -74,9 +74,9 @@ export const FeaturedProjectsSection = forwardRef(
                   <h3 className="project-title">{caseStudy.title}</h3>
                   <div className="project-badges">
                     <span
-                      className={`status-badge ${caseStudy.project.status.toLowerCase()}`}
+                      className={`status-badge ${caseStudy.status.toLowerCase()}`}
                     >
-                      {caseStudy.project.status}
+                      {caseStudy.status}
                     </span>
                   </div>
                 </div>

@@ -1,9 +1,10 @@
 import { Link } from "react-router-dom";
 import { useEffect, useMemo } from "react";
 import TypeWriterText from "../TypeWriterText";
-import { CaseStudy } from "../../data/caseStudies";
+import { CaseStudy, CaseStudySectionId, sectionTitle } from "../../data/caseStudies";
 import { projectsData } from "../../data/projects";
 import ProjectMedia from "../ProjectMedia";
+import CaseStudyBlocks from "./CaseStudyBlocks";
 import { useLayoutContext, PageSection } from "../../contexts/LayoutContext";
 import "./CaseStudyPage.css";
 
@@ -23,9 +24,21 @@ const sectionDefinitions: PageSection[] = [
   { id: "links", label: "Links" },
 ];
 
+const defaultConstraintTitles = ["Technical Constraints", "Environment", "Tradeoffs"] as const;
+
 const CaseStudyPage = ({ caseStudy }: CaseStudyPageProps) => {
   const { setSections } = useLayoutContext();
-  const sections = useMemo(() => sectionDefinitions, []);
+  const sections = useMemo(
+    () =>
+      sectionDefinitions.map((section) => ({
+        ...section,
+        label: caseStudy.sectionTitles?.[section.id as CaseStudySectionId] ?? section.label,
+      })),
+    [caseStudy]
+  );
+  const constraintTitles = caseStudy.constraintTitles ?? defaultConstraintTitles;
+  const before = (id: CaseStudySectionId) => <CaseStudyBlocks blocks={caseStudy.blocks?.[id]?.before} />;
+  const after = (id: CaseStudySectionId) => <CaseStudyBlocks blocks={caseStudy.blocks?.[id]?.after} />;
   const media = projectsData.find(
     (project) => project.id === caseStudy.projectId
   )?.media;
@@ -45,7 +58,9 @@ const CaseStudyPage = ({ caseStudy }: CaseStudyPageProps) => {
             <span>{caseStudy.title}</span>
           </div>
           <header className="case-study-hero-copy">
-            <p className="case-study-eyebrow">Engineering Case Study</p>
+            <p className="case-study-eyebrow">
+              {caseStudy.kind === "experiment" ? "Experiment Case Study" : "Engineering Case Study"}
+            </p>
             <h1 className="case-study-title">
               <TypeWriterText text={caseStudy.title} speed={60} />
             </h1>
@@ -69,30 +84,35 @@ const CaseStudyPage = ({ caseStudy }: CaseStudyPageProps) => {
         </section>
 
         <section id="problem" className="case-study-section prose-surface">
-          <h2>Problem</h2>
+          <h2>{sectionTitle(caseStudy, "problem", "Problem")}</h2>
+          {before("problem")}
           <p>{caseStudy.problem}</p>
+          {after("problem")}
         </section>
 
         <section id="constraints" className="case-study-section">
-          <h2>Constraints</h2>
+          <h2>{sectionTitle(caseStudy, "constraints", "Constraints")}</h2>
+          {before("constraints")}
           <div className="case-study-grid case-study-constraints-grid">
             <article className="interactive-card">
-              <h3>Technical Constraints</h3>
+              <h3>{constraintTitles[0]}</h3>
               <p>{caseStudy.constraints.technicalLimitations}</p>
             </article>
             <article className="interactive-card">
-              <h3>Environment</h3>
+              <h3>{constraintTitles[1]}</h3>
               <p>{caseStudy.constraints.environment}</p>
             </article>
             <article className="interactive-card">
-              <h3>Tradeoffs</h3>
+              <h3>{constraintTitles[2]}</h3>
               <p>{caseStudy.constraints.tradeoffs}</p>
             </article>
           </div>
+          {after("constraints")}
         </section>
 
         <section id="architecture" className="case-study-section prose-surface">
-          <h2>Architecture</h2>
+          <h2>{sectionTitle(caseStudy, "architecture", "Architecture")}</h2>
+          {before("architecture")}
           {caseStudy.slug === "erebus" && (
             <figure className="case-study-flow">
               <figcaption>Event and inference flow</figcaption>
@@ -108,10 +128,12 @@ const CaseStudyPage = ({ caseStudy }: CaseStudyPageProps) => {
               <li key={item}>{item}</li>
             ))}
           </ul>
+          {after("architecture")}
         </section>
 
         <section id="decisions" className="case-study-section">
-          <h2>Key Technical Decisions</h2>
+          <h2>{sectionTitle(caseStudy, "decisions", "Key Technical Decisions")}</h2>
+          {before("decisions")}
           <div className="case-study-grid">
             {caseStudy.keyTechnicalDecisions.map((decision) => (
               <article key={decision.title} className="interactive-card">
@@ -120,10 +142,18 @@ const CaseStudyPage = ({ caseStudy }: CaseStudyPageProps) => {
               </article>
             ))}
           </div>
+          {after("decisions")}
         </section>
 
         <section id="implementation" className="case-study-section">
-          <h2>{caseStudy.slug === "erebus" ? "Operational Capabilities" : "Implementation Highlights"}</h2>
+          <h2>
+            {sectionTitle(
+              caseStudy,
+              "implementation",
+              caseStudy.slug === "erebus" ? "Operational Capabilities" : "Implementation Highlights"
+            )}
+          </h2>
+          {before("implementation")}
           <div className="case-study-grid">
             {caseStudy.implementationHighlights.map((highlight) => (
               <article key={highlight.title} className="interactive-card">
@@ -132,15 +162,20 @@ const CaseStudyPage = ({ caseStudy }: CaseStudyPageProps) => {
               </article>
             ))}
           </div>
+          {after("implementation")}
         </section>
 
         <section id="outcome" className="case-study-section prose-surface">
-          <h2>{caseStudy.slug === "erebus" ? "Current Outcome" : "Outcome"}</h2>
+          <h2>
+            {sectionTitle(caseStudy, "outcome", caseStudy.slug === "erebus" ? "Current Outcome" : "Outcome")}
+          </h2>
+          {before("outcome")}
           <ul className="case-study-list">
             {caseStudy.outcome.map((item) => (
               <li key={item}>{item}</li>
             ))}
           </ul>
+          {after("outcome")}
         </section>
 
         <section id="evidence" className="case-study-section">

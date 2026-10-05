@@ -1,4 +1,4 @@
-import { projectsData, type Project } from "./projects";
+import { projectsData, type Project, type ProjectMedia, type ProjectMediaAsset } from "./projects";
 
 export interface CaseStudyDecision {
   title: string;
@@ -14,7 +14,8 @@ export type CaseStudyArtifactKind =
   | "Private operator artifact"
   | "Sanitized architecture summary"
   | "Repository provenance"
-  | "Local system evidence";
+  | "Local system evidence"
+  | "Evaluation record";
 
 export type CaseStudyArtifactStatus =
   | "Public"
@@ -39,9 +40,50 @@ export interface CaseStudyLink {
   unavailableLabel?: string;
 }
 
+/** The page sections every case study renders, in order. */
+export type CaseStudySectionId =
+  | "problem"
+  | "constraints"
+  | "architecture"
+  | "decisions"
+  | "implementation"
+  | "outcome"
+  | "evidence"
+  | "links";
+
+/** A still shown at its own CSS size (half its pixel size when `density` is 2), so text stays legible. */
+export type CaseStudyImage = ProjectMediaAsset & { alt: string; label: string; density?: 1 | 2 };
+
+/** Extra content for a section, for studies whose argument needs more than the standard fields. */
+export type CaseStudyBlock =
+  | { kind: "prose"; heading?: string; paragraphs: string[] }
+  | { kind: "list"; heading?: string; items: string[] }
+  | { kind: "prompts"; heading?: string; prompts: { label: string; summary: string; text: string }[] }
+  | { kind: "images"; caption: string; images: CaseStudyImage[] }
+  | { kind: "recording"; label: string; media: ProjectMedia & { video: NonNullable<ProjectMedia["video"]> } }
+  | {
+      kind: "comparison";
+      caption: string;
+      columns: [string, string];
+      rows: { label: string; values: [string, string] }[];
+      note?: string;
+    };
+
 export interface CaseStudy {
   slug: string;
-  projectId: string;
+  /** The project this study documents; experiments about method have none. */
+  projectId?: string;
+  /** "experiment" studies a way of working rather than a shipped system. */
+  kind?: "system" | "experiment";
+  /** Index badge and card still for a study without a project. */
+  status?: string;
+  media?: ProjectMedia;
+  /** Overrides for section headings, e.g. "Experimental Setup" for "Constraints". */
+  sectionTitles?: Partial<Record<CaseStudySectionId, string>>;
+  /** Card headings for the three constraint fields, in order. */
+  constraintTitles?: [string, string, string];
+  /** Blocks rendered before or after a section's standard content. */
+  blocks?: Partial<Record<CaseStudySectionId, { before?: CaseStudyBlock[]; after?: CaseStudyBlock[] }>>;
   title: string;
   shortDescription: string;
   problem: string;
@@ -60,8 +102,15 @@ export interface CaseStudy {
 }
 
 export interface CaseStudyCard extends CaseStudy {
-  project: Project;
+  project?: Project;
+  /** The project's status, or the study's own when it has no project. */
+  status: string;
+  /** The project's media, or the study's own when it has no project. */
+  media?: ProjectMedia;
 }
+
+export const sectionTitle = (caseStudy: CaseStudy, id: CaseStudySectionId, fallback: string) =>
+  caseStudy.sectionTitles?.[id] ?? fallback;
 
 export const caseStudiesData: CaseStudy[] = [
   {
@@ -364,17 +413,22 @@ export const caseStudyBySlug = caseStudiesData.reduce<
 export const caseStudyByProjectId = caseStudiesData.reduce<
   Record<string, CaseStudy>
 >((accumulator, caseStudy) => {
-  accumulator[caseStudy.projectId] = caseStudy;
+  if (caseStudy.projectId) accumulator[caseStudy.projectId] = caseStudy;
   return accumulator;
 }, {});
 
-export const caseStudyCards: CaseStudyCard[] = ["erebus", "aether", "arachne"].map((slug) => caseStudyBySlug[slug]).flatMap(
+export const caseStudyCards: CaseStudyCard[] = [
+  "erebus",
+  "aether",
+  "arachne",
+].map((slug) => caseStudyBySlug[slug]).flatMap(
   (caseStudy) => {
   const project = projectsData.find(
     (entry) => entry.id === caseStudy.projectId
   );
+    const status = project?.status ?? caseStudy.status;
 
-    if (!project) {
+    if (!status) {
       return [];
     }
 
@@ -382,6 +436,8 @@ export const caseStudyCards: CaseStudyCard[] = ["erebus", "aether", "arachne"].m
       {
         ...caseStudy,
         project,
+        status,
+        media: project?.media ?? caseStudy.media,
       },
     ];
   }
