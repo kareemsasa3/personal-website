@@ -8,6 +8,7 @@ const siteUrl = "https://kareemsasa.dev";
 
 // Run the independent physics suite using the existing TypeScript compiler.
 execFileSync(process.execPath, ["--import", resolve(projectRoot, "scripts/orbital-test-loader.mjs"), resolve(projectRoot, "scripts/orbital.test.mjs")], { stdio: "inherit" });
+execFileSync(process.execPath, ["--import", resolve(projectRoot, "scripts/traffic-test-loader.mjs"), resolve(projectRoot, "scripts/traffic.test.mjs")], { stdio: "inherit" });
 
 const readBuildFile = async (relativePath) =>
   readFile(resolve(buildDir, relativePath), "utf8");
@@ -119,6 +120,10 @@ const main = async () => {
   assertIncludes(orbital, "Orbital Simulator", "orbital route shell");
   assertIncludes(orbital, 'href="https://kareemsasa.dev/simulations/orbital-simulator"', "orbital canonical URL");
   assertIncludes(simulations, 'href="/simulations/orbital-simulator"', "simulations launch link");
+  const traffic = await readBuildFile("simulations/traffic-simulator/index.html");
+  assertIncludes(traffic, "Traffic Simulator", "traffic route shell");
+  assertIncludes(traffic, 'href="https://kareemsasa.dev/simulations/traffic-simulator"', "traffic canonical URL");
+  assertIncludes(simulations, 'href="/simulations/traffic-simulator"', "simulations traffic launch link");
   const snake = await readBuildFile("simulations/snake/index.html");
   const spider = await readBuildFile("simulations/spider/index.html");
   const terminal = await readBuildFile("terminal/index.html");
@@ -231,6 +236,7 @@ const main = async () => {
     { html: experience, path: "/experience" },
     { html: simulations, path: "/simulations" },
     { html: orbital, path: "/simulations/orbital-simulator" },
+    { html: traffic, path: "/simulations/traffic-simulator" },
     { html: snake, path: "/simulations/snake" },
     { html: spider, path: "/simulations/spider" },
     { html: terminal, path: "/terminal" },
@@ -437,6 +443,7 @@ const main = async () => {
     "https://kareemsasa.dev/case-studies/aether",
     "https://kareemsasa.dev/experience",
     "https://kareemsasa.dev/simulations/orbital-simulator",
+    "https://kareemsasa.dev/simulations/traffic-simulator",
   ]) {
     assertIncludes(sitemap, `<loc>${route}</loc>`, "sitemap canonical routes");
   }

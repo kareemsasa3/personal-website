@@ -89,6 +89,13 @@ const staticRouteMetadata: RouteMetadata[] = [
     sitemap: { changefreq: "monthly", priority: "0.3" },
   },
   {
+    path: "/simulations/traffic-simulator",
+    title: "Traffic Simulator - Kareem Sasa",
+    description: "Watch congestion emerge from simple driver rules: retime coordinated traffic signals, saturate a lane drop, and trigger stop-and-go waves on a ring road, with live throughput and a time-space diagram.",
+    canonicalPath: "/simulations/traffic-simulator",
+    sitemap: { changefreq: "monthly", priority: "0.3" },
+  },
+  {
     path: "/simulations/snake",
     title: "Snake - Kareem Sasa",
     description:
