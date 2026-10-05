@@ -3,6 +3,7 @@ import { useTheme } from "../../contexts/useTheme";
 import {
   SPACE_TIME_HEIGHT,
   SPACE_TIME_WINDOW,
+  SpaceTimeDots,
   drawSpaceTime,
   spaceTimeFrame,
 } from "./renderer";
@@ -18,6 +19,7 @@ interface SpaceTimeCanvasProps {
 export default function SpaceTimeCanvas({ engine, playing, revision }: SpaceTimeCanvasProps) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const draw = useRef<() => void>(() => {});
+  const [dots] = useState(() => new SpaceTimeDots());
   const { theme } = useTheme();
   const [pointer, setPointer] = useState<{ ago: number; position: number } | null>(null);
   useEffect(() => {
@@ -40,7 +42,7 @@ export default function SpaceTimeCanvas({ engine, playing, revision }: SpaceTime
         element.height = h;
       }
       context.setTransform(dpr, 0, 0, dpr, 0, 0);
-      drawSpaceTime(context, engine.current, width, theme);
+      drawSpaceTime(context, engine.current, width, theme, dots);
       drawn = latest;
       drawnWidth = width;
     };
@@ -60,7 +62,7 @@ export default function SpaceTimeCanvas({ engine, playing, revision }: SpaceTime
       cancelAnimationFrame(frame);
       resize.disconnect();
     };
-  }, [engine, theme, playing]);
+  }, [engine, theme, playing, dots]);
   useEffect(() => {
     if (!playing) draw.current();
   }, [playing, revision]);

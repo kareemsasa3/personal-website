@@ -1,4 +1,4 @@
-import type { TrafficEngine } from "./model/engine";
+import { SAMPLE_CAPACITY, type TrafficEngine } from "./model/engine";
 import type { SignalState } from "./model/signals";
 
 type Theme = "dark" | "light";
@@ -243,6 +243,7 @@ export function drawSpaceTime(
   engine: TrafficEngine,
   width: number,
   theme: Theme,
+  dots: SpaceTimeDots,
 ) {
   const colors = palette[theme];
   const { scenario, samples } = engine;
@@ -300,19 +301,80 @@ export function drawSpaceTime(
     ctx.stroke();
     ctx.setLineDash([]);
   }
-  // Trajectories: one dot per vehicle per sample. Fast bins first so slow traffic sits on top.
-  const dot = 2;
-  for (let bin = SPEED_BINS.length - 1; bin >= 0; bin--) {
-    ctx.fillStyle = colors.speed[bin];
-    for (const sample of samples) {
-      const x = tx(sample.time);
-      if (x < frame.left) continue;
-      for (let i = 0; i < sample.x.length; i++) {
-        if (speedBin(sample.speed[i]) !== bin) continue;
-        ctx.fillRect(x - dot / 2, py(sample.x[i]) - dot / 2, dot, dot);
-      }
-    }
-  }
+  // Trajectories: one dot per vehicle per sample, from a retained layer that
+  // only draws the samples that arrived since the last frame.
+  dots.paint(ctx, engine, frame, theme);
   ctx.strokeStyle = colors.marking;
   ctx.strokeRect(frame.left + 0.5, frame.top + 0.5, plotWidth - 1, plotHeight - 1);
+}
+
+const COLUMNS = SAMPLE_CAPACITY; // one column per sample in the window
+const DOT = 2; // CSS px
+
+/**
+ * Off-screen dot layer for the time-space diagram, one fixed-width column per
+ * sample. New samples scroll it left and draw only their own column, so a frame
+ * costs a few hundred dots instead of every dot in the window. Resizing, a theme
+ * change, or a new run repaints it from the engine's samples.
+ */
+export class SpaceTimeDots {
+  private layers: HTMLCanvasElement[] = [];
+  private front = 0;
+  private key = "";
+  private engine: TrafficEngine | null = null;
+  private lastTime = -Infinity;
+
+  paint(ctx: CanvasRenderingContext2D, engine: TrafficEngine, frame: SpaceTimeFrame, theme: Theme) {
+    const dpr = ctx.getTransform().a || 1;
+    const plotWidth = frame.right - frame.left,
+      plotHeight = frame.bottom - frame.top;
+    const column = Math.max(1, Math.ceil((plotWidth * dpr) / COLUMNS));
+    const pad = Math.ceil(DOT * dpr);
+    const width = COLUMNS * column,
+      height = Math.round(plotHeight * dpr) + 2 * pad;
+    const key = `${width}|${height}|${dpr}|${theme}`;
+    const { samples } = engine;
+    const latest = samples[samples.length - 1]?.time ?? -Infinity;
+    if (key !== this.key || engine !== this.engine || latest < this.lastTime) {
+      this.layers = [0, 1].map(() => Object.assign(document.createElement("canvas"), { width, height }));
+      this.key = key;
+      this.engine = engine;
+      this.lastTime = -Infinity;
+    }
+    let fresh = 0;
+    while (fresh < samples.length && samples[samples.length - 1 - fresh].time > this.lastTime) fresh++;
+    if (fresh > 0) {
+      const source = this.layers[this.front],
+        target = this.layers[1 - this.front];
+      const layer = target.getContext("2d")!;
+      layer.clearRect(0, 0, width, height);
+      if (fresh < COLUMNS) layer.drawImage(source, -fresh * column, 0);
+      const scale = (plotHeight * dpr) / engine.scenario.length;
+      const size = DOT * dpr;
+      // The layer is squeezed to the plot width when shown; widen dots to match.
+      const dotWidth = size * (width / (plotWidth * dpr));
+      for (let age = Math.min(fresh, COLUMNS) - 1; age >= 0; age--) {
+        const sample = samples[samples.length - 1 - age];
+        const center = (COLUMNS - 1 - age + 0.5) * column;
+        const bins = Array.from(sample.speed, speedBin);
+        // Fast bins first so slow traffic sits on top.
+        for (let bin = SPEED_BINS.length - 1; bin >= 0; bin--) {
+          layer.fillStyle = palette[theme].speed[bin];
+          for (let i = 0; i < bins.length; i++)
+            if (bins[i] === bin)
+              layer.fillRect(center - dotWidth / 2, pad + plotHeight * dpr - sample.x[i] * scale - size / 2, dotWidth, size);
+        }
+      }
+      this.front = 1 - this.front;
+      this.lastTime = latest;
+    }
+    // Column centers land where each sample's time falls: the newest on the right edge.
+    const step = plotWidth / COLUMNS;
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(frame.left, frame.top - DOT, plotWidth + DOT, plotHeight + 2 * DOT);
+    ctx.clip();
+    ctx.drawImage(this.layers[this.front], frame.left + step / 2, frame.top - pad / dpr, plotWidth, height / dpr);
+    ctx.restore();
+  }
 }
