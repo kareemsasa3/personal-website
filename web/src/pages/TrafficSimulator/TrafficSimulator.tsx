@@ -52,7 +52,7 @@ export default function TrafficSimulator() {
                 Elapsed <output aria-label="Elapsed simulated time" aria-live="off">{elapsed(state.metrics.time)}</output>
               </span>
             </div>
-            <RoadCanvas engine={simulation.engine} />
+            <RoadCanvas engine={simulation.engine} playing={simulation.playing} revision={state} />
             <div className="traffic-field-footer">
               <SpeedLegend />
               <p className="traffic-note">
@@ -83,7 +83,7 @@ export default function TrafficSimulator() {
               position bottom to top. Rising streaks are moving traffic; dark
               bands that slide backward are queues and stop-and-go waves.
             </p>
-            <SpaceTimeCanvas engine={simulation.engine} />
+            <SpaceTimeCanvas engine={simulation.engine} playing={simulation.playing} revision={state} />
           </section>
           <section className="traffic-panel" aria-labelledby="traffic-throughput-title">
             <h2 id="traffic-throughput-title">Throughput, veh/h</h2>

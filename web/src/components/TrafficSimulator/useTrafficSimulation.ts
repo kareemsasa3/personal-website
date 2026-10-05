@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { TrafficEngine } from "./model/engine";
 import { SimulationClock } from "./model/clock";
 import { findScenario, scenarios, type TrafficParams } from "./model/scenarios";
@@ -24,11 +24,6 @@ export function useTrafficSimulation() {
   );
   const [state, setState] = useState(snapshot);
   const update = useCallback(() => setState(snapshot()), [snapshot]);
-  const run = useRef({ playing, speed });
-  useEffect(() => {
-    run.current = { playing, speed };
-    clock.reset();
-  }, [playing, speed, clock]);
   useEffect(() => {
     const preference = window.matchMedia("(prefers-reduced-motion: reduce)");
     const pause = () => {
@@ -37,11 +32,15 @@ export function useTrafficSimulation() {
     preference.addEventListener("change", pause);
     return () => preference.removeEventListener("change", pause);
   }, []);
+  // The loop exists only while playing; a paused simulator schedules no frames
+  // and re-renders only when a control changes the state.
   useEffect(() => {
+    if (!playing) return;
     let frame = 0,
       previous: number | null = null,
       lastReadout = 0,
       limitedUntil = 0;
+    clock.reset();
     const visibility = () => {
       previous = null;
       clock.reset();
@@ -50,15 +49,14 @@ export function useTrafficSimulation() {
     const animate = (now: number) => {
       const elapsed = previous === null ? 0 : (now - previous) / 1000;
       previous = now;
-      if (run.current.playing && !document.hidden) {
+      if (!document.hidden) {
         try {
-          if (clock.advance(elapsed, run.current.speed, () => engine.current.step()))
-            limitedUntil = now + 1000;
+          if (clock.advance(elapsed, speed, () => engine.current.step())) limitedUntil = now + 1000;
         } catch (cause) {
-          run.current.playing = false;
           setPlaying(false);
-          clock.reset();
+          update();
           setError(cause instanceof Error ? cause.message : "Simulation stopped. Restart to recover.");
+          return;
         }
       }
       if (now - lastReadout >= 100) {
@@ -72,8 +70,10 @@ export function useTrafficSimulation() {
     return () => {
       cancelAnimationFrame(frame);
       document.removeEventListener("visibilitychange", visibility);
+      clock.reset();
+      setLimited(false);
     };
-  }, [clock, engine, update]);
+  }, [playing, speed, clock, engine, update]);
 
   /** Rebuilds the run. The same scenario and parameters replay the same arrivals. */
   const restart = (id: string = scenarioId, next?: TrafficParams) => {
@@ -129,10 +129,8 @@ export function useTrafficSimulation() {
     },
     toggle: () => {
       if (!error) {
-        run.current.playing = !playing;
         setPlaying(!playing);
-        clock.reset();
-        update();
+        update(); // show the exact state playback stopped on
       }
     },
   };

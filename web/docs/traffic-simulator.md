@@ -10,8 +10,8 @@ Local implementation at `/simulations/traffic-simulator`. The existing registry 
 - `model/scenarios.ts`: the three scenarios, their vehicle classes, seeds, warm-up, and control ranges.
 - `model/clock.ts`: wall-time accumulator, fixed substeps, stall/work limits (same approach as the Orbital Simulator).
 - `model/random.ts`: seeded mulberry32 generator and exponential inter-arrival times.
-- `useTrafficSimulation.ts`: browser lifecycle, visibility/reduced-motion handling, controls, and UI snapshots at 10 Hz. The model does not depend on React.
-- `renderer.ts`, `RoadCanvas.tsx`, `SpaceTimeCanvas.tsx`: canvas drawing. The road folds into rows on narrow screens; the ring scenario draws a loop. The time-space diagram redraws only when a new sample lands.
+- `useTrafficSimulation.ts`: browser lifecycle, visibility/reduced-motion handling, controls, and UI snapshots at 10 Hz while playing. The animation loop exists only while playing; a paused page schedules no simulator frames and re-renders only when a control changes the state. The model does not depend on React.
+- `renderer.ts`, `RoadCanvas.tsx`, `SpaceTimeCanvas.tsx`: canvas drawing. The road folds into rows on narrow screens; the ring scenario draws a loop. Both canvases animate only while playing and otherwise redraw on resize, theme, or state changes. The time-space diagram redraws only when a new sample lands.
 - `ThroughputChart.tsx`, `TrafficReadout.tsx`, `TrafficControls.tsx`: SVG throughput chart with hover readout and data table, text measurements and signal states, and labeled controls.
 - `src/pages/TrafficSimulator/`: page composition and theme-token-based responsive styling.
 

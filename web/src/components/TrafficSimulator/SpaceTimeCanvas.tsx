@@ -8,8 +8,16 @@ import {
 } from "./renderer";
 import type { TrafficEngine } from "./model/engine";
 
-export default function SpaceTimeCanvas({ engine }: { engine: { current: TrafficEngine } }) {
+interface SpaceTimeCanvasProps {
+  engine: { current: TrafficEngine };
+  playing: boolean;
+  /** Changes whenever the simulation state does; redraws a paused diagram. */
+  revision: unknown;
+}
+
+export default function SpaceTimeCanvas({ engine, playing, revision }: SpaceTimeCanvasProps) {
   const canvas = useRef<HTMLCanvasElement>(null);
+  const draw = useRef<() => void>(() => {});
   const { theme } = useTheme();
   const [pointer, setPointer] = useState<{ ago: number; position: number } | null>(null);
   useEffect(() => {
@@ -20,34 +28,42 @@ export default function SpaceTimeCanvas({ engine }: { engine: { current: Traffic
       frame = 0,
       drawn: unknown = null,
       drawnWidth = 0;
+    // Redraw only when a new sample lands or the size changes; dots are costly.
+    draw.current = () => {
+      const latest = engine.current.samples[engine.current.samples.length - 1] ?? engine.current;
+      if (width <= 0 || (latest === drawn && width === drawnWidth)) return;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const w = Math.round(width * dpr),
+        h = Math.round(SPACE_TIME_HEIGHT * dpr);
+      if (element.width !== w || element.height !== h) {
+        element.width = w;
+        element.height = h;
+      }
+      context.setTransform(dpr, 0, 0, dpr, 0, 0);
+      drawSpaceTime(context, engine.current, width, theme);
+      drawn = latest;
+      drawnWidth = width;
+    };
     const resize = new ResizeObserver(([entry]) => {
       width = entry.contentRect.width;
+      if (!playing) draw.current();
     });
     resize.observe(element);
-    const render = () => {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      const latest = engine.current.samples[engine.current.samples.length - 1] ?? engine.current;
-      // Redraw only when a new sample lands or the size changes; dots are costly.
-      if (width > 0 && (latest !== drawn || width !== drawnWidth)) {
-        const w = Math.round(width * dpr),
-          h = Math.round(SPACE_TIME_HEIGHT * dpr);
-        if (element.width !== w || element.height !== h) {
-          element.width = w;
-          element.height = h;
-        }
-        context.setTransform(dpr, 0, 0, dpr, 0, 0);
-        drawSpaceTime(context, engine.current, width, theme);
-        drawn = latest;
-        drawnWidth = width;
-      }
+    if (playing) {
+      const render = () => {
+        draw.current();
+        frame = requestAnimationFrame(render);
+      };
       frame = requestAnimationFrame(render);
-    };
-    frame = requestAnimationFrame(render);
+    }
     return () => {
       cancelAnimationFrame(frame);
       resize.disconnect();
     };
-  }, [engine, theme]);
+  }, [engine, theme, playing]);
+  useEffect(() => {
+    if (!playing) draw.current();
+  }, [playing, revision]);
   const readout = (event: React.PointerEvent<HTMLCanvasElement>) => {
     const bounds = event.currentTarget.getBoundingClientRect();
     const f = spaceTimeFrame(engine.current, bounds.width);
