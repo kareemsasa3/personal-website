@@ -328,10 +328,12 @@
 .case-study-prompt__meta { color: var(--app-text-secondary); font-size: 0.8rem; font-weight: 400; }
 .case-study-prompt pre { margin: 0; padding: 0.75rem 1rem 1rem; border-top: 1px solid var(--app-border); color: var(--text-color); font-family: inherit; font-size: 0.85rem; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; }
 
-.case-study-figure { margin-left: 0; margin-right: 0; }
-.case-study-figure__images { display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-start; }
+/* Stills never grow past their own size, so the figure shrinks to its row of stills and
+   centers; the caption wraps to that width instead of widening the figure. */
+.case-study-figure { width: fit-content; max-width: 100%; margin-left: auto; margin-right: auto; }
+.case-study-figure__images { display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem; align-items: flex-start; }
 .case-study-figure__item { flex: 1 1 280px; min-width: 0; }
-.case-study-figure figcaption { max-width: 760px; margin-top: 0.75rem; color: var(--app-text-secondary); font-size: 0.85rem; line-height: 1.6; }
+.case-study-figure figcaption { contain: inline-size; max-width: 760px; margin-top: 0.75rem; color: var(--app-text-secondary); font-size: 0.85rem; line-height: 1.6; }
 
 .case-study-comparison { overflow-x: auto; }
 .case-study-comparison table { width: 100%; border-collapse: collapse; font-size: 0.85rem; line-height: 1.5; }
