@@ -11,6 +11,7 @@ execFileSync(process.execPath, ["--import", resolve(projectRoot, "scripts/orbita
 execFileSync(process.execPath, ["--import", resolve(projectRoot, "scripts/traffic-test-loader.mjs"), resolve(projectRoot, "scripts/traffic.test.mjs")], { stdio: "inherit" });
 execFileSync(process.execPath, ["--import", resolve(projectRoot, "scripts/route-metadata-test-loader.mjs"), resolve(projectRoot, "scripts/route-metadata.test.mjs")], { stdio: "inherit" });
 execFileSync(process.execPath, ["--import", resolve(projectRoot, "scripts/route-metadata-test-loader.mjs"), resolve(projectRoot, "scripts/scroll-progress.test.mjs")], { stdio: "inherit" });
+execFileSync(process.execPath, ["--import", resolve(projectRoot, "scripts/route-metadata-test-loader.mjs"), resolve(projectRoot, "scripts/simulation-routes.test.mjs")], { stdio: "inherit" });
 
 const readBuildFile = async (relativePath) =>
   readFile(resolve(buildDir, relativePath), "utf8");
