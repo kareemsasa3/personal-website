@@ -177,7 +177,7 @@ const whereTheSpecificationLived: NonNullable<CaseStudy["blocks"]> = {
         kind: "list",
         heading: "What changed before publication",
         items: [
-          "The live Traffic Simulator is a reviewed derivative of the Simple artifact, not an untouched copy. The experimental commit 7420cc7 is preserved in the site's history, and each change below is a separate commit on top of it.",
+          "The live Traffic Simulator is a reviewed derivative of the Simple artifact, not an untouched copy. The experimental commit 7420cc7 is preserved unchanged by the tag traffic-sim-experiment-simple, and each change below was made on top of it.",
           "Signal lights now step only green → yellow → red → green. A timing edit that jumps the schedule shows a full 3 s yellow first. A regression test replays the same 49 abrupt edits and allows no red crossings. With no edits, the lights match the original schedule exactly, so the artifact's documented results are unchanged.",
           "The ring-road text now says the dense ring jams by itself after roughly 15 to 20 simulated minutes; the brake tap sets the wave off early.",
           "A paused simulator no longer runs animation loops or re-renders ten times a second.",

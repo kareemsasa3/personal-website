@@ -510,7 +510,7 @@ export const caseStudiesData: CaseStudy[] = [
         kind: "Repository provenance",
         status: "Public",
         description:
-          "The Simple run's final commit, merged unchanged into this site's history before any post-evaluation fix.",
+          "The Simple run's final commit, preserved unchanged by the tag traffic-sim-experiment-simple. The post-evaluation fixes were made on top of it.",
         href: "https://github.com/kareemsasa3/personal-website/commit/7420cc7a83abe51d25aa3073c66ae642afe548ae",
       },
       {
@@ -518,7 +518,7 @@ export const caseStudiesData: CaseStudy[] = [
         kind: "Repository provenance",
         status: "Public",
         description:
-          "The Detailed run's final commit, preserved on its own branch as the comparison artifact.",
+          "The Detailed run's final commit, preserved unchanged by the tag traffic-sim-experiment-detailed as the comparison artifact.",
         href: "https://github.com/kareemsasa3/personal-website/commit/0e62d2ce376b0586e648c6f34250ed5704e28e22",
       },
       {
