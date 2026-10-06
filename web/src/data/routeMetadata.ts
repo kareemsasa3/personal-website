@@ -161,6 +161,16 @@ export const routeMetadataByPath = routeMetadata.reduce<Record<string, RouteMeta
   {}
 );
 
+/**
+ * Each route's static shell is a directory index, so production nginx redirects `/path`
+ * to `/path/`. Both spellings name the same route; only the root keeps its slash.
+ */
+export const normalizeRoutePath = (pathname: string) =>
+  pathname.split(/[?#]/)[0].replace(/\/+$/, "") || "/";
+
+export const getRouteMetadata = (pathname: string): RouteMetadata =>
+  routeMetadataByPath[normalizeRoutePath(pathname)] ?? defaultRouteMetadata;
+
 export const sitemapRouteMetadata = routeMetadata.filter(
   (metadata) => metadata.sitemap && metadata.path === metadata.canonicalPath
 );

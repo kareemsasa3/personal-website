@@ -13,8 +13,7 @@ import {
   DEFAULT_IMAGE_ALT,
   DEFAULT_IMAGE_URL,
   SITE_URL,
-  defaultRouteMetadata,
-  routeMetadataByPath,
+  getRouteMetadata,
 } from "./data/routeMetadata";
 import { getStructuredDataJson } from "./data/structuredData";
 
@@ -22,7 +21,7 @@ const RouteMetadataUpdater = () => {
   const location = useLocation();
 
   useEffect(() => {
-    const meta = routeMetadataByPath[location.pathname] || defaultRouteMetadata;
+    const meta = getRouteMetadata(location.pathname);
     const canonicalUrl = `${SITE_URL}${meta.canonicalPath}`;
 
     if (document.title !== meta.title) document.title = meta.title;

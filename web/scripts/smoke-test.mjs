@@ -9,6 +9,7 @@ const siteUrl = "https://kareemsasa.dev";
 // Run the independent physics suite using the existing TypeScript compiler.
 execFileSync(process.execPath, ["--import", resolve(projectRoot, "scripts/orbital-test-loader.mjs"), resolve(projectRoot, "scripts/orbital.test.mjs")], { stdio: "inherit" });
 execFileSync(process.execPath, ["--import", resolve(projectRoot, "scripts/traffic-test-loader.mjs"), resolve(projectRoot, "scripts/traffic.test.mjs")], { stdio: "inherit" });
+execFileSync(process.execPath, ["--import", resolve(projectRoot, "scripts/route-metadata-test-loader.mjs"), resolve(projectRoot, "scripts/route-metadata.test.mjs")], { stdio: "inherit" });
 
 const readBuildFile = async (relativePath) =>
   readFile(resolve(buildDir, relativePath), "utf8");
