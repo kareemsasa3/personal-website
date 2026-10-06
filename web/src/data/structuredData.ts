@@ -6,12 +6,7 @@ import {
 import { projectsData, type Project } from "./projects";
 import { articlesData, articleBySlug, type Article } from "./generated/articles";
 import { socialContent } from "./siteContent";
-import {
-  SITE_URL,
-  DEFAULT_IMAGE_URL,
-  defaultRouteMetadata,
-  routeMetadataByPath,
-} from "./routeMetadata";
+import { SITE_URL, DEFAULT_IMAGE_URL, getRouteMetadata } from "./routeMetadata";
 
 type StructuredDataNode = Record<string, unknown>;
 
@@ -23,22 +18,7 @@ const publicProfileLinks = socialContent.links
   .filter((link) => !link.url.startsWith("mailto:"))
   .map((link) => link.url);
 
-const normalizePathname = (pathname: string) => {
-  const pathWithoutQuery = pathname.split(/[?#]/)[0] || "/";
-
-  if (pathWithoutQuery === "/") {
-    return pathWithoutQuery;
-  }
-
-  return pathWithoutQuery.replace(/\/+$/, "");
-};
-
-const getCanonicalPath = (pathname: string) => {
-  const normalizedPath = normalizePathname(pathname);
-  return (
-    routeMetadataByPath[normalizedPath] ?? defaultRouteMetadata
-  ).canonicalPath;
-};
+const getCanonicalPath = (pathname: string) => getRouteMetadata(pathname).canonicalPath;
 
 const getCanonicalUrl = (canonicalPath: string) => `${SITE_URL}${canonicalPath}`;
 
@@ -86,7 +66,7 @@ const createWebPageEntry = (
     hasPart?: StructuredDataNode[];
   } = {}
 ): StructuredDataNode => {
-  const metadata = routeMetadataByPath[canonicalPath] ?? defaultRouteMetadata;
+  const metadata = getRouteMetadata(canonicalPath);
   const canonicalUrl = getCanonicalUrl(metadata.canonicalPath);
 
   return {
