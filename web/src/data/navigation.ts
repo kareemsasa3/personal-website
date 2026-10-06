@@ -9,6 +9,7 @@ import {
   faPenNib,
 } from "@fortawesome/free-solid-svg-icons";
 import { IconDefinition } from "@fortawesome/fontawesome-svg-core";
+import { normalizeRoutePath } from "./routeMetadata";
 
 export type NavGroup = "home" | "core" | "explore";
 
@@ -45,3 +46,7 @@ export const isNavItemActive = (item: SiteNavItem, pathname: string): boolean =>
   if (item.path === "/") return path === "/";
   return [item.path, ...(item.aliases ?? [])].some((base) => isAtOrBelow(path, base));
 };
+
+// A simulation's own page, not the /simulations index; production serves both as `/path/`.
+export const isSimulationDetailRoute = (pathname: string) =>
+  normalizeRoutePath(pathname).startsWith("/simulations/");

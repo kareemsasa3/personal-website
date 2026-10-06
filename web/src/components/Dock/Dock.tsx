@@ -4,6 +4,7 @@ import { useLocation } from "react-router-dom";
 import {
   exploreNavItems,
   isNavItemActive,
+  isSimulationDetailRoute,
   navItems,
   type SiteNavItem,
 } from "../../data/navigation";
@@ -55,7 +56,7 @@ function DockContent(
   const { isSettingsOpen, toggleSettings } = useSettings();
   const { width: windowWidth } = useWindowSize();
   const isMobile = windowWidth <= 768;
-  const isGameRoute = location.pathname.includes("/simulations/");
+  const isGameRoute = isSimulationDetailRoute(location.pathname);
 
   // Mobile-specific presentation adjustments
   const effectiveMagnification = isMobile || reduceNavModeTransition ? 0 : magnification;
