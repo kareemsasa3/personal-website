@@ -1,6 +1,6 @@
 # Post-evaluation measurements
 
-Measurements behind the fixes applied to the Simple-prompt artifact (`7420cc7`) before it was published. Each fix is a separate commit after the merge that imported the artifact.
+Measurements behind the fixes applied to the Simple-prompt artifact (`7420cc7`) before it was published. The artifact is preserved unchanged by the tag `traffic-sim-experiment-simple`. Each fix was made on top of it and reached `main` in the squash merge of PR #11 (`92b8eb4`).
 
 ## Signal timing edits
 

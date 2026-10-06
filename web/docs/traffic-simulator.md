@@ -2,7 +2,7 @@
 
 Local implementation at `/simulations/traffic-simulator`. The existing registry card stays in its original position and now launches the page. No dependencies, package scripts, navigation, or infrastructure were changed.
 
-**Provenance.** This simulator is the published derivative of the Simple-prompt artifact from the experiment in the case study *Where the Specification Lived* (`/case-studies/where-the-specification-lived`). The experimental artifact is commit `7420cc7`, merged unchanged; the post-evaluation fixes are the separate commits after it. Evidence for the experiment lives in `docs/evidence/traffic-simulator-experiment/` at the repository root. Figures below that describe the model's behaviour were measured on the original artifact and reproduce unchanged on the derivative unless a section says otherwise.
+**Provenance.** This simulator is the published derivative of the Simple-prompt artifact from the experiment in the case study *Where the Specification Lived* (`/case-studies/where-the-specification-lived`). The experimental artifact is commit `7420cc7`, preserved unchanged by the tag `traffic-sim-experiment-simple`; the post-evaluation fixes were made on top of it and reached `main` in the squash merge of PR #11 (`92b8eb4`). Evidence for the experiment lives in `docs/evidence/traffic-simulator-experiment/` at the repository root. Figures below that describe the model's behaviour were measured on the original artifact and reproduce unchanged on the derivative unless a section says otherwise.
 
 ## Structure
 
