@@ -107,20 +107,20 @@ const whereTheSpecificationLived: NonNullable<CaseStudy["blocks"]> = {
       {
         kind: "images",
         caption:
-          "The Simple artifact's time-space diagrams for the same arriving traffic, at phone width. With a green wave (left), platoons that clear the first signal mostly meet green at the next ones. With a reverse wave (right), they stop again at every signal, and the stops appear as bright bands on each stop line.",
+          "The Simple artifact's time-space diagrams for the same arriving traffic, at phone width. Each dot is one vehicle at one moment: time runs left to right, position bottom to top, so rising streaks are moving traffic and the lines at 250, 550, and 850 m are the signals' stop lines. With a green wave, platoons that clear the first signal mostly meet green at the next ones. With a reverse wave, they stop again at every signal, and the stops appear as bright bands on each stop line.",
         images: [
           {
             src: "/media/spec-experiment-simple-greenwave.webp",
-            width: 718,
-            height: 980,
+            width: 618,
+            height: 520,
             density: 2,
             label: "simple prompt · green wave",
             alt: "Time-space diagram, green wave: blue diagonal streaks of moving vehicles cross the signal lines at 250, 550, and 850 m, with fewer and shorter bright queue bands than the reverse wave.",
           },
           {
             src: "/media/spec-experiment-simple-reversewave.webp",
-            width: 718,
-            height: 980,
+            width: 618,
+            height: 520,
             density: 2,
             label: "simple prompt · reverse wave",
             alt: "Time-space diagram, reverse wave: the same streaks bend flat into long bright queue bands at every signal line, showing vehicles stopping at each signal.",
