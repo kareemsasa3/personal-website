@@ -172,9 +172,15 @@
   transition: border-color 0.3s ease, background 0.3s ease, transform 0.3s ease;
 }
 
-.case-study-link span {
+/* The label absorbs the squeeze; the action (View, Open, unavailable note) wraps only
+   between words, so a long label can't crush it to one character per line */
+.case-study-link span:first-child {
   min-width: 0;
   overflow-wrap: anywhere;
+}
+
+.case-study-link span:last-child {
+  overflow-wrap: normal;
 }
 
 .case-study-link:hover {
