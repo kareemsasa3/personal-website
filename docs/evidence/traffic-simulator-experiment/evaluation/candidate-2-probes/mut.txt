@@ -1,0 +1,40 @@
+red-light obedience off -> CAUGHT (9): Steady corridor: no overlaps, no red entries, no box conflicts for 15 minutes | Green wave: no overlaps, no red entries, no box conflicts for 15 minutes | Rush hour: no overlaps, no red entries, no box conflicts for 15 minutes | Quiet night, actuated: no overlaps, no red entries, no box conflicts for 15 minutes | a red light builds a stationary queue at the stop line that discharges on green | yellow: drivers who can stop comfortably do; drivers too close go through | spillback: drivers keep the box clear, and a blocked box holds crossing traffic | giving the congested arterial more green relieves it at the side streets' expense | an offset matching travel time between signals forms a green wave
+yellow: always run (no stop decision) -> CAUGHT (1): yellow: drivers who can stop comfortably do; drivers too close go through
+yellow: always stop -> CAUGHT (1): yellow: drivers who can stop comfortably do; drivers too close go through
+yellow: decision not sticky -> NOT CAUGHT
+yellow threshold 3.5->9 m/s2 -> CAUGHT (1): yellow: drivers who can stop comfortably do; drivers too close go through
+box occupancy check off -> CAUGHT (1): spillback: drivers keep the box clear, and a blocked box holds crossing traffic
+box occupancy checks own axis -> CAUGHT (4): a red light builds a stationary queue at the stop line that discharges on green | spillback: drivers keep the box clear, and a blocked box holds crossing traffic | demand beyond capacity grows queues and delay; demand within capacity does not | an offset matching travel time between signals forms a green wave
+don't-block-box storage off -> CAUGHT (1): spillback: drivers keep the box clear, and a blocked box holds crossing traffic
+storage needs one car less ((ahead+1)->ahead) -> CAUGHT (1): spillback: drivers keep the box clear, and a blocked box holds crossing traffic
+IDM interaction term removed -> CAUGHT (5): IDM: closing on a stopped obstacle brakes harder the closer it is | yellow: drivers who can stop comfortably do; drivers too close go through | spillback: drivers keep the box clear, and a blocked box holds crossing traffic | demand beyond capacity grows queues and delay; demand within capacity does not | long overloaded runs keep history and off-road backlogs bounded
+IDM dynamic (closing) term removed -> CAUGHT (2): IDM: closing on a stopped obstacle brakes harder the closer it is | yellow: drivers who can stop comfortably do; drivers too close go through
+IDM interaction exponent 2->1 -> NOT CAUGHT
+entry admission room check off -> CAUGHT (6): Steady corridor: no overlaps, no red entries, no box conflicts for 15 minutes | Green wave: no overlaps, no red entries, no box conflicts for 15 minutes | Rush hour: no overlaps, no red entries, no box conflicts for 15 minutes | spillback: drivers keep the box clear, and a blocked box holds crossing traffic | demand beyond capacity grows queues and delay; demand within capacity does not | live metrics report throughput, delay, stops, and per-intersection queues
+entry admission at desired speed -> CAUGHT (11): Steady corridor: no overlaps, no red entries, no box conflicts for 15 minutes | Green wave: no overlaps, no red entries, no box conflicts for 15 minutes | Rush hour: no overlaps, no red entries, no box conflicts for 15 minutes | Quiet night, actuated: no overlaps, no red entries, no box conflicts for 15 minutes | a red light builds a stationary queue at the stop line that discharges on green | spillback: drivers keep the box clear, and a blocked box holds crossing traffic | demand beyond capacity grows queues and delay; demand within capacity does not | giving the congested arterial more green relieves it at the side streets' expense | an offset matching travel time between signals forms a green wave | actuated signals serve light, uneven traffic with less delay than fixed time | live metrics report throughput, delay, stops, and per-intersection queues
+overlap hold-back removed -> NOT CAUGHT
+stop-line clamp removed -> NOT CAUGHT
+all-red skipped -> CAUGHT (4): fixed-time controller reproduces its plan: greens, yellow, all-red, cycle | offsets shift each intersection's cycle by index × offset | changing the plan mid-cycle never skips yellow, all-red, or minimum green | actuated control rests in green, gaps out, and caps green at the maximum
+yellow 3s->1s in controller -> CAUGHT (5): fixed-time controller reproduces its plan: greens, yellow, all-red, cycle | offsets shift each intersection's cycle by index × offset | changing the plan mid-cycle never skips yellow, all-red, or minimum green | actuated control rests in green, gaps out, and caps green at the maximum | yellow: drivers who can stop comfortably do; drivers too close go through
+min green removed -> CAUGHT (2): changing the plan mid-cycle never skips yellow, all-red, or minimum green | actuated control rests in green, gaps out, and caps green at the maximum
+actuated gap-out removed -> CAUGHT (2): actuated control rests in green, gaps out, and caps green at the maximum | actuated signals serve light, uneven traffic with less delay than fixed time
+actuated max-out removed -> CAUGHT (1): actuated control rests in green, gaps out, and caps green at the maximum
+actuated rest-in-green removed -> CAUGHT (1): actuated control rests in green, gaps out, and caps green at the maximum
+offsets ignored -> CAUGHT (2): offsets shift each intersection's cycle by index × offset | an offset matching travel time between signals forms a green wave
+offset sign flipped -> CAUGHT (2): offsets shift each intersection's cycle by index × offset | an offset matching travel time between signals forms a green wave
+split inverted -> CAUGHT (3): fixed-time controller reproduces its plan: greens, yellow, all-red, cycle | a red light builds a stationary queue at the stop line that discharges on green | giving the congested arterial more green relieves it at the side streets' expense
+detector zone 35->5 m -> NOT CAUGHT
+clock substep cap removed -> NOT CAUGHT
+clock frame clamp removed -> NOT CAUGHT
+clock remainder dropped -> CAUGHT (1): clock: equal simulated time at 60, 120, 165 Hz for every speed
+delay: no free-flow subtraction -> NOT CAUGHT
+delay excludes entry wait -> NOT CAUGHT
+stops counted every slow step -> CAUGHT (1): yellow: drivers who can stop comfortably do; drivers too close go through
+history not bounded -> CAUGHT (1): long overloaded runs keep history and off-road backlogs bounded
+backlog not bounded -> CAUGHT (1): long overloaded runs keep history and off-road backlogs bounded
+recent trips never pruned -> NOT CAUGHT
+throughput window x2 -> NOT CAUGHT
+arrival rate doubled -> CAUGHT (2): demand beyond capacity grows queues and delay; demand within capacity does not | an offset matching travel time between signals forms a green wave
+admission always lane 0 -> NOT CAUGHT
+queue metric counts all vehicles -> NOT CAUGHT
+setDemand ignored -> CAUGHT (1): demand edits take effect immediately and deterministically

@@ -172,9 +172,15 @@
   transition: border-color 0.3s ease, background 0.3s ease, transform 0.3s ease;
 }
 
-.case-study-link span {
+/* The label absorbs the squeeze; the action (View, Open, unavailable note) wraps only
+   between words, so a long label can't crush it to one character per line */
+.case-study-link span:first-child {
   min-width: 0;
   overflow-wrap: anywhere;
+}
+
+.case-study-link span:last-child {
+  overflow-wrap: normal;
 }
 
 .case-study-link:hover {
@@ -312,3 +318,55 @@
 
 /* Span the hero card so the loop fills the width beside the left-aligned copy and dense terminal text stays legible */
 .case-study-hero-media { margin-top: 1.5rem; }
+
+/* Section blocks for studies that need more than the standard fields */
+.case-study-block { margin-top: 1.5rem; }
+.case-study-block > h3 { margin-bottom: 0.5rem; }
+
+.case-study-prompt { margin-top: 0.75rem; border: 1px solid var(--app-border); border-radius: 8px; background: var(--app-surface); }
+.case-study-prompt summary { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.25rem 1rem; min-height: 44px; padding: 0.5rem 1rem; color: var(--text-color); font-weight: 700; cursor: pointer; }
+.case-study-prompt__meta { color: var(--app-text-secondary); font-size: 0.8rem; font-weight: 400; }
+.case-study-prompt pre { margin: 0; padding: 0.75rem 1rem 1rem; border-top: 1px solid var(--app-border); color: var(--text-color); font-family: inherit; font-size: 0.85rem; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; }
+
+/* Stills never grow past their own size, so the figure shrinks to its row of stills and
+   centers; the caption wraps to that width instead of widening the figure. */
+.case-study-figure { width: fit-content; max-width: 100%; margin-left: auto; margin-right: auto; }
+.case-study-figure__images { display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem; align-items: flex-start; }
+.case-study-figure__item { flex: 1 1 280px; min-width: 0; }
+.case-study-figure figcaption { contain: inline-size; max-width: 760px; margin-top: 0.75rem; color: var(--app-text-secondary); font-size: 0.85rem; line-height: 1.6; }
+
+.case-study-comparison { overflow-x: auto; }
+.case-study-comparison table { width: 100%; border-collapse: collapse; font-size: 0.85rem; line-height: 1.5; }
+.case-study-comparison caption { padding-bottom: 0.5rem; color: var(--text-color); font-weight: 700; text-align: left; }
+.case-study-comparison :is(th, td) { padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--app-border); color: var(--text-color); text-align: left; vertical-align: top; overflow-wrap: break-word; }
+.case-study-comparison thead th { color: var(--primary-color); }
+.case-study-comparison tbody th { width: 30%; color: var(--app-text-secondary); font-weight: 400; }
+.case-study-comparison__note { margin-top: 0.75rem; color: var(--app-text-secondary); font-size: 0.85rem; }
+
+/* Narrow screens: one block per row, each value labelled with its column. */
+@media (max-width: 560px) {
+  .case-study-comparison :is(table, tbody, tr, th, td) { display: block; width: auto; }
+  .case-study-comparison caption { display: block; }
+  .case-study-comparison thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .case-study-comparison tr { padding: 0.6rem 0; border-bottom: 1px solid var(--app-border); }
+  .case-study-comparison :is(th, td) { padding: 0.15rem 0; border: 0; }
+  .case-study-comparison tbody th { width: auto; color: var(--text-color); font-weight: 700; }
+  .case-study-comparison td::before { content: attr(data-label) ": "; color: var(--primary-color); }
+}
+
+/* Keep empty tracks so a short row of cards matches the width of a full one */
+.case-studies-grid--tracks {
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+}
+
+@media (max-width: 768px) {
+  .case-studies-grid--tracks {
+    grid-template-columns: 1fr;
+  }
+}
+
+.case-studies-header h2 {
+  margin: 0 0 1rem;
+  color: var(--text-color);
+  font-size: clamp(1.5rem, 3vw, 2rem);
+}

@@ -4,6 +4,7 @@ export type SimulationPreviewType =
   | "rhythm-lab"
   | "annals"
   | "orbital"
+  | "traffic"
   | "placeholder";
 
 export interface SimulationData {
@@ -36,10 +37,9 @@ export const simulationsData: SimulationData[] = [
     description:
       "Multi-lane traffic flow model with signal timing, vehicle queuing, and throughput visualization. Explores how local rules produce system-wide congestion and coordination.",
     path: "/simulations/traffic-simulator",
-    previewType: "placeholder",
-    isAvailable: false,
-    statusLabel: "In development",
-    // TODO: add githubUrl/externalUrl once the traffic-simulator repo is published, then set isAvailable: true
+    previewType: "traffic",
+    isAvailable: true,
+    modeLabel: "Interactive simulation",
   },
   {
     id: "orbital-simulator",

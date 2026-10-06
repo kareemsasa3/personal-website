@@ -236,14 +236,10 @@ test("unresolved step rolls back and never advances time", () => {
   }
   assert.fail("expected accuracy stop");
 });
-test("existing Orbital slug is available; Traffic remains unavailable", () => {
+test("existing Orbital slug is available", () => {
   const orbital = simulationsData.find((s) => s.id === "orbital-simulator");
   assert.equal(orbital.path, "/simulations/orbital-simulator");
   assert.equal(orbital.isAvailable, true);
   assert.equal(orbital.statusLabel, undefined);
   assert.equal(orbital.previewType, "orbital");
-  assert.equal(
-    simulationsData.find((s) => s.id === "traffic-simulator").isAvailable,
-    false,
-  );
 });
