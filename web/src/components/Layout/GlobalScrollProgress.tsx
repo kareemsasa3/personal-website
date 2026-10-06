@@ -1,5 +1,6 @@
 import { motion, useScroll } from "framer-motion";
 import { useLocation } from "react-router-dom";
+import { showsScrollProgress } from "../../data/scrollProgressRoutes";
 import "./GlobalScrollProgress.css";
 
 const GlobalScrollProgress = () => {
@@ -8,15 +9,7 @@ const GlobalScrollProgress = () => {
   // Get scroll progress for the entire page
   const { scrollYProgress } = useScroll();
 
-  // Only show on certain pages (you can customize this)
-  const shouldShow =
-    location.pathname === "/" ||
-    location.pathname === "/projects" ||
-    location.pathname === "/experience" ||
-    location.pathname === "/work" ||
-    location.pathname === "/journey";
-
-  if (!shouldShow) {
+  if (!showsScrollProgress(location.pathname)) {
     return null;
   }
 

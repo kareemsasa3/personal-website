@@ -1,4 +1,4 @@
-// Scoped TypeScript loader for the route metadata tests (Node 20.6+).
+// Scoped TypeScript loader for the route data tests (Node 20.6+).
 // Transpiles only src/data with the repository's TypeScript compiler and resolves its
 // extensionless relative imports; never loads React or a DOM.
 import { register } from "node:module";
