@@ -134,6 +134,7 @@ const main = async () => {
   const sitemap = await readBuildFile("sitemap.xml");
   const writingIndex = await readBuildFile("writing/index.html");
   const articleSlugs = [
+    "what-should-still-be-hard",
     "presence-is-not-a-control",
     "the-centaur-era",
     "what-the-second-agent-is-for",
@@ -519,6 +520,7 @@ const main = async () => {
 
   // 1. The index lists every published article.
   for (const title of [
+    "What Should Still Be Hard",
     "Presence Is Not a Control",
     "The Centaur Era: Half Human, Half Machine",
     "What the Second Agent Is For",
@@ -537,6 +539,8 @@ const main = async () => {
   //    its title — an empty shell for long-form content would be the worst
   //    possible regression.
   const distinctiveProse = {
+    "what-should-still-be-hard":
+      "A preference is not a verdict.",
     "presence-is-not-a-control":
       "The reviewer is looking at a map drawn by the agent that traversed the territory.",
     "the-centaur-era":
@@ -578,6 +582,7 @@ const main = async () => {
   // 4. Sitemap covers the index and every article.
   for (const route of [
     "https://kareemsasa.dev/writing",
+    "https://kareemsasa.dev/writing/what-should-still-be-hard",
     "https://kareemsasa.dev/writing/presence-is-not-a-control",
     "https://kareemsasa.dev/writing/the-centaur-era",
     "https://kareemsasa.dev/writing/what-the-second-agent-is-for",
@@ -594,6 +599,7 @@ const main = async () => {
 
   // 5. Each article shell carries an Article node whose headline matches.
   const expectedHeadlines = {
+    "what-should-still-be-hard": "What Should Still Be Hard",
     "presence-is-not-a-control": "Presence Is Not a Control",
     "the-centaur-era": "The Centaur Era: Half Human, Half Machine",
     "what-the-second-agent-is-for": "What the Second Agent Is For",
@@ -637,7 +643,10 @@ const main = async () => {
   // 6. Every contents link resolves to a heading in the same document. A TOC
   //    whose anchors miss their targets is a silently broken control. An
   //    article with no body sections has no TOC entries and renders no nav.
-  const articlesWithoutToc = new Set(["when-programming-became-the-smaller-part"]);
+  const articlesWithoutToc = new Set([
+    "what-should-still-be-hard",
+    "when-programming-became-the-smaller-part",
+  ]);
   for (const slug of articleSlugs) {
     const html = articleShells[slug];
     const toc = html.match(
@@ -770,6 +779,7 @@ const main = async () => {
   ].map((m) => m[1]);
 
   const expectedIndexOrder = [
+    "what-should-still-be-hard",
     "presence-is-not-a-control",
     "the-machine-should-explain-itself",
     "the-work-the-agent-stopped-doing",
