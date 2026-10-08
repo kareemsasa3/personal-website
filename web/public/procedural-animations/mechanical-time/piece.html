@@ -1,0 +1,1319 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Mechanical Time</title>
+<style>
+:root{
+  --bg:#04070b; --frame:#070b12; --panel:rgba(10,15,23,.9); --panel-line:rgba(226,218,198,.16);
+  --ink:#e6dfcd; --ink-dim:#8e949c; --accent:#c9a35a; --focus:#e6dfcd;
+  color-scheme:dark;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){--bg:#04070b;--frame:#070b12;--panel:rgba(10,15,23,.9);--panel-line:rgba(226,218,198,.16);--ink:#e6dfcd;--ink-dim:#8e949c;--accent:#c9a35a}
+}
+:root[data-theme="dark"]{--bg:#04070b;--frame:#070b12;--panel:rgba(10,15,23,.9);--panel-line:rgba(226,218,198,.16);--ink:#e6dfcd;--ink-dim:#8e949c;--accent:#c9a35a}
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{height:100%;margin:0;background:var(--bg);color:var(--ink);overflow:hidden;
+  font:13px/1.4 "Helvetica Neue",Helvetica,Arial,system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
+#stage{position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+#cv{display:block;background:var(--frame)}
+#hot{position:absolute;right:0;bottom:0;width:72px;height:72px;z-index:3}
+#ui{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);width:min(780px,calc(100% - 20px));
+  background:var(--panel);border:1px solid var(--panel-line);border-radius:10px;padding:10px 12px 9px;z-index:4;
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+#ui[hidden]{display:none}
+.row{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px}
+button{font:inherit;font-size:12px;letter-spacing:.05em;color:var(--ink);background:transparent;border:1px solid var(--panel-line);
+  border-radius:6px;padding:5px 10px;cursor:pointer;min-height:32px}
+button:hover{border-color:var(--ink-dim)}
+button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
+button:focus-visible,input:focus-visible{outline:1px solid var(--focus);outline-offset:2px}
+#tc{margin-left:auto;font-variant-numeric:tabular-nums;font-size:12px;color:var(--ink-dim);white-space:nowrap}
+#scrub{width:100%;margin:9px 0 6px;accent-color:var(--accent)}
+.layers label{font-size:11.5px;color:var(--ink-dim);display:inline-flex;align-items:center;gap:4px;cursor:pointer}
+.hint{margin-top:5px;font-size:10.5px;color:var(--ink-dim)}
+#rm{position:absolute;right:14px;bottom:14px;z-index:3}
+#rm[hidden]{display:none}
+</style>
+</head>
+<body>
+<div id="stage">
+  <canvas id="cv" role="img" aria-label="Mechanical Time: a procedural animation of a mechanical watch movement"></canvas>
+  <div id="hot" title="Show controls"></div>
+  <button id="rm" type="button" hidden>Play animation</button>
+  <div id="ui" hidden role="region" aria-label="Playback controls">
+    <div class="row">
+      <button id="bPlay" type="button">Pause</button>
+      <button id="bRestart" type="button">Restart</button>
+      <button id="bNorm" type="button" aria-pressed="true">1×</button>
+      <button id="bSlow" type="button" aria-pressed="false">0.25×</button>
+      <button id="bEsc" type="button">Escapement</button>
+      <span id="tc">0.00</span>
+    </div>
+    <input id="scrub" type="range" min="0" max="1000" step="1" value="0" aria-label="Timeline">
+    <div class="row layers">
+      <label><input type="checkbox" data-layer="train" checked> Train</label>
+      <label><input type="checkbox" data-layer="bridges" checked> Bridges</label>
+      <label><input type="checkbox" data-layer="case" checked> Case</label>
+      <label><input type="checkbox" data-layer="esc" checked> Escapement</label>
+      <label><input type="checkbox" data-layer="hands" checked> Hands</label>
+      <label><input type="checkbox" data-layer="draft" checked> Drafting</label>
+      <label><input type="checkbox" data-layer="notes" checked> Notes</label>
+      <label><input type="checkbox" data-layer="blur" checked> Motion blur</label>
+    </div>
+    <div class="hint">C controls · Space play/pause · R restart · E escapement · S slow motion · ← → step 1 s</div>
+  </div>
+</div>
+<script>
+(() => {
+'use strict';
+
+/* ═══════════════════════ 0 · MATH ═══════════════════════ */
+const PI = Math.PI, TAU = 2 * PI, DEG = PI / 180;
+const clamp = (x, a, b) => x < a ? a : (x > b ? b : x);
+const sat = x => x < 0 ? 0 : (x > 1 ? 1 : x);
+const lerp = (a, b, t) => a + (b - a) * t;
+const smooth = t => { t = sat(t); return t * t * (3 - 2 * t); };
+const smoother = t => { t = sat(t); return t * t * t * (t * (6 * t - 15) + 10); };
+const inOut = t => { t = sat(t); return t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; };
+const outQuad = t => { t = sat(t); return 1 - (1 - t) * (1 - t); };
+const outCubic = t => { t = sat(t); return 1 - Math.pow(1 - t, 3); };
+const frac = x => x - Math.floor(x);
+const wrapPi = a => { a = (a + PI) % TAU; if (a < 0) a += TAU; return a - PI; };
+const V = (x, y) => ({ x, y });
+const add = (a, b) => V(a.x + b.x, a.y + b.y), sub = (a, b) => V(a.x - b.x, a.y - b.y), mul = (a, k) => V(a.x * k, a.y * k);
+const vlen = a => Math.hypot(a.x, a.y);
+const vnorm = a => { const l = Math.hypot(a.x, a.y) || 1; return V(a.x / l, a.y / l); };
+const vrot = (a, t) => { const c = Math.cos(t), s = Math.sin(t); return V(a.x * c - a.y * s, a.x * s + a.y * c); };
+const polar = (r, a) => V(r * Math.cos(a), r * Math.sin(a));
+const vang = a => Math.atan2(a.y, a.x);
+const vlerp = (a, b, t) => V(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t);
+
+/* ═══════════════════════ 1 · MOVEMENT SPECIFICATION ═══════════════════════
+   Units: movement radius = 1. Screen y points down; positive angles turn clockwise on screen.
+   The movement is always seen from the dial side, so the centre (minute) and fourth (seconds)
+   arbors turn clockwise and every mesh reverses direction.
+   Ratios are those of a conventional 18 000 A/h small-seconds calibre:
+     centre → fourth = (80/10)·(75/10) = 60   (1 rev/h → 1 rev/min)
+     fourth → escape = 80/8 = 10, 15-tooth escape wheel = 30 beats per escape revolution
+   ⇒ 300 beats per seconds-hand revolution: each beat advances the seconds hand exactly 1.2°.
+   Stylization (deliberate, labelled on screen): playback beat rate is scaled, never the linkage. */
+const SPEC = {
+  realBeatsPerSecond: 5,
+  train: {
+    barrel: { N: 80, R: 0.34 },
+    center: { N: 80, R: 0.30, pinion: 10 },
+    third:  { N: 75, R: 0.24, pinion: 10 },
+    fourth: { N: 80, R: 0.22, pinion: 10 },
+    escape: { pinion: 8, teeth: 15, R: 0.12, Rroot: 0.084 },
+  },
+  // Swiss lever: fork swing ±F, balance lift ±liftHalf (= 5·F via roller/fork lever ratio), amplitude
+  esc: { F: 5 * DEG, liftHalf: 25 * DEG, amp: 220 * DEG, rr: 0.045, Lf: 0.225 },
+};
+const TR = SPEC.train, ES = SPEC.esc;
+
+/* ═══════════════════════ 2 · LAYOUT (derived from tooth counts) ═══════════════════════ */
+const moduleOf = w => 2 * w.R / w.N;
+const PIN = { // pinion pitch radius = driving wheel's module × leaves / 2
+  center: moduleOf(TR.barrel) * TR.center.pinion / 2,
+  third:  moduleOf(TR.center) * TR.third.pinion / 2,
+  fourth: moduleOf(TR.third) * TR.fourth.pinion / 2,
+  escape: moduleOf(TR.fourth) * TR.escape.pinion / 2,
+};
+const POS = {};
+POS.center = V(0, 0);                 // minute arbor at dial centre
+POS.fourth = V(0, 0.53);              // small seconds at 6 o'clock
+{ const a = TR.center.R + PIN.third, b = TR.third.R + PIN.fourth, c = POS.fourth.y;
+  const y = (a * a - b * b + c * c) / (2 * c); POS.third = V(Math.sqrt(a * a - y * y), y); }
+POS.barrel = polar(TR.barrel.R + PIN.center, -105 * DEG);
+POS.escape = add(POS.fourth, polar(TR.fourth.R + PIN.escape, 200 * DEG));
+const FORK_DIR = polar(1, 205 * DEG);
+const ESC_D = TR.escape.R / Math.cos(30 * DEG);       // tangential locking: pallets span 60°
+POS.fork = add(POS.escape, mul(FORK_DIR, ESC_D));
+POS.balance = add(POS.fork, mul(FORK_DIR, ES.Lf + ES.rr));
+// Escapement local frame: escape centre at origin, fork pivot straight "up" (−y), mirrored so the
+// locally clockwise-derived escapement turns counter-clockwise on the dial-side view.
+const RHO = vang(FORK_DIR) + PI / 2;
+const LP = V(0, -ESC_D), LB = V(0, -ESC_D - ES.Lf - ES.rr);
+
+/* ═══════════════════════ 3 · MECHANICAL MODEL ═══════════════════════
+   One scalar drives everything: B = beats elapsed. Balance θ = A·sin(πB) (local frame);
+   beat k is centred on B = k. Fork follows the roller jewel inside the lift window;
+   escape wheel advances half a pitch (12°) per beat, through unlock → impulse → drop → lock.
+   Every arbor angle is then derived from the escape arbor through exact mesh relations. */
+const MESHES = [
+  { drv: 'barrel', drn: 'center', N: TR.barrel.N, n: TR.center.pinion },
+  { drv: 'center', drn: 'third',  N: TR.center.N, n: TR.third.pinion },
+  { drv: 'third',  drn: 'fourth', N: TR.third.N,  n: TR.fourth.pinion },
+  { drv: 'fourth', drn: 'escape', N: TR.fourth.N, n: TR.escape.pinion },
+];
+for (const m of MESHES) m.phi = vang(sub(POS[m.drn], POS[m.drv]));
+const HALF_PITCH = TAU / TR.escape.teeth / 2;   // 12°
+const A0 = 12 * DEG;                              // puts a tooth exactly at each locking point
+const IMP = { unlock: -0.70, impEnd: 0.80, dropEnd: 0.84, recoil: 0.012, impFrac: 0.86, dropFrac: 0.985 };
+function escProgress(s) {               // s ∈ [-1,1] through the lift window → fraction of 12°
+  if (s <= -1) return 0;
+  if (s < IMP.unlock) return -IMP.recoil * smooth((s + 1) / (IMP.unlock + 1));                 // unlocking (draw recoil)
+  if (s < IMP.impEnd) return lerp(-IMP.recoil, IMP.impFrac, (s - IMP.unlock) / (IMP.impEnd - IMP.unlock)); // impulse
+  if (s < IMP.dropEnd) return lerp(IMP.impFrac, IMP.dropFrac, outQuad((s - IMP.impEnd) / (IMP.dropEnd - IMP.impEnd))); // drop
+  if (s < 1) return lerp(IMP.dropFrac, 1, (s - IMP.dropEnd) / (1 - IMP.dropEnd));                // lock + draw
+  return 1;
+}
+function mechAt(B) {
+  const k = Math.round(B), u = B - k;
+  const th = ES.amp * Math.sin(PI * B);                                    // balance (local)
+  const s = clamp(ES.amp * Math.sin(PI * u) / ES.liftHalf, -1, 1);         // progress through lift window
+  const psi = -ES.F * clamp(th / ES.liftHalf, -1, 1);                       // fork (local)
+  let P = escProgress(s);
+  if (s > IMP.unlock && s < IMP.impEnd) P = impulseContact(k, psi, P);     // tooth rides the pallet's impulse face
+  const prog = k + P;
+  const aL = A0 + prog * HALF_PITCH;                                       // escape wheel (local)
+  const A = { escape: PI + RHO - aL };                                      // escape arbor (dial view)
+  for (let i = MESHES.length - 1; i >= 0; i--) {
+    const m = MESHES[i];
+    A[m.drv] = m.phi + (m.n / m.N) * ((m.phi + PI - PI / m.n) - A[m.drn]);
+  }
+  return { B, k, s, th, psi, prog, aL, A };
+}
+// During impulse the wheel's position is not interpolated: it is solved from contact. The active tooth's toe
+// lies where the tip circle meets the pallet's impulse face at the current fork angle.
+function impulseContact(k, psi, guess) {
+  const odd = Math.abs(k) % 2 === 1, S = odd ? STONES.entry : STONES.exit, lock = (odd ? -120 : -60) * DEG;
+  const c = add(LP, vrot(S.C, psi)), d = sub(add(LP, vrot(S.X, psi)), c), R = TR.escape.R;
+  const qa = d.x * d.x + d.y * d.y, qb = 2 * (c.x * d.x + c.y * d.y), qc = c.x * c.x + c.y * c.y - R * R, disc = qb * qb - 4 * qa * qc;
+  if (disc < 0) return guess;
+  const sq = Math.sqrt(disc), expd = lock + guess * HALF_PITCH; let best = guess, bd = Infinity;
+  for (const t of [(-qb - sq) / (2 * qa), (-qb + sq) / (2 * qa)]) {
+    const q = add(c, mul(d, t)), an = expd + wrapPi(Math.atan2(q.y, q.x) - expd), dd = Math.abs(an - expd);
+    if (dd < bd) { bd = dd; best = (an - lock) / HALF_PITCH; }
+  }
+  return best;
+}
+
+/* ═══════════════════════ 4 · TIMELINE (single source of truth) ═══════════════════════ */
+const SCENES = [
+  { id: 'tick',       dur: 3.0, title: 'The tick' },
+  { id: 'emerge',     dur: 3.9, title: 'Components emerge' },
+  { id: 'assemble',   dur: 3.5, title: 'Assembly' },
+  { id: 'energy',     dur: 3.6, title: 'Energy flow' },
+  { id: 'escapement', dur: 4.4, title: 'Escapement' },
+  { id: 'stable',     dur: 1.8, title: 'Time stabilizes' },
+  { id: 'finish',     dur: 4.0, title: 'Transformation' },
+];
+let _acc = 0; for (const s of SCENES) { s.t0 = _acc; _acc += s.dur; s.t1 = _acc; }
+const T_END = _acc;
+const SC = {}; for (const s of SCENES) SC[s.id] = s;
+const at = (id, o) => SC[id].t0 + o;
+const sceneAt = t => { for (const s of SCENES) if (t < s.t1) return s; return null; };
+
+const HOME = V(-0.06, 0.04), EXPL = V(-0.02, 0.10), ESCF = vlerp(POS.escape, POS.balance, 0.40), FIN = V(0.72, 0.0);
+const LZ = Math.log, YAW_X = -PI / 2;   // exploded view: movement turned a quarter so the train runs across the frame
+// keys: [time, value, ease-into-this-key: 's' smoother (default) | 'c' cubic in-out | 'l' linear]
+const TRACKS = {
+  cx: [[0, POS.fourth.x], [at('tick', 2.8), POS.fourth.x], [at('emerge', 2.0), EXPL.x, 'c'], [at('assemble', 0.2), EXPL.x], [at('assemble', 1.5), HOME.x, 'c'],
+       [at('escapement', 0.3), HOME.x], [at('escapement', 1.6), ESCF.x, 'c'], [at('escapement', 3.8), ESCF.x], [at('stable', 0.9), HOME.x, 'c'], [at('finish', 0.15), HOME.x], [at('finish', 1.8), FIN.x, 'c']],
+  cy: [[0, POS.fourth.y], [at('tick', 2.8), POS.fourth.y], [at('emerge', 2.0), EXPL.y, 'c'], [at('assemble', 0.2), EXPL.y], [at('assemble', 1.5), HOME.y, 'c'],
+       [at('escapement', 0.3), HOME.y], [at('escapement', 1.6), ESCF.y, 'c'], [at('escapement', 3.8), ESCF.y], [at('stable', 0.9), HOME.y, 'c'], [at('finish', 0.15), HOME.y], [at('finish', 1.8), FIN.y, 'c']],
+  lz: [[0, LZ(5.2)], [at('tick', 2.8), LZ(5.2)], [at('emerge', 2.0), LZ(0.82), 'c'], [at('assemble', 0.2), LZ(0.82)], [at('assemble', 1.5), LZ(0.84), 'c'], [at('assemble', 3.4), LZ(0.88)],
+       [at('escapement', 0.3), LZ(0.88)], [at('escapement', 1.6), LZ(2.7), 'c'], [at('escapement', 3.8), LZ(2.7)], [at('stable', 0.9), LZ(0.88), 'c'], [at('finish', 0.15), LZ(0.88)], [at('finish', 1.8), LZ(0.60), 'c']],
+  yaw:  [[0, 0], [at('tick', 2.8), 0], [at('emerge', 2.0), YAW_X, 'c'], [at('assemble', 0.2), YAW_X], [at('assemble', 1.5), 0, 'c']],
+  tilt: [[0, 0], [at('tick', 2.8), 0], [at('emerge', 2.0), 0.84, 'c'], [at('assemble', 0.2), 0.84], [at('assemble', 1.5), 0.6, 'c'], [at('assemble', 2.2), 0.6], [at('assemble', 3.4), 0, 'c']],
+  cz:   [[0, 0], [at('tick', 2.8), 0], [at('emerge', 2.0), 0.30, 'c'], [at('assemble', 0.2), 0.30], [at('assemble', 1.5), 0.22, 'c'], [at('assemble', 3.4), 0, 'c']],
+  // beat rate (beats per second of playback). Held at 0 while the movement is disassembled.
+  rate: [[0, 0.85], [at('emerge', 0), 0.85], [at('emerge', 1.2), 0], [at('assemble', 3.3), 0], [at('energy', 0.5), 1.6], [at('energy', 2.6), 1.6],
+         [at('energy', 3.1), 30, 'c'], [at('energy', 3.5), 30, 'l'], [at('escapement', 0.5), 2.0, 'c'], [at('escapement', 1.1), 0.9], [at('escapement', 3.9), 0.9, 'l'],
+         [at('stable', 0.5), 2.0], [at('finish', 1.4), 2.0], [at('finish', 4.0), 1.0]],
+  ramp: [[0, 0], [at('escapement', 0.7), 0], [at('escapement', 1.4), 0.72], [at('escapement', 3.8), 0.72, 'l'], [at('stable', 0.3), 0]],
+  bg: [[0, 0.10], [at('tick', 2.4), 0.22], [at('emerge', 1.6), 1]],
+  aHand: [[0, 0], [0.2, 0], [0.85, 1], [at('emerge', 1.0), 1], [at('emerge', 2.2), 0.8], [at('assemble', 2.6), 0.8], [at('assemble', 3.3), 1]],
+  aDraft: [[0, 1], [at('emerge', 0.3), 1], [at('emerge', 1.6), 0]],
+  dim: [[0, 1], [at('escapement', 0.3), 1], [at('escapement', 1.3), 0.2], [at('escapement', 3.8), 0.2, 'l'], [at('stable', 0.8), 1]],
+  aLabels: [[0, 1], [at('escapement', 0.0), 1], [at('escapement', 0.5), 0]],
+  aNotes: [[0, 0], [at('energy', 0.3), 0], [at('energy', 0.8), 1], [at('finish', 0.3), 1], [at('finish', 1.3), 0]],
+  aEscNote: [[0, 0], [at('escapement', 1.6), 0], [at('escapement', 2.2), 1], [at('escapement', 3.7), 1, 'l'], [at('escapement', 4.2), 0]],
+  // Scene 7: case back rises behind, case closes around, dial and hands seat axially, one crystal glint
+  aCaseBack: [[0, 0], [at('finish', 0.1), 0], [at('finish', 0.9), 1]],
+  caseClose: [[0, 0], [at('finish', 0.3), 0], [at('finish', 1.3), 1, 'c']],
+  dialIn:    [[0, 0], [at('finish', 0.9), 0], [at('finish', 1.75), 1, 'c']],
+  handsIn:   [[0, 0], [at('finish', 1.45), 0], [at('finish', 2.0), 1, 'c']],
+  glass:     [[0, 0], [at('finish', 1.8), 0], [at('finish', 2.5), 1, 'l']],
+};
+for (const k in TRACKS) TRACKS[k] = TRACKS[k].map(r => ({ t: r[0], v: r[1], e: r[2] || 's' }));
+function ev(name, t) {
+  const tr = TRACKS[name];
+  if (t <= tr[0].t) return tr[0].v;
+  for (let i = 1; i < tr.length; i++) {
+    const b = tr[i];
+    if (t <= b.t) {
+      const a = tr[i - 1], u = (t - a.t) / ((b.t - a.t) || 1);
+      const w = b.e === 'l' ? u : (b.e === 'c' ? inOut(u) : smoother(u));
+      return a.v + (b.v - a.v) * w;
+    }
+  }
+  return tr[tr.length - 1].v;
+}
+
+// Scene 2 entrances (exploded space) and scene 3 seating (exploded → assembled), per assembly group.
+const E2 = SC.emerge.t0, A3 = SC.assemble.t0;
+const ENTRANCE = {
+  bridges: { t: E2 + 0.85, d: 1.40, kind: 'draft' },
+  barrel:  { t: E2 + 0.90, d: 1.00, kind: 'gear', spin: -1 },   // spin = the arbor's own running direction
+  center:  { t: E2 + 1.20, d: 1.00, kind: 'gear', spin: +1 },
+  third:   { t: E2 + 1.50, d: 1.00, kind: 'gear', spin: -1 },
+  fourth:  { t: E2 + 1.80, d: 1.00, kind: 'gear', spin: +1 },
+  escape:  { t: E2 + 2.05, d: 0.90, kind: 'gear', spin: -1 },
+  fork:    { t: E2 + 2.40, d: 0.75, kind: 'axial' },             // arrives after the escape wheel has stopped
+  balance: { t: E2 + 2.55, d: 1.15, kind: 'balance' },
+  hair:    { t: E2 + 2.80, d: 0.90, kind: 'spring' },
+  jewels:  { t: E2 + 2.85, d: 0.45, kind: 'jewel', stagger: 0.06 },
+  screws:  { t: E2 + 2.95, d: 0.60, kind: 'screw', stagger: 0.055 },
+};
+const SEAT = { bridges: [A3 + 0.20, 0.7], hair: [A3 + 0.45, 0.7], balance: [A3 + 0.65, 0.7], escape: [A3 + 0.95, 0.7], fourth: [A3 + 1.25, 0.7],
+               third: [A3 + 1.55, 0.7], center: [A3 + 1.85, 0.7], barrel: [A3 + 2.15, 0.7], hand: [A3 + 2.45, 0.7] };
+const seatEnd = g => SEAT[g][0] + SEAT[g][1];
+// Scene 4 power path (diagrammatic): stage 0 = mainspring, then barrel → centre → third → fourth → escape → fork → balance.
+const E4 = SC.energy.t0;
+const PULSE = { t0: E4 + 0.40, d: [0.30, 0.20, 0.22, 0.22, 0.22, 0.20, 0.20, 0.26], ts: [] };
+{ let a = PULSE.t0; for (const d of PULSE.d) { PULSE.ts.push(a); a += d; } PULSE.t1 = a; }
+const FF0 = E4 + 2.6;    // fast-forward begins: train-wheel periods appear (right column only)
+
+// Beat clock: B(t) integrated once, deterministically (midpoint rule). After the opening ticks the rate decays to
+// zero; a small smooth correction inside that deceleration makes the clock come to rest exactly at B = k + ½
+// (balance at the end of its swing, escape wheel locked) so that, once assembled, the balance is released from rest.
+const B0 = -0.85, DTB = 1 / 600, DEC = [at('emerge', 0), at('emerge', 1.2)];
+let HOLD_BUMP = 0;
+const bump = t => (t <= DEC[0] || t >= DEC[1]) ? 0 : 2 / (DEC[1] - DEC[0]) * Math.pow(Math.sin(PI * (t - DEC[0]) / (DEC[1] - DEC[0])), 2);
+const rampAt = (t, B) => { const d = ev('ramp', t); if (d <= 0) return 1; const x = (B - Math.round(B)) / 0.07; return 1 - d * Math.exp(-x * x); };
+const rateFn = (t, B) => { const tc = Math.min(t, T_END); return (ev('rate', tc) + HOLD_BUMP * bump(tc)) * rampAt(tc, B); };
+function integrateBeats() {
+  const n = Math.ceil(T_END / DTB) + 2, tab = new Float64Array(n);
+  let B = B0; tab[0] = B;
+  for (let i = 1; i < n; i++) {
+    const t = (i - 1) * DTB, r1 = rateFn(t, B), Bm = B + r1 * DTB / 2;
+    B += rateFn(t + DTB / 2, Bm) * DTB; tab[i] = B;
+  }
+  return tab;
+}
+let BT = integrateBeats();
+const I_HOLD = Math.ceil(DEC[1] / DTB) + 2;
+{ const Bh = BT[I_HOLD]; HOLD_BUMP = Math.ceil(Bh - 0.5) + 0.5 - Bh; BT = integrateBeats(); }
+const B_HOLD = BT[I_HOLD];
+const AMB_RATE = ev('rate', T_END);
+function beatAt(t) {
+  if (t <= 0) return BT[0] + ev('rate', 0) * t;
+  const f = t / DTB, i = Math.floor(f);
+  if (i >= BT.length - 1) return BT[BT.length - 1] + AMB_RATE * (t - (BT.length - 1) * DTB);
+  return BT[i] + (BT[i + 1] - BT[i]) * (f - i);
+}
+function beatTime(k) {               // first time the clock reaches beat k
+  let lo = 0, hi = BT.length - 1;
+  if (BT[hi] < k) return (BT.length - 1) * DTB + (k - BT[hi]) / AMB_RATE;
+  while (hi - lo > 1) { const mid = (lo + hi) >> 1; if (BT[mid] < k) lo = mid; else hi = mid; }
+  return (lo + (k - BT[lo]) / ((BT[hi] - BT[lo]) || 1)) * DTB;
+}
+const BEAT_T = [0, 1, 2, 3].map(beatTime);
+// Final punctuation: the first real beat after the hands have seated. Nothing forces the clock onto a frame;
+// the X-ray and the title are timed from wherever that beat naturally falls.
+const FINAL_K = Math.ceil(beatAt(at('finish', 2.0)) - 1e-9), FINAL_T = beatTime(FINAL_K);
+const XRAY = [FINAL_T + 0.30, FINAL_T + 1.05];
+const xrayAt = t => smooth((t - XRAY[0]) / 0.22) * (1 - smooth((t - XRAY[1]) / 0.3));
+const TITLE_T = Math.min(FINAL_T + 0.95, T_END - 0.55);
+const titleAt = t => smooth((t - TITLE_T) / 0.5);
+
+/* ═══════════════════════ 5 · GEOMETRY (procedural, built once) ═══════════════════════ */
+const WHEEL_TOOTH = { ha: 1.2, hf: 1.55, th: 0.46, tip: 0.72, k: 7 };   // ogival wheel teeth (modules)
+const PINION_LEAF = { ha: 0.62, hf: 1.95, th: 0.42, tip: 0.5, k: 6 };   // rounded pinion leaves
+function gearPts(N, R, o) {
+  const m = 2 * R / N, ha = o.ha * m, hf = o.hf * m, p = TAU / N, half = o.th * p / 2, rr = R - hf;
+  const fil = Math.min(0.4 * m, hf * 0.4), fa = Math.min(fil / rr, (p / 2 - half) * 0.45), pts = [];
+  const P = (r, a) => pts.push(r * Math.cos(a), r * Math.sin(a));
+  for (let i = 0; i < N; i++) {
+    const c = i * p, a0 = c - half, a1 = c + half;
+    P(rr, c - p / 2); P(rr, a0 - fa); P(rr + fil * 0.3, a0 - fa * 0.35); P(rr + fil, a0); P(R, a0);
+    for (let j = 1; j < o.k; j++) { const u = j / o.k; P(R + ha * Math.pow(Math.sin(PI * u), o.tip), c - half * Math.cos(PI * u)); }
+    P(R, a1); P(rr + fil, a1); P(rr + fil * 0.3, a1 + fa * 0.35); P(rr, a1 + fa);
+  }
+  return pts;
+}
+function pathFrom(pts) { const p = new Path2D(); p.moveTo(pts[0], pts[1]); for (let i = 2; i < pts.length; i += 2) p.lineTo(pts[i], pts[i + 1]); p.closePath(); return p; }
+function addWindows(p, w) {           // crossings: holes between spokes (fill with 'evenodd')
+  for (let i = 0; i < w.n; i++) {
+    const a0 = (w.phase || 0) + i * TAU / w.n, a1 = a0 + TAU / w.n;
+    const dO = Math.asin(w.w / 2 / w.rOut), dI = Math.asin(Math.min(0.95, w.w / 2 / w.rIn));
+    if (a1 - dI <= a0 + dI) continue;
+    p.moveTo(w.rOut * Math.cos(a0 + dO), w.rOut * Math.sin(a0 + dO));
+    p.arc(0, 0, w.rOut, a0 + dO, a1 - dO, false);
+    p.lineTo(w.rIn * Math.cos(a1 - dI), w.rIn * Math.sin(a1 - dI));
+    p.arc(0, 0, w.rIn, a1 - dI, a0 + dI, true);
+    p.closePath();
+  }
+}
+function makeWheel(N, R, o, win) { const pts = gearPts(N, R, o), path = pathFrom(pts); if (win) addWindows(path, win); return { N, R, pts, path, win }; }
+const disc = r => { const p = new Path2D(); p.arc(0, 0, r, 0, TAU); return p; };
+
+const GEO = { wheel: {}, pinion: {} };
+GEO.wheel.barrel = makeWheel(TR.barrel.N, TR.barrel.R, WHEEL_TOOTH, null);
+GEO.wheel.center = makeWheel(TR.center.N, TR.center.R, WHEEL_TOOTH, { n: 5, rIn: 0.055, rOut: 0.248, w: 0.024 });
+GEO.wheel.third  = makeWheel(TR.third.N,  TR.third.R,  WHEEL_TOOTH, { n: 5, rIn: 0.045, rOut: 0.196, w: 0.019 });
+GEO.wheel.fourth = makeWheel(TR.fourth.N, TR.fourth.R, WHEEL_TOOTH, { n: 5, rIn: 0.040, rOut: 0.180, w: 0.017 });
+for (const id of ['center', 'third', 'fourth', 'escape']) GEO.pinion[id] = makeWheel(TR[id].pinion, PIN[id], PINION_LEAF, null);
+
+// Club-tooth escape wheel (local frame; toe of tooth i at angle i·24°, teeth lean in the direction of travel)
+GEO.esc = (() => {
+  const N = TR.escape.teeth, R = TR.escape.R, Rr = TR.escape.Rroot, h = R - Rr, p = TAU / N, pts = [];
+  const P = (r, a) => pts.push(r * Math.cos(a), r * Math.sin(a));
+  for (let i = 0; i < N; i++) {
+    const a = i * p;
+    P(Rr, a - 22 * DEG); P(Rr + 0.42 * h, a - 15.5 * DEG); P(R - 0.30 * h, a - 10.5 * DEG); P(R - 0.18 * h, a - 7 * DEG);
+    P(R - 0.035 * h, a - 2.4 * DEG); P(R, a); P(R - 0.33 * h, a - 1.6 * DEG); P(Rr + 0.12 * h, a - 4.6 * DEG); P(Rr, a - 3.6 * DEG);
+  }
+  const path = pathFrom(pts); addWindows(path, { n: 5, rIn: 0.02, rOut: 0.068, w: 0.009 });
+  return { pts, path, R };
+})();
+
+// Pallet stones are derived from the escapement kinematics themselves: lock contact, locking corner
+// and discharge corner are the tooth-toe positions (in the fork's frame) at lock, impulse start and
+// impulse end. The stones therefore meet the teeth exactly where the motion says they must.
+const tipL = aDeg => polar(TR.escape.R, aDeg * DEG);
+const toFork = (pt, psi) => vrot(sub(pt, LP), -psi);
+function makeStone(lockDeg, sgn) {    // sgn +1: entry (unlocks as ψ increases); -1: exit
+  const L = toFork(tipL(lockDeg), -sgn * ES.F);
+  const C = toFork(tipL(lockDeg + 12 * escProgress(IMP.unlock)), sgn * ES.F * IMP.unlock);
+  const X = toFork(tipL(lockDeg + 12 * escProgress(IMP.impEnd - 1e-9)), sgn * ES.F * IMP.impEnd);
+  const dir = vnorm(sub(L, C)), len = 0.05;
+  const poly = [C, X, add(X, mul(dir, len)), add(C, mul(dir, len))];
+  const path = new Path2D(); path.moveTo(poly[0].x, poly[0].y); for (let i = 1; i < 4; i++) path.lineTo(poly[i].x, poly[i].y); path.closePath();
+  const Cw = add(C, mul(sub(C, X), 0.16)), Xw = add(X, mul(sub(X, C), 0.16));   // seat slightly wider than the stone
+  const hold = [add(Cw, mul(dir, 0.014)), add(Xw, mul(dir, 0.014)), add(Xw, mul(dir, 0.052)), add(Cw, mul(dir, 0.052))];
+  return { L, C, X, dir, poly, path, hold };
+}
+const STONES = { entry: makeStone(-120, +1), exit: makeStone(-60, -1) };
+const SEC_OFF = -PI / 2 - mechAt(-0.5).A.fourth;   // seconds hand at 12 before the first beat
+
+const FORKG = (() => {          // fork (pallet lever) in its own frame: origin = pivot, balance toward −y
+  const Lf = ES.Lf;
+  const pts = [V(-0.0068, -0.010), V(-0.0045, -Lf + 0.026), V(-0.012, -Lf + 0.013), V(-0.031, -Lf - 0.006), V(-0.0285, -Lf - 0.0135),
+    V(-0.0058, -Lf - 0.0035), V(-0.0058, -Lf + 0.0085), V(0.0058, -Lf + 0.0085), V(0.0058, -Lf - 0.0035), V(0.0285, -Lf - 0.0135),
+    V(0.031, -Lf - 0.006), V(0.012, -Lf + 0.013), V(0.0045, -Lf + 0.026), V(0.0068, -0.010)];
+  const lever = new Path2D(); lever.moveTo(pts[0].x, pts[0].y); for (let i = 1; i < pts.length; i++) lever.lineTo(pts[i].x, pts[i].y); lever.closePath();
+  lever.addPath(disc(0.017));
+  // pallet bridge: an arc concentric with the escape wheel, clear of the tooth tips, carrying both stones
+  const Ef = V(0, ESC_D), R = TR.escape.R, r0 = R + 0.012, r1 = R + 0.028, a0 = -128 * DEG, a1 = -52 * DEG;
+  lever.moveTo(Ef.x + r1 * Math.cos(a0), Ef.y + r1 * Math.sin(a0)); lever.arc(Ef.x, Ef.y, r1, a0, a1, false);
+  lever.lineTo(Ef.x + r0 * Math.cos(a1), Ef.y + r0 * Math.sin(a1)); lever.arc(Ef.x, Ef.y, r0, a1, a0, true); lever.closePath();
+  const area = q => { let A = 0; for (let i = 0; i < q.length; i++) { const a = q[i], b = q[(i + 1) % q.length]; A += a.x * b.y - b.x * a.y; } return A; };
+  for (const st of [STONES.entry, STONES.exit]) {
+    const q = area(st.hold) > 0 ? st.hold : st.hold.slice().reverse();
+    lever.moveTo(q[0].x, q[0].y); for (let i = 1; i < 4; i++) lever.lineTo(q[i].x, q[i].y); lever.closePath();
+  }
+  // banking pins (fixed, in local frame relative to the fork pivot)
+  const rb = 0.10, hw = 0.0055, rp = 0.0062, pins = [];
+  for (const sg of [1, -1]) {
+    const psi = sg * ES.F, v = V(Math.sin(psi), -Math.cos(psi)), n = V(Math.cos(psi), Math.sin(psi));
+    pins.push(add(mul(v, rb), mul(n, sg * (hw + rp))));
+  }
+  return { lever, pins, rp, band: { Ef, r0, r1 } };
+})();
+
+GEO.balance = (() => { const p = disc(0.24); addWindows(p, { n: 3, rIn: 0.032, rOut: 0.214, w: 0.016, phase: PI / 2 }); return p; })();
+GEO.mainspring = (() => {
+  const p = new Path2D(), turns = 7.5, n = Math.round(turns * 72);
+  for (let i = 0; i <= n; i++) { const u = i / n, r = lerp(0.074, 0.262, Math.pow(u, 0.85)), a = 0.6 + u * turns * TAU;
+    i ? p.lineTo(r * Math.cos(a), r * Math.sin(a)) : p.moveTo(r * Math.cos(a), r * Math.sin(a)); }
+  return p;
+})();
+GEO.barrelCut = (() => { const p = new Path2D(); p.moveTo(0, 0); p.arc(0, 0, 0.276, 0.30 * PI, 0.98 * PI); p.closePath(); return p; })();
+
+// Minimal structure, behind the wheels when seen from the dial side: barrel bridge, train bridge, pallet cock,
+// balance cock. All sub-paths are clockwise, so a nonzero fill renders their union.
+function capsule(p, a, b, w) {
+  const d = vnorm(sub(b, a)), n = V(-d.y, d.x), an = Math.atan2(d.y, d.x);
+  p.moveTo(a.x - n.x * w, a.y - n.y * w); p.lineTo(b.x - n.x * w, b.y - n.y * w);
+  p.arc(b.x, b.y, w, an - PI / 2, an + PI / 2, false); p.lineTo(a.x + n.x * w, a.y + n.y * w);
+  p.arc(a.x, a.y, w, an + PI / 2, an + 1.5 * PI, false); p.closePath();
+}
+function polyCW(p, pts) {
+  let A = 0; for (let i = 0; i < pts.length; i++) { const a = pts[i], b = pts[(i + 1) % pts.length]; A += a.x * b.y - b.x * a.y; }
+  const q = A < 0 ? pts.slice().reverse() : pts; p.moveTo(q[0].x, q[0].y); for (let i = 1; i < q.length; i++) p.lineTo(q[i].x, q[i].y); p.closePath();
+}
+const BRIDGES = (() => {
+  const p = new Path2D(), circ = (c, r) => { p.moveTo(c.x + r, c.y); p.arc(c.x, c.y, r, 0, TAU); p.closePath(); };
+  circ(POS.barrel, 0.305); capsule(p, POS.barrel, V(-0.53, -0.60), 0.095); capsule(p, POS.barrel, V(0.27, -0.66), 0.085);   // barrel bridge
+  capsule(p, POS.center, POS.third, 0.058); capsule(p, POS.third, POS.fourth, 0.058); capsule(p, POS.fourth, POS.escape, 0.052);
+  capsule(p, POS.third, V(0.52, 0.40), 0.062); capsule(p, POS.escape, V(-0.17, 0.79), 0.055); circ(POS.center, 0.07);        // train bridge
+  capsule(p, POS.fork, V(-0.44, 0.62), 0.042); circ(POS.fork, 0.045);                                                           // pallet cock
+  const foot = V(-0.86, -0.10), d = vnorm(sub(POS.balance, foot)), n = V(-d.y, d.x);                                            // balance cock
+  polyCW(p, [add(foot, mul(n, 0.085)), add(POS.balance, mul(n, 0.034)), sub(POS.balance, mul(n, 0.034)), sub(foot, mul(n, 0.085))]);
+  circ(foot, 0.085); circ(POS.balance, 0.062);
+  return {
+    path: p,
+    screws: [V(-0.53, -0.60), V(0.27, -0.66), V(-0.30, -0.17), V(0.52, 0.40), V(-0.17, 0.79), V(-0.44, 0.62), foot],
+    jewels: [{ p: POS.center, r: 0.017 }, { p: POS.third, r: 0.016 }, { p: POS.fourth, r: 0.016 }, { p: POS.escape, r: 0.014 },
+             { p: POS.fork, r: 0.013 }, { p: POS.balance, r: 0.021, cap: 1 }],
+  };
+})();
+
+/* ═══════════════════════ 6 · RENDERER ═══════════════════════ */
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+let W = 1280, H = 720, DPR = 1, CUR_K = 1, CAM_OVERRIDE = null, ST = null;
+const FONT = '"Helvetica Neue","Neue Haas Grotesk Text",Helvetica,Arial,sans-serif';
+const PAL = {
+  brass: { hi: '#f3dc9e', mid: '#c49548', lo: '#6a481c', edge: 'rgba(38,24,7,.92)', side: '#4a3212' },
+  gilt:  { hi: '#f7e6b8', mid: '#d2aa60', lo: '#7a5826', edge: 'rgba(44,29,9,.92)', side: '#523816' },
+  steel: { hi: '#f2f5f8', mid: '#a3adb7', lo: '#48515b', edge: 'rgba(16,20,26,.92)', side: '#2b3138' },
+  rhod:  { hi: '#c6cbd0', mid: '#79828b', lo: '#2c333b', edge: 'rgba(12,15,20,.9)', side: '#1d2329' },
+};
+const IVORY = '#efe7d4';
+let LIGHT = vnorm(V(-0.55, -0.84)); const LIGHT0 = Math.atan2(-0.84, -0.55);
+let NARROW = false, TITLE_BOX = null, HUD_BOX = null;
+const HAS_CONIC = typeof ctx.createConicGradient === 'function';
+// Assembled depth (toward the dial = toward the viewer) and exploded lift per assembly group.
+const Z = { bridge: -0.12, hair: 0.00, bal: 0.05, roller: 0.10, esc: 0.15, escapePin: 0.24, fourth: 0.25, fourthPin: 0.34, third: 0.35, thirdPin: 0.44,
+            center: 0.45, centerPin: 0.54, barrel: 0.55, hand: 0.92 };
+const GZ = { bridges: -0.34, hair: -0.15, balance: 0, escape: 0.16, fourth: 0.34, third: 0.47, center: 0.60, barrel: 0.73, hand: 1.02 };
+const LIFT = {};
+function updateLifts(t) { for (const g in GZ) { const s = SEAT[g]; LIFT[g] = GZ[g] * (s ? 1 - smoother((t - s[0]) / s[1]) : 0); } }
+updateLifts(0);
+// Pose layer: entrance offsets composed over the mechanical state. Exactly neutral once a part has seated.
+const NEUTRAL = Object.freeze({ a: 1, dz: 0, rot: 0, sc: 1, u: 9, line: 1, lineA: 0 });
+let CUR = NEUTRAL;
+function entr(key, t, i) {
+  const E = ENTRANCE[key]; if (!E) return NEUTRAL;
+  const t0 = E.t + (i || 0) * (E.stagger || 0), u = (t - t0) / E.d;
+  const P = { a: 0, dz: 0, rot: 0, sc: 1, u, line: 0, lineA: 0 };
+  if (E.kind === 'draft') {      // drafting outline first, then material
+    P.line = sat(u / 0.6); P.lineA = u <= 0 ? 0 : 1 - smooth((u - 0.85) / 0.5); P.a = smooth((u - 0.45) / 0.55); P.dz = -0.12 * (1 - outCubic(u));
+    return P;
+  }
+  if (u <= 0) return P;
+  if (u >= 1) { P.a = 1; return P; }
+  const e = outCubic(u);
+  switch (E.kind) {
+    case 'gear':    P.a = smooth(u / 0.35); P.dz = 0.42 * (1 - e); P.rot = -E.spin * 1.6 * (1 - e); break;       // lowered along its axis, turning to rest
+    case 'axial':   P.a = smooth(u / 0.4);  P.dz = 0.34 * (1 - e); break;                                        // straight axial insertion
+    case 'balance': P.a = smooth(u / 0.35); P.dz = 0.34 * (1 - e); P.rot = 1.25 * (1 - u) * (1 - u) * Math.cos(2.6 * PI * u); break; // damped swings
+    case 'spring':  P.a = smooth(u / 0.3);  P.dz = 0.14 * (1 - e); P.sc = u < 0.6 ? lerp(0.5, 1.08, outCubic(u / 0.6)) : lerp(1.08, 1, smoother((u - 0.6) / 0.4)); break;
+    case 'jewel':   P.a = smooth(u / 0.3);  P.dz = 0.24 * (1 - outQuad(u)); break;                               // pressed into its hole
+    case 'screw':   P.a = smooth(u / 0.3);  P.dz = 0.30 * (1 - e); P.rot = -3 * TAU * (1 - e); break;            // driven down, three turns
+  }
+  return P;
+}
+const ESC_ANCHOR = { x: POS.escape.x, y: POS.escape.y, z: Z.esc }, BR_ANCHOR = { x: 0, y: 0.1, z: Z.bridge };
+const cam = { x: 0, y: 0, z: 0, S: 1, cos: 1, sin: 0, yaw: 0, cyw: 1, syw: 0 };
+const KP = 0.05;   // weak perspective: nearer layers render slightly larger → parallax on camera moves
+
+function project(x, y, z, g, dz, anc) {
+  const zz = z + (LIFT[g] || 0) + (dz || 0);
+  const rx = x - cam.x, ry = y - cam.y, X = rx * cam.cyw - ry * cam.syw, Yr = rx * cam.syw + ry * cam.cyw;
+  const Y = Yr * cam.cos - (zz - cam.z) * cam.sin;
+  const a = anc || { x, y, z }, ay = (a.x - cam.x) * cam.syw + (a.y - cam.y) * cam.cyw;
+  const pz = 1 / (1 - KP * ((a.z - 0.3) * cam.cos + ay * cam.sin));
+  return { sx: W / 2 + X * cam.S * pz, sy: H / 2 + Y * cam.S * pz, k: cam.S * pz };
+}
+function place(x, y, z, g, dz, anc) {
+  const p = project(x, y, z, g, (dz || 0) + CUR.dz, anc);
+  ctx.setTransform(p.k, 0, 0, p.k * cam.cos, p.sx, p.sy);
+  if (cam.yaw) ctx.rotate(cam.yaw);
+  CUR_K = p.k; return p;
+}
+function localDir(d) {     // a screen-space direction expressed in the current local frame
+  const m = ctx.getTransform(), det = (m.a * m.d - m.b * m.c) || 1;
+  return vnorm(V((m.d * d.x - m.c * d.y) / det, (-m.b * d.x + m.a * d.y) / det));
+}
+function metal(pal, r, d) {
+  const g = ctx.createLinearGradient(d.x * r, d.y * r, -d.x * r, -d.y * r);
+  g.addColorStop(0, pal.hi); g.addColorStop(0.45, pal.mid); g.addColorStop(1, pal.lo); return g;
+}
+function sheen(path, rule, d, alpha) {   // anisotropic circular-grain highlight, fixed to the light
+  if (!HAS_CONIC || alpha <= 0.005) return;
+  const g = ctx.createConicGradient(Math.atan2(d.y, d.x) + PI / 2 - 0.6, 0, 0);
+  const c0 = 'rgba(255,246,222,0)', c1 = 'rgba(255,246,222,1)';
+  g.addColorStop(0, c0); g.addColorStop(0.095, c1); g.addColorStop(0.19, c0); g.addColorStop(0.5, c0);
+  g.addColorStop(0.595, 'rgba(255,246,222,.6)'); g.addColorStop(0.69, c0); g.addColorStop(1, c0);
+  const a = ctx.globalAlpha; ctx.globalAlpha = a * alpha; ctx.fillStyle = g; ctx.fill(path, rule); ctx.globalAlpha = a;
+}
+const escFrame = () => { ctx.rotate(RHO); ctx.scale(-1, 1); };
+function solid(path, rule, pal, p, z, g, ang, th, R, o) {
+  o = o || {}; const a = ctx.globalAlpha;
+  if (o.shadow && cam.cos > 0.6) {
+    ctx.fillStyle = '#000';
+    for (const [ox, oy, al] of [[0.006, 0.010, 0.24], [0.012, 0.019, 0.12]]) {
+      const so = vrot(V(ox, oy), -cam.yaw);            // shadow offset stays fixed to the screen light
+      ctx.globalAlpha = a * al * cam.cos; place(p.x + so.x, p.y + so.y, z, g, 0, o.anc); if (o.frame) o.frame(); ctx.rotate(ang); ctx.fill(path, rule);
+    }
+    ctx.globalAlpha = a;
+  }
+  if (th > 0 && cam.sin > 0.015) {
+    place(p.x, p.y, z, g, -th, o.anc); if (o.frame) o.frame(); ctx.rotate(ang);
+    ctx.fillStyle = pal.side; ctx.fill(path, rule); ctx.lineWidth = 0.6 / CUR_K; ctx.strokeStyle = pal.edge; ctx.stroke(path);
+  }
+  place(p.x, p.y, z, g, 0, o.anc); if (o.frame) o.frame(); ctx.rotate(ang);
+  const d = localDir(LIGHT);
+  ctx.fillStyle = metal(pal, R, d); ctx.fill(path, rule);
+  sheen(path, rule, d, o.sheen == null ? 0.16 : o.sheen);
+  if (o.lw !== 0) { ctx.lineWidth = (o.lw || 0.75) / CUR_K; ctx.strokeStyle = pal.edge; ctx.stroke(path); }
+  return d;
+}
+function jewel(r, spin) {  // ruby bearing with steel pivot at current origin; spin → pivot turns with this frame
+  const d = localDir(LIGHT), k = 1 / CUR_K;
+  const g = ctx.createRadialGradient(d.x * r * 0.4, d.y * r * 0.4, r * 0.08, 0, 0, r);
+  g.addColorStop(0, '#ff98a2'); g.addColorStop(0.45, '#a5162a'); g.addColorStop(1, '#3a040e');
+  ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU); ctx.fillStyle = g; ctx.fill();
+  ctx.lineWidth = 0.6 * k; ctx.strokeStyle = 'rgba(25,0,5,.85)'; ctx.stroke();
+  ctx.beginPath(); ctx.arc(0, 0, r * 0.36, 0, TAU); ctx.fillStyle = '#c3cad2'; ctx.fill();
+  ctx.beginPath(); ctx.arc(d.x * r * 0.5, d.y * r * 0.5, r * 0.15, 0, TAU); ctx.fillStyle = 'rgba(255,232,236,.8)'; ctx.fill();
+  if (spin) { ctx.beginPath(); ctx.arc(r * 0.2, 0, r * 0.07, 0, TAU); ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.fill(); }
+}
+function glint(r, a) {     // brief star highlight when a jewel seats
+  if (a <= 0.01) return; const k = 1 / CUR_K, ga = ctx.globalAlpha;
+  ctx.globalAlpha = ga * a; ctx.strokeStyle = '#fff4f0'; ctx.lineWidth = 0.8 * k; ctx.beginPath();
+  ctx.moveTo(-r, 0); ctx.lineTo(r, 0); ctx.moveTo(0, -r); ctx.lineTo(0, r); ctx.stroke(); ctx.globalAlpha = ga;
+}
+function axisGuide(p, z, g, dz, al, anc) {   // dashed drafting line from a descending part down to its seat
+  if (al < 0.01 || dz <= 0.002) return;
+  const A = project(p.x, p.y, z, g, dz, anc), B = project(p.x, p.y, z, g, 0, anc);
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = al; ctx.strokeStyle = IVORY; ctx.lineWidth = Math.max(1, 0.7 * DPR);
+  ctx.setLineDash([3 * DPR, 3 * DPR]); ctx.beginPath(); ctx.moveTo(A.sx, A.sy); ctx.lineTo(B.sx, B.sy); ctx.stroke(); ctx.setLineDash([]);
+}
+
+/* ── structure ── */
+let COTES = null;
+function cotes() {          // Côtes de Genève striping, built once
+  if (COTES) return COTES;
+  const g = ctx.createLinearGradient(0, -1.3, 0, 1.3), n = 36;
+  for (let i = 0; i < n; i++) { const s = i / n, w = 1 / n;
+    g.addColorStop(s, 'rgba(255,255,255,0)'); g.addColorStop(s + w * 0.55, 'rgba(255,255,255,0.12)');
+    g.addColorStop(s + w * 0.84, 'rgba(255,255,255,0.02)'); g.addColorStop(s + w * 0.97, 'rgba(0,0,0,0.10)'); }
+  g.addColorStop(1, 'rgba(255,255,255,0)');
+  return (COTES = g);
+}
+function drawBridges(m, a) {
+  const P = CUR, path = BRIDGES.path;
+  if (P.a > 0.003) {
+    ctx.globalAlpha = a * P.a;
+    solid(path, 'nonzero', PAL.rhod, V(0, 0), Z.bridge, 'bridges', 0, 0.04, 1.0, { anc: BR_ANCHOR, sheen: 0.08, lw: 0 });
+    ctx.save(); ctx.clip(path); ctx.rotate(0.42); ctx.fillStyle = cotes(); ctx.fillRect(-1.3, -1.3, 2.6, 2.6); ctx.restore();
+    ctx.fillStyle = 'rgba(6,8,12,.85)'; ctx.beginPath();
+    for (const j of BRIDGES.jewels) { ctx.moveTo(j.p.x + j.r * 0.8, j.p.y); ctx.arc(j.p.x, j.p.y, j.r * 0.8, 0, TAU); }
+    for (const s of BRIDGES.screws) { ctx.moveTo(s.x + 0.012, s.y); ctx.arc(s.x, s.y, 0.012, 0, TAU); }
+    ctx.fill();
+  }
+  if (P.lineA > 0.003 && P.line > 0) {
+    place(0, 0, Z.bridge, 'bridges', 0, BR_ANCHOR);
+    ctx.globalAlpha = a * 0.5 * P.lineA; ctx.strokeStyle = IVORY; ctx.lineWidth = 0.8 / CUR_K;
+    ctx.setLineDash([P.line * 3.2, 3.2]); ctx.stroke(path); ctx.setLineDash([]);
+  }
+}
+function drawBridgeJewels(m, a) {
+  const t = ST.t, E = ENTRANCE.jewels;
+  BRIDGES.jewels.forEach((j, i) => {
+    const P = entr('jewels', t, i); if (P.a < 0.003) return;
+    axisGuide(j.p, Z.bridge + 0.012, 'bridges', P.dz, a * 0.45 * (1 - sat(P.u)), BR_ANCHOR);
+    CUR = P; place(j.p.x, j.p.y, Z.bridge + 0.012, 'bridges', 0, BR_ANCHOR); ctx.globalAlpha = a * P.a;
+    jewel(j.r);
+    if (j.cap) { ctx.beginPath(); ctx.arc(0, 0, j.r * 1.5, 0, TAU); ctx.lineWidth = 0.004; ctx.strokeStyle = metal(PAL.steel, j.r * 1.5, localDir(LIGHT)); ctx.stroke(); }
+    const s = t - (E.t + i * E.stagger + E.d); if (s > 0 && s < 0.5) glint(j.r * 2.4, 1 - s / 0.5);
+  });
+  CUR = NEUTRAL;
+}
+function drawScrews(m, a) {
+  const t = ST.t;
+  BRIDGES.screws.forEach((p, i) => {
+    const P = entr('screws', t, i); if (P.a < 0.003) return;
+    axisGuide(p, Z.bridge + 0.014, 'bridges', P.dz, a * 0.45 * (1 - sat(P.u)), BR_ANCHOR);
+    CUR = P; const r = 0.02, ang = 0.7 + i * 1.13 + P.rot;
+    if (cam.sin > 0.015) { place(p.x, p.y, Z.bridge + 0.014, 'bridges', -0.012, BR_ANCHOR); ctx.globalAlpha = a * P.a; ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU); ctx.fillStyle = PAL.steel.side; ctx.fill(); }
+    place(p.x, p.y, Z.bridge + 0.014, 'bridges', 0, BR_ANCHOR); ctx.globalAlpha = a * P.a; ctx.rotate(ang);
+    const d = localDir(LIGHT), g = ctx.createRadialGradient(d.x * r * 0.5, d.y * r * 0.5, r * 0.05, 0, 0, r);
+    g.addColorStop(0, '#f4f7fa'); g.addColorStop(0.55, '#98a2ac'); g.addColorStop(1, '#3a424b');
+    ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU); ctx.fillStyle = g; ctx.fill(); ctx.lineWidth = 0.6 / CUR_K; ctx.strokeStyle = PAL.steel.edge; ctx.stroke();
+    ctx.fillStyle = 'rgba(16,20,26,.92)'; ctx.fillRect(-r * 0.9, -r * 0.15, r * 1.8, r * 0.3);
+  });
+  CUR = NEUTRAL;
+}
+
+/* ── moving parts (angles = mechanical state + pose offset, which is zero once seated) ── */
+function drawWheel(id, m, a) {
+  const g = GEO.wheel[id]; ctx.globalAlpha = a;
+  solid(g.path, 'evenodd', PAL.brass, POS[id], Z[id], id, m.A[id] + CUR.rot, 0.014, g.R, { shadow: true });
+  ctx.lineWidth = 0.7 / CUR_K; ctx.strokeStyle = 'rgba(255,236,190,.28)';
+  ctx.beginPath(); ctx.arc(0, 0, g.win.rIn * 0.7, 0, TAU); ctx.stroke();
+}
+function drawPinion(id, m, a) {
+  const g = GEO.pinion[id]; ctx.globalAlpha = a;
+  solid(g.path, 'nonzero', PAL.steel, POS[id], Z[id + 'Pin'], id, m.A[id] + CUR.rot, 0.03, g.R * 1.2, { shadow: true, sheen: 0.22, lw: 0.6 });
+  jewel(id === 'escape' ? 0.0085 : 0.0105, true);
+}
+function drawBarrel(m, a) {
+  const g = GEO.wheel.barrel; ctx.globalAlpha = a;
+  const d = solid(g.path, 'evenodd', PAL.brass, POS.barrel, Z.barrel, 'barrel', m.A.barrel + CUR.rot, 0.05, g.R, { shadow: true });
+  const k = 1 / CUR_K, cover = disc(0.292);
+  ctx.fillStyle = metal(PAL.gilt, 0.292, d); ctx.fill(cover); sheen(cover, 'nonzero', d, 0.2);
+  ctx.lineWidth = 0.8 * k; ctx.strokeStyle = PAL.brass.edge; ctx.stroke(cover);
+  ctx.globalAlpha = a * 0.16; ctx.strokeStyle = '#2a1a06'; ctx.lineWidth = 0.5 * k; ctx.beginPath();
+  for (let r = 0.095; r < 0.29; r += 0.0105) { ctx.moveTo(r, 0); ctx.arc(0, 0, r, 0, TAU); } ctx.stroke(); ctx.globalAlpha = a;
+  ctx.save();
+  ctx.fillStyle = '#0c0907'; ctx.fill(GEO.barrelCut); ctx.clip(GEO.barrelCut);
+  ctx.lineWidth = Math.max(0.0042, 1.1 * k); ctx.strokeStyle = metal(PAL.steel, 0.27, d); ctx.stroke(GEO.mainspring);
+  const sg = ST ? springGlow(ST.t) * LAYERS.notes : 0;
+  if (sg > 0.01) { ctx.globalAlpha = a * sg; ctx.strokeStyle = '#ffe0a0'; ctx.lineWidth = Math.max(0.0055, 1.6 * k); ctx.stroke(GEO.mainspring); ctx.globalAlpha = a; }
+  ctx.restore();
+  ctx.lineWidth = 0.9 * k; ctx.strokeStyle = 'rgba(239,231,212,.32)'; ctx.stroke(GEO.barrelCut);
+  const hub = disc(0.062); ctx.fillStyle = metal(PAL.steel, 0.062, d); ctx.fill(hub); ctx.lineWidth = 0.7 * k; ctx.strokeStyle = PAL.steel.edge; ctx.stroke(hub);
+  ctx.fillStyle = '#20262e'; ctx.fillRect(-0.016, -0.016, 0.032, 0.032);
+  jewel(0.011);
+}
+function drawEscWheel(m, a) {
+  ctx.globalAlpha = a;   // local frame is mirrored: a visual offset of +rot is −rot locally
+  solid(GEO.esc.path, 'evenodd', PAL.steel, POS.escape, Z.esc, 'escape', m.aL - CUR.rot, 0.012, TR.escape.R, { shadow: true, frame: escFrame, anc: ESC_ANCHOR, sheen: 0.2, lw: 0.6 });
+}
+function drawFork(m, a) {
+  ctx.globalAlpha = a;
+  place(POS.fork.x, POS.fork.y, Z.esc, 'escape', -CUR.dz, ESC_ANCHOR); escFrame();      // banking pins are fixed structure
+  let d = localDir(LIGHT), k = 1 / CUR_K;
+  for (const b of FORKG.pins) {
+    ctx.beginPath(); ctx.arc(b.x, b.y, FORKG.rp, 0, TAU); ctx.fillStyle = metal(PAL.brass, FORKG.rp, d); ctx.fill();
+    ctx.lineWidth = 0.6 * k; ctx.strokeStyle = PAL.brass.edge; ctx.stroke();
+  }
+  place(POS.fork.x, POS.fork.y, Z.esc, 'escape', 0, ESC_ANCHOR); escFrame(); ctx.rotate(m.psi);
+  d = localDir(LIGHT); k = 1 / CUR_K;
+  const gl = Math.exp(-Math.pow(m.psi / (1.1 * DEG), 2));   // stones catch the light as the fork swings through centre
+  for (const s of [STONES.entry, STONES.exit]) {
+    const g = ctx.createLinearGradient(s.C.x, s.C.y, s.C.x + s.dir.x * 0.05, s.C.y + s.dir.y * 0.05);
+    g.addColorStop(0, '#e4505f'); g.addColorStop(0.5, '#a3152a'); g.addColorStop(1, '#4c0612');
+    ctx.fillStyle = g; ctx.fill(s.path); ctx.lineWidth = 0.6 * k; ctx.strokeStyle = 'rgba(30,0,6,.9)'; ctx.stroke(s.path);
+    ctx.beginPath(); ctx.moveTo(s.C.x, s.C.y); ctx.lineTo(s.X.x, s.X.y); ctx.strokeStyle = `rgba(255,${(190 + 50 * gl) | 0},${(198 + 40 * gl) | 0},${(0.75 + 0.25 * gl).toFixed(3)})`; ctx.lineWidth = (0.8 + 0.6 * gl) * k; ctx.stroke();
+    if (gl > 0.02) { ctx.save(); ctx.translate(s.X.x, s.X.y); glint(0.007, 0.7 * gl); ctx.restore(); }
+  }
+  solid(FORKG.lever, 'nonzero', PAL.steel, POS.fork, Z.esc, 'escape', m.psi, 0.008, 0.25, { shadow: true, frame: escFrame, anc: ESC_ANCHOR, sheen: 0.12, lw: 0 });
+  jewel(0.0085);
+}
+function drawRoller(m, a) {
+  ctx.globalAlpha = a;
+  place(POS.balance.x, POS.balance.y, Z.roller, 'balance', 0, ESC_ANCHOR); escFrame(); ctx.rotate(m.th + CUR.rot);
+  const d = localDir(LIGHT), k = 1 / CUR_K, r = disc(0.05);
+  ctx.fillStyle = metal(PAL.steel, 0.05, d); ctx.fill(r); ctx.lineWidth = 0.6 * k; ctx.strokeStyle = PAL.steel.edge; ctx.stroke(r);
+  ctx.beginPath(); ctx.arc(0, 0, 0.03, 0, TAU); ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(0, 0.03, 0.007, 0.004, 0, 0, TAU); ctx.fillStyle = '#151a20'; ctx.fill();
+  const g = ctx.createRadialGradient(0, ES.rr, 0, 0, ES.rr, 0.0052); g.addColorStop(0, '#ff8d99'); g.addColorStop(1, '#8d1022');
+  ctx.beginPath(); ctx.arc(0, ES.rr, 0.0052, 0, TAU); ctx.fillStyle = g; ctx.fill(); ctx.strokeStyle = 'rgba(30,0,6,.9)'; ctx.stroke();
+  const gi = Math.pow(Math.max(0, d.y), 28);       // impulse jewel catches the light as the roller turns through it
+  if (gi > 0.02) { ctx.save(); ctx.translate(0, ES.rr); glint(0.011, 0.8 * gi); ctx.restore(); }
+}
+function drawBalance(m, a) {
+  ctx.globalAlpha = a;
+  const d = solid(GEO.balance, 'evenodd', PAL.gilt, POS.balance, Z.bal, 'balance', m.th + CUR.rot, 0.012, 0.24, { shadow: true, frame: escFrame, anc: ESC_ANCHOR, sheen: 0.22 });
+  const k = 1 / CUR_K;
+  for (let i = 0; i < 16; i++) {
+    const an = (i + 0.5) * TAU / 16, c = polar(0.2462, an);
+    ctx.beginPath(); ctx.arc(c.x, c.y, 0.0074, 0, TAU); ctx.fillStyle = metal(PAL.gilt, 0.0074, d); ctx.fill();
+    ctx.lineWidth = 0.6 * k; ctx.strokeStyle = PAL.gilt.edge; ctx.stroke();
+    const s = polar(0.0062, an); ctx.beginPath(); ctx.moveTo(c.x - s.x, c.y - s.y); ctx.lineTo(c.x + s.x, c.y + s.y); ctx.lineWidth = 0.9 * k; ctx.strokeStyle = 'rgba(40,26,8,.8)'; ctx.stroke();
+  }
+  jewel(0.0095);
+}
+const HS = { turns: 11, rin: 0.026, rout: 0.118, stud: -2.25 };
+function drawHairspring(m, a) {
+  ctx.globalAlpha = a;
+  place(POS.balance.x, POS.balance.y, Z.hair, 'hair', 0, ESC_ANCHOR); escFrame();
+  const k = 1 / CUR_K, n = HS.turns * 48, tw = m.th / ES.amp, sc = CUR.sc;
+  ctx.beginPath();
+  for (let i = 0; i <= n; i++) {
+    const u = i / n, phi = HS.stud - (1 - u) * (HS.turns * TAU - m.th);
+    const r = (lerp(HS.rin, HS.rout, u) + 0.0065 * Math.sin(PI * u) * tw) * sc;   // coils breathe with the swing
+    const x = r * Math.cos(phi), y = r * Math.sin(phi); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+  }
+  ctx.lineWidth = Math.max(0.9 * k, 0.0014); ctx.strokeStyle = 'rgba(206,214,224,.92)'; ctx.stroke();
+  const st = polar((HS.rout + 0.006) * sc, HS.stud);
+  ctx.save(); ctx.translate(st.x, st.y); ctx.rotate(HS.stud); ctx.fillStyle = '#8f99a4'; ctx.fillRect(-0.007, -0.006, 0.014, 0.012); ctx.restore();
+  ctx.beginPath(); ctx.arc(0, 0, 0.02, 0, TAU); ctx.fillStyle = '#7d8691'; ctx.fill();
+}
+function drawSecondsHand(m, a) {
+  ctx.globalAlpha = a;
+  place(POS.fourth.x, POS.fourth.y, Z.hand, 'hand'); ctx.rotate(m.A.fourth + SEC_OFF);
+  const k = 1 / CUR_K, w = Math.max(0.0016, 0.8 * k);
+  ctx.beginPath(); ctx.moveTo(-0.052, -w * 0.6); ctx.lineTo(0, -w); ctx.lineTo(0.172, -Math.max(0.00035, 0.35 * k)); ctx.lineTo(0.172, Math.max(0.00035, 0.35 * k)); ctx.lineTo(0, w); ctx.lineTo(-0.052, w * 0.6); ctx.closePath();
+  ctx.fillStyle = IVORY; ctx.fill();
+  ctx.beginPath(); ctx.arc(-0.041, 0, 0.0072, 0, TAU); ctx.fill();
+  ctx.beginPath(); ctx.arc(0, 0, 0.0085, 0, TAU); ctx.fill();
+  ctx.beginPath(); ctx.arc(0, 0, 0.0032, 0, TAU); ctx.fillStyle = '#1b2231'; ctx.fill();
+}
+
+// key = entrance pose, grp = exploded-lift group. Drawn back-to-front by current depth each frame.
+const COMPS = [
+  { id: 'caseBack',   custom: 1,      grp: '',        z: Z.caseBack,       layer: 'case',    draw: drawCaseBack },
+  { id: 'bridges',    key: 'bridges', grp: 'bridges', z: Z.bridge,         layer: 'bridges', dim: 1, draw: drawBridges },
+  { id: 'bjewels',    custom: 1,      grp: 'bridges', z: Z.bridge + 0.012, layer: 'bridges', dim: 1, draw: drawBridgeJewels },
+  { id: 'screws',     custom: 1,      grp: 'bridges', z: Z.bridge + 0.014, layer: 'bridges', dim: 1, draw: drawScrews },
+  { id: 'hairspring', key: 'hair',    grp: 'hair',    z: Z.hair,    layer: 'esc', fast: 1, draw: drawHairspring },
+  { id: 'balance',    key: 'balance', grp: 'balance', z: Z.bal,     layer: 'esc', fast: 1, draw: drawBalance },
+  { id: 'roller',     key: 'balance', grp: 'balance', z: Z.roller,  layer: 'esc', fast: 1, draw: drawRoller },
+  { id: 'escWheel',   key: 'escape',  grp: 'escape',  z: Z.esc,     layer: 'esc', fast: 1, draw: drawEscWheel },
+  { id: 'fork',       key: 'fork',    grp: 'escape',  z: Z.esc,     layer: 'esc', fast: 1, draw: drawFork },
+  { id: 'escPinion',  key: 'escape',  grp: 'escape',  z: Z.escapePin, layer: 'esc', fast: 1, draw: (m, a) => drawPinion('escape', m, a) },
+  { id: 'fourthWheel',  key: 'fourth', grp: 'fourth', z: Z.fourth,    layer: 'train', dim: 1, draw: (m, a) => drawWheel('fourth', m, a) },
+  { id: 'fourthPinion', key: 'fourth', grp: 'fourth', z: Z.fourthPin, layer: 'train', dim: 1, draw: (m, a) => drawPinion('fourth', m, a) },
+  { id: 'thirdWheel',   key: 'third',  grp: 'third',  z: Z.third,     layer: 'train', dim: 1, draw: (m, a) => drawWheel('third', m, a) },
+  { id: 'thirdPinion',  key: 'third',  grp: 'third',  z: Z.thirdPin,  layer: 'train', dim: 1, draw: (m, a) => drawPinion('third', m, a) },
+  { id: 'centerWheel',  key: 'center', grp: 'center', z: Z.center,    layer: 'train', dim: 1, draw: (m, a) => drawWheel('center', m, a) },
+  { id: 'centerPinion', key: 'center', grp: 'center', z: Z.centerPin, layer: 'train', dim: 1, draw: (m, a) => drawPinion('center', m, a) },
+  { id: 'barrel',       key: 'barrel', grp: 'barrel', z: Z.barrel,    layer: 'train', dim: 1, draw: drawBarrel },
+];
+const ARBORS = [[POS.barrel, 'barrel', Z.barrel], [POS.center, 'center', Z.centerPin], [POS.third, 'third', Z.thirdPin], [POS.fourth, 'hand', Z.hand],
+                [POS.escape, 'escape', Z.escapePin], [POS.fork, 'escape', Z.esc], [POS.balance, 'balance', Z.roller]];
+const LAYERS = { train: 1, esc: 1, bridges: 1, case: 1, hands: 1, draft: 1, notes: 1, blur: 1 };
+Object.assign(Z, { caseBack: -0.30, dial: 0.80, hourH: 0.95, minH: 0.97, case: 1.0 });
+PAL.caseb = { hi: '#737c88', mid: '#353c46', lo: '#12171d', edge: 'rgba(4,6,9,.9)', side: '#0d1116' };
+GEO.caseBack = disc(1.05);
+GEO.caseRing = (() => {      // case middle with bore, four lugs and crown (outer clockwise, bore anticlockwise)
+  const p = new Path2D(); p.arc(0, 0, 1.165, 0, TAU); p.closePath(); p.moveTo(1.0, 0); p.arc(0, 0, 1.0, 0, TAU, true); p.closePath();
+  for (const sy of [-1, 1]) for (const sx of [-1, 1]) polyCW(p, [V(sx * 0.37, sy * 0.98), V(sx * 0.56, sy * 0.98), V(sx * 0.545, sy * 1.37), V(sx * 0.39, sy * 1.37)]);
+  polyCW(p, [V(1.12, -0.04), V(1.16, -0.04), V(1.16, 0.04), V(1.12, 0.04)]);
+  polyCW(p, [V(1.155, -0.085), V(1.265, -0.08), V(1.265, 0.08), V(1.155, 0.085)]);
+  return p;
+})();
+const B_END = beatAt(T_END), AC_END = mechAt(B_END).A.center;      // hands read 10:10 at the end; the motion works are implied (12:1)
+const MIN_OFF = (-PI / 2 + 60 * DEG) - AC_END, HOUR_OFF = (-PI / 2 + (10 + 10 / 60) * 30 * DEG) - AC_END / 12;
+
+function fontPx(css) { return Math.max(NARROW ? (css + 0.5) * DPR : 8.5 * DPR, css * H / 720); }   // annotation layer scales independently on narrow screens
+function spaced(text, x, y, sp, align) {
+  const ws = []; let w = 0; for (const ch of text) { const cw = ctx.measureText(ch).width; ws.push(cw); w += cw + sp; } w -= sp;
+  let cx = align === 'center' ? x - w / 2 : (align === 'right' ? x - w : x), i = 0;
+  const x0 = cx; for (const ch of text) { ctx.fillText(ch, cx, y); cx += ws[i++] + sp; }
+  return [x0, x0 + w];
+}
+function drawBackdrop(st) {
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1;
+  const g = ctx.createRadialGradient(W * 0.5, H * 0.45, 0, W * 0.5, H * 0.5, Math.hypot(W, H) * 0.6);
+  g.addColorStop(0, '#121c2d'); g.addColorStop(0.55, '#0a1120'); g.addColorStop(1, '#04070c');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  const dark = 1 - st.bg; if (dark > 0.002) { ctx.fillStyle = `rgba(2,3,6,${dark.toFixed(3)})`; ctx.fillRect(0, 0, W, H); }
+}
+function drawAxes(st) {     // assembly axes, visible while the stack is exploded
+  let spread = 0; for (const g in GZ) if (GZ[g]) spread = Math.max(spread, Math.abs(LIFT[g] / GZ[g]));
+  const a = 0.28 * sat(cam.sin * 4) * spread; if (a < 0.01) return;
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = a; ctx.strokeStyle = IVORY; ctx.lineWidth = Math.max(1, 0.7 * DPR);
+  ctx.setLineDash([5 * DPR, 4 * DPR]); ctx.beginPath();
+  for (const [p, g, z] of ARBORS) { const A = project(p.x, p.y, Z.bridge, 'bridges', -0.10), B = project(p.x, p.y, z, g, 0.16); ctx.moveTo(A.sx, A.sy); ctx.lineTo(B.sx, B.sy); }
+  ctx.stroke(); ctx.setLineDash([]);
+}
+function blurSamples(rate) { const f = rate / 60; return f < 0.06 ? 1 : Math.min(10, Math.ceil(f / 0.06)); }
+function drawMovement(st) {
+  const nB = LAYERS.blur ? blurSamples(st.rate) : 1;
+  let samples = null;
+  if (nB > 1) { samples = []; for (let j = 0; j < nB; j++) samples.push(mechAt(beatAt(st.t - j / (60 * nB)))); }
+  const list = [];
+  for (const c of COMPS) {
+    if (!LAYERS[c.layer]) continue;
+    const P = c.custom ? NEUTRAL : entr(c.key, st.t);
+    const a = (c.dim ? st.dim : 1) * P.a;
+    if (a < 0.003 && !(c.key === 'bridges' && P.lineA > 0.003)) continue;
+    list.push({ c, P, a, zz: c.z + (LIFT[c.grp] || 0) + P.dz });
+  }
+  list.sort((p, q) => p.zz - q.zz);
+  for (const it of list) {
+    CUR = it.P;
+    if (it.c.fast && samples) { const ga = it.a * Math.min(1, 2.2 / nB); for (const mj of samples) it.c.draw(mj, ga); }
+    else it.c.draw(st.m, it.c.key === 'bridges' ? (st.dim) : it.a);
+  }
+  CUR = NEUTRAL; ctx.globalAlpha = 1;
+}
+function drawDraft(st) {
+  const A = st.aDraft * LAYERS.draft; if (A < 0.003) return;
+  const t = st.t, [t0, t1] = BEAT_T;
+  if (t < t0) return;
+  place(POS.fourth.x, POS.fourth.y, Z.hand, 'hand');
+  const k = 1 / CUR_K, R = 0.19;
+  ctx.strokeStyle = 'rgb(222,228,236)'; ctx.lineWidth = 0.8 * k;
+  const e0 = outCubic((t - t0) / 1.1);
+  ctx.globalAlpha = A * 0.55 * smooth((t - t0) / 0.12); ctx.beginPath(); ctx.arc(0, 0, R * e0, 0, TAU); ctx.stroke();
+  const eg = sat((t - t0 - 0.3) / 1.5), ng = Math.floor(300 * eg);       // one graduation per beat (1.2°)
+  if (ng > 0) {
+    ctx.globalAlpha = A * 0.5; ctx.lineWidth = 0.7 * k; ctx.beginPath();
+    for (let i = 0; i < ng; i++) { const an = -PI / 2 + i * TAU / 300, L = i % 25 === 0 ? 0.016 : (i % 5 === 0 ? 0.009 : 0.0045);
+      ctx.moveTo((R + 0.002) * Math.cos(an), (R + 0.002) * Math.sin(an)); ctx.lineTo((R + 0.002 + L) * Math.cos(an), (R + 0.002 + L) * Math.sin(an)); }
+    ctx.stroke();
+  }
+  if (t > t1) {
+    const e1 = outCubic((t - t1) / 1.2); ctx.lineWidth = 0.7 * k;
+    for (const [r, al] of [[0.058, 0.32], [0.122, 0.24], [0.228, 0.18]]) { ctx.globalAlpha = A * al * e1; ctx.beginPath(); ctx.arc(0, 0, r * lerp(0.8, 1, e1), 0, TAU); ctx.stroke(); }
+    ctx.globalAlpha = A * 0.22 * e1; ctx.setLineDash([6 * k, 5 * k]); ctx.beginPath();
+    const L = 0.26 * e1; ctx.moveTo(-L, 0); ctx.lineTo(L, 0); ctx.moveTo(0, -L); ctx.lineTo(0, L); ctx.stroke(); ctx.setLineDash([]);
+    const p0 = project(POS.fourth.x, POS.fourth.y, Z.hand, 'hand', 0);
+    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = A * 0.42 * smooth((t - t1 - 0.4) / 0.8);
+    const fs = fontPx(9); ctx.font = `300 ${fs}px ${FONT}`; ctx.fillStyle = '#dfe5ec'; ctx.textBaseline = 'middle';
+    for (const [lbl, an] of [['0', -PI / 2], ['15', 0], ['30', PI / 2], ['45', PI]]) {
+      const q = polar((R + 0.034) * p0.k, an + cam.yaw); spaced(lbl, p0.sx + q.x, p0.sy + q.y, fs * 0.1, 'center');
+    }
+  }
+}
+
+/* ── annotations ── */
+const LABELS = [   // fixed sides and order → labels never swap places while the camera moves
+  { text: 'BARREL',       side: -1, g: 'barrel',  z: Z.barrel, p: add(POS.barrel, polar(0.27, 200 * DEG)), t: seatEnd('barrel'),
+    subs: [[PULSE.ts[0], 1e9, 'stores the energy']] },
+  { text: 'BALANCE',      side: -1, g: 'balance', z: Z.bal,    p: add(POS.balance, polar(0.228, 200 * DEG)), t: seatEnd('balance'), anc: ESC_ANCHOR,
+    subs: [[PULSE.ts[7] + 0.15, 1e9, 'receives each impulse']] },
+  { text: 'HAIRSPRING',   side: -1, g: 'hair',    z: Z.hair,   p: add(POS.balance, polar(0.10, 135 * DEG)), t: PULSE.t1 + 0.1, anc: ESC_ANCHOR,
+    subs: [[PULSE.t1 + 0.1, 1e9, 'stores and returns energy']] },
+  { text: 'PALLET FORK',  side: -1, g: 'escape',  z: Z.esc,    p: POS.fork, t: seatEnd('escape'), anc: ESC_ANCHOR,
+    subs: [[PULSE.ts[6] + 0.1, 1e9, 'meters the release']] },
+  { text: 'ESCAPE WHEEL', side: -1, g: 'escape',  z: Z.esc,    p: add(POS.escape, polar(0.076, 120 * DEG)), t: seatEnd('escape') + 0.15, anc: ESC_ANCHOR,
+    subs: [[PULSE.ts[5] + 0.1, 1e9, 'receives the torque']] },
+  { text: 'CENTER WHEEL', side: 1,  g: 'center',  z: Z.center, p: add(POS.center, polar(0.268, -30 * DEG)), t: seatEnd('center'), subs: [[FF0, 1e9, '1 turn per hour']] },
+  { text: 'THIRD WHEEL',  side: 1,  g: 'third',   z: Z.third,  p: add(POS.third, polar(0.213, 0)), t: seatEnd('third'), subs: [[FF0, 1e9, '1 turn per 7.5 minutes']] },
+  { text: 'FOURTH WHEEL', side: 1,  g: 'fourth',  z: Z.fourth, p: add(POS.fourth, polar(0.196, 30 * DEG)), t: seatEnd('fourth'), subs: [[FF0, 1e9, '1 turn per minute']] },
+];
+const LABEL_BOX = { minX: 0, maxX: 0, items: [] };
+function layoutLabels(st) {       // columns outside the movement's silhouette; 1-D spacing within a column
+  let minX = Infinity, maxX = -Infinity;
+  for (let i = 0; i < 32; i++) { const q = add(V(-0.04, 0.06), polar(1.0, i * TAU / 32)); const P = project(q.x, q.y, 0.3, '', 0); minX = Math.min(minX, P.sx); maxX = Math.max(maxX, P.sx); }
+  const fs = fontPx(8.5), out = [];
+  for (const side of [-1, 1]) {
+    const items = LABELS.filter(L => L.side === side).map(L => { const P = project(L.p.x, L.p.y, L.z, L.g, 0, L.anc), lines = NARROW ? L.text.split(' ') : [L.text];
+      return { L, P, y: P.sy, side, lines, h: NARROW ? lines.length * fs * 1.2 : fs * 2.6 }; });
+    for (let i = 0; i < items.length; i++) { const it = items[i]; it.y = i ? Math.max(it.y, items[i - 1].y + (items[i - 1].h + it.h) / 2 + fs * 0.7) : Math.max(it.y, H * 0.06 + it.h / 2); }
+    const n = items.length, lim = H * (NARROW ? 0.85 : 0.9);     // narrow: stay clear of the time-scale line
+    if (n && items[n - 1].y + items[n - 1].h / 2 > lim) { items[n - 1].y = lim - items[n - 1].h / 2;
+      for (let i = n - 2; i >= 0; i--) items[i].y = Math.min(items[i].y, items[i + 1].y - (items[i + 1].h + items[i].h) / 2 - fs * 0.7); }
+    const col = side < 0 ? minX - 0.035 * H : maxX + 0.035 * H;
+    for (const it of items) { it.col = col; it.ex = col - side * 0.03 * H; out.push(it); }
+  }
+  LABEL_BOX.minX = minX; LABEL_BOX.maxX = maxX; LABEL_BOX.items = out; LABEL_BOX.fs = fs;
+  return out;
+}
+function drawLabels(st) {
+  const A = st.aLabels * LAYERS.notes; if (A < 0.01 || st.t < LABELS[0].t - 3) return;
+  const items = layoutLabels(st), fs = LABEL_BOX.fs, tr = fs * (NARROW ? 0.1 : 0.26);
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.textBaseline = 'middle'; ctx.lineWidth = Math.max(1, 0.7 * DPR);
+  for (const it of items) {
+    const u = st.t - it.L.t; if (u <= 0) continue;
+    const pa = smooth(u / 0.45), ta = smooth((u - 0.15) / 0.45), side = it.side, tx = it.col + side * 6 * DPR, al = side < 0 ? 'right' : 'left';
+    const seg1 = Math.hypot(it.ex - it.P.sx, it.y - it.P.sy), seg2 = Math.abs(it.col - it.ex), dl = pa * (seg1 + seg2);
+    ctx.globalAlpha = A * 0.62; ctx.strokeStyle = IVORY; ctx.beginPath(); ctx.moveTo(it.P.sx, it.P.sy);
+    if (dl <= seg1) { const f = dl / (seg1 || 1); ctx.lineTo(lerp(it.P.sx, it.ex, f), lerp(it.P.sy, it.y, f)); }
+    else { ctx.lineTo(it.ex, it.y); ctx.lineTo(it.ex + (it.col - it.ex) * ((dl - seg1) / (seg2 || 1)), it.y); }
+    ctx.stroke();
+    ctx.globalAlpha = A * 0.9 * pa; ctx.beginPath(); ctx.arc(it.P.sx, it.P.sy, 1.6 * DPR, 0, TAU); ctx.fillStyle = IVORY; ctx.fill();
+    ctx.font = `400 ${fs}px ${FONT}`; ctx.globalAlpha = A * 0.92 * ta; ctx.fillStyle = '#ece6d6';
+    let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+    it.lines.forEach((ln, i) => { const y = it.y + (i - (it.lines.length - 1) / 2) * fs * 1.2, e = spaced(ln, tx, y, tr, al);
+      x0 = Math.min(x0, e[0]); x1 = Math.max(x1, e[1]); y0 = Math.min(y0, y - fs * 0.6); y1 = Math.max(y1, y + fs * 0.6); });
+    if (!NARROW) {                       // sublines are dropped on narrow screens: density over completeness
+      ctx.font = `300 ${fs * 0.95}px ${FONT}`; ctx.fillStyle = '#d4cdbb';
+      for (const [s0, s1, txt] of it.L.subs || []) {
+        const sa = smooth((st.t - s0) / 0.35) * (1 - smooth((st.t - s1) / 0.35)); if (sa < 0.01) continue;
+        ctx.globalAlpha = A * 0.74 * sa * ta; const e = spaced(txt, tx, it.y + fs * 1.45, fs * 0.04, al);
+        x0 = Math.min(x0, e[0]); x1 = Math.max(x1, e[1]); y1 = Math.max(y1, it.y + fs * 2.05);
+      }
+    }
+    it.box = { x0, x1, y0, y1 };
+  }
+}
+const pitchPt = (drv, drn) => add(POS[drv], mul(vnorm(sub(POS[drn], POS[drv])), TR[drv].R));
+const LOCK_PT = (() => { const kn = Math.round(B_HOLD), q = tipL(kn % 2 === 0 ? -60 : -120); return add(POS.escape, vrot(V(-q.x, q.y), RHO)); })();
+const FLASHES = [   // restrained emphasis at each new engagement as parts seat
+  { t: seatEnd('escape'), p: LOCK_PT, z: Z.esc, g: 'escape', anc: ESC_ANCHOR },
+  { t: seatEnd('fourth'), p: pitchPt('fourth', 'escape'), z: Z.escapePin, g: 'fourth' },
+  { t: seatEnd('third'),  p: pitchPt('third', 'fourth'),  z: Z.fourthPin, g: 'third' },
+  { t: seatEnd('center'), p: pitchPt('center', 'third'),  z: Z.thirdPin,  g: 'center' },
+  { t: seatEnd('barrel'), p: pitchPt('barrel', 'center'), z: Z.centerPin, g: 'barrel' },
+];
+function drawFlashes(st) {
+  if (!LAYERS.notes) return;
+  for (const f of FLASHES) {
+    const u = (st.t - f.t) / 0.8; if (u <= 0 || u >= 1) continue;
+    const P = project(f.p.x, f.p.y, f.z, f.g, 0, f.anc), s = H / 720, r = lerp(3, 14, outCubic(u)) * s;
+    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 0.8 * (1 - u) * (1 - u); ctx.strokeStyle = '#f3ead2'; ctx.lineWidth = Math.max(1, 0.8 * DPR);
+    ctx.beginPath(); ctx.arc(P.sx, P.sy, r, 0, TAU); ctx.stroke(); ctx.beginPath();
+    for (let q = 0; q < 4; q++) { const an = q * PI / 2; ctx.moveTo(P.sx + Math.cos(an) * (r + 2 * s), P.sy + Math.sin(an) * (r + 2 * s)); ctx.lineTo(P.sx + Math.cos(an) * (r + 6 * s), P.sy + Math.sin(an) * (r + 6 * s)); }
+    ctx.stroke();
+  }
+}
+let CAPTION_BOX = null;
+function drawNotes(st) {      // escapement caption sits in clear space below the balance, tied in by an orthogonal leader
+  CAPTION_BOX = null;
+  const a = st.aEscNote * LAYERS.notes; if (a < 0.01) return;
+  const lines = NARROW ? ['CONTROLLED RELEASE', 'OF STORED ENERGY'] : ['CONTROLLED RELEASE OF STORED ENERGY'];
+  const fs = fontPx(9.5), sp = fs * (NARROW ? 0.12 : 0.24), lh = fs * 1.35;
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.font = `400 ${fs}px ${FONT}`; ctx.textBaseline = 'middle';
+  const wOf = txt => { let w = -sp; for (const ch of txt) w += ctx.measureText(ch).width + sp; return w; }, ws = lines.map(wOf), w = Math.max(...ws);
+  const x0 = W * 0.05, y0 = H * (NARROW ? 0.76 : 0.835), xe = x0 + ws[0];
+  const P = project(POS.fork.x, POS.fork.y, Z.esc, 'escape', 0, ESC_ANCHOR);
+  const lx = P.sx - 0.025 * H, path = [[P.sx, P.sy], [lx, P.sy + 0.035 * H], [lx, y0], [xe + 7 * DPR, y0]];
+  ctx.globalAlpha = a * 0.6; ctx.strokeStyle = IVORY; ctx.lineWidth = Math.max(1, 0.75 * DPR);
+  ctx.beginPath(); path.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.stroke();
+  ctx.globalAlpha = a * 0.9; ctx.beginPath(); ctx.arc(P.sx, P.sy, 1.8 * DPR, 0, TAU); ctx.fillStyle = IVORY; ctx.fill();
+  ctx.globalAlpha = a * 0.92; ctx.fillStyle = '#ece6d6'; lines.forEach((ln, i) => spaced(ln, x0, y0 + i * lh, sp, 'left'));
+  CAPTION_BOX = { x: x0, y: y0 - fs * 0.75, w, h: fs * 1.5 + (lines.length - 1) * lh, leader: path };
+}
+function drawHUD(st) {
+  HUD_BOX = null;
+  const a = st.aNotes * LAYERS.notes * sat(st.rate / 0.25); if (a < 0.01) return;
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  const fs = fontPx(9), f = st.rate / SPEC.realBeatsPerSecond;
+  ctx.font = `400 ${fs}px ${FONT}`; ctx.fillStyle = '#ddd7c7'; ctx.textBaseline = 'alphabetic';
+  ctx.globalAlpha = a * 0.72; const he = spaced('TIME ×' + (f >= 10 ? f.toFixed(0) : f >= 1 ? f.toFixed(1) : f.toFixed(2)), W * 0.035, H * 0.925, fs * 0.25, 'left');
+  HUD_BOX = { x0: he[0], x1: NARROW ? he[1] : W * 0.4, y0: H * 0.925 - fs * 0.8, y1: H * 0.925 + (NARROW ? fs * 0.3 : fs * 2.0) };
+  if (NARROW) return;           // narrow screens keep only the time-scale line
+  const pp = sat((st.t - PULSE.ts[1] + 0.3) / 0.3) * (1 - sat((st.t - PULSE.t1 - 0.6) / 0.3));
+  if (pp < 1) { ctx.globalAlpha = a * 0.42 * (1 - pp); spaced('18 000 A/H MOVEMENT   ONE TICK = ONE BEAT', W * 0.035, H * 0.925 + fs * 1.7, fs * 0.22, 'left'); }
+  if (pp > 0) { ctx.globalAlpha = a * 0.42 * pp; spaced('POWER PATH, DRAWN AS A DIAGRAM', W * 0.035, H * 0.925 + fs * 1.7, fs * 0.22, 'left'); }
+}
+/* ── scene 7: the finished object ── */
+function drawCaseBack(m, a) {
+  const k0 = ST.aCaseBack; if (k0 < 0.003) return;
+  ctx.globalAlpha = a * k0; CUR = Object.assign({}, NEUTRAL, { dz: -0.35 * (1 - k0) });      // rises into place behind the movement
+  solid(GEO.caseBack, 'nonzero', PAL.caseb, V(0, 0), Z.caseBack, '', 0, 0.05, 1.1, { anc: { x: 0, y: 0, z: Z.caseBack }, sheen: 0.18, lw: 0.8 });
+  CUR = NEUTRAL;
+}
+function drawDial(st) {
+  const din = st.dialIn; if (din < 0.003 || !LAYERS.case) return;
+  const xr = st.xray; CUR = NEUTRAL;
+  place(0, 0, Z.dial, '', 0.45 * (1 - din), { x: 0, y: 0, z: Z.dial });            // lowered along the axis
+  const k = 1 / CUR_K, d = localDir(LIGHT), base = disc(0.99), sd = POS.fourth;
+  ctx.globalAlpha = din * (1 - 0.86 * xr);                                          // the X-ray only thins the dial
+  const g = ctx.createRadialGradient(d.x * 0.35, d.y * 0.35, 0.05, 0, 0, 0.99);
+  g.addColorStop(0, '#1e2839'); g.addColorStop(0.65, '#131b29'); g.addColorStop(1, '#0a1019');
+  ctx.fillStyle = g; ctx.fill(base); sheen(base, 'nonzero', d, 0.09);
+  ctx.beginPath(); ctx.arc(sd.x, sd.y, 0.205, 0, TAU); ctx.fillStyle = 'rgba(3,6,10,.38)'; ctx.fill();
+  ctx.lineWidth = 0.6 * k; ctx.strokeStyle = 'rgba(239,231,212,.14)';
+  for (const r of [0.05, 0.095, 0.14]) { ctx.beginPath(); ctx.arc(sd.x, sd.y, r, 0, TAU); ctx.stroke(); }
+  ctx.globalAlpha = din * lerp(0.85, 0.45, xr); ctx.strokeStyle = IVORY; ctx.lineWidth = 0.8 * k; ctx.beginPath();
+  for (let i = 0; i < 60; i++) { const an = -PI / 2 + i * TAU / 60, c = Math.cos(an), s = Math.sin(an), r0 = i % 5 ? 0.93 : 0.905, q0 = i % 5 ? 0.182 : 0.168;
+    ctx.moveTo(r0 * c, r0 * s); ctx.lineTo(0.955 * c, 0.955 * s); ctx.moveTo(sd.x + q0 * c, sd.y + q0 * s); ctx.lineTo(sd.x + 0.197 * c, sd.y + 0.197 * s); }
+  ctx.stroke();
+  ctx.globalAlpha = din * lerp(1, 0.5, xr);
+  for (let h = 0; h < 12; h++) { if (h === 6) continue;                             // applied gilt indices; small seconds at 6
+    ctx.save(); ctx.rotate(-PI / 2 + h * TAU / 12);
+    for (const o of (h === 0 ? [-0.019, 0.019] : [0])) { const w = 0.0125, gg = ctx.createLinearGradient(0, o - w, 0, o + w);
+      gg.addColorStop(0, '#f7e3b0'); gg.addColorStop(0.5, '#c79747'); gg.addColorStop(1, '#5f4118');
+      ctx.fillStyle = 'rgba(0,0,0,.45)'; ctx.fillRect(0.708, o - w + 0.005, 0.15, 2 * w); ctx.fillStyle = gg; ctx.fillRect(0.705, o - w, 0.15, 2 * w); }
+    ctx.restore(); }
+  ctx.globalAlpha = din; ctx.lineWidth = k; ctx.strokeStyle = xr > 0.01 ? `rgba(239,231,212,${(0.15 + 0.4 * xr).toFixed(3)})` : 'rgba(0,0,0,.6)'; ctx.stroke(base);
+}
+function drawMainHands(st) {
+  const hin = st.handsIn; if (hin < 0.003 || !LAYERS.hands || !LAYERS.case) return;
+  const Ac = st.m.A.center, dz = 0.3 * (1 - hin); CUR = NEUTRAL;
+  for (const [L, w, z, ang] of [[0.56, 0.032, Z.hourH, Ac / 12 + HOUR_OFF], [0.86, 0.024, Z.minH, Ac + MIN_OFF]]) {   // driven by the centre arbor
+    const anc = { x: 0, y: 0, z };
+    ctx.globalAlpha = hin * 0.35; place(0.008, 0.012, z, '', dz, anc); ctx.rotate(ang); ctx.fillStyle = '#000';
+    ctx.beginPath(); ctx.moveTo(-0.07, 0); ctx.lineTo(0, -w); ctx.lineTo(L, 0); ctx.lineTo(0, w); ctx.closePath(); ctx.fill();
+    ctx.globalAlpha = hin; place(0, 0, z, '', dz, anc); ctx.rotate(ang);
+    const up = localDir(LIGHT).y < 0, k = 1 / CUR_K;                                 // dauphine: the facet facing the light is bright
+    ctx.beginPath(); ctx.moveTo(-0.07, 0); ctx.lineTo(0, -w); ctx.lineTo(L, 0); ctx.closePath(); ctx.fillStyle = up ? '#f4dda2' : '#9a7333'; ctx.fill();
+    ctx.beginPath(); ctx.moveTo(-0.07, 0); ctx.lineTo(0, w); ctx.lineTo(L, 0); ctx.closePath(); ctx.fillStyle = up ? '#9a7333' : '#f4dda2'; ctx.fill();
+    ctx.lineWidth = 0.6 * k; ctx.strokeStyle = 'rgba(28,18,5,.85)'; ctx.beginPath(); ctx.moveTo(-0.07, 0); ctx.lineTo(0, -w); ctx.lineTo(L, 0); ctx.lineTo(0, w); ctx.closePath(); ctx.stroke();
+  }
+  place(0, 0, Z.minH + 0.01, '', dz, { x: 0, y: 0, z: Z.minH }); const d = localDir(LIGHT);
+  ctx.beginPath(); ctx.arc(0, 0, 0.03, 0, TAU); ctx.fillStyle = metal(PAL.gilt, 0.03, d); ctx.fill();
+  ctx.beginPath(); ctx.arc(0, 0, 0.008, 0, TAU); ctx.fillStyle = '#1b2231'; ctx.fill();
+}
+function drawCaseRing(st) {
+  const c = st.caseClose; if (c < 0.003 || !LAYERS.case) return;
+  const s = lerp(1.3, 1, c); CUR = NEUTRAL; ctx.globalAlpha = smooth(c / 0.5);       // closes in around the movement
+  solid(GEO.caseRing, 'nonzero', PAL.steel, V(0, 0), Z.case, '', 0, 0.08, 1.3, { anc: { x: 0, y: 0, z: Z.case }, frame: () => ctx.scale(s, s), shadow: true, sheen: 0.32, lw: 0.7 });
+  const k = 1 / CUR_K;
+  ctx.lineWidth = 1.2 * k; ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.beginPath(); ctx.arc(0, 0, 1.0, 0, TAU); ctx.stroke();
+  ctx.lineWidth = 0.8 * k; ctx.strokeStyle = 'rgba(0,0,0,.45)'; ctx.beginPath(); ctx.arc(0, 0, 1.035, 0, TAU); ctx.stroke();
+  ctx.strokeStyle = 'rgba(20,24,30,.7)'; ctx.lineWidth = 0.6 * k; ctx.beginPath(); for (let y = -0.07; y <= 0.071; y += 0.014) { ctx.moveTo(1.16, y); ctx.lineTo(1.262, y); } ctx.stroke();
+}
+function drawGlass(st) {
+  const g = st.glass; if (g <= 0 || g >= 1 || !LAYERS.case) return;
+  CUR = NEUTRAL; place(0, 0, Z.case, '', 0, { x: 0, y: 0, z: Z.case });
+  ctx.save(); ctx.clip(disc(1.0)); ctx.rotate(-0.6);
+  const x = lerp(-1.4, 1.4, g), gr = ctx.createLinearGradient(x - 0.25, 0, x + 0.25, 0);
+  gr.addColorStop(0, 'rgba(255,255,255,0)'); gr.addColorStop(0.5, 'rgba(255,255,255,0.09)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.globalAlpha = Math.sin(PI * g); ctx.fillStyle = gr; ctx.fillRect(-1.5, -1.5, 3, 3); ctx.restore();
+}
+function drawFinalTick(st) {   // drafting ring on the small seconds, on the real final beat (callback to the opening)
+  const u = (st.t - FINAL_T) / 0.75; if (u <= 0 || u >= 1 || !LAYERS.draft) return;
+  const P = project(POS.fourth.x, POS.fourth.y, Z.dial, '', 0, { x: 0, y: 0, z: Z.dial });
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 0.55 * (1 - u) * (1 - u); ctx.strokeStyle = IVORY; ctx.lineWidth = Math.max(1, 0.8 * DPR);
+  ctx.beginPath(); ctx.arc(P.sx, P.sy, lerp(0.205, 0.285, outCubic(u)) * P.k, 0, TAU); ctx.stroke();
+}
+function drawTitle(st) {
+  TITLE_BOX = null; const a = st.aTitle; if (a < 0.01) return;
+  const c = project(0, 0, Z.case, '', 0), x0 = c.sx + 1.3 * c.k + 0.045 * W, avail = W * 0.96 - x0;
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.textBaseline = 'alphabetic';
+  const T1 = 'MECHANICAL TIME', T2 = 'energy · regulation · motion', tr1 = NARROW ? 0.2 : 0.38, tr2 = NARROW ? 0.12 : 0.3;
+  const wOf = (txt, fs, tr) => { ctx.font = `300 ${fs}px ${FONT}`; let w = -fs * tr; for (const ch of txt) w += ctx.measureText(ch).width + fs * tr; return w; };
+  let fs = Math.max(H * 0.036, fontPx(11)); const w1 = wOf(T1, fs, tr1); if (w1 > avail) fs *= avail / w1;
+  let fs2 = Math.max(fs * 0.36, fontPx(8)); const w2 = wOf(T2, fs2, tr2); if (w2 > avail) fs2 *= avail / w2;
+  const y = c.sy + fs * 0.35;
+  ctx.font = `300 ${fs}px ${FONT}`; ctx.fillStyle = '#ece5d3'; ctx.globalAlpha = a; const e1 = spaced(T1, x0, y, fs * tr1, 'left');
+  ctx.font = `300 ${fs2}px ${FONT}`; ctx.globalAlpha = a * 0.62; const e2 = spaced(T2, x0 + fs * 0.03, y + fs2 * 2.9, fs2 * tr2, 'left');
+  TITLE_BOX = { x0: x0, x1: Math.max(e1[1], e2[1]), y0: y - fs, y1: y + fs2 * 3.5 };
+}
+
+/* ── power path (diagrammatic emphasis through the real contact points) ── */
+const springGlow = t => { const u = t - PULSE.ts[0]; return 0.95 * smooth(u / 0.12) * (1 - smooth((u - 0.25) / 0.45)); };
+const escToWorld = q => add(POS.escape, vrot(V(-q.x, q.y), RHO));
+function escContact(m) {   // toe of the tooth currently bearing on a pallet stone (local escapement frame)
+  const P = m.prog - m.k, odd = Math.abs(m.k) % 2 === 1;
+  if (m.s < IMP.impEnd) return polar(TR.escape.R, ((odd ? -120 : -60) + P * 12) * DEG);
+  return polar(TR.escape.R, ((odd ? -60 : -120) + (P - 1) * 12) * DEG);
+}
+function pulseStages(m) {
+  const q = (p, z) => ({ p, z });
+  const Cbc = pitchPt('barrel', 'center'), Cct = pitchPt('center', 'third'), Ctf = pitchPt('third', 'fourth'), Cfe = pitchPt('fourth', 'escape');
+  const Ce = escToWorld(escContact(m)), slot = escToWorld(add(LP, vrot(V(0, -ES.Lf), m.psi))), jw = escToWorld(add(LB, vrot(V(0, ES.rr), m.th)));
+  return [[q(POS.barrel, Z.barrel), q(Cbc, Z.centerPin)],
+          [q(Cbc, Z.centerPin), q(POS.center, Z.center), q(Cct, Z.thirdPin)],
+          [q(Cct, Z.thirdPin), q(POS.third, Z.third), q(Ctf, Z.fourthPin)],
+          [q(Ctf, Z.fourthPin), q(POS.fourth, Z.fourth), q(Cfe, Z.escapePin)],
+          [q(Cfe, Z.escapePin), q(POS.escape, Z.esc), q(Ce, Z.esc)],      // train delivers torque to the escape wheel
+          [q(Ce, Z.esc), q(POS.fork, Z.esc), q(slot, Z.esc)],              // pallet meters the release
+          [q(slot, Z.esc), q(jw, Z.roller)]];                              // impulse into the balance — the path ends here
+}
+function drawPulse(st) {
+  const t = st.t; if (t < PULSE.ts[1] || t > PULSE.t1 + 1.0 || !LAYERS.notes) return;
+  const stages = pulseStages(st.m).map(S => { const pts = S.map(q => project(q.p.x, q.p.y, q.z, '', 0)); let L = 0; const cum = [0];
+    for (let i = 1; i < pts.length; i++) { L += Math.hypot(pts[i].sx - pts[i - 1].sx, pts[i].sy - pts[i - 1].sy); cum.push(L); } return { pts, cum, L }; });
+  let head = 0;
+  for (let i = 1; i < PULSE.d.length; i++) if (t >= PULSE.ts[i]) head = (i - 1) + smoother((t - PULSE.ts[i]) / PULSE.d[i]);
+  const ptAt = h => { const i = Math.min(stages.length - 1, Math.max(0, Math.floor(h))), f = clamp(h - i, 0, 1), S = stages[i], d = f * S.L;
+    let j = 1; while (j < S.cum.length - 1 && S.cum[j] < d) j++; const u = clamp((d - S.cum[j - 1]) / ((S.cum[j] - S.cum[j - 1]) || 1), 0, 1);
+    return [lerp(S.pts[j - 1].sx, S.pts[j].sx, u), lerp(S.pts[j - 1].sy, S.pts[j].sy, u)]; };
+  const fade = 1 - smooth((t - PULSE.t1) / 0.9), sc = H / 720;
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.lineCap = 'round';
+  const N = Math.max(1, Math.ceil(head * 18)); ctx.beginPath();
+  for (let q = 0; q <= N; q++) { const p = ptAt(head * q / N); q ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]); }
+  ctx.globalAlpha = 0.45 * fade; ctx.strokeStyle = '#0a0f18'; ctx.lineWidth = Math.max(2.4, 3.2 * sc); ctx.stroke();   // dark underlay: separates gold from brass
+  ctx.globalAlpha = 0.5 * fade; ctx.strokeStyle = '#f2c878'; ctx.lineWidth = Math.max(1, 1.0 * sc); ctx.stroke();
+  if (t < PULSE.t1) {
+    const tail = 0.55, n = 14;
+    for (const [col, lw, k] of [['#0a0f18', 4.2, 0.55], ['#ffe2a6', 2.0, 1]]) {
+      ctx.strokeStyle = col; ctx.lineWidth = Math.max(lw * 0.7, lw * sc);
+      for (let q = 0; q < n; q++) { const A = ptAt(Math.max(0, head - tail * (1 - q / n))), B = ptAt(Math.max(0, head - tail * (1 - (q + 1) / n)));
+        ctx.globalAlpha = 0.95 * k * Math.pow((q + 1) / n, 1.5); ctx.beginPath(); ctx.moveTo(A[0], A[1]); ctx.lineTo(B[0], B[1]); ctx.stroke(); }
+    }
+    const Hd = ptAt(head);
+    ctx.globalAlpha = 0.6; ctx.fillStyle = '#0a0f18'; ctx.beginPath(); ctx.arc(Hd[0], Hd[1], 4.4 * sc, 0, TAU); ctx.fill();
+    ctx.globalAlpha = 1; ctx.fillStyle = '#fff6e2'; ctx.beginPath(); ctx.arc(Hd[0], Hd[1], 2.6 * sc, 0, TAU); ctx.fill();
+  }
+  for (let i = 1; i < PULSE.d.length - 1; i++) {     // emphasis at each engagement as the pulse crosses it
+    const u = (t - (PULSE.ts[i] + PULSE.d[i])) / 0.6; if (u <= 0 || u >= 1) continue;
+    const S = stages[i - 1], P = S.pts[S.pts.length - 1];
+    const rr = lerp(2.5, 11, outCubic(u)) * sc; ctx.beginPath(); ctx.arc(P.sx, P.sy, rr, 0, TAU);
+    ctx.globalAlpha = 0.5 * (1 - u) * (1 - u); ctx.strokeStyle = '#0a0f18'; ctx.lineWidth = Math.max(2, 2.6 * sc); ctx.stroke();
+    ctx.globalAlpha = 0.95 * (1 - u) * (1 - u); ctx.strokeStyle = '#ffe2a6'; ctx.lineWidth = Math.max(1, 1.1 * sc); ctx.stroke();
+  }
+  const ub = (t - PULSE.t1 + 0.05) / 0.8;          // impulse delivered: a short arc along the balance rim, no further
+  if (ub > 0 && ub < 1) {
+    const c = project(POS.balance.x, POS.balance.y, Z.bal, '', 0, ESC_ANCHOR), J = stages[stages.length - 1].pts[1], an = Math.atan2(J.sy - c.sy, J.sx - c.sx);
+    ctx.beginPath(); ctx.arc(c.sx, c.sy, 0.236 * c.k, an - 0.5 - 0.6 * ub, an + 0.5 + 0.6 * ub);
+    ctx.globalAlpha = 0.45 * Math.sin(PI * ub); ctx.strokeStyle = '#0a0f18'; ctx.lineWidth = Math.max(2.4, 3.4 * sc); ctx.stroke();
+    ctx.globalAlpha = 0.9 * Math.sin(PI * ub); ctx.strokeStyle = '#ffe2a6'; ctx.lineWidth = Math.max(1.2, 1.7 * sc); ctx.stroke();
+  }
+  ctx.lineCap = 'butt';
+}
+function drawOsc(st) {     // hairspring: stores and returns energy — an oscillation indicator, not part of the power path
+  const L = LABELS[2], a = st.aLabels * LAYERS.notes * smooth((st.t - L.t) / 0.5);
+  if (a < 0.01) return;
+  const c = project(POS.balance.x, POS.balance.y, Z.bal, '', 0, ESC_ANCHOR), r = 0.29 * c.k, a0 = 1.15 * PI, span = 0.42, sc = H / 720;
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = a * 0.5; ctx.strokeStyle = IVORY; ctx.lineWidth = Math.max(1, 0.75 * sc);
+  ctx.setLineDash([3 * sc, 3 * sc]); ctx.beginPath(); ctx.arc(c.sx, c.sy, r, a0 - span, a0 + span); ctx.stroke(); ctx.setLineDash([]);
+  ctx.beginPath();
+  for (const sg of [-1, 1]) { const e = a0 + sg * span, tip = polar(r, e), dir = V(-Math.sin(e) * sg, Math.cos(e) * sg), nrm = V(Math.cos(e), Math.sin(e));
+    const bx = c.sx + tip.x - dir.x * 5 * sc, by = c.sy + tip.y - dir.y * 5 * sc;
+    ctx.moveTo(bx + nrm.x * 3 * sc, by + nrm.y * 3 * sc); ctx.lineTo(c.sx + tip.x, c.sy + tip.y); ctx.lineTo(bx - nrm.x * 3 * sc, by - nrm.y * 3 * sc); }
+  ctx.stroke();
+  const q = polar(r, a0 - clamp(st.m.th / ES.amp, -1, 1) * span);   // marker rides with the balance itself (mirrored local frame)
+  ctx.globalAlpha = a * 0.85; ctx.fillStyle = IVORY; ctx.beginPath(); ctx.arc(c.sx + q.x, c.sy + q.y, 1.8 * sc, 0, TAU); ctx.fill();
+}
+
+function stateAt(t) {
+  const te = Math.min(t, T_END), st = { t };
+  for (const k in TRACKS) st[k] = ev(k, te);
+  st.B = beatAt(t);
+  st.rate = (beatAt(t + 0.004) - beatAt(t - 0.004)) / 0.008;
+  st.m = mechAt(st.B);
+  st.scene = sceneAt(te);
+  st.xray = xrayAt(t); st.aTitle = titleAt(t);
+  return st;
+}
+function render(t) {
+  const st = stateAt(t); ST = st;
+  cam.x = st.cx; cam.y = st.cy; cam.z = st.cz; cam.S = Math.exp(st.lz) * H / 2;
+  cam.cos = Math.cos(st.tilt); cam.sin = Math.sin(st.tilt); cam.yaw = st.yaw;
+  if (CAM_OVERRIDE) { Object.assign(cam, { yaw: 0 }, CAM_OVERRIDE); cam.S = CAM_OVERRIDE.zoom * H / 2; }
+  cam.cyw = Math.cos(cam.yaw); cam.syw = Math.sin(cam.yaw);
+  updateLifts(t);
+  const amb = t > T_END ? smooth((t - T_END) / 3) : 0;      // ambient: an extremely slow drift of the light across the case
+  LIGHT = polar(1, LIGHT0 + 0.11 * amb * Math.sin((t - T_END) * 0.33));
+  drawBackdrop(st);
+  drawDraft(st);
+  drawAxes(st);
+  drawMovement(st);
+  drawDial(st);
+  if (LAYERS.hands && st.aHand > 0.003) { CUR = NEUTRAL; drawSecondsHand(st.m, st.aHand); }
+  drawMainHands(st);
+  drawCaseRing(st);
+  drawGlass(st);
+  drawFinalTick(st);
+  drawFlashes(st);
+  drawPulse(st);
+  drawOsc(st);
+  drawLabels(st);
+  drawNotes(st);
+  drawHUD(st);
+  drawTitle(st);
+  ctx.globalAlpha = 1; ctx.setTransform(1, 0, 0, 1, 0, 0);
+  return st;
+}
+
+/* ═══════════════════════ 7 · PLAYBACK & CONTROLS ═══════════════════════ */
+const stage = document.getElementById('stage');
+function resize() {
+  const w = stage.clientWidth, h = stage.clientHeight;
+  let cw = w, ch = w * 9 / 16; if (ch > h) { ch = h; cw = h * 16 / 9; }
+  const coarse = matchMedia('(pointer: coarse)').matches;
+  let dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const cap = coarse ? 1.6e6 : 4.2e6;                     // mobile backing-store cap
+  if (cw * ch * dpr * dpr > cap) dpr = Math.sqrt(cap / (cw * ch));
+  cv.style.width = Math.round(cw) + 'px'; cv.style.height = Math.round(ch) + 'px';
+  cv.width = Math.max(2, Math.round(cw * dpr)); cv.height = Math.max(2, Math.round(ch * dpr));
+  W = cv.width; H = cv.height; DPR = dpr; NARROW = cw < 700;
+}
+window.addEventListener('resize', resize);
+resize();
+
+const $ = id => document.getElementById(id);
+const ui = $('ui'), scrub = $('scrub'), tc = $('tc'), bPlay = $('bPlay'), bNorm = $('bNorm'), bSlow = $('bSlow');
+scrub.max = Math.round(T_END * 1000);
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+let tNow = reduced ? T_END : 0, playing = !reduced, speed = 1, last = null, dragging = false, frozen = false;
+if (reduced) $('rm').hidden = false;
+function setPlaying(p) { playing = p; bPlay.textContent = p ? 'Pause' : 'Play'; if (p) $('rm').hidden = true; }
+function setSpeed(s) { speed = s; bNorm.setAttribute('aria-pressed', String(s === 1)); bSlow.setAttribute('aria-pressed', String(s !== 1)); }
+function seek(t) { tNow = Math.max(0, t); }
+const jumpEscapement = () => { seek(at('escapement', 1.0)); setPlaying(true); };
+const toggleUI = () => { ui.hidden = !ui.hidden; };
+$('hot').addEventListener('click', toggleUI);
+$('rm').addEventListener('click', () => { seek(0); setPlaying(true); });
+bPlay.addEventListener('click', () => setPlaying(!playing));
+$('bRestart').addEventListener('click', () => { seek(0); setPlaying(true); });
+bNorm.addEventListener('click', () => setSpeed(1));
+bSlow.addEventListener('click', () => setSpeed(0.25));
+$('bEsc').addEventListener('click', jumpEscapement);
+scrub.addEventListener('input', () => { seek(scrub.value / 1000); });
+scrub.addEventListener('pointerdown', () => { dragging = true; });
+window.addEventListener('pointerup', () => { dragging = false; });
+for (const cb of ui.querySelectorAll('input[data-layer]')) cb.addEventListener('change', () => { LAYERS[cb.dataset.layer] = cb.checked ? 1 : 0; });
+document.addEventListener('keydown', e => {
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  const k = e.key;
+  if (k === 'c' || k === 'C') toggleUI();
+  else if (k === ' ') { e.preventDefault(); setPlaying(!playing); }
+  else if (k === 'r' || k === 'R') { seek(0); setPlaying(true); }
+  else if (k === 'e' || k === 'E') jumpEscapement();
+  else if (k === 's' || k === 'S') setSpeed(speed === 1 ? 0.25 : 1);
+  else if (k === 'ArrowRight') seek(Math.min(tNow + 1, T_END));
+  else if (k === 'ArrowLeft') seek(tNow - 1);
+});
+let uiTick = 0;
+function syncUI() {
+  if (ui.hidden || ++uiTick % 3) return;
+  if (!dragging) scrub.value = Math.round(Math.min(tNow, T_END) * 1000);
+  const s = sceneAt(tNow);
+  tc.textContent = tNow.toFixed(2) + ' s   ' + (s ? s.title : 'Ambient');
+}
+function loop(ts) {
+  if (last === null) last = ts;
+  const dt = Math.min(0.1, (ts - last) / 1000); last = ts;
+  if (playing && !dragging && !frozen) tNow += dt * speed;
+  if (!frozen) render(tNow);
+  syncUI();
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+/* ═══════════════════════ 8 · TEST HOOKS (used by the automated checks) ═══════════════════════ */
+const tctx = document.createElement('canvas').getContext('2d');
+function pointInPoly(p, poly) { let c = false; for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) { const a = poly[i], b = poly[j];
+  if (((a.y > p.y) !== (b.y > p.y)) && (p.x < (b.x - a.x) * (p.y - a.y) / (b.y - a.y) + a.x)) c = !c; } return c; }
+function segDist(p, a, b) { const ab = sub(b, a), t = clamp(((p.x - a.x) * ab.x + (p.y - a.y) * ab.y) / ((ab.x * ab.x + ab.y * ab.y) || 1), 0, 1); return vlen(sub(p, add(a, mul(ab, t)))); }
+function polyDist(p, poly) { let d = Infinity; for (let i = 0; i < poly.length; i++) d = Math.min(d, segDist(p, poly[i], poly[(i + 1) % poly.length])); return pointInPoly(p, poly) ? -d : d; }
+const API = {
+  T_END, SCENES, POS, PIN, SPEC, BEAT_T, B_HOLD, SEAT, ENTRANCE,
+  poseAt(t) {     // exploded lifts and worst entrance offset per part at time t (all must be 0 once assembled)
+    updateLifts(t); const o = { lifts: Object.assign({}, LIFT), entr: {} };
+    for (const k in ENTRANCE) { const n = k === 'jewels' ? BRIDGES.jewels.length : k === 'screws' ? BRIDGES.screws.length : 1; let w = 0;
+      for (let i = 0; i < n; i++) { const P = entr(k, t, i); w = Math.max(w, Math.abs(P.dz), Math.abs(P.rot), Math.abs(P.sc - 1), 1 - P.a); } o.entr[k] = w; }
+    updateLifts(tNow); return o; },
+  hud() { return HUD_BOX; },
+  labels(t) { render(t); return { W, H, hud: HUD_BOX, minX: LABEL_BOX.minX, maxX: LABEL_BOX.maxX, items: LABEL_BOX.items.filter(it => it.box).map(it => Object.assign({ text: it.L.text }, it.box)) }; },
+  title(t) { render(t); return TITLE_BOX && Object.assign({ W, H }, TITLE_BOX); },
+  final() {      // the final tick: seconds hand, escape wheel, fork and balance all move on the same beat
+    const a = mechAt(beatAt(FINAL_T - 0.12)), b = mechAt(beatAt(FINAL_T + 0.12));
+    return { K: FINAL_K, T: FINAL_T, B_at_T: beatAt(FINAL_T), secStepDeg: (b.A.fourth - a.A.fourth) / DEG, escStepDeg: (b.aL - a.aL) / DEG,
+      fork: [a.psi / DEG, b.psi / DEG], balance: [a.th / DEG, b.th / DEG], beatsInWindow: b.k - a.k,
+      dialIn: ev('dialIn', FINAL_T), handsIn: ev('handsIn', FINAL_T), caseClose: ev('caseClose', FINAL_T), xrayAtT: xrayAt(FINAL_T),
+      xrayPeak: xrayAt((XRAY[0] + XRAY[1]) / 2), xrayAtEnd: xrayAt(T_END), titleAtEnd: titleAt(T_END), XRAY, TITLE_T,
+      ambientBeatsPerSec: beatAt(T_END + 9) - beatAt(T_END + 8), ambientTimeScale: (beatAt(T_END + 9) - beatAt(T_END + 8)) / SPEC.realBeatsPerSecond }; },
+  playback() { return { tNow, playing, speed, reduced }; },
+  narrow() { return { NARROW, W, H, DPR }; },
+  caption(t) {    // caption text box must clear every part; its leader must clear balance and escape wheel
+    render(t); const out = { box: CAPTION_BOX, overlaps: [] }; if (!CAPTION_BOX) return out; const B = CAPTION_BOX;
+    const discs = [['balance', POS.balance, Z.bal, 'balance', 0.256, ESC_ANCHOR], ['escape', POS.escape, Z.esc, 'escape', 0.125, ESC_ANCHOR], ['fourth', POS.fourth, Z.fourth, 'fourth', 0.23],
+      ['third', POS.third, Z.third, 'third', 0.25], ['center', POS.center, Z.center, 'center', 0.31], ['barrel', POS.barrel, Z.barrel, 'barrel', 0.35],
+      ['palletCockFoot', V(-0.44, 0.62), Z.bridge, 'bridges', 0.045], ['trainFoot', V(-0.17, 0.79), Z.bridge, 'bridges', 0.06], ['cockFoot', V(-0.86, -0.10), Z.bridge, 'bridges', 0.085]];
+    for (const [n, p, z, g, r, anc] of discs) { const P = project(p.x, p.y, z, g, 0, anc), R = r * P.k;
+      if (Math.hypot(P.sx - clamp(P.sx, B.x, B.x + B.w), P.sy - clamp(P.sy, B.y, B.y + B.h)) < R) out.overlaps.push('text:' + n);
+      if (n === 'balance' || n === 'escape') { let dmin = Infinity; for (let i = 1; i < B.leader.length; i++) dmin = Math.min(dmin, segDist(V(P.sx, P.sy), V(...B.leader[i - 1]), V(...B.leader[i])));
+        out.clear = out.clear || {}; out.clear[n] = +(dmin - R).toFixed(1); if (dmin < R) out.overlaps.push('leader:' + n); } }
+    return out; },
+  contactCheck() { let w = 0; for (let B = -0.5; B < 4.5; B += 0.001) { const m = mechAt(B); if (m.s > 0.79 && m.s < 0.87) continue; const c = escContact(m); let d = Infinity;
+    for (const k of ['entry', 'exit']) d = Math.min(d, Math.abs(polyDist(c, STONES[k].poly.map(p => add(LP, vrot(p, m.psi)))))); w = Math.max(w, d); } return w; },
+  PULSE, FF0,
+  beatAt, mechAt, stateAt,
+  renderAt(t) { frozen = true; tNow = t; render(t); },
+  release() { frozen = false; },
+  setCam(c) { CAM_OVERRIDE = c; },
+  escLocalToWorld(q) { return add(POS.escape, vrot(V(-q.x, q.y), RHO)); },
+  stoneInfo() { const o = {}; for (const k in STONES) { const S = STONES[k]; o[k] = { C: add(LP, S.C), X: add(LP, S.X), L: add(LP, S.L) }; } return o; },
+  meshCheck(B) {   // driver-tooth phase + driven-gap phase must equal ½ (teeth interleave on the line of centres)
+    const m = mechAt(B);
+    return MESHES.map(ms => frac((ms.phi - m.A[ms.drv]) * ms.N / TAU + ((ms.phi + PI) - m.A[ms.drn]) * ms.n / TAU));
+  },
+  gearInterference(B) {   // pinion-leaf vertices inside the driving wheel's outline (and vice versa)
+    const m = mechAt(B), out = {};
+    for (const ms of MESHES) {
+      const wg = GEO.wheel[ms.drv], pg = GEO.pinion[ms.drn], pw = POS[ms.drv], pp = POS[ms.drn];
+      let hits = 0;
+      for (let i = 0; i < pg.pts.length; i += 2) { const w = add(pp, vrot(V(pg.pts[i], pg.pts[i + 1]), m.A[ms.drn])); const l = vrot(sub(w, pw), -m.A[ms.drv]); if (tctx.isPointInPath(wg.path, l.x, l.y, 'evenodd')) hits++; }
+      for (let i = 0; i < wg.pts.length; i += 2) { const w = add(pw, vrot(V(wg.pts[i], wg.pts[i + 1]), m.A[ms.drv])); if (vlen(sub(w, pp)) > pg.R * 1.8) continue; const l = vrot(sub(w, pp), -m.A[ms.drn]); if (tctx.isPointInPath(pg.path, l.x, l.y, 'nonzero')) hits++; }
+      out[ms.drv + '>' + ms.drn] = hits;
+    }
+    return out;
+  },
+  escCheck(B) {   // stone/tooth penetration and contact gap, in movement units (local escapement frame)
+    const m = mechAt(B); let pen = 0, worst = 0; const gap = {};
+    for (const key of ['entry', 'exit']) {
+      const S = STONES[key], poly = S.poly.map(p => add(LP, vrot(p, m.psi)));
+      let g = Infinity;
+      for (let j = 0; j < 15; j++) { const toe = polar(TR.escape.R, m.aL + j * TAU / 15), d = polyDist(toe, poly); g = Math.min(g, Math.abs(d)); if (d < -2e-4) { pen++; worst = Math.min(worst, d); } }
+      for (let e = 0; e < 4; e++) { const a = poly[e], b = poly[(e + 1) % 4];
+        for (let j = 1; j < 12; j++) { const q = vlerp(a, b, j / 12), c = vlerp(q, vlerp(poly[0], poly[2], .5), 0.04), l = vrot(c, -m.aL); if (tctx.isPointInPath(GEO.esc.path, l.x, l.y, 'evenodd')) pen++; } }
+      const hp = S.hold.map(p => add(LP, vrot(p, m.psi)));
+      for (let j = 0; j < 15; j++) { const toe = polar(TR.escape.R, m.aL + j * TAU / 15); if (polyDist(toe, hp) < 0) pen++; }
+      gap[key] = g;
+    }
+    const bc = add(LP, vrot(FORKG.band.Ef, m.psi));    // bridge must stay outside the tip circle
+    const bandClear = vlen(bc) - 0 >= 0 ? (FORKG.band.r0 - TR.escape.R) - vlen(bc) : 0;
+    return { pen, worst, gap, bandClear, s: m.s, k: m.k, psi: m.psi / DEG };
+  },
+};
+window.MT = API;
+})();
+</script>
+</body>
+</html>
