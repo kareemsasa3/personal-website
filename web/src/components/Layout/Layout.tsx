@@ -5,7 +5,7 @@ import AppBackground from "../AppBackground/AppBackground";
 import SiteNavigation from "../Navigation/SiteNavigation";
 import GlobalSectionNavigation from "./GlobalSectionNavigation";
 import GlobalScrollProgress from "./GlobalScrollProgress";
-import { PageLoader } from "../common";
+import { MarkAppReady, RouteLoadingFallback } from "../common";
 import ErrorBoundary from "../common/ErrorBoundary";
 import { useLayoutContext } from "../../contexts/LayoutContext";
 import { useNavigationMode } from "../../contexts/NavigationModeContext";
@@ -99,8 +99,9 @@ const Layout = () => {
                 transition={pageTransition}
                 style={{ width: "100%", minHeight: "100%" }}
               >
-                <Suspense fallback={<PageLoader />}>
+                <Suspense fallback={<RouteLoadingFallback />}>
                   <FrozenOutlet />
+                  <MarkAppReady />
                 </Suspense>
               </motion.div>
             </AnimatePresence>

@@ -1,5 +1,6 @@
 import { Component, ErrorInfo, ReactNode } from "react";
 import { Link } from "react-router-dom";
+import { markAppReady } from "../../utils/appReady";
 import "./ErrorBoundary.css";
 
 interface Props {
@@ -27,6 +28,10 @@ class ErrorBoundary extends Component<Props, State> {
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     // Log the error to console for debugging
     console.error("ErrorBoundary caught an error:", error, errorInfo);
+
+    // A route that fails before its first commit never marks the app ready;
+    // reveal the error UI instead of leaving the static shell in place.
+    markAppReady();
 
     // Update state with error details
     this.setState({
