@@ -1,0 +1,45 @@
+.procedural-animations-container {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  min-width: 0;
+  font-family: "Courier New", "Monaco", "Menlo", monospace;
+}
+
+.procedural-animations-container > * + * {
+  margin-top: 2.5rem;
+}
+
+.procedural-animations-header h1 {
+  margin: 0.35rem 0 0.75rem;
+}
+
+.procedural-animations-eyebrow {
+  margin: 0;
+  color: var(--brand-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.75rem;
+}
+
+.procedural-animations-header p {
+  color: var(--app-text-secondary);
+  max-width: 68ch;
+  line-height: 1.6;
+}
+
+/* Provisional until the first piece ships; replace with the gallery grid. */
+.procedural-animations-empty {
+  margin: 0;
+  padding: 1.75rem;
+  border: 1px dashed var(--app-border);
+  border-radius: 12px;
+  color: var(--app-text-muted);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 480px) {
+  .procedural-animations-empty {
+    padding: 1rem;
+  }
+}

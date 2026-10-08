@@ -240,6 +240,7 @@ const primaryRouteShellPaths = [
   "/simulations/snake",
   "/simulations/spider",
   "/simulations/rhythm-lab",
+  "/procedural-animations",
   "/terminal",
 ] as const;
 
@@ -331,6 +332,15 @@ const primaryRouteShellDetails: Record<
       "The interactive system loads through the React application when JavaScript is available.",
     ],
     links: [{ label: "Back to simulations", href: "/simulations" }],
+  },
+  "/procedural-animations": {
+    eyebrow: "Computational Motion",
+    heading: "Procedural Animations",
+    highlights: [
+      "Self-contained motion pieces where movement is generated in code from rules, time, and noise.",
+      "No pieces are published yet.",
+    ],
+    links: [{ label: "View simulations", href: "/simulations" }],
   },
   "/terminal": {
     eyebrow: "Command Interface",

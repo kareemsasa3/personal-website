@@ -275,6 +275,16 @@ const createSimulationDetailGraph = (
     ]),
   ]);
 
+const createProceduralAnimationsGraph = () =>
+  graph([
+    ...baseEntries(),
+    createWebPageEntry("/procedural-animations"),
+    createBreadcrumbList("/procedural-animations", [
+      { name: "Home", path: "/" },
+      { name: "Procedural Animations", path: "/procedural-animations" },
+    ]),
+  ]);
+
 const createTerminalGraph = () =>
   graph([
     ...baseEntries(),
@@ -303,6 +313,7 @@ const createDefaultRouteGraph = (pathname: string) => {
   if (canonicalPath === "/simulations/rhythm-lab") {
     return createSimulationDetailGraph("/simulations/rhythm-lab", "Rhythm Lab");
   }
+  if (canonicalPath === "/procedural-animations") return createProceduralAnimationsGraph();
   if (canonicalPath === "/terminal") return createTerminalGraph();
 
   return graph([...baseEntries(), createWebPageEntry(canonicalPath)]);

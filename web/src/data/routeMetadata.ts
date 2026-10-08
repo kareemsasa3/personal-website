@@ -120,6 +120,14 @@ const staticRouteMetadata: RouteMetadata[] = [
     sitemap: { changefreq: "monthly", priority: "0.3" },
   },
   {
+    path: "/procedural-animations",
+    title: "Procedural Animations - Kareem Sasa",
+    description:
+      "Procedural motion pieces and computational animation: self-contained works where movement is generated in code rather than keyframed by hand.",
+    canonicalPath: "/procedural-animations",
+    sitemap: { changefreq: "monthly", priority: "0.4" },
+  },
+  {
     path: "/terminal",
     title: "Terminal - Kareem Sasa",
     description:

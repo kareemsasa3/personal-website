@@ -130,6 +130,9 @@ const main = async () => {
   assertIncludes(simulations, 'href="/simulations/traffic-simulator"', "simulations traffic launch link");
   const snake = await readBuildFile("simulations/snake/index.html");
   const spider = await readBuildFile("simulations/spider/index.html");
+  const proceduralAnimations = await readBuildFile("procedural-animations/index.html");
+  assertIncludes(proceduralAnimations, "Procedural Animations", "procedural animations route shell");
+  assertIncludes(proceduralAnimations, 'href="https://kareemsasa.dev/procedural-animations"', "procedural animations canonical URL");
   const terminal = await readBuildFile("terminal/index.html");
   const sitemap = await readBuildFile("sitemap.xml");
   const writingIndex = await readBuildFile("writing/index.html");
@@ -245,6 +248,7 @@ const main = async () => {
     { html: traffic, path: "/simulations/traffic-simulator" },
     { html: snake, path: "/simulations/snake" },
     { html: spider, path: "/simulations/spider" },
+    { html: proceduralAnimations, path: "/procedural-animations" },
     { html: terminal, path: "/terminal" },
   ];
 
@@ -299,6 +303,10 @@ const main = async () => {
     "Home",
     "Simulations",
     "Spider Solitaire",
+  ]);
+  assertBreadcrumb(structuredDataNodes(proceduralAnimations), "/procedural-animations", [
+    "Home",
+    "Procedural Animations",
   ]);
   assertBreadcrumb(structuredDataNodes(terminal), "/terminal", [
     "Home",
@@ -488,6 +496,7 @@ const main = async () => {
     "https://kareemsasa.dev/experience",
     "https://kareemsasa.dev/simulations/orbital-simulator",
     "https://kareemsasa.dev/simulations/traffic-simulator",
+    "https://kareemsasa.dev/procedural-animations",
   ]) {
     assertIncludes(sitemap, `<loc>${route}</loc>`, "sitemap canonical routes");
   }
