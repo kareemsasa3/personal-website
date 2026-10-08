@@ -16,6 +16,10 @@ import {
 import { caseStudyBlocksBySlug } from "./src/data/caseStudyBlocks";
 import { projectsData } from "./src/data/projects";
 import {
+  proceduralAnimationsData,
+  type ProceduralAnimation,
+} from "./src/data/proceduralAnimations";
+import {
   featuredProjectIds,
   heroContent,
   socialContent,
@@ -338,9 +342,15 @@ const primaryRouteShellDetails: Record<
     heading: "Procedural Animations",
     highlights: [
       "Self-contained motion pieces where movement is generated in code from rules, time, and noise.",
-      "No pieces are published yet.",
+      `Includes ${proceduralAnimationsData.map((piece) => piece.title).join(", ")}.`,
     ],
-    links: [{ label: "View simulations", href: "/simulations" }],
+    links: [
+      ...proceduralAnimationsData.map((piece) => ({
+        label: `View ${piece.title}`,
+        href: `/procedural-animations/${piece.slug}`,
+      })),
+      { label: "View simulations", href: "/simulations" },
+    ],
   },
   "/terminal": {
     eyebrow: "Command Interface",
@@ -387,6 +397,30 @@ const renderPrimaryRouteBody = (metadata: RouteMetadata) => {
     </main>
   `;
 };
+
+const renderProceduralAnimationBody = (piece: ProceduralAnimation) => `
+  <main class="route-fallback" aria-label="${escapeHtml(piece.title)} procedural animation">
+    <p class="route-fallback__breadcrumbs"><a href="/procedural-animations">Procedural Animations</a> / ${escapeHtml(
+      piece.title
+    )}</p>
+    <p class="route-fallback__eyebrow">Procedural Animation</p>
+    <h1 class="route-fallback__title">${escapeHtml(piece.title)}</h1>
+    <p class="route-fallback__summary">${escapeHtml(piece.description)}</p>
+
+    <section class="route-fallback__section">
+      <h2>Page Overview</h2>
+      ${renderList([
+        "A self-contained procedural animation rendered live in the browser.",
+        "JavaScript is required to play the animation.",
+      ])}
+    </section>
+
+    <section class="route-fallback__section route-fallback__link-list">
+      <h2>Related Routes</h2>
+      ${renderLinkList([{ label: "Back to Procedural Animations", href: "/procedural-animations" }])}
+    </section>
+  </main>
+`;
 
 const renderProjectsBody = (metadata: RouteMetadata) => `
   <main class="route-fallback" aria-label="Projects overview">
@@ -1022,6 +1056,10 @@ const staticRouteShellPlugin = (): Plugin => {
     ...caseStudiesData.map((caseStudy) => {
       const metadata = getRouteMetadata(`/case-studies/${caseStudy.slug}`);
       return routeShellFromMetadata(metadata, renderCaseStudyBody(caseStudy.slug));
+    }),
+    ...proceduralAnimationsData.map((piece) => {
+      const metadata = getRouteMetadata(`/procedural-animations/${piece.slug}`);
+      return routeShellFromMetadata(metadata, renderProceduralAnimationBody(piece));
     }),
     routeShellFromMetadata(writingIndexMeta, renderWritingIndexBody()),
     ...articlesData.map((article) => {

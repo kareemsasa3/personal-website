@@ -505,6 +505,34 @@ const main = async () => {
     assertNotIncludes(sitemap, disallowed, "sitemap private or non-canonical routes");
   }
 
+  // Each procedural animation has a canonical, indexable route shell; the raw artifact it
+  // frames is a noindex resource with no third-party requests.
+  const proceduralAnimationPieces = [
+    ["mechanical-time", "Mechanical Time"],
+    ["descent", "DESCENT"],
+    ["observing", "Observing"],
+    ["one-quiet-day", "One Quiet Day"],
+  ];
+  for (const [slug, title] of proceduralAnimationPieces) {
+    const path = `/procedural-animations/${slug}`;
+    const shell = await readBuildFile(`procedural-animations/${slug}/index.html`);
+    assertIncludes(shell, `<title>${title} - Kareem Sasa</title>`, `${path} shell title`);
+    assertIncludes(shell, `href="${siteUrl}${path}"`, `${path} canonical URL`);
+    assertNotIncludes(shell, "noindex", `${path} shell`);
+    assertNotIncludes(shell, 'class="homepage-fallback', `${path} shell body`);
+    assertWebPage(structuredDataNodes(shell), path);
+    assertBreadcrumb(structuredDataNodes(shell), path, ["Home", "Procedural Animations", title]);
+    assertIncludes(proceduralAnimations, `href="${path}"`, "procedural animations index links to each piece");
+    assertIncludes(sitemap, `<loc>${siteUrl}${path}</loc>`, "sitemap procedural animation routes");
+    assertNotIncludes(sitemap, `${path}/piece.html`, "sitemap raw artifacts");
+
+    const artifact = await readBuildFile(`procedural-animations/${slug}/piece.html`);
+    assertIncludes(artifact, '<meta name="robots" content="noindex, nofollow">', `${path}/piece.html robots`);
+    if (/https?:\/\//.test(artifact)) {
+      throw new Error(`Expected ${path}/piece.html to make no third-party requests`);
+    }
+  }
+
   const sourceMaps = await findFilesByExtension(buildDir, ".map");
   if (sourceMaps.length > 0) {
     throw new Error(`Expected no build sourcemaps, found: ${sourceMaps.join(", ")}`);

@@ -1,4 +1,6 @@
+import { Link } from "react-router-dom";
 import TypeWriterText from "../../components/TypeWriterText";
+import { proceduralAnimationsData } from "../../data/proceduralAnimations";
 import "./ProceduralAnimations.css";
 
 const ProceduralAnimations = () => {
@@ -21,10 +23,33 @@ const ProceduralAnimations = () => {
           </p>
         </header>
 
-        <section id="procedural-animations-gallery" aria-label="Pieces">
-          <p className="procedural-animations-empty">
-            No pieces are published yet.
-          </p>
+        <section
+          id="procedural-animations-gallery"
+          aria-label="Pieces"
+          className="procedural-animations-grid"
+        >
+          {proceduralAnimationsData.map((piece) => (
+            <Link
+              key={piece.slug}
+              to={`/procedural-animations/${piece.slug}`}
+              className="procedural-animations-card interactive-card"
+            >
+              <img
+                className="procedural-animations-card__poster"
+                src={piece.poster}
+                alt=""
+                width={960}
+                height={540}
+                loading="lazy"
+                decoding="async"
+              />
+              <h2>{piece.title}</h2>
+              <p className="procedural-animations-card__description">
+                {piece.description}
+              </p>
+              <span className="procedural-animations-card__link">View piece →</span>
+            </Link>
+          ))}
         </section>
       </div>
     </div>

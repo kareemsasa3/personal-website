@@ -1,6 +1,7 @@
 import React from "react";
 import { Terminal } from "../components/Terminal";
 import GamesRedirect from "../components/GamesRedirect";
+import { proceduralAnimationsData } from "../data/proceduralAnimations";
 
 // Helper for route object typing
 interface AppRoute {
@@ -24,6 +25,7 @@ const OrbitalSimulator = React.lazy(() => import("../pages/OrbitalSimulator"));
 const TrafficSimulator = React.lazy(() => import("../pages/TrafficSimulator"));
 const Annals = React.lazy(() => import("../pages/Annals"));
 const ProceduralAnimations = React.lazy(() => import("../pages/ProceduralAnimations"));
+const ProceduralAnimationPiece = React.lazy(() => import("../pages/ProceduralAnimationPiece"));
 const SnakeGame = React.lazy(() => import("../pages/SnakeGame"));
 const SpiderSolitaire = React.lazy(() => import("../pages/SpiderSolitaire"));
 const RhythmLab = React.lazy(() => import("../pages/RhythmLab"));
@@ -80,6 +82,10 @@ export const mainRoutes: AppRoute[] = routes;
 // Immersive routes bypass the standard site Layout shell.
 export const immersiveRoutes: AppRoute[] = [
   { path: "simulations/rhythm-lab", element: React.createElement(RhythmLab) },
+  ...proceduralAnimationsData.map((piece) => ({
+    path: `procedural-animations/${piece.slug}`,
+    element: React.createElement(ProceduralAnimationPiece, { piece }),
+  })),
 ];
 
 // Default and catch-all routes

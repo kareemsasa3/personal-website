@@ -24,6 +24,8 @@ const routes = [
   "/simulations",
   "/simulations/traffic-simulator",
   "/writing/what-the-second-agent-is-for",
+  "/procedural-animations",
+  "/procedural-animations/mechanical-time",
   "/terminal",
 ];
 
