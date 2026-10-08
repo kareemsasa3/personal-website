@@ -7,6 +7,7 @@ import {
   faTerminal,
   faBookOpen,
   faPenNib,
+  faFilm,
 } from "@fortawesome/free-solid-svg-icons";
 import { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import { normalizeRoutePath } from "./routeMetadata";
@@ -31,6 +32,7 @@ const baseNavItems: SiteNavItem[] = [
   { path: "/terminal", label: "Terminal", icon: faTerminal, group: "explore" },
   { path: "/journey", label: "Journey", icon: faRoute, group: "explore" },
   { path: "/simulations", label: "Simulations", icon: faCubes, group: "explore" },
+  { path: "/procedural-animations", label: "Animations", icon: faFilm, group: "explore" },
 ];
 
 export const navItems = baseNavItems;

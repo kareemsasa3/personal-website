@@ -143,6 +143,16 @@ for (const [width, height] of [[1600, 900], [390, 844]]) {
   await context.close();
 }
 
+// Explore navigation lists the section as "Animations".
+{
+  const { context, page } = await open();
+  await page.goto(`${base}/projects/`);
+  const link = page.locator('.site-header a[href="/procedural-animations"]');
+  assert.equal((await link.textContent())?.trim(), "Animations", "Explore nav label");
+  console.log("PASS navigation: Explore includes Animations");
+  await context.close();
+}
+
 // The system reduced-motion preference reaches each artifact's own handling through the frame.
 {
   const { context, page, problems } = await open({ reducedMotion: "reduce" });
