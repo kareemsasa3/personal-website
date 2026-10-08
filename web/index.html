@@ -135,7 +135,9 @@
         Static route-shell presentation. Every prerendered route (and the
         homepage) renders inside .route-fallback before React mounts, and it
         is the entire page for consumers without JavaScript. It flows as a
-        normal, scrollable document; .app-ready hides it once the app mounts.
+        normal, scrollable document; .app-ready hides it once the first route
+        has rendered (or an error boundary has caught a failure), so it stays
+        visible while a lazy route chunk is still loading.
       */
       .route-fallback {
         box-sizing: border-box;

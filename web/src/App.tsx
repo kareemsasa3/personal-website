@@ -2,7 +2,11 @@ import { Suspense, useEffect, type ReactElement } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 import { AppProviders } from "./providers";
 import Layout from "./components/Layout/Layout";
-import { ErrorBoundary, PageLoader } from "./components/common";
+import {
+  ErrorBoundary,
+  MarkAppReady,
+  RouteLoadingFallback,
+} from "./components/common";
 import {
   mainRoutes,
   immersiveRoutes,
@@ -68,15 +72,14 @@ const RouteMetadataUpdater = () => {
 
 const immersiveRouteElement = (element: ReactElement) => (
   <ErrorBoundary>
-    <Suspense fallback={<PageLoader />}>{element}</Suspense>
+    <Suspense fallback={<RouteLoadingFallback />}>
+      {element}
+      <MarkAppReady />
+    </Suspense>
   </ErrorBoundary>
 );
 
 const AppRoutes = () => {
-  useEffect(() => {
-    document.documentElement.classList.add("app-ready");
-  }, []);
-
   return (
     <>
       <RouteMetadataUpdater />
