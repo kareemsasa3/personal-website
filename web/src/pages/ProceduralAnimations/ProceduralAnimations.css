@@ -1,0 +1,86 @@
+.procedural-animations-container {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  min-width: 0;
+  font-family: "Courier New", "Monaco", "Menlo", monospace;
+}
+
+.procedural-animations-container > * + * {
+  margin-top: 2.5rem;
+}
+
+.procedural-animations-header h1 {
+  margin: 0.35rem 0 0.75rem;
+}
+
+.procedural-animations-eyebrow {
+  margin: 0;
+  color: var(--brand-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.75rem;
+}
+
+.procedural-animations-header p {
+  color: var(--app-text-secondary);
+  max-width: 68ch;
+  line-height: 1.6;
+}
+
+.procedural-animations-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.75rem;
+}
+
+.procedural-animations-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem 1rem 1.25rem;
+  color: inherit;
+  text-decoration: none;
+  min-width: 0;
+}
+
+/* Static still from the piece; the gallery never runs the animations. */
+.procedural-animations-card__poster {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 8px;
+  background: #000;
+}
+
+.procedural-animations-card h2 {
+  margin: 0.25rem 0 0;
+  font-size: 1.2rem;
+  line-height: 1.35;
+}
+
+.procedural-animations-card__description {
+  margin: 0;
+  color: var(--app-text-muted);
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+.procedural-animations-card__link {
+  margin-top: auto;
+  color: var(--brand-primary);
+  font-size: 0.85rem;
+  font-weight: 650;
+}
+
+@media (max-width: 480px) {
+  .procedural-animations-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .procedural-animations-card {
+    padding: 0.75rem 0.75rem 1rem;
+  }
+}

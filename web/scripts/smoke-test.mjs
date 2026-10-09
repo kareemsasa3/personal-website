@@ -130,6 +130,9 @@ const main = async () => {
   assertIncludes(simulations, 'href="/simulations/traffic-simulator"', "simulations traffic launch link");
   const snake = await readBuildFile("simulations/snake/index.html");
   const spider = await readBuildFile("simulations/spider/index.html");
+  const proceduralAnimations = await readBuildFile("procedural-animations/index.html");
+  assertIncludes(proceduralAnimations, "Procedural Animations", "procedural animations route shell");
+  assertIncludes(proceduralAnimations, 'href="https://kareemsasa.dev/procedural-animations"', "procedural animations canonical URL");
   const terminal = await readBuildFile("terminal/index.html");
   const sitemap = await readBuildFile("sitemap.xml");
   const writingIndex = await readBuildFile("writing/index.html");
@@ -245,6 +248,7 @@ const main = async () => {
     { html: traffic, path: "/simulations/traffic-simulator" },
     { html: snake, path: "/simulations/snake" },
     { html: spider, path: "/simulations/spider" },
+    { html: proceduralAnimations, path: "/procedural-animations" },
     { html: terminal, path: "/terminal" },
   ];
 
@@ -299,6 +303,10 @@ const main = async () => {
     "Home",
     "Simulations",
     "Spider Solitaire",
+  ]);
+  assertBreadcrumb(structuredDataNodes(proceduralAnimations), "/procedural-animations", [
+    "Home",
+    "Procedural Animations",
   ]);
   assertBreadcrumb(structuredDataNodes(terminal), "/terminal", [
     "Home",
@@ -488,12 +496,41 @@ const main = async () => {
     "https://kareemsasa.dev/experience",
     "https://kareemsasa.dev/simulations/orbital-simulator",
     "https://kareemsasa.dev/simulations/traffic-simulator",
+    "https://kareemsasa.dev/procedural-animations",
   ]) {
     assertIncludes(sitemap, `<loc>${route}</loc>`, "sitemap canonical routes");
   }
 
   for (const disallowed of ["/work", "monitoring", "grafana", "admin", "/api", ".map"]) {
     assertNotIncludes(sitemap, disallowed, "sitemap private or non-canonical routes");
+  }
+
+  // Each procedural animation has a canonical, indexable route shell; the raw artifact it
+  // frames is a noindex resource with no third-party requests.
+  const proceduralAnimationPieces = [
+    ["mechanical-time", "Mechanical Time"],
+    ["descent", "DESCENT"],
+    ["observing", "Observing"],
+    ["one-quiet-day", "One Quiet Day"],
+  ];
+  for (const [slug, title] of proceduralAnimationPieces) {
+    const path = `/procedural-animations/${slug}`;
+    const shell = await readBuildFile(`procedural-animations/${slug}/index.html`);
+    assertIncludes(shell, `<title>${title} - Kareem Sasa</title>`, `${path} shell title`);
+    assertIncludes(shell, `href="${siteUrl}${path}"`, `${path} canonical URL`);
+    assertNotIncludes(shell, "noindex", `${path} shell`);
+    assertNotIncludes(shell, 'class="homepage-fallback', `${path} shell body`);
+    assertWebPage(structuredDataNodes(shell), path);
+    assertBreadcrumb(structuredDataNodes(shell), path, ["Home", "Procedural Animations", title]);
+    assertIncludes(proceduralAnimations, `href="${path}"`, "procedural animations index links to each piece");
+    assertIncludes(sitemap, `<loc>${siteUrl}${path}</loc>`, "sitemap procedural animation routes");
+    assertNotIncludes(sitemap, `${path}/piece.html`, "sitemap raw artifacts");
+
+    const artifact = await readBuildFile(`procedural-animations/${slug}/piece.html`);
+    assertIncludes(artifact, '<meta name="robots" content="noindex, nofollow">', `${path}/piece.html robots`);
+    if (/https?:\/\//.test(artifact)) {
+      throw new Error(`Expected ${path}/piece.html to make no third-party requests`);
+    }
   }
 
   const sourceMaps = await findFilesByExtension(buildDir, ".map");

@@ -1,5 +1,6 @@
 import { caseStudiesData } from "./caseStudies";
 import { articlesData } from "./generated/articles";
+import { proceduralAnimationsData } from "./proceduralAnimations";
 
 export const SITE_URL = "https://kareemsasa.dev";
 export const DEFAULT_IMAGE_URL = `${SITE_URL}/og-image.png`;
@@ -120,6 +121,14 @@ const staticRouteMetadata: RouteMetadata[] = [
     sitemap: { changefreq: "monthly", priority: "0.3" },
   },
   {
+    path: "/procedural-animations",
+    title: "Procedural Animations - Kareem Sasa",
+    description:
+      "Procedural motion pieces and computational animation: self-contained works where movement is generated in code rather than keyframed by hand.",
+    canonicalPath: "/procedural-animations",
+    sitemap: { changefreq: "monthly", priority: "0.4" },
+  },
+  {
     path: "/terminal",
     title: "Terminal - Kareem Sasa",
     description:
@@ -137,6 +146,14 @@ const caseStudyRouteMetadata: RouteMetadata[] = caseStudiesData.map((caseStudy) 
   sitemap: { changefreq: "monthly", priority: "0.8" },
 }));
 
+const proceduralAnimationRouteMetadata: RouteMetadata[] = proceduralAnimationsData.map((piece) => ({
+  path: `/procedural-animations/${piece.slug}`,
+  title: `${piece.title} - Kareem Sasa`,
+  description: piece.description,
+  canonicalPath: `/procedural-animations/${piece.slug}`,
+  sitemap: { changefreq: "monthly", priority: "0.3" },
+}));
+
 const articleRouteMetadata: RouteMetadata[] = articlesData.map((article) => ({
   path: `/writing/${article.slug}`,
   title: `${article.title} - Kareem Sasa`,
@@ -148,6 +165,7 @@ const articleRouteMetadata: RouteMetadata[] = articlesData.map((article) => ({
 export const routeMetadata = [
   ...staticRouteMetadata,
   ...caseStudyRouteMetadata,
+  ...proceduralAnimationRouteMetadata,
   ...articleRouteMetadata,
 ] as const;
 

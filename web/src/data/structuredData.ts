@@ -6,6 +6,7 @@ import {
 import { projectsData, type Project } from "./projects";
 import { articlesData, articleBySlug, type Article } from "./generated/articles";
 import { socialContent } from "./siteContent";
+import { proceduralAnimationsData, type ProceduralAnimation } from "./proceduralAnimations";
 import { SITE_URL, DEFAULT_IMAGE_URL, getRouteMetadata } from "./routeMetadata";
 
 type StructuredDataNode = Record<string, unknown>;
@@ -275,6 +276,33 @@ const createSimulationDetailGraph = (
     ]),
   ]);
 
+const createProceduralAnimationsGraph = () =>
+  graph([
+    ...baseEntries(),
+    createWebPageEntry("/procedural-animations"),
+    createBreadcrumbList("/procedural-animations", [
+      { name: "Home", path: "/" },
+      { name: "Procedural Animations", path: "/procedural-animations" },
+    ]),
+  ]);
+
+const proceduralAnimationBySlug = Object.fromEntries(
+  proceduralAnimationsData.map((piece) => [piece.slug, piece])
+);
+
+const createProceduralAnimationGraph = (piece: ProceduralAnimation) => {
+  const canonicalPath = `/procedural-animations/${piece.slug}`;
+  return graph([
+    ...baseEntries(),
+    createWebPageEntry(canonicalPath),
+    createBreadcrumbList(canonicalPath, [
+      { name: "Home", path: "/" },
+      { name: "Procedural Animations", path: "/procedural-animations" },
+      { name: piece.title, path: canonicalPath },
+    ]),
+  ]);
+};
+
 const createTerminalGraph = () =>
   graph([
     ...baseEntries(),
@@ -303,6 +331,7 @@ const createDefaultRouteGraph = (pathname: string) => {
   if (canonicalPath === "/simulations/rhythm-lab") {
     return createSimulationDetailGraph("/simulations/rhythm-lab", "Rhythm Lab");
   }
+  if (canonicalPath === "/procedural-animations") return createProceduralAnimationsGraph();
   if (canonicalPath === "/terminal") return createTerminalGraph();
 
   return graph([...baseEntries(), createWebPageEntry(canonicalPath)]);
@@ -327,6 +356,16 @@ export const getStructuredDataGraph = (pathname: string) => {
 
     if (article) {
       return createArticleGraph(article);
+    }
+  }
+
+  const proceduralAnimationMatch = canonicalPath.match(/^\/procedural-animations\/([^/]+)$/);
+
+  if (proceduralAnimationMatch) {
+    const piece = proceduralAnimationBySlug[proceduralAnimationMatch[1]];
+
+    if (piece) {
+      return createProceduralAnimationGraph(piece);
     }
   }
 
