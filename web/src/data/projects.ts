@@ -105,7 +105,7 @@ export const projectsData: Project[] = [
   {
     id: "aether",
     category: "Systems Infrastructure",
-    date: "2024",
+    date: "2025",
     title: "Aether",
     description:
       "Real-time audio infrastructure for Linux that publishes live acoustic state through lock-free shared memory for low-latency cross-process consumers.",
