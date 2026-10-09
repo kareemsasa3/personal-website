@@ -1,0 +1,192 @@
+name: Visual Review
+
+# Advisory before/after screenshots for UI changes. Read-only: no secrets, no
+# deployment, no PR comments. Results are a job summary plus a downloadable
+# artifact; see web/scripts/visual-review.mjs for capture and route selection.
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "web/**"
+      - "!web/docs/**"
+      - ".github/workflows/visual-review.yml"
+  workflow_dispatch:
+    inputs:
+      base_ref:
+        description: "Base revision. Leave empty to compare the selected ref with itself (same-revision determinism check)."
+        required: false
+        default: ""
+      routes:
+        description: "Space-separated routes, e.g. '/ /projects'. Leave empty to select from changed files (core set in same-revision mode)."
+        required: false
+        default: ""
+      theme:
+        description: "Theme to capture."
+        type: choice
+        options: [dark, light]
+        default: dark
+
+permissions:
+  contents: read
+
+concurrency:
+  group: visual-review-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  visual-review:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      PLAYWRIGHT_VERSION: "1.63.0"
+      INPUT_ROUTES: ${{ inputs.routes }}
+      INPUT_THEME: ${{ inputs.theme || 'dark' }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Resolve base and head revisions
+        id: revisions
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          INPUT_BASE_REF: ${{ inputs.base_ref }}
+        run: |
+          set -euo pipefail
+          head_sha="$(git rev-parse HEAD)"
+          changed="$RUNNER_TEMP/changed-files.txt"
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            # checkout uses refs/pull/N/merge: the PR head merged into the current
+            # main tip. Its first parent is that main tip, so changes that landed on
+            # main independently are on both sides and cancel out.
+            parents="$(git rev-list --parents -n 1 HEAD | wc -w)"
+            if [ "$parents" -ne 3 ]; then
+              echo "::error::Expected the PR merge commit (2 parents); HEAD $head_sha has $((parents - 1))."
+              exit 1
+            fi
+            base_sha="$(git rev-parse HEAD^1)"
+            if [ "$(git rev-parse HEAD^2)" != "$PR_HEAD_SHA" ]; then
+              echo "::error::Merge commit's second parent is not the PR head $PR_HEAD_SHA."
+              exit 1
+            fi
+            if [ "$base_sha" != "$PR_BASE_SHA" ]; then
+              echo "::notice::main moved after the event payload; comparing against merge parent $base_sha, not $PR_BASE_SHA."
+            fi
+            mode=compare
+            git diff --name-only "$base_sha" "$head_sha" | sort > "$changed"
+            # Prove the comparison contains only PR changes: every differing file
+            # must be one the PR changed relative to its merge base with main.
+            git diff --name-only "$base_sha...$PR_HEAD_SHA" | sort > "$RUNNER_TEMP/pr-files.txt"
+            unrelated="$(comm -23 "$changed" "$RUNNER_TEMP/pr-files.txt")"
+            if [ -n "$unrelated" ]; then
+              echo "::error::Base/head differ in files the PR did not change:"
+              echo "$unrelated"
+              exit 1
+            fi
+          else
+            if [ -n "$INPUT_BASE_REF" ]; then
+              base_sha="$(git rev-parse --verify --end-of-options "$INPUT_BASE_REF^{commit}")"
+            else
+              base_sha="$head_sha"
+            fi
+            if [ "$base_sha" = "$head_sha" ]; then
+              mode=same-revision
+              : > "$changed"
+            else
+              mode=compare
+              git diff --name-only "$base_sha" "$head_sha" | sort > "$changed"
+            fi
+          fi
+          {
+            echo "base_sha=$base_sha"
+            echo "head_sha=$head_sha"
+            echo "mode=$mode"
+          } >> "$GITHUB_OUTPUT"
+          echo "Comparing base $base_sha with head $head_sha ($mode); $(wc -l < "$changed") changed file(s)."
+
+      - name: Plan routes
+        id: plan
+        env:
+          MODE: ${{ steps.revisions.outputs.mode }}
+        run: |
+          node web/scripts/visual-review.mjs --plan-only --mode "$MODE" \
+            --changed-files "$RUNNER_TEMP/changed-files.txt" --routes "$INPUT_ROUTES" --theme "$INPUT_THEME"
+
+      - name: Build head
+        if: steps.plan.outputs.capture == 'true'
+        working-directory: web
+        run: |
+          npm ci
+          npm run build
+
+      - name: Build base
+        if: steps.plan.outputs.capture == 'true'
+        env:
+          BASE_SHA: ${{ steps.revisions.outputs.base_sha }}
+        run: |
+          set -euo pipefail
+          git worktree add --detach "$RUNNER_TEMP/base" "$BASE_SHA"
+          cd "$RUNNER_TEMP/base/web"
+          npm ci
+          npm run build
+
+      - name: Install pinned Playwright outside the repository
+        if: steps.plan.outputs.capture == 'true'
+        run: |
+          set -euo pipefail
+          npm install --prefix "$RUNNER_TEMP/playwright" --no-save --no-package-lock \
+            --ignore-scripts --no-audit --no-fund "playwright@$PLAYWRIGHT_VERSION"
+          echo "PLAYWRIGHT_BROWSERS_PATH=$RUNNER_TEMP/ms-playwright" >> "$GITHUB_ENV"
+          PLAYWRIGHT_BROWSERS_PATH="$RUNNER_TEMP/ms-playwright" \
+            node "$RUNNER_TEMP/playwright/node_modules/playwright/cli.js" install --with-deps --only-shell chromium
+
+      - name: Start preview servers
+        if: steps.plan.outputs.capture == 'true'
+        run: |
+          set -euo pipefail
+          (cd web && nohup node_modules/.bin/vite preview --host 127.0.0.1 --port 4310 --strictPort > "$RUNNER_TEMP/preview-head.log" 2>&1 &)
+          (cd "$RUNNER_TEMP/base/web" && nohup node_modules/.bin/vite preview --host 127.0.0.1 --port 4311 --strictPort > "$RUNNER_TEMP/preview-base.log" 2>&1 &)
+          for port in 4310 4311; do
+            for _ in $(seq 1 30); do
+              curl -fsS -o /dev/null "http://127.0.0.1:$port/" && continue 2
+              sleep 1
+            done
+            echo "::error::Preview server on port $port did not start."
+            cat "$RUNNER_TEMP"/preview-*.log
+            exit 1
+          done
+
+      - name: Capture and compare
+        if: steps.plan.outputs.capture == 'true'
+        env:
+          MODE: ${{ steps.revisions.outputs.mode }}
+          BASE_SHA: ${{ steps.revisions.outputs.base_sha }}
+          HEAD_SHA: ${{ steps.revisions.outputs.head_sha }}
+        run: |
+          node web/scripts/visual-review.mjs \
+            --base-url http://127.0.0.1:4311 --head-url http://127.0.0.1:4310 \
+            --out "$RUNNER_TEMP/visual-review" --mode "$MODE" \
+            --changed-files "$RUNNER_TEMP/changed-files.txt" --routes "$INPUT_ROUTES" --theme "$INPUT_THEME" \
+            --base-sha "$BASE_SHA" --head-sha "$HEAD_SHA" \
+            --playwright "$RUNNER_TEMP/playwright/node_modules/playwright/index.mjs"
+
+      - name: Upload screenshots and report
+        if: ${{ !cancelled() && steps.plan.outputs.capture == 'true' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: visual-review-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/visual-review
+          if-no-files-found: warn
+          retention-days: 7
