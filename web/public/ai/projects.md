@@ -12,20 +12,20 @@ Prefer canonical project and case-study pages when describing specific work. Do 
 - Summary: Event-driven coordination layer for Linux that captures system context, tracks inferred state, and turns reactive troubleshooting into auditable operational understanding.
 - Public evidence: No public repository is listed. Treat public site copy as a sanitized summary.
 - Technologies: Python, SQLite, systemd, FTS5, Wayland, D-Bus
-- Highlights: Belief-driven system state modeling; Replayable operational history; Active development
+- Highlights: Belief-driven system state modeling; Replayable operational history
 
 ## Aether
 
 - Category: Systems Infrastructure
 - Status: Completed
-- Date: 2024
+- Date: 2025
 - Canonical URL: https://kareemsasa.dev/case-studies/aether
 - Repository status: public-legacy-account
 - Repository: https://github.com/kareemsasa3/aether
-- Summary: Real-time audio infrastructure for Linux that publishes live acoustic state through lock-free shared memory for low-latency cross-process consumers.
+- Summary: Linux audio-analysis daemon that publishes live frequency-band state through a sequence-versioned shared-memory region for independent local consumers.
 - Public evidence: Public repository link is listed by the site.
 - Technologies: Python, PipeWire, Shared Memory, OpenRGB, systemd
-- Highlights: Lock-free concurrent design; Low-latency shared-memory pipeline; Architecture recognized publicly
+- Highlights: Seqlock-versioned shared memory; readers never block the writer; Latest-value snapshot, not a message stream
 
 ## Arachne
 
@@ -38,7 +38,7 @@ Prefer canonical project and case-study pages when describing specific work. Do 
 - Summary: Autonomous web research platform that searches, scrapes, versions, indexes, and synthesizes web content through a production-oriented Go and Next.js pipeline.
 - Public evidence: Public repository link is listed by the site.
 - Technologies: Go, Next.js, SQLite FTS5, Redis, Docker, Chromedp
-- Highlights: Autonomous research workflows; Change tracking with searchable history; Production-grade Go + Next.js architecture
+- Highlights: Microservices architecture with submodules; Production-grade Go + Next.js architecture
 
 ## Personal Website
 
@@ -63,7 +63,7 @@ Prefer canonical project and case-study pages when describing specific work. Do 
 - Summary: Source-first documentation and traceability system for mapping documented events, rules, oversight, and source-reported claims without asserting conclusions.
 - Public evidence: No public repository is listed. Treat public site copy as a sanitized summary.
 - Technologies: Python, JSON Schema, React, Traceability, Data Modeling
-- Highlights: Source-first traceability; Deterministic documentation model; Active development
+- Highlights: Source-first traceability; Deterministic documentation model
 
 ## kctl
 
@@ -76,7 +76,7 @@ Prefer canonical project and case-study pages when describing specific work. Do 
 - Summary: Local control plane for running staged, verifiable AI-assisted development workflows across repositories.
 - Public evidence: Public repository link is listed by the site.
 - Technologies: Python, Developer Tooling, Automation, CI, Agent Workflows
-- Highlights: Planned agent-assisted development runs; Verifiable local workflow control; Active development
+- Highlights: Planned agent-assisted development runs; Verifiable local workflow control
 
 ## Operating System Audit
 
@@ -89,10 +89,11 @@ Prefer canonical project and case-study pages when describing specific work. Do 
 - Summary: Read-only OS snapshot and diff tool for detecting configuration, network, identity, persistence, and execution drift.
 - Public evidence: Public repository link is listed by the site.
 - Technologies: Go, Bash, Security, Systems, CLI
-- Highlights: Read-only OS drift detection; Deterministic snapshot comparisons; Demo-ready CLI
+- Highlights: Read-only OS drift detection; Deterministic snapshot comparisons
 
 ## Case Studies
 
-- [Aether](https://kareemsasa.dev/case-studies/aether): Low-latency Linux audio infrastructure that publishes live acoustic state through shared memory for cross-process consumers. Focus areas: Real-time systems, IPC design, Linux integration.
+- [Aether](https://kareemsasa.dev/case-studies/aether): Linux audio-analysis daemon that publishes live frequency-band state through a sequence-versioned shared-memory region for independent local consumers. Focus areas: Real-time systems, IPC design, Linux integration.
 - [Erebus](https://kareemsasa.dev/case-studies/erebus): Event-driven Linux coordination layer that records system context, infers higher-level state, and makes troubleshooting replayable. Focus areas: Event modeling, Inference systems, Operational tooling.
 - [Arachne](https://kareemsasa.dev/case-studies/arachne): Autonomous research platform that searches, scrapes, versions, indexes, and synthesizes web content through a Go and Next.js pipeline. Focus areas: Research automation, Service design, Search systems.
+- [Where the Specification Lived](https://kareemsasa.dev/case-studies/where-the-specification-lived): Two agents built the same Traffic Simulator in the same repository, one from a 38-word prompt and one from a 615-word specification. A blinded review of both artifacts shows what each prompt bought, and why prompt length and specification load are different variables. Focus areas: Agent-assisted development, Specification, Blinded review.

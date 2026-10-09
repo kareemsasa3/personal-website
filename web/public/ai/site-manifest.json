@@ -33,13 +33,19 @@
       "path": "/projects",
       "url": "https://kareemsasa.dev/projects",
       "title": "Projects - Kareem Sasa",
-      "description": "Flagship systems and backend projects spanning Linux infrastructure, autonomous research workflows, and interactive product engineering."
+      "description": "Complete roster of Kareem Sasa's systems and tools, with links to case studies documenting problems, constraints, and engineering decisions."
     },
     {
       "path": "/case-studies",
       "url": "https://kareemsasa.dev/case-studies",
       "title": "Case Studies - Kareem Sasa",
       "description": "Engineering case studies documenting system architecture, constraints, and implementation decisions across flagship projects."
+    },
+    {
+      "path": "/writing",
+      "url": "https://kareemsasa.dev/writing",
+      "title": "Writing - Kareem Sasa",
+      "description": "Long-form essays and field notes on constraints, coordination, and systems that can explain themselves — each published with its sources and verification record."
     },
     {
       "path": "/experience",
@@ -60,6 +66,18 @@
       "description": "Interactive systems exploring state, rules, feedback loops, and emergent behavior — built to model, visualize, and stress real dynamics."
     },
     {
+      "path": "/simulations/orbital-simulator",
+      "url": "https://kareemsasa.dev/simulations/orbital-simulator",
+      "title": "Orbital Simulator - Kareem Sasa",
+      "description": "Explore gravitational dynamics with interactive planetary orbits, binary stars, and three-body encounters. Change mass and velocity to see orbital behavior emerge."
+    },
+    {
+      "path": "/simulations/traffic-simulator",
+      "url": "https://kareemsasa.dev/simulations/traffic-simulator",
+      "title": "Traffic Simulator - Kareem Sasa",
+      "description": "Watch congestion emerge from simple driver rules: retime coordinated traffic signals, saturate a lane drop, and trigger stop-and-go waves on a ring road, with live throughput and a time-space diagram."
+    },
+    {
       "path": "/simulations/snake",
       "url": "https://kareemsasa.dev/simulations/snake",
       "title": "Snake - Kareem Sasa",
@@ -78,6 +96,12 @@
       "description": "Three-lane input timing system with chart authoring, recording sessions, real-time feedback scoring, and run analytics."
     },
     {
+      "path": "/procedural-animations",
+      "url": "https://kareemsasa.dev/procedural-animations",
+      "title": "Procedural Animations - Kareem Sasa",
+      "description": "Procedural motion pieces and computational animation: self-contained works where movement is generated in code rather than keyframed by hand."
+    },
+    {
       "path": "/terminal",
       "url": "https://kareemsasa.dev/terminal",
       "title": "Terminal - Kareem Sasa",
@@ -87,7 +111,7 @@
       "path": "/case-studies/aether",
       "url": "https://kareemsasa.dev/case-studies/aether",
       "title": "Aether Case Study - Kareem Sasa",
-      "description": "Low-latency Linux audio infrastructure that publishes live acoustic state through shared memory for cross-process consumers."
+      "description": "Linux audio-analysis daemon that publishes live frequency-band state through a sequence-versioned shared-memory region for independent local consumers."
     },
     {
       "path": "/case-studies/erebus",
@@ -100,6 +124,102 @@
       "url": "https://kareemsasa.dev/case-studies/arachne",
       "title": "Arachne Case Study - Kareem Sasa",
       "description": "Autonomous research platform that searches, scrapes, versions, indexes, and synthesizes web content through a Go and Next.js pipeline."
+    },
+    {
+      "path": "/case-studies/where-the-specification-lived",
+      "url": "https://kareemsasa.dev/case-studies/where-the-specification-lived",
+      "title": "Where the Specification Lived Case Study - Kareem Sasa",
+      "description": "Two agents built the same Traffic Simulator in the same repository, one from a 38-word prompt and one from a 615-word specification. A blinded review of both artifacts shows what each prompt bought, and why prompt length and specification load are different variables."
+    },
+    {
+      "path": "/procedural-animations/mechanical-time",
+      "url": "https://kareemsasa.dev/procedural-animations/mechanical-time",
+      "title": "Mechanical Time - Kareem Sasa",
+      "description": "A mechanical watch movement assembles itself: components emerge, energy flows through the gear train, and the escapement releases time one tick at a time."
+    },
+    {
+      "path": "/procedural-animations/descent",
+      "url": "https://kareemsasa.dev/procedural-animations/descent",
+      "title": "DESCENT - Kareem Sasa",
+      "description": "A descent from the ocean surface to 2,437 metres, through the sunlight, twilight, and midnight zones, past fish and glowing jellyfish."
+    },
+    {
+      "path": "/procedural-animations/observing",
+      "url": "https://kareemsasa.dev/procedural-animations/observing",
+      "title": "Observing - Kareem Sasa",
+      "description": "On a rainy rooftop, an engineer and a small holographic dog look out over a cyberpunk skyline as a face built from glyphs emerges above the city."
+    },
+    {
+      "path": "/procedural-animations/one-quiet-day",
+      "url": "https://kareemsasa.dev/procedural-animations/one-quiet-day",
+      "title": "One Quiet Day - Kareem Sasa",
+      "description": "A meadow in the Blue Ridge foothills through one autumn day, compressed into a minute, with optional synthesized sound."
+    },
+    {
+      "path": "/writing/what-should-still-be-hard",
+      "url": "https://kareemsasa.dev/writing/what-should-still-be-hard",
+      "title": "What Should Still Be Hard - Kareem Sasa",
+      "description": "When machines can satisfy almost any present want, the harder question is which difficulties we keep on purpose, and who is in a position to keep them."
+    },
+    {
+      "path": "/writing/presence-is-not-a-control",
+      "url": "https://kareemsasa.dev/writing/presence-is-not-a-control",
+      "title": "Presence Is Not a Control - Kareem Sasa",
+      "description": "“Human in the loop” names an architecture, not a control. Oversight is a safeguard only while its conditions are maintained and its detection is tested."
+    },
+    {
+      "path": "/writing/the-machine-should-explain-itself",
+      "url": "https://kareemsasa.dev/writing/the-machine-should-explain-itself",
+      "title": "The Machine Should Explain Itself - Kareem Sasa",
+      "description": "A three-layer model of what AI agents know, and why operational intent belongs in versioned artifacts rather than in agent memory."
+    },
+    {
+      "path": "/writing/the-work-the-agent-stopped-doing",
+      "url": "https://kareemsasa.dev/writing/the-work-the-agent-stopped-doing",
+      "title": "The Work the Agent Stopped Doing - Kareem Sasa",
+      "description": "How durable records of authority, intent, disposition, and provenance shift agent work from reconstructing decisions toward judgment."
+    },
+    {
+      "path": "/writing/what-should-the-agent-have-to-figure-out",
+      "url": "https://kareemsasa.dev/writing/what-should-the-agent-have-to-figure-out",
+      "title": "What Should the Agent Have to Figure Out? - Kareem Sasa",
+      "description": "Which reasoning belongs in durable structure and which must stay live: a test of standing, reuse, and revisit for the records agents and operators read."
+    },
+    {
+      "path": "/writing/the-centaur-era",
+      "url": "https://kareemsasa.dev/writing/the-centaur-era",
+      "title": "The Centaur Era: Half Human, Half Machine - Kareem Sasa",
+      "description": "As delegation matures, the human role moves from operator to governor. A better machine does not automatically inherit the authority to decide."
+    },
+    {
+      "path": "/writing/what-the-second-agent-is-for",
+      "url": "https://kareemsasa.dev/writing/what-the-second-agent-is-for",
+      "title": "What the Second Agent Is For - Kareem Sasa",
+      "description": "“Multi-agent” now names incompatible working arrangements. What matters is how agents are related, not how many of them are running."
+    },
+    {
+      "path": "/writing/normal-is-not-inevitable",
+      "url": "https://kareemsasa.dev/writing/normal-is-not-inevitable",
+      "title": "Normal Is Not Inevitable - Kareem Sasa",
+      "description": "How markets built on real wants can reshape those wants, traced through makeup, razors, gambling, pharmaceuticals, and subscriptions."
+    },
+    {
+      "path": "/writing/when-programming-became-the-smaller-part",
+      "url": "https://kareemsasa.dev/writing/when-programming-became-the-smaller-part",
+      "title": "When Programming Became the Smaller Part - Kareem Sasa",
+      "description": "AI lowered the barrier to producing code in my work without lowering the standard for understanding the system. The judgment is still mine."
+    },
+    {
+      "path": "/writing/the-system-gets-a-brake-one-way-or-another",
+      "url": "https://kareemsasa.dev/writing/the-system-gets-a-brake-one-way-or-another",
+      "title": "The System Gets a Brake One Way or Another - Kareem Sasa",
+      "description": "Why competitive systems can keep accelerating after everyone sees the danger—and how coordination determines whether correction is chosen or imposed."
+    },
+    {
+      "path": "/writing/bottlenecks-dont-disappear",
+      "url": "https://kareemsasa.dev/writing/bottlenecks-dont-disappear",
+      "title": "Bottlenecks Don't Disappear. They Move. - Kareem Sasa",
+      "description": "Improving a constrained system relocates its bottleneck rather than removing it — and generative AI moved the constraint from production to judgment."
     }
   ],
   "navigationRoutes": [
@@ -116,6 +236,10 @@
       "label": "Case Studies"
     },
     {
+      "path": "/writing",
+      "label": "Writing"
+    },
+    {
       "path": "/experience",
       "label": "Experience"
     },
@@ -130,6 +254,10 @@
     {
       "path": "/simulations",
       "label": "Simulations"
+    },
+    {
+      "path": "/procedural-animations",
+      "label": "Animations"
     }
   ],
   "summary": {
@@ -229,8 +357,7 @@
       ],
       "highlights": [
         "Belief-driven system state modeling",
-        "Replayable operational history",
-        "Active development"
+        "Replayable operational history"
       ],
       "features": [
         "Real-time system emitters (GPU, network, window focus, screen lock)",
@@ -250,8 +377,8 @@
       "title": "Aether",
       "category": "Systems Infrastructure",
       "status": "Completed",
-      "date": "2024",
-      "summary": "Real-time audio infrastructure for Linux that publishes live acoustic state through lock-free shared memory for low-latency cross-process consumers.",
+      "date": "2025",
+      "summary": "Linux audio-analysis daemon that publishes live frequency-band state through a sequence-versioned shared-memory region for independent local consumers.",
       "technologies": [
         "Python",
         "PipeWire",
@@ -260,16 +387,14 @@
         "systemd"
       ],
       "highlights": [
-        "Lock-free concurrent design",
-        "Low-latency shared-memory pipeline",
-        "Architecture recognized publicly"
+        "Seqlock-versioned shared memory; readers never block the writer",
+        "Latest-value snapshot, not a message stream"
       ],
       "features": [
-        "Lock-free IPC via memory-mapped files",
-        "7-band FFT analysis at ~23Hz",
-        "~92ms end-to-end latency",
-        "300+ LED hardware sync via OpenRGB",
-        "15+ visualization styles"
+        "7-band FFT analysis at a nominal ~23 chunks/s (48 kHz, 2,048-sample chunks)",
+        "Seqlock readers reject uninitialized, in-progress, already-seen and changed-mid-read frames (8 CI-passed tests)",
+        "OpenRGB lighting consumer",
+        "18 terminal visualization styles"
       ],
       "canonicalUrl": "https://kareemsasa.dev/case-studies/aether",
       "caseStudyUrl": "https://kareemsasa.dev/case-studies/aether",
@@ -293,15 +418,13 @@
         "Chromedp"
       ],
       "highlights": [
-        "Autonomous research workflows",
-        "Change tracking with searchable history",
+        "Microservices architecture with submodules",
         "Production-grade Go + Next.js architecture"
       ],
       "features": [
         "Search -> scrape -> index -> AI synthesis pipeline",
         "Change detection and version history",
         "Full-text search powered by SQLite FTS5",
-        "Microservices architecture with submodules",
         "Prometheus metrics and health monitoring"
       ],
       "canonicalUrl": "https://kareemsasa.dev/case-studies/arachne",
@@ -356,8 +479,7 @@
       ],
       "highlights": [
         "Source-first traceability",
-        "Deterministic documentation model",
-        "Active development"
+        "Deterministic documentation model"
       ],
       "features": [
         "Source-first event and claim modeling",
@@ -387,8 +509,7 @@
       ],
       "highlights": [
         "Planned agent-assisted development runs",
-        "Verifiable local workflow control",
-        "Active development"
+        "Verifiable local workflow control"
       ],
       "features": [
         "YAML execution plans for staged development runs",
@@ -418,8 +539,7 @@
       ],
       "highlights": [
         "Read-only OS drift detection",
-        "Deterministic snapshot comparisons",
-        "Demo-ready CLI"
+        "Deterministic snapshot comparisons"
       ],
       "features": [
         "Read-only operating system snapshots",
@@ -440,7 +560,7 @@
       "projectId": "aether",
       "title": "Aether",
       "url": "https://kareemsasa.dev/case-studies/aether",
-      "summary": "Low-latency Linux audio infrastructure that publishes live acoustic state through shared memory for cross-process consumers.",
+      "summary": "Linux audio-analysis daemon that publishes live frequency-band state through a sequence-versioned shared-memory region for independent local consumers.",
       "focusAreas": [
         "Real-time systems",
         "IPC design",
@@ -456,12 +576,36 @@
           "note": "Canonical contact identity remains github.com/kareemsasa; this repository has not migrated."
         },
         {
-          "title": "Local system evidence",
-          "kind": "Local system evidence",
-          "status": "Private",
-          "description": "The project is deployed locally as a systemd user service with PipeWire capture, shared-memory publication, and detachable consumers.",
-          "href": null,
-          "note": "Private workstation paths and service configuration are intentionally not published."
+          "title": "Seqlock protocol tests",
+          "kind": "Evaluation record",
+          "status": "Public",
+          "description": "Eight deterministic tests of the reader rules: committed, uninitialized, in-progress, already-seen, and changed-mid-read frames, plus round-trip and in-order delivery.",
+          "href": "https://github.com/kareemsasa3/aether/blob/71e0201913669f702c60a1320c1a956c7fd21903/test_aether_shm_seqlock.py",
+          "note": "Pinned to commit 71e0201. Single-process tests, not a concurrency stress test or a performance benchmark."
+        },
+        {
+          "title": "CI run for the pinned commit",
+          "kind": "Evaluation record",
+          "status": "Public",
+          "description": "GitHub Actions run on commit 71e0201 (August 27, 2026). The seqlock, engine, and full pytest steps passed.",
+          "href": "https://github.com/kareemsasa3/aether/actions/runs/33042746287",
+          "note": null
+        },
+        {
+          "title": "Shared-memory implementation",
+          "kind": "Repository provenance",
+          "status": "Public",
+          "description": "The writer and reader that implement the header layout and sequence rules described above.",
+          "href": "https://github.com/kareemsasa3/aether/blob/71e0201913669f702c60a1320c1a956c7fd21903/aether_shm.py",
+          "note": "Pinned to commit 71e0201."
+        },
+        {
+          "title": "systemd integration",
+          "kind": "Repository provenance",
+          "status": "Public",
+          "description": "The user unit and installer for running the daemon as a systemd user service.",
+          "href": "https://github.com/kareemsasa3/aether/tree/71e0201913669f702c60a1320c1a956c7fd21903/integrations/systemd",
+          "note": "Integration source, not a record of a running deployment."
         }
       ]
     },
@@ -524,6 +668,51 @@
           "note": null
         }
       ]
+    },
+    {
+      "slug": "where-the-specification-lived",
+      "title": "Where the Specification Lived",
+      "url": "https://kareemsasa.dev/case-studies/where-the-specification-lived",
+      "summary": "Two agents built the same Traffic Simulator in the same repository, one from a 38-word prompt and one from a 615-word specification. A blinded review of both artifacts shows what each prompt bought, and why prompt length and specification load are different variables.",
+      "focusAreas": [
+        "Agent-assisted development",
+        "Specification",
+        "Blinded review"
+      ],
+      "publicEvidence": [
+        {
+          "title": "Simple-prompt artifact",
+          "kind": "Repository provenance",
+          "status": "Public",
+          "description": "The Simple run's final commit, preserved unchanged by the tag traffic-sim-experiment-simple. The post-evaluation fixes were made on top of it.",
+          "href": "https://github.com/kareemsasa3/personal-website/commit/7420cc7a83abe51d25aa3073c66ae642afe548ae",
+          "note": null
+        },
+        {
+          "title": "Detailed-prompt artifact",
+          "kind": "Repository provenance",
+          "status": "Public",
+          "description": "The Detailed run's final commit, preserved unchanged by the tag traffic-sim-experiment-detailed as the comparison artifact.",
+          "href": "https://github.com/kareemsasa3/personal-website/commit/0e62d2ce376b0586e648c6f34250ed5704e28e22",
+          "note": null
+        },
+        {
+          "title": "Blinded evaluation record",
+          "kind": "Evaluation record",
+          "status": "Public",
+          "description": "The evaluation written before the prompt mapping was revealed, the exact prompts and closing reports, probe and mutation results, captured media, and the scripts that produced them.",
+          "href": "https://github.com/kareemsasa3/personal-website/tree/main/docs/evidence/traffic-simulator-experiment",
+          "note": null
+        },
+        {
+          "title": "Session transcripts",
+          "kind": "Local system evidence",
+          "status": "Private",
+          "description": "The two authoring sessions' transcripts are the source of the prompts, timings, models, and closing reports quoted here.",
+          "href": null,
+          "note": "The transcripts stay local; the evaluation record reproduces the prompts and closing reports verbatim."
+        }
+      ]
     }
   ],
   "work": [
@@ -557,36 +746,6 @@
         "Architecture stabilization",
         "Production reliability",
         "Cross-stack technical leadership"
-      ]
-    },
-    {
-      "id": "capgemini",
-      "type": "Consulting",
-      "company": "Capgemini",
-      "role": "Full Stack Developer",
-      "dates": "2021 - 2022",
-      "summary": [
-        "Built enterprise software for large client engagements across frontend and backend stacks",
-        "Worked with modern web frameworks in delivery environments shaped by scale, process, and client requirements",
-        "Collaborated across distributed teams and cross-functional stakeholders",
-        "Contributed within agile delivery cycles for production-facing applications"
-      ],
-      "technologies": [
-        "React",
-        "Angular",
-        "TypeScript",
-        "Java",
-        "Spring Boot",
-        "Node.js",
-        "PostgreSQL",
-        "AWS",
-        "Docker",
-        "Git"
-      ],
-      "highlights": [
-        "Enterprise application delivery",
-        "Distributed team collaboration",
-        "Full-stack product work"
       ]
     },
     {
@@ -635,6 +794,36 @@
         "AI response evaluation",
         "Reasoning quality analysis",
         "Model feedback loops"
+      ]
+    },
+    {
+      "id": "capgemini",
+      "type": "Consulting",
+      "company": "Capgemini",
+      "role": "Full Stack Developer",
+      "dates": "2021 - 2022",
+      "summary": [
+        "Built enterprise software for large client engagements across frontend and backend stacks",
+        "Worked with modern web frameworks in delivery environments shaped by scale, process, and client requirements",
+        "Collaborated across distributed teams and cross-functional stakeholders",
+        "Contributed within agile delivery cycles for production-facing applications"
+      ],
+      "technologies": [
+        "React",
+        "Angular",
+        "TypeScript",
+        "Java",
+        "Spring Boot",
+        "Node.js",
+        "PostgreSQL",
+        "AWS",
+        "Docker",
+        "Git"
+      ],
+      "highlights": [
+        "Enterprise application delivery",
+        "Distributed team collaboration",
+        "Full-stack product work"
       ]
     }
   ],
