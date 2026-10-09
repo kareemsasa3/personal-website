@@ -1,6 +1,6 @@
 import { createRequire } from "node:module";
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
-import { dirname, relative, resolve } from "node:path";
+import { dirname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 const require = createRequire(import.meta.url);
@@ -21,6 +21,8 @@ const sourceFiles = [
   "src/data/structuredData.ts",
   "src/data/navigation.ts",
   "src/data/aiContext.ts",
+  "src/data/generated/articles.ts",
+  "src/data/proceduralAnimations.ts",
 ];
 
 const markdownList = (items) => items.map((item) => `- ${cleanText(item)}`).join("\n");
@@ -63,7 +65,7 @@ const compileSourceFiles = async () => {
       );
       const outputPath = resolve(
         tempRoot,
-        relative(projectRoot, sourceFile).replace(/\.ts$/, ".mjs")
+        sourceFile.replace(/\.ts$/, ".mjs")
       );
 
       await mkdir(dirname(outputPath), { recursive: true });

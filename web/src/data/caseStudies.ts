@@ -117,39 +117,44 @@ export const caseStudiesData: CaseStudy[] = [
     slug: "aether",
     projectId: "aether",
     title: "Aether",
+    sectionTitles: {
+      implementation: "Tested Behavior",
+      outcome: "Result and Limitations",
+    },
     shortDescription:
-      "Low-latency Linux audio infrastructure that publishes live acoustic state through shared memory for cross-process consumers.",
+      "Linux audio-analysis daemon that publishes live frequency-band state through a sequence-versioned shared-memory region for independent local consumers.",
     problem:
       "Desktop audio tooling is usually built as isolated effects or visualizers. Aether treats live audio analysis as shared system state so multiple processes can react to the same stream without each opening their own capture path.",
     constraints: {
       technicalLimitations:
-        "The capture path had to stay responsive under Python, avoid lock contention, and keep serialization overhead low enough for real-time consumers.",
+        "The analysis runs in Python, and publication could not depend on its readers: a slow, stalled, or crashed consumer must never be able to hold up the capture loop.",
       environment:
-        "The system runs on Linux with PipeWire, systemd user services, and OpenRGB-controlled hardware on the same workstation.",
+        "Aether targets a single Linux workstation: PipeWire for capture, a RAM-backed file in /dev/shm for publication, optional systemd user services, and OpenRGB for lighting.",
       tradeoffs:
-        "The design favors bounded latency and a stable memory layout over richer RPC semantics. Consumers read snapshots instead of requesting custom views.",
+        "Aether publishes only the latest snapshot. Readers never block the writer, but there is no queue, no backpressure, and no delivery guarantee: a reader that polls more slowly than the daemon publishes misses frames.",
     },
     architecture: [
-      "A PipeWire capture service samples audio frames and normalizes them into a fixed analysis window.",
-      "An FFT stage derives band energy and publishes the current acoustic snapshot into memory-mapped shared state.",
-      "Consumer processes subscribe by reading the shared snapshot directly, including the LED renderer that translates frequency bands into hardware updates.",
-      "systemd manages lifecycle so the publisher and consumers can restart independently without manual orchestration.",
+      "The daemon reads 16-bit mono audio from PipeWire's pw-record at 48 kHz in 2,048-sample chunks. That configuration sets a nominal cadence of about 23 chunks per second; it is not a measured update rate.",
+      "Each chunk is Hann-windowed and passed through an FFT to produce seven normalized frequency bands between 20 Hz and 8 kHz, plus a total-energy value. Chunks below a configured energy threshold are not published.",
+      "Published frames go into a 4 KB memory-mapped file: a fixed 20-byte binary header (magic, protocol version, 64-bit sequence number, payload length) followed by a JSON payload.",
+      "Consumers attach independently and read that region directly: the terminal visualizer, the OpenRGB lighting controller, and a small client library used by a command-line query tool and the status-bar, Hue, OBS, Discord, and notification integrations.",
+      "The repository includes systemd user units that start the daemon after PipeWire, start the Hue, OBS, Discord, and notification services after it, and restart them on failure.",
     ],
     keyTechnicalDecisions: [
       {
-        title: "Shared memory instead of sockets",
+        title: "Latest-value snapshot, not a message stream",
         rationale:
-          "The system needed frequent state publication with minimal copying. Memory-mapped snapshots removed repeated serialization and reduced end-to-end latency.",
+          "Consumers need current acoustic state, not history. One overwritable snapshot means a slow or stalled reader can never back up the daemon. The cost is lossy delivery: frames a reader is too slow to see are gone, with no acknowledgement or replay.",
       },
       {
-        title: "Single publisher, many passive readers",
+        title: "Seqlock instead of a lock",
         rationale:
-          "Aether keeps the timing-sensitive write path centralized and makes consumers stateless readers. That isolates jitter and simplifies recovery.",
+          "The writer marks a frame in progress with an odd sequence number and commits it with the next even one; readers compare the sequence before and after reading. Readers never block the writer. In exchange, readers discard frames that changed mid-read, and the protocol assumes a single writer, which the code does not enforce.",
       },
       {
-        title: "Fixed snapshot schema",
+        title: "Fixed header, JSON payload",
         rationale:
-          "A stable binary layout makes cross-process reads predictable and keeps integration code small for downstream consumers.",
+          "Only the header is a binary layout; the band data is JSON. A reader needs just the header format and a JSON parser, at the cost of serializing every frame on write and parsing it on read. The exchange is not zero-copy.",
       },
       {
         title: "systemd user services for orchestration",
@@ -159,24 +164,21 @@ export const caseStudiesData: CaseStudy[] = [
     ],
     implementationHighlights: [
       {
-        title: "FFT pipeline tuned for interactive feedback",
+        title: "Readers reject unusable frames",
         detail:
-          "The analyzer reduces raw audio into seven usable bands at roughly 23 updates per second, which was enough for visual response without saturating consumers.",
+          "A reader accepts a frame only if its sequence number is nonzero, even, unchanged across the read, and different from the last frame it consumed. Eight deterministic tests cover each rejection case, a round trip, and in-order delivery; all eight passed in CI at the pinned commit.",
       },
       {
-        title: "Lock-free reader model",
+        title: "The visualizer goes quiet when frames stop",
         detail:
-          "Readers consume the latest published snapshot without negotiating with the producer, which keeps hardware effects and future clients simple.",
-      },
-      {
-        title: "Hardware integration boundary",
-        detail:
-          "OpenRGB is treated as a downstream consumer rather than a core dependency, so the audio pipeline remains reusable beyond lighting control.",
+          "If no audio frame arrives for 0.1 seconds, the terminal visualizer releases its target amplitude and eases into its quiet state. Two engine tests cover the expiry and its reset; both passed in the same CI run.",
       },
     ],
     outcome: [
-      "Aether turned audio analysis into a reusable local systems primitive rather than a single-purpose effect.",
-      "The architecture supports low-latency hardware synchronization and additional consumers without reworking the capture path.",
+      "Result: at commit 71e0201, the seqlock protocol tests and the visualizer's quiet-state tests pass in CI. That establishes the reader rules described above. It is not a performance measurement, and no latency or throughput figure is claimed.",
+      "Test scope: the protocol tests are single-process and deterministic, and the torn-read case is simulated with a substitute memory map. Concurrent multi-process stress is untested, and the tests do not establish correctness on weaker memory-ordering architectures.",
+      "Limitation: freshness is not part of the contract. A reader cannot tell a stopped daemon from audio below the publishing threshold. The visualizer expires stale input, but the client library returns its last values indefinitely, so integrations built on it can hold stale state.",
+      "Limitation: attachment is not uniform. The OpenRGB controller retries until the shared-memory file exists; the client-based integration services exit and rely on systemd to restart them; the terminal visualizer does not reattach if it starts before the daemon has created the file.",
     ],
     artifacts: [
       {
@@ -189,12 +191,39 @@ export const caseStudiesData: CaseStudy[] = [
         note: "Canonical contact identity remains github.com/kareemsasa; this repository has not migrated.",
       },
       {
-        title: "Local system evidence",
-        kind: "Local system evidence",
-        status: "Private",
+        title: "Seqlock protocol tests",
+        kind: "Evaluation record",
+        status: "Public",
         description:
-          "The project is deployed locally as a systemd user service with PipeWire capture, shared-memory publication, and detachable consumers.",
-        note: "Private workstation paths and service configuration are intentionally not published.",
+          "Eight deterministic tests of the reader rules: committed, uninitialized, in-progress, already-seen, and changed-mid-read frames, plus round-trip and in-order delivery.",
+        href: "https://github.com/kareemsasa3/aether/blob/71e0201913669f702c60a1320c1a956c7fd21903/test_aether_shm_seqlock.py",
+        note: "Pinned to commit 71e0201. Single-process tests, not a concurrency stress test or a performance benchmark.",
+      },
+      {
+        title: "CI run for the pinned commit",
+        kind: "Evaluation record",
+        status: "Public",
+        description:
+          "GitHub Actions run on commit 71e0201 (August 27, 2026). The seqlock, engine, and full pytest steps passed.",
+        href: "https://github.com/kareemsasa3/aether/actions/runs/33042746287",
+      },
+      {
+        title: "Shared-memory implementation",
+        kind: "Repository provenance",
+        status: "Public",
+        description:
+          "The writer and reader that implement the header layout and sequence rules described above.",
+        href: "https://github.com/kareemsasa3/aether/blob/71e0201913669f702c60a1320c1a956c7fd21903/aether_shm.py",
+        note: "Pinned to commit 71e0201.",
+      },
+      {
+        title: "systemd integration",
+        kind: "Repository provenance",
+        status: "Public",
+        description:
+          "The user unit and installer for running the daemon as a systemd user service.",
+        href: "https://github.com/kareemsasa3/aether/tree/71e0201913669f702c60a1320c1a956c7fd21903/integrations/systemd",
+        note: "Integration source, not a record of a running deployment.",
       },
     ],
     links: [

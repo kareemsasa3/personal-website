@@ -53,7 +53,7 @@ export const timelineData: TimelineEvent[] = [
     id: 13,
     date: "Dec 2025",
     title: "Aether: Sound as Infrastructure",
-    description: `I created Aether, a real-time audio visualization engine designed with lock-free IPC and zero-copy shared memory for efficient data flow. It broadcasts acoustic state without blocking the analysis pipeline, enabling seamless integration across processes. This project, which gained recognition online, reinforced my belief that the most effective systems are those that operate autonomously without needing to know who’s consuming the data.`,
+    description: `I built Aether in December 2025 as a Linux audio-analysis system that captures sound through PipeWire, reduces it to seven frequency bands, and publishes the latest values through shared memory. Independent consumers—including a terminal visualizer, OpenRGB lighting, and desktop integrations—can use that state without blocking the daemon. The project reinforced a principle that continues to shape my work: a system should be able to publish useful state without knowing which consumers depend on it.`,
     icon: faCode,
     category: "milestone",
     era: "Redemption Arc",
