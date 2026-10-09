@@ -370,7 +370,7 @@ const main = async () => {
   if (
     !aetherSourceCodeEntry ||
     aetherSourceCodeEntry.description !==
-      "Real-time audio infrastructure for Linux that publishes live acoustic state through lock-free shared memory for low-latency cross-process consumers."
+      "Linux audio-analysis daemon that publishes live frequency-band state through a sequence-versioned shared-memory region for independent local consumers."
   ) {
     throw new Error(
       "Expected projects JSON-LD SoftwareSourceCode to carry the full project description"

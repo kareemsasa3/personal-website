@@ -108,15 +108,15 @@ export const projectsData: Project[] = [
     date: "2025",
     title: "Aether",
     description:
-      "Real-time audio infrastructure for Linux that publishes live acoustic state through lock-free shared memory for low-latency cross-process consumers.",
+      "Linux audio-analysis daemon that publishes live frequency-band state through a sequence-versioned shared-memory region for independent local consumers.",
     shortDescription:
       "PipeWire audio analysis exposed to cross-process consumers through shared memory.",
     techStack: ["Python", "PipeWire", "Shared Memory", "OpenRGB", "systemd"],
     features: [
-      "7-band FFT analysis at ~23Hz",
-      "~92ms end-to-end latency",
-      "300+ LED hardware sync via OpenRGB",
-      "15+ visualization styles",
+      "7-band FFT analysis at a nominal ~23 chunks/s (48 kHz, 2,048-sample chunks)",
+      "Seqlock readers reject uninitialized, in-progress, already-seen and changed-mid-read frames (8 CI-passed tests)",
+      "OpenRGB lighting consumer",
+      "18 terminal visualization styles",
     ],
     status: "Completed",
     url: "https://github.com/kareemsasa3/aether",
@@ -137,9 +137,8 @@ export const projectsData: Project[] = [
     },
     githubUrl: "https://github.com/kareemsasa3/aether",
     highlights: [
-      "Lock-free IPC via memory-mapped files",
-      "Low-latency shared-memory pipeline",
-      "Architecture recognized publicly",
+      "Seqlock-versioned shared memory; readers never block the writer",
+      "Latest-value snapshot, not a message stream",
     ],
   },
   {
