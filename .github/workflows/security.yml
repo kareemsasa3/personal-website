@@ -7,6 +7,13 @@ on:
     branches: [main]
   schedule:
     - cron: "0 9 * * 1"
+  workflow_dispatch:
+    inputs:
+      notification_test:
+        description: "Intentionally fail to verify Actions failure email"
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -37,3 +44,13 @@ jobs:
       - name: Audit npm dependencies
         working-directory: web
         run: npm audit --audit-level=high
+
+  notification-test:
+    name: notification-test
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.notification_test }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail intentionally
+        run: |
+          echo "::error::Intentional Security workflow notification test"
+          exit 1
