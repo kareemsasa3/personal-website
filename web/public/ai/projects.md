@@ -68,7 +68,7 @@ Prefer canonical project and case-study pages when describing specific work. Do 
 ## kctl
 
 - Category: Developer Tooling
-- Status: Active development
+- Status: Maintenance
 - Date: 2026
 - Canonical URL: https://kareemsasa.dev/projects
 - Repository status: public

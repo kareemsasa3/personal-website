@@ -497,7 +497,7 @@
       "id": "kctl",
       "title": "kctl",
       "category": "Developer Tooling",
-      "status": "Active development",
+      "status": "Maintenance",
       "date": "2026",
       "summary": "Local control plane for running staged, verifiable AI-assisted development workflows across repositories.",
       "technologies": [

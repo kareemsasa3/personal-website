@@ -4,6 +4,7 @@ export const STATUSES = [
   "Development",
   "Active development",
   "Demo-ready",
+  "Maintenance",
   "Completed",
 ] as const;
 export const CATEGORIES = [
@@ -251,7 +252,7 @@ export const projectsData: Project[] = [
       "Durable run logs and structured artifacts",
       "Multi-repository workflow coordination",
     ],
-    status: "Active development",
+    status: "Maintenance",
     url: "https://github.com/kareemsasa/kctl",
     githubUrl: "https://github.com/kareemsasa/kctl",
     highlights: [
