@@ -17,6 +17,7 @@ with globally bundled card/badge styles.
     --roster-status-live: #51cf66;
     --roster-status-development: #ffd43b;
     --roster-status-demo-ready: #74c0fc;
+    --roster-status-maintenance: #b197fc;
     --roster-status-completed: #8fa3b8;
 
     width: 100%;
@@ -138,6 +139,10 @@ with globally bundled card/badge styles.
 
 .project-roster__status--demo-ready {
     --roster-status-color: var(--roster-status-demo-ready);
+}
+
+.project-roster__status--maintenance {
+    --roster-status-color: var(--roster-status-maintenance);
 }
 
 .project-roster__status--completed {
