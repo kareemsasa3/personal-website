@@ -69,6 +69,8 @@ const CASE_STUDY_ROUTES = [
 const RULES = [
   { match: /^(docs\/|README|Dockerfile|nginx\.conf$|eslint\.config\.js$)/, kind: "ignored" },
   { match: /^scripts\/(?!build-articles\.mjs$|visual-review\.mjs$)/, kind: "ignored" },
+  // Machine-readable text from scripts/generate-ai-context.mjs; served as files, never rendered by a route.
+  { match: /^public\/(ai\/[\w-]+\.(md|json)|llms\.txt)$/, kind: "ignored" },
   // Background canvases are hidden in captures so seeded randomness can't leak into diffs.
   { match: /^src\/components\/(AppBackground|MatrixBackground|MatrixRain3DBackground|BionicBackground|StaticBackground)\//, kind: "live" },
   { match: /^src\/(pages|components)\/(OrbitalSimulator|TrafficSimulator|Annals|SnakeGame|SpiderSolitaire|RhythmLab|ProceduralAnimationPiece|Terminal|DataStructureVisualizer)\//, kind: "live" },
@@ -127,6 +129,7 @@ const planCapture = async () => {
   const notes = [];
   let source;
   let wanted;
+  let direct = [];
   if (explicit.length) {
     source = "explicit --routes";
     wanted = explicit.map((route) => (route.startsWith("/") ? route : `/${route}`));
@@ -135,14 +138,20 @@ const planCapture = async () => {
     wanted = CORE_ROUTES;
   } else {
     source = "changed files";
-    // Specific routes first so the cap trims the generic fallback, not the evidence.
-    const specific = files.filter((f) => f.kind === "routes").flatMap((f) => f.routes);
+    // Specific routes first so the cap trims the generic fallback, not the
+    // evidence. Round-robin across files, so one file that maps to many routes
+    // cannot crowd out another file's only route.
+    const specific = files.filter((f) => f.kind === "routes").map((f) => f.routes);
+    const depth = Math.max(0, ...specific.map((routes) => routes.length));
+    direct = Array.from({ length: depth }, (_, i) => specific.map((routes) => routes[i]).filter(Boolean)).flat();
     const broad = files.filter((f) => ["shared", "unmapped", "harness"].includes(f.kind)).flatMap((f) => f.routes);
-    wanted = [...specific, ...broad];
+    wanted = [...direct, ...broad];
   }
   const unique = [...new Set(wanted)];
   const routes = unique.slice(0, MAX_ROUTES);
   const omitted = unique.slice(MAX_ROUTES);
+  const unreviewed = omitted.filter((route) => direct.includes(route));
+  const omittedFallback = omitted.filter((route) => !direct.includes(route));
 
   const unmapped = files.filter((f) => f.kind === "unmapped");
   const live = files.filter((f) => f.kind === "live" || f.live);
@@ -151,11 +160,12 @@ const planCapture = async () => {
   if (explicit.length) notes.push("Routes were chosen explicitly, not derived from changed files.");
   if (auto && unmapped.length) notes.push(`${unmapped.length} changed file(s) have no specific route mapping; the core route set was captured as a conservative fallback, so affected UI outside that set may be missed.`);
   if (live.length) notes.push(`${live.length} changed file(s) affect motion, canvas, or interactive surfaces that a frozen screenshot cannot represent; review them in a live preview.`);
-  if (omitted.length) notes.push(`${omitted.length} route(s) exceeded the ${MAX_ROUTES}-route cap and were not captured: ${omitted.join(" ")}. Re-run with workflow_dispatch routes to cover them.`);
+  if (unreviewed.length) notes.push(`Directly affected route(s) exceeded the ${MAX_ROUTES}-route cap and were not reviewed: ${unreviewed.join(" ")}. Re-run with workflow_dispatch routes to cover them.`);
+  if (omittedFallback.length) notes.push(`${omittedFallback.length} fallback route(s) exceeded the ${MAX_ROUTES}-route cap and were not captured: ${omittedFallback.join(" ")}.`);
   if (args.theme === "dark" && files.some((f) => f.themeSensitive)) notes.push("Theme-sensitive files changed but only the dark theme was captured; re-run with theme=light to check light mode.");
   if (harnessOnly) notes.push("Only the visual-review harness changed, so the app is identical on both sides: every pair should be unchanged.");
   const coverage = explicit.length ? "explicit" : notes.length === 0 || (harnessOnly && notes.length === 1) ? "complete" : "partial";
-  return { source, routes, omitted, files, notes, coverage, expectIdentical: args.mode === "same-revision" || harnessOnly };
+  return { source, routes, omitted, unreviewed, files, notes, coverage, expectIdentical: args.mode === "same-revision" || harnessOnly };
 };
 
 const resolveArticle = async (routes, headUrl) => {
@@ -227,7 +237,7 @@ try {
 environment = { browser: `chromium ${browser.version()}`, playwright: args.playwright };
 
 const capture = async (side, origin, route, viewport) => {
-  const result = { side, status: "captured", reason: null, errors: [], blocked: [], notFound: false, errorBoundary: false, overflowX: 0, clipped: false, attempts: 0, sha256: null, file: null };
+  const result = { side, status: "captured", reason: null, errors: [], blocked: [], notFound: false, errorBoundary: false, overflowX: 0, height: 0, clipped: false, attempts: 0, sha256: null, file: null };
   const context = await browser.newContext({
     viewport: { width: viewport.width, height: viewport.height },
     deviceScaleFactor: 1,
@@ -286,6 +296,7 @@ const capture = async (side, origin, route, viewport) => {
       result.notFound = state.notFound;
       result.errorBoundary = state.errorBoundary;
       result.overflowX = Math.max(0, state.overflowX);
+      result.height = state.height;
       result.clipped = state.height > MAX_CAPTURE_HEIGHT;
       const options = {
         fullPage: true,
@@ -339,7 +350,9 @@ const verdictFor = (route, base, head) => {
     if (base.notFound && head.notFound) return "missing-both";
     return base.notFound ? "missing-in-base" : "missing-in-head";
   }
-  return base.sha256 === head.sha256 ? "unchanged" : "changed";
+  if (base.sha256 !== head.sha256) return "changed";
+  // Identical images of a clipped page only prove the part above the clip.
+  return base.clipped || head.clipped ? "unverified-below-clip" : "unchanged";
 };
 
 const pairs = [];
@@ -350,18 +363,30 @@ for (const route of plan.routes) {
     const pixels = base.sha256 && head.sha256 ? (base.sha256 === head.sha256 ? "identical" : "different") : "not compared";
     const pair = { id: pairId(route, viewport), route, viewport: `${viewport.name} ${viewport.width}x${viewport.height}`, verdict: verdictFor(route, base, head), pixels, base, head };
     pairs.push(pair);
-    console.log(`${pair.verdict.padEnd(16)} ${route} @ ${pair.viewport} (pixels ${pixels})`);
+    console.log(`${pair.verdict.padEnd(21)} ${route} @ ${pair.viewport} (pixels ${pixels})`);
   }
 }
 await browser.close();
 
+// Coverage is only as complete as what was actually compared.
+const clippedPairs = pairs.filter((pair) => pair.base.clipped || pair.head.clipped);
+const uncompared = pairs.filter((pair) => !["changed", "unchanged", "unverified-below-clip"].includes(pair.verdict));
+const label = (list) => list.map((pair) => `${pair.route} (${pair.viewport.split(" ")[0]})`).join(", ");
+if (clippedPairs.length) plan.notes.push(`${clippedPairs.length} pair(s) are taller than ${MAX_CAPTURE_HEIGHT}px; anything below ${MAX_CAPTURE_HEIGHT}px was not compared: ${label(clippedPairs)}.`);
+if (uncompared.length) plan.notes.push(`${uncompared.length} pair(s) could not be compared as visual results: ${label(uncompared)}.`);
+if (clippedPairs.length || uncompared.length) plan.coverage = "partial";
+
 const failing = pairs.filter((pair) =>
   plan.expectIdentical
-    ? pair.verdict !== "unchanged"
+    ? !["unchanged", "unverified-below-clip"].includes(pair.verdict)
     : ["capture-failed", "missing-in-head", "missing-both"].includes(pair.verdict) ||
       (pair.verdict === "runtime-error" && (pair.head.errors.length || pair.head.errorBoundary)),
 );
 await writeReport({ pairs, failing });
+if (process.env.GITHUB_ACTIONS === "true") {
+  for (const pair of failing) console.log(`::warning title=Visual review::${pair.route} @ ${pair.viewport}: ${pair.verdict}`);
+  if (plan.coverage === "partial") console.log("::warning title=Visual review::Coverage is partial; see the job summary for what was not compared.");
+}
 process.exit(failing.length ? 1 : 0);
 
 function fileTable(files) {
@@ -383,16 +408,20 @@ async function writeReport({ pairs, failing = [], fatal = null }) {
   if (fatal) lines.push(`**Harness failure:** ${fatal}. No screenshots were compared.`, "");
   else {
     lines.push(
-      `**${count("changed")} changed · ${count("unchanged")} unchanged · ${missing} missing · ${count("runtime-error")} runtime error · ${count("capture-failed")} capture failed**`,
+      `**${count("changed")} changed · ${count("unchanged")} unchanged · ${count("unverified-below-clip")} unverified below clip · ${missing} missing · ${count("runtime-error")} runtime error · ${count("capture-failed")} capture failed**`,
       "",
-      "_changed_ means the pixels differ between two clean captures; review the images, it is not by itself a regression. _capture failed_ and _runtime error_ pairs are never compared as visual results.",
+      `_changed_ means the pixels differ between two clean captures; review the images, it is not by itself a regression. _unverified below clip_ means the page is identical above ${MAX_CAPTURE_HEIGHT}px but was never compared below it. _capture failed_ and _runtime error_ pairs are never compared as visual results.`,
       "",
     );
     if (plan.expectIdentical) {
       const why = args.mode === "same-revision" ? "same revision on both sides" : "harness-only change";
       const result = count("changed")
         ? `**${count("changed")} pair(s) differ, so captures are not deterministic here; do not rely on changed/unchanged verdicts until fixed.**`
-        : failing.length ? `no pixel differences, but ${failing.length} pair(s) could not be compared cleanly.` : "all pairs were unchanged.";
+        : failing.length
+          ? `no pixel differences, but ${failing.length} pair(s) could not be compared cleanly.`
+          : count("unverified-below-clip")
+            ? `no pixel differences; ${count("unverified-below-clip")} pair(s) were only compared above ${MAX_CAPTURE_HEIGHT}px.`
+            : "all pairs were unchanged.";
       lines.push(`Expected identical captures (${why}): ${result}`, "");
     }
   }
@@ -411,7 +440,7 @@ async function writeReport({ pairs, failing = [], fatal = null }) {
         if (side.blocked.length) notes.push(`${side.side} blocked ${side.blocked.length} external request(s)`);
       }
       if (pair.head.overflowX > 0) notes.push(`head overflows horizontally by ${pair.head.overflowX}px`);
-      if (pair.head.clipped) notes.push(`clipped at ${MAX_CAPTURE_HEIGHT}px`);
+      if (pair.base.clipped || pair.head.clipped) notes.push(`clipped at ${MAX_CAPTURE_HEIGHT}px (page ${pair.base.height}px base, ${pair.head.height}px head)`);
       lines.push(`| \`${pair.route}\` | ${pair.viewport} | ${pair.verdict} | ${pair.pixels} | ${notes.join("; ").replace(/\|/g, "\\|") || "–"} |`);
     }
     lines.push("");
@@ -448,6 +477,7 @@ pre.summary { white-space: pre-wrap; background: #1b1b1b; padding: 12px; border-
 section { border-top: 1px solid #333; padding: 12px 0; }
 h2 { font-size: 15px; }
 section.changed h2 span { color: #f5b041; } section.unchanged h2 span { color: #7dcea0; }
+section.unverified-below-clip h2 span { color: #f5b041; }
 section.capture-failed h2 span, section.runtime-error h2 span, section[class^="missing"] h2 span { color: #ec7063; }
 .sides { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; align-items: start; }
 figure { margin: 0; } img { width: 100%; height: auto; border: 1px solid #333; }

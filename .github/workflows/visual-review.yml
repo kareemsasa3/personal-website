@@ -3,6 +3,7 @@ name: Visual Review
 # Advisory before/after screenshots for UI changes. Read-only: no secrets, no
 # deployment, no PR comments. Results are a job summary plus a downloadable
 # artifact; see web/scripts/visual-review.mjs for capture and route selection.
+# Capture failures are reported, not failed: the check stays advisory.
 
 on:
   pull_request:
@@ -55,6 +56,9 @@ jobs:
           node-version: 20
           cache: npm
           cache-dependency-path: web/package-lock.json
+
+      - name: Test the visual-review harness
+        run: node --test web/scripts/visual-review.test.mjs
 
       - name: Resolve base and head revisions
         id: revisions
@@ -169,7 +173,11 @@ jobs:
           done
 
       - name: Capture and compare
+        id: capture
         if: steps.plan.outputs.capture == 'true'
+        # Advisory: failed or uncompared pairs are reported in the summary and
+        # annotations, but do not fail the check.
+        continue-on-error: true
         env:
           MODE: ${{ steps.revisions.outputs.mode }}
           BASE_SHA: ${{ steps.revisions.outputs.base_sha }}
@@ -181,6 +189,10 @@ jobs:
             --changed-files "$RUNNER_TEMP/changed-files.txt" --routes "$INPUT_ROUTES" --theme "$INPUT_THEME" \
             --base-sha "$BASE_SHA" --head-sha "$HEAD_SHA" \
             --playwright "$RUNNER_TEMP/playwright/node_modules/playwright/index.mjs"
+
+      - name: Flag an incomplete visual review
+        if: steps.capture.outcome == 'failure'
+        run: echo "::warning title=Visual review incomplete::Some pairs could not be captured or compared cleanly. See the job summary; this check is advisory."
 
       - name: Upload screenshots and report
         if: ${{ !cancelled() && steps.plan.outputs.capture == 'true' }}
