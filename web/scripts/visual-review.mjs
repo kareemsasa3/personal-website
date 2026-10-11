@@ -20,7 +20,7 @@ const { values: args } = parseArgs({
   options: {
     "base-url": { type: "string" },
     "head-url": { type: "string" },
-    out: { type: "string", default: "/tmp/visual-review" },
+    out: { type: "string" },
     "changed-files": { type: "string" },
     routes: { type: "string", default: "" },
     theme: { type: "string", default: "dark" },
@@ -180,9 +180,17 @@ const plan = await planCapture();
 if (args["plan-only"]) {
   console.log(JSON.stringify(plan, null, 2));
   if (process.env.GITHUB_OUTPUT) await appendFile(process.env.GITHUB_OUTPUT, `capture=${plan.routes.length > 0}\n`);
-  if (!plan.routes.length && process.env.GITHUB_STEP_SUMMARY) {
+  if (!plan.routes.length) {
     const notes = plan.notes.map((note) => `- ${note}\n`).join("");
-    await appendFile(process.env.GITHUB_STEP_SUMMARY, `## Visual review\n\nNo route needed a screenshot, so nothing was captured. **Coverage: ${plan.coverage}**\n\n${notes}\n${fileTable(plan.files)}\n`);
+    const markdown = `## Visual review\n\nNo route needed a screenshot, so nothing was captured. **Coverage: ${plan.coverage}**\n\n${notes}\n${fileTable(plan.files)}\n`;
+    if (process.env.GITHUB_STEP_SUMMARY) await appendFile(process.env.GITHUB_STEP_SUMMARY, markdown);
+    // Only when no capture follows: a capture writes its own results, and a stale
+    // plan file must never stand in for a capture that crashed.
+    if (args.out) {
+      await mkdir(resolve(args.out), { recursive: true });
+      await writeFile(resolve(args.out, "summary.md"), markdown);
+      await writeFile(resolve(args.out, "results.json"), `${JSON.stringify({ args, plan, environment: null, fatal: null, pairs: [] }, null, 2)}\n`);
+    }
   }
   process.exit(0);
 }
@@ -190,7 +198,7 @@ if (args["plan-only"]) {
 assert.ok(args["base-url"] && args["head-url"], "--base-url and --head-url are required");
 const baseUrl = args["base-url"].replace(/\/$/, "");
 const headUrl = args["head-url"].replace(/\/$/, "");
-const out = resolve(args.out);
+const out = resolve(args.out ?? "/tmp/visual-review");
 await mkdir(resolve(out, "base"), { recursive: true });
 await mkdir(resolve(out, "head"), { recursive: true });
 
@@ -355,13 +363,75 @@ const verdictFor = (route, base, head) => {
   return base.clipped || head.clipped ? "unverified-below-clip" : "unchanged";
 };
 
+// Diff images are drawn by the same pinned browser, so no image library is needed.
+// Differing pixels are magenta over a dimmed head image; size mismatches count as
+// differences. Runs in a blank context with no app code.
+const diffContext = await browser.newContext({ deviceScaleFactor: 1 });
+const renderDiff = async (pair) => {
+  const page = await diffContext.newPage();
+  try {
+    const dataUrl = async (file) => `data:image/png;base64,${(await readFile(resolve(out, file))).toString("base64")}`;
+    const result = await page.evaluate(
+      async ({ baseSrc, headSrc }) => {
+        const load = (src) => new Promise((done, fail) => Object.assign(new Image(), { onload() { done(this); }, onerror: fail, src }));
+        const [baseImage, headImage] = await Promise.all([load(baseSrc), load(headSrc)]);
+        const width = Math.max(baseImage.width, headImage.width);
+        const height = Math.max(baseImage.height, headImage.height);
+        const pixels = (image) => {
+          const context = new OffscreenCanvas(width, height).getContext("2d");
+          context.drawImage(image, 0, 0);
+          return context.getImageData(0, 0, width, height).data;
+        };
+        const [a, b] = [pixels(baseImage), pixels(headImage)];
+        const canvas = new OffscreenCanvas(width, height);
+        const context = canvas.getContext("2d");
+        const diff = context.createImageData(width, height);
+        let changedPixels = 0;
+        let first = -1;
+        let last = -1;
+        for (let i = 0; i < a.length; i += 4) {
+          if (a[i] !== b[i] || a[i + 1] !== b[i + 1] || a[i + 2] !== b[i + 2] || a[i + 3] !== b[i + 3]) {
+            diff.data.set([255, 0, 255, 255], i);
+            changedPixels += 1;
+            const row = Math.floor(i / 4 / width);
+            if (first < 0) first = row;
+            last = row;
+          } else {
+            const gray = Math.round((b[i] + b[i + 1] + b[i + 2]) / 12);
+            diff.data.set([gray, gray, gray, 255], i);
+          }
+        }
+        context.putImageData(diff, 0, 0);
+        const bytes = new Uint8Array(await (await canvas.convertToBlob({ type: "image/png" })).arrayBuffer());
+        let binary = "";
+        for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+        return { png: btoa(binary), changedPixels, rows: [first, last] };
+      },
+      { baseSrc: await dataUrl(pair.base.file), headSrc: await dataUrl(pair.head.file) },
+    );
+    const file = `diff/${pair.id}.png`;
+    await writeFile(resolve(out, file), Buffer.from(result.png, "base64"));
+    return { file, changedPixels: result.changedPixels, rows: result.rows };
+  } finally {
+    await page.close();
+  }
+};
+
+await mkdir(resolve(out, "diff"), { recursive: true });
 const pairs = [];
 for (const route of plan.routes) {
   for (const viewport of VIEWPORTS) {
     const base = await capture("base", baseUrl, route, viewport);
     const head = await capture("head", headUrl, route, viewport);
     const pixels = base.sha256 && head.sha256 ? (base.sha256 === head.sha256 ? "identical" : "different") : "not compared";
-    const pair = { id: pairId(route, viewport), route, viewport: `${viewport.name} ${viewport.width}x${viewport.height}`, verdict: verdictFor(route, base, head), pixels, base, head };
+    const pair = { id: pairId(route, viewport), route, viewport: `${viewport.name} ${viewport.width}x${viewport.height}`, verdict: verdictFor(route, base, head), pixels, base, head, diff: null };
+    if (pair.verdict === "changed") {
+      try {
+        pair.diff = await renderDiff(pair);
+      } catch (error) {
+        pair.diffError = error.message.split("\n")[0];
+      }
+    }
     pairs.push(pair);
     console.log(`${pair.verdict.padEnd(21)} ${route} @ ${pair.viewport} (pixels ${pixels})`);
   }
@@ -441,6 +511,8 @@ async function writeReport({ pairs, failing = [], fatal = null }) {
       }
       if (pair.head.overflowX > 0) notes.push(`head overflows horizontally by ${pair.head.overflowX}px`);
       if (pair.base.clipped || pair.head.clipped) notes.push(`clipped at ${MAX_CAPTURE_HEIGHT}px (page ${pair.base.height}px base, ${pair.head.height}px head)`);
+      if (pair.diff) notes.push(`${pair.diff.changedPixels} px differ in rows ${pair.diff.rows.join("–")}`);
+      if (pair.diffError) notes.push(`diff image failed: ${pair.diffError}`);
       lines.push(`| \`${pair.route}\` | ${pair.viewport} | ${pair.verdict} | ${pair.pixels} | ${notes.join("; ").replace(/\|/g, "\\|") || "–"} |`);
     }
     lines.push("");
@@ -462,11 +534,11 @@ async function writeReport({ pairs, failing = [], fatal = null }) {
 function renderHtml(pairs, markdown) {
   const escape = (text) => String(text).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
   const side = (capture) =>
-    `<figure><figcaption>${capture.side} · ${capture.status}${capture.reason ? ` — ${escape(capture.reason)}` : ""}</figcaption>${
+    `<figure><figcaption>${escape(capture.side)} · ${capture.status}${capture.reason ? ` — ${escape(capture.reason)}` : ""}</figcaption>${
       capture.file ? `<a href="${capture.file}"><img loading="lazy" src="${capture.file}" alt="${capture.side} screenshot"></a>` : "<p>No image.</p>"
     }${capture.errors.length ? `<pre>${escape(capture.errors.join("\n"))}</pre>` : ""}</figure>`;
   const sections = pairs
-    .map((pair) => `<section class="${pair.verdict}"><h2><code>${escape(pair.route)}</code> · ${pair.viewport} · <span>${pair.verdict}</span></h2><div class="sides">${side(pair.base)}${side(pair.head)}</div></section>`)
+    .map((pair) => `<section class="${pair.verdict}"><h2><code>${escape(pair.route)}</code> · ${pair.viewport} · <span>${pair.verdict}</span></h2><div class="sides">${side(pair.base)}${side(pair.head)}${pair.diff ? side({ side: "diff", status: `${pair.diff.changedPixels} px`, reason: null, file: pair.diff.file, errors: [] }) : ""}</div></section>`)
     .join("\n");
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">

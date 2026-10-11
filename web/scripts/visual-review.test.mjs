@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
-import { mkdtemp, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { promisify } from "node:util";
@@ -18,7 +18,7 @@ const plan = async (changedFiles, extraArgs = []) => {
   const { stdout } = await run(process.execPath, [script, "--plan-only", "--changed-files", list, ...extraArgs], {
     env: { ...process.env, GITHUB_OUTPUT: "", GITHUB_STEP_SUMMARY: "", GITHUB_ACTIONS: "" },
   });
-  return { plan: JSON.parse(stdout) };
+  return { plan: JSON.parse(stdout), dir };
 };
 
 // PR #20: caseStudies.ts alone maps to five routes, which used to fill the
@@ -86,4 +86,16 @@ test("other public files still fall back to the core routes", async () => {
   const { plan: result } = await plan(["web/public/og-image.png"]);
   assert.equal(result.files[0].kind, "unmapped");
   assert.equal(result.routes.length, 6);
+});
+
+test("plan-only writes a results file when --out is given", async () => {
+  const { plan: result, dir } = await plan(["web/public/llms.txt"]);
+  const out = join(dir, "out");
+  await run(process.execPath, [script, "--plan-only", "--changed-files", join(dir, "changed.txt"), "--out", out], {
+    env: { ...process.env, GITHUB_OUTPUT: "", GITHUB_STEP_SUMMARY: "", GITHUB_ACTIONS: "" },
+  });
+  const written = JSON.parse(await readFile(join(out, "results.json"), "utf8"));
+  assert.deepEqual(written.pairs, []);
+  assert.deepEqual(written.plan.routes, result.routes);
+  assert.ok((await readFile(join(out, "summary.md"), "utf8")).includes("No route needed a screenshot"));
 });

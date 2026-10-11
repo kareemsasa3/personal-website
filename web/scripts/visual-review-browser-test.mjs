@@ -1,5 +1,5 @@
 // Runs visual-review.mjs end to end against two local fixture servers, so the
-// capture, clipping, network, and overflow behavior is checked with a real
+// capture, clipping, diff, network, and overflow behavior is checked with a real
 // browser. Uses the standalone browser-test convention; no new dependency.
 // node scripts/visual-review-browser-test.mjs [Playwright module] [browser executable]
 import assert from "node:assert/strict";
@@ -88,8 +88,15 @@ assert.deepEqual(verdicts("/tall-above"), ["changed", "changed"]);
 assert.equal(results.plan.coverage, "partial");
 assert.ok(results.plan.notes.some((note) => note.includes("4000px") && note.includes("/tall-below")), results.plan.notes.join("\n"));
 
-// Clean differences on short pages are still reported as changed.
-assert.deepEqual(verdicts("/short-changed"), ["changed", "changed"]);
+// Changed pairs get a diff image that locates the change.
+for (const pair of [...pairs("/short-changed"), ...pairs("/tall-above")]) {
+  assert.equal(pair.verdict, "changed");
+  assert.ok(pair.diff?.file, `${pair.id} has no diff`);
+  assert.ok(await isPng(pair.diff.file), `${pair.diff.file} is not a PNG`);
+  assert.ok(pair.diff.changedPixels > 0);
+  assert.ok(pair.diff.rows[0] >= 290 && pair.diff.rows[1] <= 340, `${pair.id} rows ${pair.diff.rows}`);
+}
+for (const pair of [...pairs("/short-same"), ...pairs("/tall-below")]) assert.equal(pair.diff, null, `${pair.id} should have no diff`);
 
 // Existing checks are intact: repeatability, viewports, network, overflow.
 assert.deepEqual(verdicts("/short-same"), ["unchanged", "unchanged"]);
