@@ -13,7 +13,7 @@ Phases 2–6 replace the bridge with real Darkfield grammar, surface by surface.
 
 **Tech Stack:** React 18, Vite 8, TypeScript, plain CSS. Tests use `node:test` (`web/scripts/*.test.mjs`) and the standalone Playwright browser-test convention (`web/scripts/*-browser-test.mjs`, Playwright passed in by path). No new npm dependencies.
 
-**Revision:** r6, 2026-10-11 (D11(b) runtime publication model). r1–r5 were written the same day; see the [Revision log](#revision-log).
+**Revision:** r7, 2026-10-11 (Task 1 conformance correction). r1–r6 were written the same day; see the [Revision log](#revision-log).
 
 ## Status
 
@@ -89,7 +89,7 @@ D10 is answered inside Task 3; D4 gates only Task 5. D11(b) is decided and alrea
    - `tokens.runtime.json` is a deterministic export of it.
    - `tokens.css` is generated from the runtime file and checked for sync.
    - **Public verification** checks the published files against `SOURCE.json`, the approved schema and value grammar, and the absence of private fields.
-   - **Canonical verification**, run only in an authorized environment, re-exports from the pinned canonical file and requires identical bytes and identical compiled CSS.
+   - **Canonical verification**, run only in an authorized environment, re-exports from the pinned canonical file and requires identical bytes and identical compiled CSS. It first proves the checkout's local git identity (the annotated tag resolves to the commit pinned in `SOURCE.json`, which is also `HEAD`) and reads every canonical file from that commit's blobs. The remote side is the authenticated canonical identity check, defined under [Runtime token propagation](#runtime-token-propagation) and run in the same session.
    - A public checkout alone cannot establish derivation.
 5. **Agents read the spec from the canonical repository at the pinned tag** before each task, never from memory or a local archive. `AGENTS.md` says where. The repository is private, so reading it needs the owner account's access. A clean checkout or CI without that access can still build the website and run its public tests, because the runtime assets are published. It cannot re-verify provenance, which is a local, credentialed step.
 6. **Changes go one way.** A later Darkfield edit is exported, committed and tagged canonically. The website then re-exports and re-publishes in its own commit, following [Runtime token propagation](#runtime-token-propagation). The website never edits published Darkfield files by hand.
@@ -98,19 +98,64 @@ D10 is answered inside Task 3; D4 gates only Task 5. D11(b) is decided and alrea
 
 **When to run it:** a new canonical Darkfield tag is created, or the canonical schema changes. The steps below are the only way a canonical token change reaches this repository. Each run is its own reviewed commit.
 
-1. **Authorize.** The owner approves the new tag for the website under D9.
-2. **Pin.** In an authorized environment, check out `kareemsasa/darkfield` at the new tag, with credentials explicitly bound to `kareemsasa`, and record the commit SHA.
+1. **Authorize.** The owner approves the new tag, and the canonical commit it points to, for the website under D9.
+2. **Pin.** In an authorized environment, run the canonical identity check (below) with `<tag>` the new tag and `<commit>` the canonical commit approved with it in step 1. It clones `kareemsasa/darkfield` at that tag with credentials explicitly bound to `kareemsasa`, and fails unless the tag resolves to that commit. Record the commit SHA for `SOURCE.json`.
 3. **Export.** Run `cd web && node scripts/darkfield-export.mjs <canonical-dir>`.
-   - A canonical field the exporter has not classified makes it fail.
+   - A canonical field the exporter has not classified makes it fail. So does an object key outside the key grammar (Task 1).
    - Classifying a new field as RUNTIME, which publishes it, is a code change to the exporter's allowlist. It needs the owner's D2b/D11 confirmation for that field.
    - Classifying it as PRIVATE needs no publication decision.
 4. **Regenerate.** Run `cd web && node scripts/darkfield-tokens.mjs`. Update `SOURCE.json`: the new tag, commit, `tokensVersion`, archive checksums (if a new export archive exists), canonical `tokens.json` hash, runtime file hash, and font and licence hashes. In the same commit, update the pinned literals in `darkfield-vendor.test.mjs` (tag, commit, `tokensVersion`, archive checksums and canonical `tokens.json` hash) so that the public test pins the new revision.
 5. **Verify.**
-   - Public tests: `darkfield-vendor`, `darkfield-runtime` and `darkfield-tokens`. If a value-grammar regex rejects a legitimate new value, widen it deliberately in the same commit, with the reviewer's agreement; never loosen it to accept free text.
-   - Canonical verification: `darkfield-source.mjs --verify`.
+   - Public tests: `darkfield-vendor`, `darkfield-runtime`, `darkfield-export`, `darkfield-source` and `darkfield-tokens`. If a value-grammar regex rejects a legitimate new value, widen it deliberately in the same commit, with the reviewer's agreement; never loosen it to accept free text.
+   - Canonical verification: the canonical identity check, then `darkfield-source.mjs --verify`, in the same session.
    - Review the value diff of `tokens.runtime.json` against the previous commit.
 6. **Disclosure check.** The independent reviewer runs the canonical disclosure scan defined below over the full diff: the runtime file, CSS, manifest, tests, commit message and PR text. Any unapproved match is a **stop**.
 7. **Commit** with exact-path staging. The canonical `tokens.json` and any canonical prose must never be staged.
+
+**Canonical identity check (defined once; run in the same session as every canonical verification).** It ties the local checkout to the private repository. `<tag>` and `<commit>` are the pinned tag and commit: those in `SOURCE.json`, or, for a new pin, the tag and commit approved in step 1 above.
+
+```bash
+cat >"$DF_TMP/identity-check.sh" <<'EOF'
+# identity-check.sh <tag> <commit>: the canonical identity check, run as its own bash process.
+set -eu
+tag=$1 commit=$2
+# Read the stored kareemsasa credential, not an inherited token. Assign before exporting, so a failed
+# lookup stops here instead of hiding behind export's own status.
+unset GH_TOKEN GITHUB_TOKEN
+GH_TOKEN=$(gh auth token --user kareemsasa)
+test -n "$GH_TOKEN"
+export GH_TOKEN
+login=$(gh api user --jq .login); test "$login" = kareemsasa
+visibility=$(gh api repos/kareemsasa/darkfield --jq .visibility); test "$visibility" = private
+# Task P2 Step 5's clone, made concrete: a fresh clone at the tag, through the same verified identity.
+# The token reaches git only through a credential helper, never the URL or the clone's configuration.
+test ! -e "$DF_TMP/darkfield"
+git -c advice.detachedHead=false -c credential.helper= \
+  -c 'credential.helper=!f(){ echo username=x-access-token; echo "password=$GH_TOKEN"; }; f' \
+  clone -q --branch "$tag" https://github.com/kareemsasa/darkfield.git "$DF_TMP/darkfield"
+# The remote tag object is the local one, and it peels to the pinned commit.
+remote_tag=$(gh api "repos/kareemsasa/darkfield/git/ref/tags/$tag" --jq .object.sha)
+local_tag=$(git -C "$DF_TMP/darkfield" rev-parse "refs/tags/$tag")
+test "$remote_tag" = "$local_tag"
+remote_commit=$(gh api "repos/kareemsasa/darkfield/commits/$tag" --jq .sha); test "$remote_commit" = "$commit"
+echo "canonical identity OK"
+EOF
+DF_TMP="$DF_TMP" bash "$DF_TMP/identity-check.sh" <tag> <commit>
+```
+
+How it fails:
+- The check runs as its own `bash` process, so `set -eu` holds whatever the calling shell does. A shell that runs commands inside an `&&` or `||` list, or under `if`, switches errexit off for everything it runs itself, subshells included. Never source the script or paste its body into the calling shell.
+- Its exit status is the result. It is 0 only after the final line prints `canonical identity OK`. Any non-zero exit is a **stop**.
+- Each lookup, the token included, is assigned before it is compared or exported. A failed lookup therefore ends the process instead of comparing empty strings.
+- `GH_TOKEN` exists only inside that process and is never printed, so no cleanup step can mask a failure.
+- Chain anything that depends on the check with `&&`, for example `… identity-check.sh <tag> <commit> && (cd web && node scripts/darkfield-source.mjs --verify "$DF_TMP/darkfield")`. Never let an unchained command follow it in the same invocation: that command's exit status would replace the check's.
+- For a shallow clone, add `--depth 1` to the clone line; the verifier accepts both.
+
+Expected git output: the clone prints one warning, that `refs/tags/<tag>` is not a commit. The tag is annotated, and git checks out the commit it points to. `advice.detachedHead=false` turns off only the informational detached-HEAD advice. Neither changes the exit status, and git still reports real errors.
+
+`darkfield-source.mjs --verify "$DF_TMP/darkfield"` then proves the local identity itself: the directory is the root of a git checkout, `<tag>` is an annotated tag resolving to `<commit>`, and `HEAD` is `<commit>`. It reads every canonical file from that commit's blobs, never from the working tree, with replace refs disabled (`git --no-replace-objects`), and ignores `GIT_*` environment overrides. A local `origin` URL is not evidence of repository identity.
+
+**Trust boundary.** The verifier trusts the object store of the fresh clone made by this check in the same session. Git does not re-hash objects when it reads them, so an object file altered on disk after the clone would go undetected; `--no-replace-objects` stops only replace refs. Verify from that fresh clone, immediately after the check, and never from a reused or shared checkout.
 
 **Canonical disclosure scan (defined once, used by every reviewer step that cites it).** It runs only in an authorized environment with the canonical checkout. Nothing is printed except line numbers, categories and lengths. The scanned corpus is:
 - all specification prose: `README.md`, `spec/*.md`, plate READMEs and previews, asset READMEs, `design-system.json`, `r1/` text, and the `<title>` and `<metadata>` text of the export's asset SVGs;
@@ -127,11 +172,11 @@ Approved token values, font stacks, hashes and identifiers are expected matches 
 
 | Channel | Control |
 |---|---|
-| Runtime file | The allowlist projection plus fail-on-unclassified fields in the exporter. The public exact-key and value-grammar tests (`darkfield-runtime.test.mjs`) structurally constrain names and values to fixed formats. They cannot rule out every short phrase hidden in a name or a font stack, so canonical verification and the canonical disclosure scan remain required. |
+| Runtime file | The allowlist projection plus fail-on-unclassified fields and fail-on-invalid keys in the exporter. The public exact-key and value-grammar tests (`darkfield-runtime.test.mjs`) structurally constrain names and values to fixed formats. They cannot rule out every short phrase hidden in a name or a font stack, so canonical verification and the canonical disclosure scan remain required. |
 | Generated CSS | The compiler writes only two fixed header comments, which `darkfield-runtime.test.mjs` asserts. Token values are the only other content. |
 | `SOURCE.json` | Identifiers and hashes only; `darkfield-vendor.test.mjs` asserts each entry's exact keys. |
 | Test fixtures and plan examples | Only approved token values, hashes and site data; no usage notes or specification limits (D11(a) remains open). |
-| Logs | The exporter prints only a hash, and the verifier prints only file paths and mismatches. Canonical verification never runs in public CI. |
+| Logs | The exporter prints only a hash. Its refusals name only known schema paths, show any other key by its length, and never quote canonical input (JSON parse errors included). The verifier prints only file paths, mismatches and the public pins. Canonical verification never runs in public CI. |
 | Commits, PRs, reviews | Exact-path staging; reviewer disclosure scan (step 6); no canonical text in messages. |
 
 ## Scope boundary: governed interface vs creative work
@@ -319,7 +364,7 @@ export PLAYWRIGHT_BROWSERS_PATH="$DF_TMP/browsers" DF_PW="$DF_TMP/pw/node_module
   5. Confirm no test, selector or route was removed from coverage.
 
   For Task 1, Task 2, and any later runtime re-export, the reviewer also:
-  - runs canonical verification itself in an authorized environment;
+  - runs the canonical identity check and canonical verification itself, in the same session, in an authorized environment;
   - runs the canonical disclosure scan (defined under [Runtime token propagation](#runtime-token-propagation)) over every published Darkfield artifact: `tokens.runtime.json`, `tokens.css`, `SOURCE.json`, test fixtures, and the commit and PR text. Its corpus includes the private fields of the canonical `tokens.json`;
   - reports derivation as **UNVERIFIED**, never PASS, when it has no canonical access.
 
@@ -341,7 +386,9 @@ export PLAYWRIGHT_BROWSERS_PATH="$DF_TMP/browsers" DF_PW="$DF_TMP/pw/node_module
 |---|---|---|---|
 | `darkfield-vendor.test.mjs` | **Invariant** (static, public) | `SOURCE.json` pins the canonical revision, the archives and the canonical `tokens.json` hash. Published files equal their manifest hashes. Only fonts and licences are copied files; the runtime file is declared as an allowlist export | That the runtime file truly derives from the canonical file (canonical verification only) |
 | `darkfield-runtime.test.mjs` | **Invariant** (static, public) | `tokens.runtime.json` has exactly the approved keys, per-group value grammar and no private fields. `tokens.css` carries only its two fixed header comments | Value correctness against the canonical file (canonical verification only) |
-| `darkfield-source.mjs --verify` | **Canonical verification** (authorized environment only) | Fonts and licences byte-identical to canonical. The runtime file is a byte-identical re-export of the pinned canonical `tokens.json`, whose hash matches. From Task 2 onward, compiling either input gives identical CSS | Anything about rendered output |
+| `darkfield-export.test.mjs` | **Invariant** (static, public; r7) | The exporter is a deterministic projection: a synthetic canonical-shaped input reproduces the committed runtime bytes. Keys outside the key grammar and unclassified fields are refused, and refusals repeat neither unknown keys nor injected text | That the committed runtime file derives from the private canonical file |
+| `darkfield-source.test.mjs` | **Invariant** (public, synthetic git repositories; r7) | Canonical verification refuses a plain directory, a directory inside another checkout, a missing or lightweight tag, a tag resolving to another commit, a moved `HEAD` and a malformed pin. It accepts detached and shallow clones at the tag, and reads canonical bytes from the pinned commit rather than the working tree or a replace ref | The identity of the real canonical repository |
+| `darkfield-source.mjs --verify` | **Canonical verification** (authorized environment only) | Local git identity: the annotated tag resolves to the commit pinned in `SOURCE.json`, which is also `HEAD`. Fonts and licences, read from that commit's blobs, are byte-identical. The runtime file is a byte-identical re-export of the pinned canonical `tokens.json`, whose hash matches. From Task 2 onward, compiling either input gives identical CSS | Remote repository identity (the canonical identity check, same session); the integrity of the clone's object store (see the trust boundary); anything about rendered output |
 | `darkfield-tokens.test.mjs` | **Invariant** (static) | `tokens.css` is a faithful compile of `tokens.runtime.json` (values, escapes, themes, fonts, type classes) and is in sync | That the site uses the tokens correctly |
 | `darkfield-bridge.test.mjs` | **Invariant** (static) | Single theme source; every legacy variable mapped or explicitly held; no literal colours outside the legacy fence; no text colour reads a ground alias; font families unified outside held selectors | Rendered contrast or semantic correctness |
 | `darkfield-settings.test.mjs` | **Invariant** (unit) | Settings import accepts old exports and `mono`, and rejects unknown themes | — |
@@ -586,7 +633,7 @@ Phase 0 ends here. Publishing the Phase 0 documentation (clean-history branch, p
 | `web/scripts/darkfield-export.mjs` | Create. Allowlist exporter, canonical `tokens.json` → `tokens.runtime.json`; run only in an authorized environment |
 | `web/src/styles/darkfield/tokens.runtime.json` | Create, **exported** and committed. Runtime token names and values only (D2b, D11(b)) |
 | `web/public/fonts/darkfield/*.woff2`, `…/licenses/*.txt` | Create. Copied fonts and OFL licences (D2b) |
-| `web/scripts/darkfield-source.mjs` | Create. `--verify <canonical-dir>`: canonical verification of `SOURCE.json`, the runtime re-export and compiler equivalence |
+| `web/scripts/darkfield-source.mjs` | Create. `--verify <canonical-dir>`: canonical verification of the checkout's git identity, `SOURCE.json`, the runtime re-export and compiler equivalence |
 | `web/scripts/darkfield-tokens.mjs` | Create. Compiles `tokens.runtime.json` into `tokens.css`; `--check` |
 | `web/src/styles/darkfield/tokens.css` | Create, **generated** and committed |
 | `web/src/styles/darkfield/bridge.css` | Create. Legacy variable → Darkfield role mapping, plus the legacy fence |
@@ -598,11 +645,13 @@ Phase 0 ends here. Publishing the Phase 0 documentation (clean-history branch, p
 | Files listed by Task 4's scan | Modify. Font families |
 | Mono files (Task 5) | Modify |
 | `TerminalDropdown.css`, `RhythmLab.css` focus blocks (Task 6) | Modify. Governed menu controls only |
-| `web/scripts/darkfield-{vendor,runtime,tokens,bridge,settings}.test.mjs`, `web/scripts/darkfield-foundation-browser-test.mjs` | Create |
+| `web/scripts/darkfield-{vendor,runtime,export,source,tokens,bridge,settings}.test.mjs`, `web/scripts/darkfield-foundation-browser-test.mjs` | Create |
 
 **Branch:** `feat/darkfield-foundation`, from `origin/main` after Phase 0 merges (D9).
 
 ### Task 1: Publish the runtime token export, fonts and licences with provenance (D2, D2b, D11(b) decided; needs Phase 1 D9 and a completed Task P2)
+
+**Status (r7).** Task 1 was committed as specified at r6. Its independent review found two contract defects ([E-10](#evidence-summary)): forged canonical keys could bypass classification, and canonical verification did not prove the checkout's git identity. The r7 code below supersedes the r6 code; the correction lands as a separate commit (Step 7), and the r6 commit is not rewritten.
 
 **Publication model (D2b as clarified by D11(b)).**
 - The canonical `tokens.json` never enters this repository. It stays only in the private repository at the pinned tag.
@@ -616,7 +665,7 @@ Phase 0 ends here. Publishing the Phase 0 documentation (clean-history branch, p
 | Runtime fields | `version` · `color.themes[].id` · `color.tokens[].{name, value.{dark,light,mono}}` · `shadow.tokens[].{name, value.{dark,light,mono}}` · `<group>.tokens[].{name, value}` for `spacing`, `radius`, `cut`, `stroke`, `dash`, `opacity`, `duration`, `easing`, `grid`, `layer` · `type.fonts[].{family, file, weight, style}` · `type.families.{sans, narrow, mono}` · `type.groups[].{family, styles[].{name, fontSize, lineHeight, fontWeight, letterSpacing?}}` |
 | Private fields | Top-level `name` · every group `note` · every token `usage` · `color.themes[].name` · `type.groups[].{name, note}` · `type.groups[].styles[].{sample, usage}` |
 
-The private fields hold the specification prose and quantitative usage notes that D11(b) keeps out of the public repository. Any other canonical field makes the export fail until it is classified. An empty object or array carries no value and is ignored; this cannot disclose anything, and from Task 2 onward the compiler-equivalence check in canonical verification catches any consumer impact.
+The private fields hold the specification prose and quantitative usage notes that D11(b) keeps out of the public repository. Any other canonical field makes the export fail until it is classified. Every canonical object key must also match `^[A-Za-z][A-Za-z0-9_-]*$` (r7), checked before any path is built: paths join keys with `.` and mark arrays with `[]`, so a key containing `.`, `[` or `]`, or an empty key, could otherwise forge a classified path and be accepted or dropped instead of refused. The canonical keys at the pinned tag all match it. An empty object or array carries no value and is ignored; this cannot disclose anything, and from Task 2 onward the compiler-equivalence check in canonical verification catches any consumer impact.
 
 **Why a same-shape projection.**
 - `tokens.runtime.json` keeps the canonical nesting for the runtime fields (adding a `schema` marker). The Task 2 compiler and its tests therefore consume it unchanged apart from the input path and header text.
@@ -625,7 +674,7 @@ The private fields hold the specification prose and quantitative usage notes tha
 
 **Two kinds of verification:**
 - **Public verification** (any clean checkout, no credentials): the runtime file has the exact approved schema and value grammar and contains no private fields; every published file matches `SOURCE.json`; `tokens.css` is in sync and carries only its fixed header comments. This cannot establish that the runtime file truly derives from the private canonical file.
-- **Canonical verification** (authorized environment only, with `kareemsasa` read access to the canonical repository, never in CI): `darkfield-source.mjs --verify <canonical checkout at the pinned tag>` re-exports from the canonical `tokens.json` and requires byte-identical output, a matching canonical hash, and identical copied fonts and licences. Task 2 adds compiler equivalence.
+- **Canonical verification** (authorized environment only, with `kareemsasa` read access to the canonical repository, never in CI): `darkfield-source.mjs --verify <canonical checkout at the pinned tag>` first proves the checkout's local git identity against `SOURCE.json`, then re-exports from the canonical `tokens.json`, read from the pinned commit's blobs, and requires byte-identical output, a matching canonical hash, and identical copied fonts and licences. The authenticated canonical identity check runs in the same session. Task 2 adds compiler equivalence.
 
 **Files:**
 - Create: `web/scripts/darkfield-export.mjs` (exporter; public code, contains no specification content)
@@ -634,6 +683,7 @@ The private fields hold the specification prose and quantitative usage notes tha
 - Create: `web/public/fonts/darkfield/` (6 woff2 files) and `web/public/fonts/darkfield/licenses/` (3 OFL texts)
 - Create: `web/scripts/darkfield-source.mjs` (canonical verifier)
 - Test: `web/scripts/darkfield-vendor.test.mjs`, `web/scripts/darkfield-runtime.test.mjs`
+- Test (r7, Step 7): `web/scripts/darkfield-export.test.mjs`, `web/scripts/darkfield-source.test.mjs`
 
 **Interfaces:**
 - Produces `tokens.runtime.json`, schema `darkfield-runtime/1`, with the runtime fields in the table above and a top-level `schema` field. It is consumed by Task 2 through `SOURCE_PATH`.
@@ -641,7 +691,8 @@ The private fields hold the specification prose and quantitative usage notes tha
   - The runtime entry: `files["src/styles/darkfield/tokens.runtime.json"] = { derivedFrom: "tokens.json", sourceSha256, exporter: "scripts/darkfield-export.mjs", schema: "darkfield-runtime/1", sha256 }`.
   - Every font and licence entry: `{ from: "<path in canonical repo>", sha256 }`.
   - `SOURCE.json` holds only identifiers and hashes, never canonical text.
-- Exports `exportRuntime(canonical) → string` (deterministic: fixed key order, two-space indent, trailing newline), plus `RUNTIME_PATH`, `RUNTIME_SCHEMA`, `THEMES`, `THEMED_GROUPS`, `UNTHEMED_GROUPS` and `FAMILIES`.
+- Exports `exportRuntime(canonical) → string` (deterministic: fixed key order, two-space indent, trailing newline), plus `parseCanonical(bytes)` (r7), `RUNTIME_PATH`, `RUNTIME_SCHEMA`, `THEMES`, `THEMED_GROUPS`, `UNTHEMED_GROUPS` and `FAMILIES`.
+- `darkfield-source.mjs` exports `verifyCanonical(canonicalDir, source, web) → Promise<string[]>` (r7): the list of mismatches, empty when verification passes. Its `--verify` command prints them and sets the exit code.
 
 - [ ] **Step 1: Write the failing public tests.**
 
@@ -812,7 +863,7 @@ The private fields hold the specification prose and quantitative usage notes tha
 
   Expected: FAIL with `ENOENT` on `SOURCE.json` and `tokens.runtime.json`.
 
-- [ ] **Step 3: Write the exporter and the canonical verifier.**
+- [ ] **Step 3: Write the exporter and the canonical verifier.** This is the r7 code. The r6 code lacked the key grammar, the safe refusals and the git identity checks.
 
   ```js
   // web/scripts/darkfield-export.mjs
@@ -821,7 +872,8 @@ The private fields hold the specification prose and quantitative usage notes tha
   //   node scripts/darkfield-export.mjs <canonical-dir>   rewrite src/styles/darkfield/tokens.runtime.json
   // Allowlist projection: only the fields named below are emitted. Every canonical field must be
   // classified as RUNTIME or PRIVATE; an unclassified field fails the export instead of being dropped
-  // or copied. The script never prints canonical text: only a hash.
+  // or copied. A key outside KEY fails it too: it could otherwise forge another field's path.
+  // The script never prints canonical text: only a hash, and refusals that name known fields only.
   import { createHash } from "node:crypto";
   import { readFile, writeFile } from "node:fs/promises";
   import { resolve } from "node:path";
@@ -833,6 +885,10 @@ The private fields hold the specification prose and quantitative usage notes tha
   export const THEMED_GROUPS = ["color", "shadow"];
   export const UNTHEMED_GROUPS = ["spacing", "radius", "cut", "stroke", "dash", "opacity", "duration", "easing", "grid", "layer"];
   export const FAMILIES = ["sans", "narrow", "mono"];
+
+  // Every canonical object key must match KEY. Paths join keys with "." and mark arrays with "[]", so a
+  // key containing ".", "[" or "]", or an empty key, could collide with a classified path.
+  const KEY = /^[A-Za-z][A-Za-z0-9_-]*$/;
 
   // Field classification of the canonical schema (tokens.json v1). Keys are canonical paths with [] for arrays.
   const PRIVATE = new Set([
@@ -850,11 +906,36 @@ The private fields hold the specification prose and quantitative usage notes tha
     "type.groups[].styles[].lineHeight", "type.groups[].styles[].fontWeight", "type.groups[].styles[].letterSpacing",
   ]);
 
+  // Refusals name only path segments the classification already knows; any other segment is shown by
+  // its length, so a diagnostic never repeats unknown canonical text.
+  const KNOWN = new Set([...PRIVATE, ...RUNTIME].flatMap((p) => p.split(".").map((s) => s.replace(/(\[\])+$/, ""))));
+  const safePath = (path) =>
+    path
+      .split(".")
+      .map((segment) => {
+        const key = segment.replace(/(\[\])+$/, "");
+        return KNOWN.has(key) ? segment : `<${key.length} chars>${segment.slice(key.length)}`;
+      })
+      .join(".");
+
   const leafPaths = (node, path = "", out = new Set()) => {
     if (Array.isArray(node)) node.forEach((item) => leafPaths(item, `${path}[]`, out));
-    else if (node && typeof node === "object") for (const [key, value] of Object.entries(node)) leafPaths(value, path ? `${path}.${key}` : key, out);
-    else out.add(path);
+    else if (node && typeof node === "object") {
+      for (const [key, value] of Object.entries(node)) {
+        if (!KEY.test(key)) throw new Error(`invalid canonical key (${key.length} chars) under ${path ? safePath(path) : "the root"}`);
+        leafPaths(value, path ? `${path}.${key}` : key, out);
+      }
+    } else out.add(path);
     return out;
+  };
+
+  // JSON.parse errors can quote a fragment of their input; refuse without repeating it.
+  export const parseCanonical = (bytes) => {
+    try {
+      return JSON.parse(bytes.toString("utf8"));
+    } catch {
+      throw new Error("canonical tokens.json is not valid JSON");
+    }
   };
 
   const text = (value, where) => {
@@ -864,9 +945,9 @@ The private fields hold the specification prose and quantitative usage notes tha
 
   export const exportRuntime = (canonical) => {
     const unclassified = [...leafPaths(canonical)].filter((p) => !PRIVATE.has(p) && !RUNTIME.has(p));
-    if (unclassified.length) throw new Error(`unclassified canonical fields (classify before exporting): ${unclassified.join(", ")}`);
+    if (unclassified.length) throw new Error(`unclassified canonical fields (classify before exporting): ${unclassified.map(safePath).join(", ")}`);
     const ids = canonical.color.themes.map((theme) => theme.id);
-    if (JSON.stringify(ids) !== JSON.stringify(THEMES)) throw new Error(`unexpected theme ids: ${ids.join(",")}`);
+    if (JSON.stringify(ids) !== JSON.stringify(THEMES)) throw new Error(`unexpected theme ids (expected ${THEMES.join(",")})`);
     if (!Number.isInteger(canonical.version)) throw new Error("version: expected an integer");
     const token = (t, where, themed) => ({
       name: text(t.name, `${where}.name`),
@@ -916,7 +997,7 @@ The private fields hold the specification prose and quantitative usage notes tha
       console.error("usage: node scripts/darkfield-export.mjs <canonical-dir>");
       process.exit(2);
     }
-    const json = exportRuntime(JSON.parse(await readFile(resolve(dir, "tokens.json"), "utf8")));
+    const json = exportRuntime(parseCanonical(await readFile(resolve(dir, "tokens.json"))));
     await writeFile(RUNTIME_PATH, json);
     console.log(`wrote tokens.runtime.json · sha256 ${createHash("sha256").update(json).digest("hex")}`);
   }
@@ -924,56 +1005,103 @@ The private fields hold the specification prose and quantitative usage notes tha
 
   ```js
   // web/scripts/darkfield-source.mjs
-  // Canonical verification: run only in an authorized environment holding a checkout of the private
-  // canonical repository at the pinned tag. A public checkout cannot run it and cannot by itself prove
-  // that the runtime export derives from the canonical source.
+  // Canonical verification: run only in an authorized environment holding a clone of the private
+  // canonical repository, checked out at the pinned tag. A public checkout cannot run it and cannot by
+  // itself prove that the runtime export derives from the canonical source.
   // node scripts/darkfield-source.mjs --verify <canonical-dir>
+  // Local identity: <canonical-dir> must be the root of a git checkout whose annotated tag resolves to
+  // the commit pinned in SOURCE.json, with HEAD at that commit. Every canonical file is then read from
+  // that commit's blobs, never from the working tree, with git replace refs ignored. It trusts the object
+  // store of the fresh clone made by the same-session identity check: git does not re-hash objects on read.
+  // Remote identity is that authenticated owner-account check; a local origin URL proves nothing.
+  import { execFileSync } from "node:child_process";
   import { createHash } from "node:crypto";
-  import { readFile } from "node:fs/promises";
+  import { readFile, realpath } from "node:fs/promises";
   import { resolve } from "node:path";
-  import { exportRuntime } from "./darkfield-export.mjs";
+  import { fileURLToPath } from "node:url";
+  import { exportRuntime, parseCanonical } from "./darkfield-export.mjs";
 
-  const web = resolve(import.meta.dirname, "..");
-  const flag = process.argv.indexOf("--verify");
-  if (flag === -1 || !process.argv[flag + 1]) {
-    console.error("usage: node scripts/darkfield-source.mjs --verify <canonical-dir>");
-    process.exit(2);
-  }
-  const canonicalDir = resolve(process.argv[flag + 1]);
-  const source = JSON.parse(await readFile(resolve(web, "src/styles/darkfield/SOURCE.json"), "utf8"));
+  const COMMIT = /^[0-9a-f]{40}$/;
+  const TAG = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
+  const BLOB_PATH = /^(?!.*(?:^|\/)\.\.?(?:\/|$))[A-Za-z0-9][A-Za-z0-9._/-]*$/;
   const sha = (bytes) => createHash("sha256").update(bytes).digest("hex");
-  let failures = 0;
-  const fail = (message) => {
-    failures += 1;
-    console.error(`MISMATCH ${message}`);
+
+  // git, confined to the canonical checkout: GIT_* variables that could redirect it are dropped, and
+  // --no-replace-objects stops refs/replace/* from substituting the objects it reads.
+  const gitIn = (dir) => {
+    const env = Object.fromEntries(Object.entries(process.env).filter(([name]) => !name.startsWith("GIT_")));
+    return (...args) => {
+      try {
+        return execFileSync("git", ["--no-replace-objects", "-C", dir, ...args], { env, stdio: ["ignore", "pipe", "ignore"], maxBuffer: 1 << 26 });
+      } catch {
+        return null;
+      }
+    };
   };
 
-  for (const [vendored, entry] of Object.entries(source.files)) {
-    const local = await readFile(resolve(web, vendored));
-    if (entry.from) {
-      // Copied files (fonts, licences): byte-identical to their canonical counterparts.
-      const canonical = await readFile(resolve(canonicalDir, entry.from));
-      if (sha(canonical) !== entry.sha256 || sha(local) !== entry.sha256) fail(vendored);
-    } else if (entry.derivedFrom) {
-      // Derived runtime tokens: re-export from the pinned canonical file and require identical bytes.
-      const canonicalBytes = await readFile(resolve(canonicalDir, entry.derivedFrom));
-      if (sha(canonicalBytes) !== entry.sourceSha256) fail(`${vendored}: canonical ${entry.derivedFrom} hash`);
-      const canonical = JSON.parse(canonicalBytes.toString("utf8"));
-      const exported = exportRuntime(canonical);
-      if (exported !== local.toString("utf8") || sha(exported) !== entry.sha256) fail(`${vendored}: re-export differs`);
-    } else {
-      fail(`${vendored}: entry has neither from nor derivedFrom`);
+  export const verifyCanonical = async (canonicalDir, source, web) => {
+    const failures = [];
+    const fail = (message) => failures.push(message);
+    const git = gitIn(canonicalDir);
+    const line = (bytes) => bytes?.toString("utf8").trim();
+    const { tag, commit } = source.canonical;
+
+    // Identity first; nothing is read from the checkout until it holds.
+    if (!COMMIT.test(commit) || !TAG.test(tag)) fail("SOURCE.json: canonical tag or commit is malformed");
+    else if (line(git("rev-parse", "--show-toplevel")) !== (await realpath(canonicalDir).catch(() => null))) fail("canonical: not the root of a git checkout");
+    else if (line(git("cat-file", "-t", `refs/tags/${tag}`)) !== "tag") fail(`canonical: ${tag} is not an annotated tag`);
+    else if (line(git("rev-parse", "--verify", "--quiet", `refs/tags/${tag}^{commit}`)) !== commit) fail(`canonical: ${tag} does not resolve to ${commit}`);
+    else if (line(git("rev-parse", "--verify", "--quiet", "HEAD")) !== commit) fail(`canonical: HEAD is not ${commit}`);
+    if (failures.length) return failures;
+
+    // Canonical bytes come from the pinned commit's blobs, so working-tree edits cannot affect the result.
+    const pinned = (path) => (BLOB_PATH.test(path) ? git("cat-file", "blob", `${commit}:${path}`) : null);
+
+    for (const [vendored, entry] of Object.entries(source.files)) {
+      const local = await readFile(resolve(web, vendored));
+      if (entry.from) {
+        // Copied files (fonts, licences): byte-identical to their canonical counterparts.
+        const canonical = pinned(entry.from);
+        if (!canonical || sha(canonical) !== entry.sha256 || sha(local) !== entry.sha256) fail(vendored);
+      } else if (entry.derivedFrom) {
+        // Derived runtime tokens: re-export from the pinned canonical file and require identical bytes.
+        const canonicalBytes = pinned(entry.derivedFrom);
+        if (!canonicalBytes || sha(canonicalBytes) !== entry.sourceSha256) {
+          fail(`${vendored}: canonical ${entry.derivedFrom} hash`);
+          continue;
+        }
+        const canonical = parseCanonical(canonicalBytes);
+        const exported = exportRuntime(canonical);
+        if (exported !== local.toString("utf8") || sha(exported) !== entry.sha256) fail(`${vendored}: re-export differs`);
+      } else {
+        fail(`${vendored}: entry has neither from nor derivedFrom`);
+      }
     }
+    return failures;
+  };
+
+  if (process.argv[1] === fileURLToPath(import.meta.url)) {
+    const flag = process.argv.indexOf("--verify");
+    if (flag === -1 || !process.argv[flag + 1]) {
+      console.error("usage: node scripts/darkfield-source.mjs --verify <canonical-dir>");
+      process.exit(2);
+    }
+    const web = resolve(import.meta.dirname, "..");
+    const canonicalDir = resolve(process.argv[flag + 1]);
+    const source = JSON.parse(await readFile(resolve(web, "src/styles/darkfield/SOURCE.json"), "utf8"));
+    const failures = await verifyCanonical(canonicalDir, source, web);
+    for (const message of failures) console.error(`MISMATCH ${message}`);
+    if (failures.length) process.exit(1);
+    console.log(`verified ${Object.keys(source.files).length} files against ${canonicalDir}`);
   }
-  if (failures) process.exit(1);
-  console.log(`verified ${Object.keys(source.files).length} files against ${canonicalDir}`);
   ```
 
 - [ ] **Step 4: Export, copy and record provenance (authorized environment).**
-  - Check out the canonical repository at `tokens-v1-2026-10-09` into `$DF_TMP/darkfield` with credentials explicitly bound to `kareemsasa` (Task P2 identity rule).
+  - Check out the canonical repository at `tokens-v1-2026-10-09` into `$DF_TMP/darkfield` with credentials explicitly bound to `kareemsasa` (Task P2 identity rule), as part of the canonical identity check.
   - Confirm `git -C "$DF_TMP/darkfield" rev-parse HEAD` is `4f02965bfa51eb060c39734608422dde0d288009`.
   - Run `cd web && node scripts/darkfield-export.mjs "$DF_TMP/darkfield"`. It prints only a hash; never paste canonical content into logs, commits or PR text.
   - Copy `fonts/*.woff2` and `licenses/*.txt` from the canonical checkout to the paths above. Copy nothing else from it.
+  - The copied fonts and licences are verified by hash. Never normalize their bytes (line endings, whitespace) to satisfy whitespace tooling. `git diff --check` warnings on them are expected: the IBM Plex Mono licence uses CRLF line endings.
   - Write `SOURCE.json`:
     - `system`: `"Darkfield"`; `tokensVersion`: the canonical `version` (currently `1`).
     - `canonical`: `github.com/kareemsasa/darkfield`, `tokens-v1-2026-10-09`, `4f02965bfa51eb060c39734608422dde0d288009`.
@@ -983,9 +1111,9 @@ The private fields hold the specification prose and quantitative usage notes tha
     - Record no owner-held editing copies or URLs.
 
 - [ ] **Step 5: Verify.**
-  - Public: `cd web && node --test scripts/darkfield-vendor.test.mjs scripts/darkfield-runtime.test.mjs`. Expected: PASS, 16 tests (12 + 4).
-  - Canonical, in the authorized environment: `cd web && node scripts/darkfield-source.mjs --verify "$DF_TMP/darkfield"`. Expected: `verified 10 files`.
-  - The reviewer independently repeats canonical verification. In the authorized environment, it also runs the canonical disclosure scan (see [Runtime token propagation](#runtime-token-propagation)) over `tokens.runtime.json`, `SOURCE.json` and the test files. It expects only approved-value matches.
+  - Public: `cd web && node --test scripts/darkfield-vendor.test.mjs scripts/darkfield-runtime.test.mjs`. Expected: PASS, 16 tests (12 + 4). After Step 7, the public set is 39 tests (see Step 7).
+  - Canonical, in the authorized environment: the canonical identity check, then `cd web && node scripts/darkfield-source.mjs --verify "$DF_TMP/darkfield"`. Expected: `verified 10 files`.
+  - The reviewer independently repeats the canonical identity check and canonical verification. In the authorized environment, it also runs the canonical disclosure scan (see [Runtime token propagation](#runtime-token-propagation)) over `tokens.runtime.json`, `SOURCE.json` and the test files. It expects only approved-value matches.
   - If the reviewer has no canonical access, it reports derivation as **UNVERIFIED**, never as PASS.
 
 - [ ] **Step 6: Commit** exactly these paths: the exporter, `tokens.runtime.json`, `SOURCE.json`, the 6 fonts, the 3 licences, `darkfield-source.mjs`, and the two tests.
@@ -993,6 +1121,285 @@ The private fields hold the specification prose and quantitative usage notes tha
   Message: `feat(web): publish Darkfield runtime tokens and OFL fonts with a source manifest`.
 
   The canonical `tokens.json` must not appear in `git diff --cached --name-only`.
+
+- [ ] **Step 7: Conformance correction (r7; one further commit).** It corrects the two defects recorded in [E-10](#evidence-summary) and leaves the r6 commit as it is.
+  - Modify `web/scripts/darkfield-export.mjs` and `web/scripts/darkfield-source.mjs` to the Step 3 code.
+  - Create the two regression tests below. Their inputs are synthetic: the public runtime values with placeholder private fields, and throwaway git repositories. They need the `git` command, but no network, credentials or canonical access.
+  - `tokens.runtime.json`, `SOURCE.json`, the 6 fonts and the 3 licences must stay byte-identical to the r6 commit. If the correction would change any of them, **stop**.
+
+  ```js
+  // web/scripts/darkfield-export.test.mjs
+  // Public regression tests for the exporter's fail-closed classification and safe refusals (plan r7).
+  // The canonical input is synthetic: the public runtime values plus placeholder private fields. No
+  // canonical text is used, and none is needed.
+  import test from "node:test";
+  import assert from "node:assert/strict";
+  import { readFile } from "node:fs/promises";
+  import { exportRuntime, parseCanonical, RUNTIME_PATH } from "./darkfield-export.mjs";
+
+  const committed = await readFile(RUNTIME_PATH, "utf8");
+  const MARKER = "zq injected placeholder prose";
+
+  // A canonical-shaped input: every runtime field from the committed export, every private field a marker.
+  const synthetic = () => {
+    const { schema, ...runtime } = JSON.parse(committed);
+    assert.equal(schema, "darkfield-runtime/1");
+    const canonical = { name: MARKER, ...runtime };
+    for (const group of Object.values(canonical)) {
+      if (!Array.isArray(group?.tokens)) continue;
+      group.note = MARKER;
+      for (const token of group.tokens) token.usage = MARKER;
+    }
+    for (const theme of canonical.color.themes) theme.name = MARKER;
+    for (const group of canonical.type.groups) {
+      Object.assign(group, { name: MARKER, note: MARKER });
+      for (const style of group.styles) Object.assign(style, { sample: MARKER, usage: MARKER });
+    }
+    return canonical;
+  };
+
+  // Refused, and the refusal repeats neither the injected text nor the offending key.
+  const refuses = (canonical, pattern, key) =>
+    assert.throws(
+      () => exportRuntime(canonical),
+      (error) => {
+        assert.match(error.message, pattern);
+        assert.ok(!error.message.includes("zq"), "the refusal must not repeat injected text");
+        if (key) assert.ok(!error.message.includes(key), "the refusal must not repeat the offending key");
+        return true;
+      },
+    );
+
+  test("a valid synthetic canonical input reproduces the committed runtime bytes, deterministically", () => {
+    assert.equal(exportRuntime(synthetic()), committed);
+    assert.equal(exportRuntime(synthetic()), exportRuntime(synthetic()));
+  });
+
+  test("private fields never reach the runtime output", () => {
+    assert.ok(!exportRuntime(synthetic()).includes("zq"));
+  });
+
+  const FORGED_KEYS = [
+    ["a dotted top-level key", (c) => (c["type.families.sans"] = MARKER), "type.families.sans"],
+    ["a dotted nested key", (c) => (c.type["families.sans"] = MARKER), "families.sans"],
+    ["a bracketed key", (c) => (c.color["tokens[].name"] = MARKER), "tokens[].name"],
+    ["an empty top-level key", (c) => (c[""] = { version: MARKER }), null],
+    ["a key forging a private path", (c) => (c.type.groups[0]["styles[].sample"] = MARKER), "styles[].sample"],
+  ];
+  for (const [label, mutate, key] of FORGED_KEYS) {
+    test(`refuses ${label}`, () => {
+      const canonical = synthetic();
+      mutate(canonical);
+      refuses(canonical, /^invalid canonical key \(\d+ chars\) under /, key);
+    });
+  }
+
+  test("ordinary unknown fields remain refused, named only by length", () => {
+    const canonical = synthetic();
+    canonical.color.tokens[0]["zq-unknown"] = MARKER;
+    refuses(canonical, /^unclassified canonical fields \(classify before exporting\): color\.tokens\[\]\.<10 chars>$/, "zq-unknown");
+  });
+
+  test("unexpected theme ids are refused without repeating them", () => {
+    const canonical = synthetic();
+    canonical.color.themes[2].id = MARKER;
+    refuses(canonical, /^unexpected theme ids \(expected dark,light,mono\)$/);
+  });
+
+  test("malformed canonical JSON is refused without quoting it", () => {
+    assert.throws(() => parseCanonical(Buffer.from(`{"note": ${MARKER}}`)), {
+      message: "canonical tokens.json is not valid JSON",
+    });
+  });
+  ```
+
+  ```js
+  // web/scripts/darkfield-source.test.mjs
+  // Public regression tests for the git identity checks of canonical verification (plan r7). Every
+  // repository here is synthetic, built from public placeholder data, so the private canonical
+  // repository is never needed. Requires the git command; no network and no credentials.
+  import test from "node:test";
+  import assert from "node:assert/strict";
+  import { execFileSync } from "node:child_process";
+  import { createHash } from "node:crypto";
+  import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+  import { tmpdir } from "node:os";
+  import { join } from "node:path";
+  import { exportRuntime, RUNTIME_PATH } from "./darkfield-export.mjs";
+  import { verifyCanonical } from "./darkfield-source.mjs";
+
+  const TAG = "tokens-v0-test";
+  const sha = (bytes) => createHash("sha256").update(bytes).digest("hex");
+  const root = await mkdtemp(join(tmpdir(), "darkfield-source-test-"));
+  test.after(() => rm(root, { recursive: true, force: true }));
+
+  // The test's own git calls ignore the operator's configuration.
+  const gitEnv = { PATH: process.env.PATH, HOME: root, GIT_CONFIG_NOSYSTEM: "1" };
+  const git = (dir, ...args) =>
+    execFileSync("git", ["-C", dir, "-c", "user.name=test", "-c", "user.email=test@example.invalid", "-c", "commit.gpgSign=false", "-c", "tag.gpgSign=false", ...args], {
+      env: gitEnv,
+      stdio: ["ignore", "pipe", "ignore"],
+    })
+      .toString()
+      .trim();
+
+  // Placeholder canonical content whose export is the committed runtime file, and a placeholder font.
+  const runtime = await readFile(RUNTIME_PATH, "utf8");
+  const { schema, ...runtimeFields } = JSON.parse(runtime);
+  const tokensJson = `${JSON.stringify({ name: "placeholder", ...runtimeFields }, null, 2)}\n`;
+  const FONT = Buffer.from("placeholder font bytes");
+  assert.equal(schema, "darkfield-runtime/1");
+  assert.equal(exportRuntime(JSON.parse(tokensJson)), runtime);
+
+  const web = join(root, "web");
+  await mkdir(join(web, "src/styles/darkfield"), { recursive: true });
+  await mkdir(join(web, "public/fonts/darkfield"), { recursive: true });
+  await writeFile(join(web, "src/styles/darkfield/tokens.runtime.json"), runtime);
+  await writeFile(join(web, "public/fonts/darkfield/Placeholder.woff2"), FONT);
+  const FONT_ENTRY = "public/fonts/darkfield/Placeholder.woff2";
+  const files = {
+    "src/styles/darkfield/tokens.runtime.json": {
+      derivedFrom: "tokens.json",
+      sourceSha256: sha(tokensJson),
+      exporter: "scripts/darkfield-export.mjs",
+      schema: "darkfield-runtime/1",
+      sha256: sha(runtime),
+    },
+    [FONT_ENTRY]: { from: "fonts/Placeholder.woff2", sha256: sha(FONT) },
+  };
+  const sourceFor = (commit) => ({ canonical: { location: "example.invalid/canonical", tag: TAG, commit }, files });
+
+  let count = 0;
+  const plainDir = async () => {
+    const dir = join(root, `plain-${++count}`);
+    await mkdir(join(dir, "fonts"), { recursive: true });
+    await writeFile(join(dir, "tokens.json"), tokensJson);
+    await writeFile(join(dir, "fonts/Placeholder.woff2"), FONT);
+    return dir;
+  };
+  // A synthetic canonical repository: one commit with the placeholder files, an optional tag on it,
+  // and optionally a later commit that HEAD moves to.
+  const repo = async ({ tag = "annotated", later = false } = {}) => {
+    const dir = await plainDir();
+    git(dir, "init", "-q", "-b", "main");
+    git(dir, "add", "-A");
+    git(dir, "commit", "-q", "-m", "canonical");
+    const pinned = git(dir, "rev-parse", "HEAD");
+    if (tag === "annotated") git(dir, "tag", "-a", "-m", "pin", TAG);
+    if (tag === "lightweight") git(dir, "tag", TAG);
+    if (later) git(dir, "commit", "-q", "--allow-empty", "-m", "later");
+    return { dir, pinned, head: git(dir, "rev-parse", "HEAD") };
+  };
+  // The authorized arrangement: a clone checked out (detached) at the tag, optionally shallow.
+  const cloneAtTag = (origin, ...options) => {
+    const dir = join(root, `clone-${++count}`);
+    git(root, "clone", "-q", ...options, "--branch", TAG, `file://${origin}`, dir);
+    return dir;
+  };
+
+  test("a detached clone at the pinned annotated tag verifies", async () => {
+    const { dir, pinned } = await repo();
+    assert.deepEqual(await verifyCanonical(cloneAtTag(dir), sourceFor(pinned), web), []);
+  });
+
+  test("a shallow clone at the pinned annotated tag verifies", async () => {
+    const { dir, pinned } = await repo();
+    assert.deepEqual(await verifyCanonical(cloneAtTag(dir, "--depth", "1"), sourceFor(pinned), web), []);
+  });
+
+  test("working-tree edits do not change what is verified: canonical bytes come from the pinned commit", async () => {
+    const { dir, pinned } = await repo();
+    const clone = cloneAtTag(dir);
+    await writeFile(join(clone, "tokens.json"), "not json");
+    await writeFile(join(clone, "fonts/Placeholder.woff2"), "edited");
+    assert.deepEqual(await verifyCanonical(clone, sourceFor(pinned), web), []);
+  });
+
+  test("a replace ref cannot substitute canonical bytes", async () => {
+    const { dir, pinned } = await repo();
+    const clone = cloneAtTag(dir);
+    const forged = "forged font bytes";
+    await writeFile(join(root, "forged"), forged);
+    git(clone, "replace", git(clone, "rev-parse", `${pinned}:fonts/Placeholder.woff2`), git(clone, "hash-object", "-w", join(root, "forged")));
+    assert.equal(git(clone, "cat-file", "blob", `${pinned}:fonts/Placeholder.woff2`), forged, "plain git follows the replace ref");
+    const forgedWeb = join(root, `web-${++count}`);
+    await mkdir(join(forgedWeb, "src/styles/darkfield"), { recursive: true });
+    await mkdir(join(forgedWeb, "public/fonts/darkfield"), { recursive: true });
+    await writeFile(join(forgedWeb, "src/styles/darkfield/tokens.runtime.json"), runtime);
+    await writeFile(join(forgedWeb, FONT_ENTRY), forged);
+    const source = sourceFor(pinned);
+    source.files = { ...files, [FONT_ENTRY]: { ...files[FONT_ENTRY], sha256: sha(forged) } };
+    assert.deepEqual(await verifyCanonical(clone, source, forgedWeb), [FONT_ENTRY]);
+  });
+
+  test("committed canonical content is still checked against SOURCE.json", async () => {
+    const { dir, pinned } = await repo();
+    const source = sourceFor(pinned);
+    source.files = { ...files, [FONT_ENTRY]: { ...files[FONT_ENTRY], sha256: sha("other bytes") } };
+    assert.deepEqual(await verifyCanonical(cloneAtTag(dir), source, web), [FONT_ENTRY]);
+  });
+
+  test("a plain directory fails", async () => {
+    const { pinned } = await repo();
+    assert.deepEqual(await verifyCanonical(await plainDir(), sourceFor(pinned), web), ["canonical: not the root of a git checkout"]);
+  });
+
+  test("a plain directory inside another checkout fails", async () => {
+    const { dir, pinned } = await repo();
+    const nested = join(dir, "fonts");
+    assert.deepEqual(await verifyCanonical(nested, sourceFor(pinned), web), ["canonical: not the root of a git checkout"]);
+  });
+
+  test("GIT_DIR in the environment cannot make a plain directory pass", async () => {
+    const { dir, pinned } = await repo();
+    const saved = process.env.GIT_DIR;
+    process.env.GIT_DIR = join(dir, ".git");
+    try {
+      assert.deepEqual(await verifyCanonical(await plainDir(), sourceFor(pinned), web), ["canonical: not the root of a git checkout"]);
+    } finally {
+      if (saved === undefined) delete process.env.GIT_DIR;
+      else process.env.GIT_DIR = saved;
+    }
+  });
+
+  test("a missing tag fails", async () => {
+    const { dir, pinned } = await repo({ tag: "none" });
+    assert.deepEqual(await verifyCanonical(dir, sourceFor(pinned), web), [`canonical: ${TAG} is not an annotated tag`]);
+  });
+
+  test("a lightweight tag fails", async () => {
+    const { dir, pinned } = await repo({ tag: "lightweight" });
+    assert.deepEqual(await verifyCanonical(dir, sourceFor(pinned), web), [`canonical: ${TAG} is not an annotated tag`]);
+  });
+
+  test("an annotated tag resolving to a commit other than the pin fails", async () => {
+    const { dir, head } = await repo({ later: true });
+    assert.deepEqual(await verifyCanonical(dir, sourceFor(head), web), [`canonical: ${TAG} does not resolve to ${head}`]);
+  });
+
+  test("HEAD moved off the pinned commit fails", async () => {
+    const { dir, pinned } = await repo({ later: true });
+    assert.deepEqual(await verifyCanonical(dir, sourceFor(pinned), web), [`canonical: HEAD is not ${pinned}`]);
+  });
+
+  test("a malformed pin fails before git is consulted", async () => {
+    const { dir } = await repo();
+    assert.deepEqual(await verifyCanonical(dir, sourceFor("HEAD"), web), ["SOURCE.json: canonical tag or commit is malformed"]);
+  });
+  ```
+
+  **Verify:**
+  - Against the r6 scripts, the new tests fail. Against the r7 scripts: `cd web && node --test scripts/darkfield-vendor.test.mjs scripts/darkfield-runtime.test.mjs scripts/darkfield-export.test.mjs scripts/darkfield-source.test.mjs`. Expected: PASS, 39 tests (12 + 4 + 10 + 13), also from a clean checkout without credentials or network.
+  - The sha256 of each published Darkfield file equals both `SOURCE.json` and the r6 commit.
+  - `npm run typecheck`, `npm run lint` and `npm test` pass, with no diff in `web/src/data/generated/articles.ts`.
+  - In the authorized environment, after the canonical identity check: `--verify` prints `verified 10 files`; a re-export with the r7 exporter is byte-identical to `tokens.runtime.json`. In a temporary copy of the clone, never pushed: a local commit that moves `HEAD` fails; the tag re-created as a lightweight tag on the pinned commit fails; an edited working-tree `tokens.json` still verifies, and so does a replace ref on its blob.
+  - The reviewer repeats these checks and runs the canonical disclosure scan over the four files and the commit message.
+
+  **Commit** exactly these four paths: `web/scripts/darkfield-export.mjs`, `web/scripts/darkfield-source.mjs`, `web/scripts/darkfield-export.test.mjs`, `web/scripts/darkfield-source.test.mjs`.
+
+  Message: `fix(web): refuse forged Darkfield token keys and verify the canonical git identity`.
+
+  Task 2 starts from this commit. Its Step 5 insertion point (the `derivedFrom` branch, after the re-export comparison, with `canonical`, `exported`, `vendored` and `fail` in scope) is unchanged.
 
 ### Task 2: Compile tokens.runtime.json into tokens.css
 
@@ -2219,6 +2626,11 @@ Every line number refers to `a16c70f`. Implementers locate code by the anchor, n
     - an extra CSS comment (runtime test);
     - an altered value (canonical verification and the vendor test);
     - a dropped token (canonical verification).
+- **E-10. Task 1 review findings** (2026-10-11, Task 1 at r6; reproduced with synthetic input only).
+  - Exporter: five key forms bypassed classification: a dotted top-level key, a dotted nested key, a bracketed key, an empty top-level key, and a key forging a private path. None emitted content, and the output stayed byte-identical. Ordinary unknown keys were refused, but the refusal repeated the key, and JSON parse errors can quote part of their input.
+  - Verifier: it never read the tag or commit in `SOURCE.json` and read canonical files from the working tree, so a plain copy of the right files verified.
+  - Neither defect affected the published files: every canonical key matches the r7 key grammar, and the pin was checked by hand in Task 1 and again by its reviewer.
+  - Accepted limitations, not defects: the public tests cannot detect a short phrase in a name or a font stack, or an altered value with a recomputed hash. Only canonical verification can (see Leakage controls and the Validation model).
 - **Dry runs in a throwaway local workspace, 2026-10-11:**
   - The Task 2 compiler and tests: 8/8 pass.
   - The bridge fence check against the r1 bridge, after the fence fix.
@@ -2228,6 +2640,13 @@ Every line number refers to `a16c70f`. Implementers locate code by the anchor, n
 
 ## Revision log
 
+- **r7 (2026-10-11, Task 1 conformance correction).**
+  - Exporter: every canonical object key must match `^[A-Za-z][A-Za-z0-9_-]*$`, checked before any path is built. Refusals show unknown path segments only by length, theme-id and JSON parse refusals no longer repeat input, and `parseCanonical` is exported.
+  - Verifier: proves the checkout's local git identity (checkout root; annotated tag resolving to the pinned commit; `HEAD` at that commit), reads canonical files from the pinned commit's blobs with replace refs disabled, and ignores `GIT_*` environment overrides. `verifyCanonical` is exported for public tests on synthetic repositories.
+  - Defined the canonical identity check (authenticated remote side, same session; one fail-fast script run as its own `bash` process, which makes Task P2 Step 5's clone concrete) and its trust boundary, and required it wherever canonical verification runs.
+  - Added `darkfield-export.test.mjs` and `darkfield-source.test.mjs` as Task 1 Step 7, a separate correction commit. The public Task 1 set is now 39 tests.
+  - Recorded E-10, and that copied fonts and licences are verified by hash and never normalized.
+  - Unchanged: the runtime schema, token values, published files, Task 2's insertion point, every open decision, the Status and D9 entries, and Task P0's wording.
 - **r6 (2026-10-11, D11(b) runtime publication model).**
   - Recorded D11(b): usage notes stay private, and the canonical `tokens.json` is never copied into this repository. D2b is scoped accordingly.
   - Replaced Task 1's copy of `tokens.json` with an allowlist runtime export (`tokens.runtime.json`, schema `darkfield-runtime/1`) produced by `darkfield-export.mjs`. The canonical field classification is inspected and listed, and unclassified fields fail the export.
