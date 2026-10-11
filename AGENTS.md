@@ -15,7 +15,7 @@ This repository contains a frontend-only personal website and the Docker/nginx i
 - `web/src/components/` contains shared UI and feature components, including layout, navigation, terminal, project/work details, simulations, backgrounds, and settings.
 - `web/src/data/` contains site content, navigation, route metadata, structured data, case studies, projects, work experience, simulations data, terminal file-system data, and related content models.
 - `web/src/contexts/`, `web/src/hooks/`, `web/src/providers/`, `web/src/utils/`, and `web/src/types/` contain shared application state, helpers, and types.
-- `web/src/index.css`, `web/src/App.css`, `web/src/styles/components.css`, and feature CSS files provide styling. The current visual language is a dark, terminal/Matrix-inspired portfolio with responsive route pages.
+- `web/src/index.css`, `web/src/App.css`, `web/src/styles/components.css`, and feature CSS files provide styling. The site is migrating from a terminal/Matrix theme to Darkfield; see the migration plan for phase status.
 - `infrastructure/` contains Docker Compose, nginx, SSL, production, and optional monitoring support. Production serves the built frontend behind nginx; there is no active backend API, database, queue, or session service.
 - `docs/`, `web/docs/`, and `website-audit-report.md` contain project, infrastructure, architecture, audit, and remediation notes.
 
@@ -24,7 +24,8 @@ This repository contains a frontend-only personal website and the Docker/nginx i
 - Inspect the relevant files before editing. Prefer `rg`, `rg --files`, and small targeted reads.
 - Keep changes small and scoped to the request. Avoid opportunistic cleanup.
 - Do not rewrite copy, positioning, or visual direction unless the user explicitly asks.
-- Preserve the existing dark terminal/Matrix design language unless explicitly asked to change it.
+- Darkfield is the governing design system for the site's own interface on every visitor-facing route; no page is categorically exempt. The governed interface includes navigation, page chrome, layout, headings and prose presentation, controls, menus, interaction states and focus, captions and legends, loading and error states, typography, colour, motion, transitions and atmosphere. New and changed site UI follows Darkfield, and every visual value comes from Darkfield's `tokens.json`. Until Phase 1 of the migration plan publishes `tokens.runtime.json`, the generated `tokens.css` and the licensed Darkfield fonts, UI work that needs Darkfield values is migration work and waits for the owner's instruction. `tokens.runtime.json` is a deterministic allowlist export of the private canonical `tokens.json`, which is never copied into this repository. Independently authored creative work keeps its own identity and is not restyled: independent artwork and animations, project artifacts and media, experimental and historical evidence (recordings, screenshots, evidence images), and native simulation and game visuals (canvas renders, playfields). Darkfield governs the interface around them. Do not add new Matrix-theme styling (neon glow, rounded cards, hover lift, decorative rain on reading or working surfaces).
+- `docs/superpowers/plans/2026-10-11-darkfield-migration.md` is the authoritative local reference for Darkfield migration sequencing, scope boundaries, constraints, validation and decision gates. Follow its phase order and gates; do not start a migration task or infer an unapproved decision without the owner's instruction.
 - Do not perform broad refactors during audit or remediation tasks.
 - Keep docs/audits separate from implementation unless instructed.
 - Do not modify infrastructure, deployment, package scripts, dependencies, or generated assets unless the task explicitly requires it.
@@ -80,6 +81,7 @@ Infrastructure commands are documented in `README.md` and `infrastructure/README
 - Audit/remediation history is documented in `website-audit-report.md`. Architecture and refactoring notes are under `web/docs/`. Infrastructure and CI/CD notes are under `docs/` and `infrastructure/README.md`.
 - Temporary audit refresh documents may be used as working artifacts without being committed. Preserve `website-audit-report.md` as historical context unless explicitly told otherwise.
 - Production deployment assumes a built frontend image served by nginx through Docker Compose, with optional Prometheus/Grafana monitoring. Public monitoring exposure and sourcemap behavior were part of prior remediation notes.
+- Darkfield specification: the canonical, versioned export is the private repository `kareemsasa/darkfield`, tag `tokens-v1-2026-10-09` (commit `4f02965bfa51eb060c39734608422dde0d288009`); the R1 production spec is `r1/SPEC.md` there, and `tokens.json` is at its root. Reading it requires access to the `kareemsasa` account. Read the cited sections there before Darkfield work; never reconstruct the spec from memory or appearance.
 
 ## Change Discipline
 
