@@ -4,7 +4,8 @@
 //   node scripts/darkfield-export.mjs <canonical-dir>   rewrite src/styles/darkfield/tokens.runtime.json
 // Allowlist projection: only the fields named below are emitted. Every canonical field must be
 // classified as RUNTIME or PRIVATE; an unclassified field fails the export instead of being dropped
-// or copied. The script never prints canonical text: only a hash.
+// or copied. A key outside KEY fails it too: it could otherwise forge another field's path.
+// The script never prints canonical text: only a hash, and refusals that name known fields only.
 import { createHash } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
@@ -16,6 +17,10 @@ export const THEMES = ["dark", "light", "mono"];
 export const THEMED_GROUPS = ["color", "shadow"];
 export const UNTHEMED_GROUPS = ["spacing", "radius", "cut", "stroke", "dash", "opacity", "duration", "easing", "grid", "layer"];
 export const FAMILIES = ["sans", "narrow", "mono"];
+
+// Every canonical object key must match KEY. Paths join keys with "." and mark arrays with "[]", so a
+// key containing ".", "[" or "]", or an empty key, could collide with a classified path.
+const KEY = /^[A-Za-z][A-Za-z0-9_-]*$/;
 
 // Field classification of the canonical schema (tokens.json v1). Keys are canonical paths with [] for arrays.
 const PRIVATE = new Set([
@@ -33,11 +38,36 @@ const RUNTIME = new Set([
   "type.groups[].styles[].lineHeight", "type.groups[].styles[].fontWeight", "type.groups[].styles[].letterSpacing",
 ]);
 
+// Refusals name only path segments the classification already knows; any other segment is shown by
+// its length, so a diagnostic never repeats unknown canonical text.
+const KNOWN = new Set([...PRIVATE, ...RUNTIME].flatMap((p) => p.split(".").map((s) => s.replace(/(\[\])+$/, ""))));
+const safePath = (path) =>
+  path
+    .split(".")
+    .map((segment) => {
+      const key = segment.replace(/(\[\])+$/, "");
+      return KNOWN.has(key) ? segment : `<${key.length} chars>${segment.slice(key.length)}`;
+    })
+    .join(".");
+
 const leafPaths = (node, path = "", out = new Set()) => {
   if (Array.isArray(node)) node.forEach((item) => leafPaths(item, `${path}[]`, out));
-  else if (node && typeof node === "object") for (const [key, value] of Object.entries(node)) leafPaths(value, path ? `${path}.${key}` : key, out);
-  else out.add(path);
+  else if (node && typeof node === "object") {
+    for (const [key, value] of Object.entries(node)) {
+      if (!KEY.test(key)) throw new Error(`invalid canonical key (${key.length} chars) under ${path ? safePath(path) : "the root"}`);
+      leafPaths(value, path ? `${path}.${key}` : key, out);
+    }
+  } else out.add(path);
   return out;
+};
+
+// JSON.parse errors can quote a fragment of their input; refuse without repeating it.
+export const parseCanonical = (bytes) => {
+  try {
+    return JSON.parse(bytes.toString("utf8"));
+  } catch {
+    throw new Error("canonical tokens.json is not valid JSON");
+  }
 };
 
 const text = (value, where) => {
@@ -47,9 +77,9 @@ const text = (value, where) => {
 
 export const exportRuntime = (canonical) => {
   const unclassified = [...leafPaths(canonical)].filter((p) => !PRIVATE.has(p) && !RUNTIME.has(p));
-  if (unclassified.length) throw new Error(`unclassified canonical fields (classify before exporting): ${unclassified.join(", ")}`);
+  if (unclassified.length) throw new Error(`unclassified canonical fields (classify before exporting): ${unclassified.map(safePath).join(", ")}`);
   const ids = canonical.color.themes.map((theme) => theme.id);
-  if (JSON.stringify(ids) !== JSON.stringify(THEMES)) throw new Error(`unexpected theme ids: ${ids.join(",")}`);
+  if (JSON.stringify(ids) !== JSON.stringify(THEMES)) throw new Error(`unexpected theme ids (expected ${THEMES.join(",")})`);
   if (!Number.isInteger(canonical.version)) throw new Error("version: expected an integer");
   const token = (t, where, themed) => ({
     name: text(t.name, `${where}.name`),
@@ -99,7 +129,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     console.error("usage: node scripts/darkfield-export.mjs <canonical-dir>");
     process.exit(2);
   }
-  const json = exportRuntime(JSON.parse(await readFile(resolve(dir, "tokens.json"), "utf8")));
+  const json = exportRuntime(parseCanonical(await readFile(resolve(dir, "tokens.json"))));
   await writeFile(RUNTIME_PATH, json);
   console.log(`wrote tokens.runtime.json · sha256 ${createHash("sha256").update(json).digest("hex")}`);
 }
