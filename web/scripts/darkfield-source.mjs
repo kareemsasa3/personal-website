@@ -14,6 +14,7 @@ import { readFile, realpath } from "node:fs/promises";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { exportRuntime, parseCanonical } from "./darkfield-export.mjs";
+import { compileTokens } from "./darkfield-tokens.mjs";
 
 const COMMIT = /^[0-9a-f]{40}$/;
 const TAG = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
@@ -67,6 +68,8 @@ export const verifyCanonical = async (canonicalDir, source, web) => {
       const canonical = parseCanonical(canonicalBytes);
       const exported = exportRuntime(canonical);
       if (exported !== local.toString("utf8") || sha(exported) !== entry.sha256) fail(`${vendored}: re-export differs`);
+      // The projection must keep everything the compiler consumes: identical CSS from both inputs.
+      if (compileTokens(canonical, "-") !== compileTokens(JSON.parse(exported), "-")) fail(`${vendored}: compiled CSS differs from canonical`);
     } else {
       fail(`${vendored}: entry has neither from nor derivedFrom`);
     }
