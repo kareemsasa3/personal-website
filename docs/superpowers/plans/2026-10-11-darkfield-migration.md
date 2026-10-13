@@ -13,7 +13,7 @@ Phases 2–6 replace the bridge with real Darkfield grammar, surface by surface.
 
 **Tech Stack:** React 18, Vite 8, TypeScript, plain CSS. Tests use `node:test` (`web/scripts/*.test.mjs`) and the standalone Playwright browser-test convention (`web/scripts/*-browser-test.mjs`, Playwright passed in by path). No new npm dependencies.
 
-**Revision:** r7, 2026-10-11 (Task 1 conformance correction). r1–r6 were written the same day; see the [Revision log](#revision-log).
+**Revision:** r8, 2026-10-13 (Task 3 measurement and contrast corrections). r1–r7 were written on 2026-10-11; see the [Revision log](#revision-log).
 
 ## Status
 
@@ -204,7 +204,7 @@ Approved token values, font stacks, hashes and identifiers are expected matches 
 | `/simulations/snake` | Page chrome, buttons | Board, snake, food (`.food` reads `--accent-color`) | — | DOM/CSS | **confirm**: is the score HUD and game-over overlay (`.game-scores`, `.game-over-content`) chrome or native? |
 | `/simulations/spider` | Page chrome, buttons, status | Cards, columns, playfield (`.spider-column:empty` reads `--app-border`) | — | DOM/CSS | **confirm**: container font and text colour (`.spider-solitaire`) |
 | `/simulations/rhythm-lab` | Menus, song selector, settings, tutorial, results | Gameplay lanes, notes, judgement visuals | — | DOM/CSS. One stylesheet (`RhythmLab.css`, 2123 lines) mixes both | **confirm**: root `.rhythm-lab` font and colour |
-| `/simulations/annals` | Page chrome, navigation | The world presentation: serif parchment panels (`Annals.css:6,14-20,159`) | — | DOM (`pages/Annals/sim/*`) | **confirm**: which Annals controls are site chrome |
+| `/simulations/annals` | Page chrome, navigation | The world presentation: serif parchment panels (`Annals.css:6,14-20,159`). r8: Task 3 marks only its authored narrative, 6 elements, with `data-df-region="native"`. Headings, hints, legends, readouts, logs, the banner, the footer and every control stay governed | — | DOM (`pages/Annals/sim/*`) | **confirm**: which Annals controls are site chrome |
 | All routes (background) | Rain, bionic and static grid backgrounds are site atmosphere | — | — | `<canvas>` | Rain direction decided; D3 covers what remains |
 | `*` (NotFound), error boundary, loaders, toasts, modals | Everything | — | — | DOM | — |
 | Head, social | Favicon, `theme-color`, manifest, `og-image` | — | — | static | — |
@@ -239,7 +239,7 @@ Every task's requirements implicitly include these.
 
   See [Phase 6](#phase-6-conformance-measurement).
 - **Geometry** (README *Using the system*, §03, §17 *Corner radii*). Every corner is square (`radius-0`): containers, controls, inputs, cells and panels. The single exception is circular nodes within the size limit of §17 *Corner radii* (`radius-node`). `cut-*` chamfers follow README *Using the system*, §09 *Frames and corners* and §17 *Chamfers*. The README summary sets a stricter per-container limit than §09/§17. Until the owner rules which reading governs, the stricter limit applies.
-- **Text contrast** (README *Using the system*). Opacity is never used to lower text contrast; text uses the `fg`, `fg-muted` and `fg-faint` tokens. Every text/ground pair introduced by this migration must be a pair from §05 *Contrast, verified*, or be measured ≥ 4.5:1 in every shipped theme.
+- **Text contrast** (README *Using the system*). Opacity is never used to lower text contrast; text uses the `fg`, `fg-muted` and `fg-faint` tokens. One owner-authorized exception (r8): Task 3 Step 7 item 4 lets the media bar's text take a ground or `on-*` token. This plan limits that exception to Light, because no such token passes in Dark, where the existing colours already pass. Every text/ground pair introduced by this migration must be a pair from §05 *Contrast, verified*, or be measured ≥ 4.5:1 in every shipped theme.
 - **Focus** (README *Using the system*, §13 *Focus in each theme*, §17 `focus-ring`). Keyboard focus is always shown with the `focus-ring` token: two 2 px layers taken from the token's value, the outer one in signal colour and the inner one matching the ground. A glow never substitutes for it.
 - **Motion** (README *Using the system*, §12 *Reduced motion, by class*). Every animation honours `prefers-reduced-motion`, using the per-class reduced form that §12 defines.
 - **Fonts** (README *Using the system*, §07). The site loads the bundled OFL font files from the export rather than third-party hosted subsets, which lack the glyph coverage text graphics need.
@@ -275,7 +275,7 @@ D1 is approved. Each remaining gate blocks only the tasks named.
 | **D7** | Project lifecycle statuses (Live, Active Development, Demo Ready, Maintenance, Completed) | These are not §05 system states; their current hues collide with Darkfield's reserved meanings (`ProjectRoster.css:17-21`: violet ≈ `ion`, yellow ≈ `caution`) | Context labels (`label-sm`, `fg-muted`, no hue), with `•` only on Live | Phase 3 |
 | **D8** | Primary call-to-action styling | The §13 control model has no filled primary button; a solid fill is reserved for the Pressed inverse | Idle controls on an `edge` boundary; prominence from position | Phase 3 |
 | **D9** | Execution authorization | Each is separately approvable: create branches; commit per task; push; open pull requests; merge; deploy. Your global rule is to commit or push only when asked. | **Phase 0 approved 2026-10-11:** website branch `docs/darkfield-migration-plan` with local documentation commits (P1, Task 0; superseded, never to be published); creation of private `kareemsasa/darkfield` and pushing to it (P2); the local clean-history replacement branch `docs/darkfield-migration-sanitized` from `main` at `a16c70f`, with local documentation commits. **Still open:** publication of the Phase 0 documentation: pushing the clean-history branch, a PR and a merge, each separately approved. Also open: all Phase 1 branches and commits; deploys. | Merging Phase 0; all of Phase 1 |
-| **D10** | Accept the known-deficiency ledger | Created in Task 3 from a baseline run. Accepting it means those pre-existing failures are tracked, not fixed, in Phase 1. | Review entries, then accept | Task 3 commit |
+| **D10** | Accept the known-deficiency ledger | Created in Task 3 from a baseline run. Accepting it means those pre-existing failures (`entries`) are tracked, not fixed, in Phase 1. The ledger's `creative` (D6 evidence) and `unmeasured` (open verification, each with its reason) lists are not accepted by D10 (r8). | Review entries, then accept | Task 3 commit |
 | **D11** | Publication of private design thresholds | **(a)** An automated check that asserts a specification-defined limit (for example area and void budgets, glow/flare/effect counts, lit-cell density, node size and chamfer limits, mark minimum size, heartbeat allowance, display-line count, motion cadence ratios, or any other specification-defined limit) would place that limit in this public repository. **(b)** Whether the canonical `tokens.json` usage notes may be published. | **(a) Open.** Owner decision; nothing is pre-authorized. Without it, such checks stay reviewer-judged or read their limits from the private repository at run time. **(b) Decided 2026-10-11:** usage notes stay private. Only runtime token values, through the allowlist export `tokens.runtime.json`, plus the OFL fonts and licences, are published. See Task 1. | (a) Phase 6 automated budget checks and any test asserting such a limit |
 
 ## Operational safety
@@ -392,14 +392,21 @@ export PLAYWRIGHT_BROWSERS_PATH="$DF_TMP/browsers" DF_PW="$DF_TMP/pw/node_module
 | `darkfield-tokens.test.mjs` | **Invariant** (static) | `tokens.css` is a faithful compile of `tokens.runtime.json` (values, escapes, themes, fonts, type classes) and is in sync | That the site uses the tokens correctly |
 | `darkfield-bridge.test.mjs` | **Invariant** (static) | Single theme source; every legacy variable mapped or explicitly held; no literal colours outside the legacy fence; no text colour reads a ground alias; font families unified outside held selectors | Rendered contrast or semantic correctness |
 | `darkfield-settings.test.mjs` | **Invariant** (unit) | Settings import accepts old exports and `mono`, and rejects unknown themes | — |
-| Browser test, invariants section | **Invariant** (rendered) | Page ground is `field` per theme; no inline theme tokens; unknown stored theme falls back to dark; no-JS shell is on `field`; fonts served and loaded; focus ring on every element reached by Tab on the listed routes; outline present under forced colors | Focus on elements not reached in 25 Tabs; the painted colour under forced colors (human check) |
+| Browser test, invariants section | **Invariant** (rendered) | Page ground is `field` per theme. No inline custom property on `<html>` except the three layout measurements, as px lengths, with negative controls (r8). Unknown stored theme falls back to dark; no-JS shell is on `field`; fonts served and loaded; focus ring on every element reached by Tab on the listed routes; outline present under forced colors | Focus on elements not reached in 25 Tabs; the painted colour under forced colors (human check) |
 | Browser test, enumerated pairs | **Regression** (rendered, baseline-aware) | Contrast of every fill/text pair whose ground the bridge changes (inventory E-6), in every theme, including hover where listed. A pair whose selector is not rendered on the listed routes is reported **UNCOVERED**, never passed. | Pairs not in the inventory |
-| Browser test, contrast sampler | **Sampler** (rendered, baseline-aware) | Text matched by the sampler selectors on the listed routes, against composited background *colours* | Text over images, canvases, gradients or iframes; states not rendered (hover, open menus); routes not listed. It is not a WCAG audit. |
+| Browser test, contrast sampler | **Sampler** (rendered, baseline-aware) | Text matched by the sampler selectors on the listed routes, against composited background *colours*. Where a background image or gradient lies under the text, against the rendered pixels behind each text run, in that run's own colour (r8); a painted-text pass also measures every other own-text element on a painted ground. Creative regions are counted and measured apart, and must match the baseline record (r8) | Text over canvases, iframes, or content `<img>`/`<video>` elements. On a colour stack, descendant text in its own colour (only the matched element's colour is compared). Text under a backdrop filter, which is measured on its colour stack (the KS mark excepted, r8). Text covered by another element or on a moving ground (listed as `unmeasured`, with the reason). States not rendered (hover, open menus). Text outside the sampler selectors. Routes not listed. It is not a WCAG audit. |
+| Browser test, prepared states (r8) | **Regression** (rendered, baseline-aware) | Against the rendered ground: the Annals verbs enabled, hovered and pressed, and the aside headings once the verbs are enabled; the Rhythm Lab lane tap zones playing, lane key held and pointer-pressed, under a frozen page clock. The paused state is recorded as covered, not measured | Other prepared states, including the Annals conditional controls and text; Rhythm Lab zones under moving notes |
+| Whole-text comparison (r8; scratch script, Task 3 Step 9) | **Regression** (rendered, colour stack, baseline versus candidate) | Every visible element's own text outside creative regions on the listed routes: no text is both below 4.5:1 and more than 0.05 worse than on the baseline | Text on painted grounds or with unparsed colours; elements that cannot be paired between builds |
 | Existing browser tests (`boot-shell`, `settings-panel`, `header-overlap`, `case-study-media`, `route-metadata`, `procedural-animations`, `orbital`) and `npm test` | **Regression** (baseline-aware) | Existing behaviour holds | — |
 | Visual review screenshots (`scripts/visual-review.mjs`) | **Human** | Composition, readability of the transitional mixed palette, boundaries that disappeared, creative regions visibly unchanged | Anything not looked at |
 
 **Baseline-aware ledger.** `web/scripts/darkfield-known-deficiencies.json` records failures that exist at the baseline commit.
 - **How it is created.** Task 3 runs the regression and sampler checks against the baseline preview in `DARKFIELD_MODE=record`. Every candidate is reproduced by the reviewer, and the owner accepts the list (D10).
+- **Comparable scope (r8).**
+  - The baseline preview carries the same creative-region markers as the candidate (Task 3 Step 3).
+  - The ledger records the region counts (`regions`), the text no method here can measure, each with its reason (`unmeasured`), and the creative-region contrast (`creative`).
+  - Check mode requires all three to match. So no failure can disappear through a changed exclusion, and creative content cannot change unnoticed.
+  - `creative` is D6 evidence, never part of D10.
 - **How `check` mode treats results:**
   - A failure not in the ledger is a **new regression** and fails.
   - A failure in the ledger is printed as **KNOWN** and does not fail, unless its measured value got worse than the recorded baseline value.
@@ -642,6 +649,8 @@ Phase 0 ends here. Publishing the Phase 0 documentation (clean-history branch, p
 | `web/src/pages/Home/Home.css` | Modify. Fill/text pairs |
 | The control-boundary files in Task 3 Step 7 | Modify. `edge` boundaries |
 | `web/src/components/SpiderSolitaire/SpiderSolitaire.css` | Modify. Pin `.spider-column:empty` (authorized native-visual hold) |
+| `web/src/pages/Annals/Annals.tsx` | Modify (r8). 6 `data-df-region="native"` attributes on authored narrative only; nothing else |
+| `web/src/components/ProjectRoster/ProjectRoster.css`, `web/src/components/ProjectMedia/ProjectMedia.css`, `web/src/pages/NotFound/NotFound.css`, `web/src/components/Navigation/SiteNavigation.css` | Modify (r8). Task 3 contrast repairs |
 | Files listed by Task 4's scan | Modify. Font families |
 | Mono files (Task 5) | Modify |
 | `TerminalDropdown.css`, `RhythmLab.css` focus blocks (Task 6) | Modify. Governed menu controls only |
@@ -1645,6 +1654,18 @@ The compiler logic is unchanged from r1. Only its input path and its two header 
 
 ### Task 3: One theme source, the bridge, and the baseline ledger (D10 gates the commit)
 
+**Status (r8).** Steps 1–7 were implemented at r7 and stopped before D10, uncommitted ([E-11](#evidence-summary)).
+- The r7 browser test rejected the three layout measurements the site writes on `<html>`.
+- It also measured the Annals parchment against the page field, which it cannot see.
+- In Light, Task 3 made several already-failing texts worse. [E-11](#evidence-summary) lists them by element, including two that the r7 sampler did not cover.
+
+r8 corrects the test and the measurement boundary, and authorizes a local contrast repair for every element Task 3 made worse. Apply the r8 changes to the uncommitted work:
+- the Step 2 test;
+- the Step 3 region markers and re-recorded ledger;
+- the Step 7 item 4 repairs.
+
+Then re-run Step 3 and Steps 8–10. The working tree already carries Steps 5–7, so Step 4's expected failures are confirmed against the baseline worktree instead (as in [E-11](#evidence-summary)). The r8 work stays in the same Task 3 commit.
+
 **Spec:**
 - §05 Roles and *When bright signal appears*; §05 *Contrast, verified*.
 - §13 state model: the Idle boundary (one-pixel `edge`) and the Hover label colour (`fg`).
@@ -1667,12 +1688,20 @@ The compiler logic is unchanged from r1. Only its input path and its two header 
   - `web/src/pages/Home/Home.css`
   - `web/src/components/SpiderSolitaire/SpiderSolitaire.css`
   - The control-boundary files confirmed in Step 7
+  - `web/src/pages/Annals/Annals.tsx` (r8, Step 3: six `data-df-region` attributes only; authorized edit in a mixed component)
+  - `web/src/components/ProjectRoster/ProjectRoster.css`, `web/src/components/ProjectMedia/ProjectMedia.css`, `web/src/pages/NotFound/NotFound.css` and `web/src/components/Navigation/SiteNavigation.css` (r8, Step 7 item 4: contrast repairs). `ProjectMedia.css` and `SiteNavigation.css` are also control-boundary files.
 
 **Interfaces:**
 - Produces:
   - Every legacy variable in `LEGACY`, defined only in `bridge.css`.
   - `applyThemeToDocument(theme)` sets only `data-theme` and `color-scheme`.
-  - The ledger format: `{ baseline: "<sha>", notes: [string], entries: [{ id, check, theme, route, detail, baseline }] }`.
+  - The ledger format (r8): `{ baseline: "<sha>", notes: [string], regions: { "<theme>|<route>": count }, unmeasured: [{ id, reason }], entries: [{ id, check, theme, route, detail, baseline }], creative: [{ id, check, theme, route, detail, baseline }] }`. It keeps four kinds of result apart:
+    - **`entries`: verified failures.** Each is measured on a colour stack, or on rendered pixels run by run and marked `(rendered ground)`; governed text on a painted ground is measured this way, never against the page field. D10 accepts `entries` only.
+    - **`creative`: independently authored presentation** inside `[data-df-region]`, measured as D6 evidence. It is neither accepted under D10 nor treated as unverified.
+    - **`unmeasured`: governed text or states** that no method here could measure, each with its reason. They are never passed. They are reported to the owner with their effect on D10 (Step 11).
+    - **Unverified states** the test cannot reach are listed in `notes`.
+
+    `regions` holds the creative exclusion counts that keep the baseline and the candidate comparable. Governed text on a painted ground that measures at least 4.5:1 passes like any other text.
 
 - [ ] **Step 1: Write the failing static test.**
 
@@ -1739,7 +1768,25 @@ The compiler logic is unchanged from r1. Only its input path and its two header 
 
 - [ ] **Step 2: Write the browser test.**
 
-  It has three parts: invariants, enumerated pairs and the sampler. It is baseline-aware.
+  It has four parts: invariants, enumerated pairs, the sampler and prepared states (r8). It is baseline-aware.
+  - **Inline properties (r8).** Exactly three layout measurements may sit inline on `<html>`: `--site-header-measured-offset` and `--site-dock-safe-space` (`SiteNavigation.tsx`), and `--dock-icon-size` (`useDock.ts`). Each must hold a px length. Anything else fails, including any legacy theme variable, any Darkfield token, any other custom property, or a non-length value.
+    - **Negative controls:** a control run proves the rendered layout properties pass. It then injects five properties and requires every one to be rejected: a legacy variable, a token, an unknown name, and two non-length values.
+  - **Rendered ground (r8).** Where a background image or gradient lies under text, the colour stack cannot describe the ground. The element is then measured against rendered pixels:
+    - its text is hidden, and the pixels behind each text run are compared with that run's own colour (its parent element's), so a coloured span inside a heading is measured as itself;
+    - the lowest ratio over all runs is reported, marked `(rendered ground)`;
+    - a capture counts only if nothing covers the text and two consecutive captures agree. Otherwise the result is `unmeasured`, with the reason, for example `covered by div.rhythm-lab-overlay`. It is never passed.
+  - **Painted-text pass (r8).** Every other visible element with its own text on a painted ground is measured the same way (its own text runs only), as check `painted`, or listed as `unmeasured`. This covers elements the sampler selectors do not match and that are not inside one: readouts, labels, spans and footers on painted grounds.
+    - Disabled controls are marked `(disabled)`. WCAG 1.4.3 exempts inactive controls, but they stay measured and in scope.
+  - **Creative regions (r8).** Elements inside `[data-df-region]` are counted per theme and route (`regions`), and their contrast is reported as `creative`. They never count as interface results.
+    - Check mode requires `regions`, `unmeasured` (ids and reasons) and `creative` to match the baseline record, `creative` within the same 0.05.
+    - So baseline and candidate always measure the same interface, and creative content stays unchanged.
+  - **Prepared states (r8).** States a route load does not render are brought about deliberately and measured on rendered pixels:
+    - the Annals verbs, which are disabled at load: enabled, hovered and pressed (each state verified); and the aside headings once the verbs are enabled ("Your Hand · available");
+    - the Rhythm Lab lane tap zones, with the page clock frozen so that notes and feedback hold still: playing, lane key held, pointer-pressed, and under the pause overlay. Step 3 gives the state table.
+  - **Repair coverage (r8).** The last five `PAIRS` cover the Step 7 item 4 repairs:
+    - the roster and media hover states;
+    - the media label and the KS mark, which lie outside the sampler's selectors. The mark is measured on rendered pixels, because the header is a translucent backdrop filter;
+    - the 404 heading's large-text floor (`min: 3`).
 
   ```js
   // web/scripts/darkfield-foundation-browser-test.mjs
@@ -1767,6 +1814,9 @@ The compiler logic is unchanged from r1. Only its input path and its two header 
   // Fill/text pairs whose ground the bridge changes (rule-level scan, 2026-10-11).
   // .projects-cta-primary is excluded: no component renders it (dead CSS, Phase 3).
   // .error-button.primary renders only when an error boundary fires, so expect it UNCOVERED.
+  // The last five cover the r8 contrast repairs: states and elements the route-load sampler does not
+  // reach, and the 404 heading's large-text floor. min is 4.5 unless set (WCAG 3:1 for large text).
+  // rendered: measure against the rendered pixels; the header's backdrop filter is not a colour stack.
   const PAIRS = [
     { selector: ".btn-primary" }, { selector: ".btn-outline", hover: true },
     { selector: ".work-contact-link.primary" }, { selector: ".work-dates", hover: true },
@@ -1774,19 +1824,103 @@ The compiler logic is unchanged from r1. Only its input path and its two header 
     { selector: ".modal-close", hover: true }, { selector: ".toast-close", hover: true },
     { selector: '.settings-segmented__button[aria-pressed="true"]' },
     { selector: ".error-button.primary" }, { selector: ".home-link" },
+    { selector: ".project-roster__action--primary", hover: true },
+    { selector: ".project-media__bar .project-media__control", hover: true },
+    { selector: ".not-found h1", min: 3 },
+    { selector: ".project-media__label" }, { selector: ".site-header__brand-mark", rendered: true },
+  ];
+  // Layout measurements the site writes on <html> (SiteNavigation.tsx, useDock.ts), each a px length.
+  // Any other inline custom property, or any other value, is a theme value written inline.
+  const INLINE_LAYOUT = ["--site-header-measured-offset", "--site-dock-safe-space", "--dock-icon-size"];
+  const unexpectedInline = (properties) =>
+    properties.filter(([name, value]) => name.startsWith("--") && !(INLINE_LAYOUT.includes(name) && /^\d+(\.\d+)?px$/.test(value.trim())));
+  // Interaction states a route load does not render, prepared and then measured against the rendered
+  // ground. Each state's enter function brings one control into the state, verifies it, and may return
+  // an exit function. texts: governed text measured once in the prepared state. A state that cannot be
+  // measured is listed as unmeasured, never passed.
+  const STATES = [
+    {
+      // Annals verbs ("Your Hand", Annals.tsx): disabled at load, enabled every third year. The aside
+      // headings change with them ("Your Hand · available").
+      route: "/simulations/annals",
+      controls: ".annals-page aside .flex-wrap > button",
+      texts: [".annals-page aside > h2"],
+      prepare: async (page) => {
+        const advance = page.getByRole("button", { name: "let a year pass →" });
+        for (let year = 0; year < 3 && (await page.locator(".annals-page aside .flex-wrap > button:disabled").count()); year++) await advance.click();
+        if (await page.locator(".annals-page aside .flex-wrap > button:disabled").count()) throw new Error("annals: verbs not enabled");
+      },
+      states: {
+        enabled: async (page) => { await page.mouse.move(0, 0); },
+        hover: async (page, control) => {
+          await control.hover();
+          if (!(await control.evaluate((el) => el.matches(":hover")))) throw new Error("annals: verb not hovered");
+        },
+        pressed: async (page, control) => {
+          await control.click();
+          await page.mouse.move(0, 0);
+          if ((await control.getAttribute("aria-pressed")) !== "true") throw new Error("annals: verb did not press");
+          return () => control.click();
+        },
+      },
+    },
+    {
+      // Rhythm Lab lane tap zones (RhythmHighway.tsx): enabled buttons, pointer-operated (tabIndex -1)
+      // and mirrored by the lane keys. At load the Ready Check overlay covers them (the sampler lists
+      // them as unmeasured). Here the run starts and the page clock is frozen, so notes and feedback hold
+      // still. Each zone is measured playing, with its lane key held, and pointer-pressed. It is then
+      // checked under the pause overlay, where it is expected to be listed as covered.
+      route: "/simulations/rhythm-lab",
+      controls: ".rhythm-lab-hit-zone",
+      clock: true,
+      prepare: async (page) => {
+        await page.getByRole("button", { name: "Start", exact: true }).click();
+        await page.clock.runFor(150);
+        await page.clock.pauseAt((await page.evaluate(() => Date.now())) + 1);
+        if (await page.locator(".rhythm-lab-overlay").count()) throw new Error("rhythm-lab: the run did not start");
+      },
+      states: {
+        playing: async (page) => { await page.mouse.move(0, 0); },
+        key: async (page, control) => {
+          const key = (await control.textContent()).trim()[0].toLowerCase();
+          await page.keyboard.down(key);
+          if (!(await control.evaluate((el) => el.classList.contains("rhythm-lab-hit-zone-input")))) throw new Error("rhythm-lab: no key feedback");
+          return async () => { await page.keyboard.up(key); await page.clock.runFor(100); };
+        },
+        pointer: async (page, control) => {
+          const box = await control.boundingBox();
+          await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+          await page.mouse.down();
+          if (!(await control.evaluate((el) => el.matches(":active")))) throw new Error("rhythm-lab: zone not pressed");
+          return async () => { await page.mouse.up(); await page.mouse.move(0, 0); await page.clock.runFor(100); };
+        },
+        paused: async (page) => {
+          await page.keyboard.press("Escape");
+          if (!(await page.locator(".rhythm-lab-overlay").count())) throw new Error("rhythm-lab: did not pause");
+          return async () => {
+            await page.keyboard.press("Escape");
+            if (await page.locator(".rhythm-lab-overlay").count()) throw new Error("rhythm-lab: did not resume");
+          };
+        },
+      },
+    },
   ];
   const invariantFailures = [];
   const regressions = [];
+  const creative = [];
+  const regions = {};
+  const unmeasured = [];
   const ran = new Set();
   const uncovered = new Set(PAIRS.map((p) => p.selector));
   const errors = [];
   const invariant = (ok, message) => { if (!ok) invariantFailures.push(message); };
 
-  const withPage = async ({ theme, route = "/", javaScriptEnabled = true, forcedColors = "none" }, run) => {
+  const withPage = async ({ theme, route = "/", javaScriptEnabled = true, forcedColors = "none", clock = false }, run) => {
     const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, javaScriptEnabled, forcedColors, reducedMotion: "reduce" });
     if (theme) await context.addInitScript((value) => localStorage.setItem("theme", value), theme);
     const page = await context.newPage();
     page.on("pageerror", (error) => errors.push(`${route}: ${error.message}`));
+    if (clock) await page.clock.install();
     try {
       await page.goto(`${base}${route}`, { waitUntil: "networkidle" });
       await run(page);
@@ -1795,42 +1929,151 @@ The compiler logic is unchanged from r1. Only its input path and its two header 
     }
   };
 
-  // WCAG 2 contrast against the composited background-colour stack. A sampler:
-  // background images, gradients, canvases and iframes under text are not seen.
-  const contrastOf = (page, selector, { all = true } = {}) => page.evaluate(([sel, every]) => {
-    const parse = (value) => {
-      let m = value.match(/^rgba?\(([^)]+)\)$/);
-      if (m) { const p = m[1].split(/[\s,/]+/).filter(Boolean).map(Number); return { r: p[0] / 255, g: p[1] / 255, b: p[2] / 255, a: p[3] ?? 1 }; }
-      m = value.match(/^color\(srgb ([^)]+)\)$/);
-      if (m) { const p = m[1].split(/[\s/]+/).filter(Boolean).map(Number); return { r: p[0], g: p[1], b: p[2], a: p[3] ?? 1 }; }
-      return null;
-    };
-    const over = (t, b) => ({ r: t.r * t.a + b.r * (1 - t.a), g: t.g * t.a + b.g * (1 - t.a), b: t.b * t.a + b.b * (1 - t.a), a: 1 });
-    const lum = ({ r, g, b }) => { const f = (c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4); return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b); };
-    const ground = (el) => {
-      const layers = [];
-      for (let n = el; n; n = n.parentElement) {
-        const c = parse(getComputedStyle(n).backgroundColor);
-        if (c && c.a > 0) { layers.push(c); if (c.a === 1) break; }
+  // Rendered-ground contrast, for text whose ground the colour stack cannot describe (a gradient, image or
+  // backdrop filter below it) and for prepared states. The element's text is hidden, and the pixels behind
+  // each text run are compared with that run's own colour (its parent element's); the lowest ratio over all
+  // runs is reported. own: only the element's own text runs, not its descendants'. A capture counts only if
+  // nothing covers the text and two captures agree (the ground holds still). Otherwise the ratio is null,
+  // with the reason.
+  const HIDE_TEXT = ["", " *", "::before", "::after", " *::before", " *::after"].map((s) => `[data-df-measuring]${s}`).join(", ") +
+    " { color: transparent !important; -webkit-text-fill-color: transparent !important; text-shadow: none !important; }";
+  const decoder = await browser.newPage();
+  const renderedContrast = async (page, locator, { own = false } = {}) => {
+    await locator.scrollIntoViewIfNeeded();
+    const probe = await locator.evaluate((el, [css, ownOnly]) => {
+      if (!document.getElementById("df-measuring")) document.head.append(Object.assign(document.createElement("style"), { id: "df-measuring", textContent: css }));
+      const box = el.getBoundingClientRect();
+      const runs = [];
+      const nodes = ownOnly ? [...el.childNodes].filter((n) => n.nodeType === Node.TEXT_NODE) : [];
+      if (!ownOnly) {
+        const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+        for (let node = walker.nextNode(); node; node = walker.nextNode()) nodes.push(node);
       }
-      let out = layers.length && layers[layers.length - 1].a === 1 ? layers.pop() : { r: 1, g: 1, b: 1, a: 1 };
-      while (layers.length) out = over(layers.pop(), out);
-      return out;
-    };
-    const results = [];
-    for (const el of document.querySelectorAll(sel)) {
-      if (!el.checkVisibility?.() || !el.textContent.trim() || el.closest("[data-df-region]")) continue;
-      const bg = ground(el);
-      const fg = over(parse(getComputedStyle(el).color), bg);
-      const [hi, lo] = [lum(fg), lum(bg)].sort((a, b) => b - a);
-      results.push({ text: el.textContent.trim().replace(/\s+/g, " ").slice(0, 30), ratio: Math.round(((hi + 0.05) / (lo + 0.05)) * 100) / 100 });
-      if (!every) break;
+      for (const node of nodes) {
+        if (!node.textContent.trim()) continue;
+        const range = document.createRange();
+        range.selectNodeContents(node);
+        const rects = [...range.getClientRects()].filter((r) => r.width > 0 && r.height > 0);
+        if (!rects.length) continue;
+        // Read before the text is hidden: computed styles are live.
+        const color = getComputedStyle(node.parentElement).color;
+        const left = Math.max(box.left, Math.min(...rects.map((r) => r.left)));
+        const top = Math.max(box.top, Math.min(...rects.map((r) => r.top)));
+        const right = Math.min(box.right, Math.max(...rects.map((r) => r.right)));
+        const bottom = Math.min(box.bottom, Math.max(...rects.map((r) => r.bottom)));
+        if (right - left < 1 || bottom - top < 1) continue;
+        const points = [[0.5, 0.5], [0.05, 0.1], [0.95, 0.1], [0.05, 0.9], [0.95, 0.9]];
+        const cover = points.map(([fx, fy]) => document.elementFromPoint(left + (right - left) * fx, top + (bottom - top) * fy)).find((hit) => !hit || !el.contains(hit));
+        if (cover !== undefined) return { reason: cover ? `covered by ${cover.tagName.toLowerCase()}${[...cover.classList].map((c) => `.${c}`).join("")}` : "off screen" };
+        const [x, y] = [Math.ceil(left - box.left), Math.ceil(top - box.top)];
+        const crop = { x, y, width: Math.floor(right - box.left) - x, height: Math.floor(bottom - box.top) - y };
+        if (crop.width >= 1 && crop.height >= 1) runs.push({ color, crop });
+      }
+      if (!runs.length) return { reason: "no rendered text" };
+      el.setAttribute("data-df-measuring", "");
+      return { runs };
+    }, [HIDE_TEXT, own]);
+    if (probe.reason) return { ratio: null, reason: probe.reason };
+    let png = null;
+    for (let attempt = 0; attempt < 3 && !png; attempt++) {
+      const first = await locator.screenshot({ animations: "disabled", scale: "css" });
+      const second = await locator.screenshot({ animations: "disabled", scale: "css" });
+      if (first.equals(second)) png = first;
+      else await page.waitForTimeout(100);
     }
-    return results;
-  }, [selector, all]);
+    await locator.evaluate((el) => el.removeAttribute("data-df-measuring"));
+    if (!png) return { ratio: null, reason: "ground does not hold still" };
+    const ratio = await decoder.evaluate(async ([data, runs]) => {
+      const image = new Image();
+      image.src = `data:image/png;base64,${data}`;
+      await image.decode();
+      const canvas = new OffscreenCanvas(image.width, image.height);
+      const context = canvas.getContext("2d");
+      context.drawImage(image, 0, 0);
+      const lum = (r, g, b) => { const f = (c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4); return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b); };
+      let lowest = Infinity;
+      for (const { color, crop: { x, y, width, height } } of runs) {
+        const pixels = context.getImageData(x, y, width, height).data;
+        const parts = color.match(/\(([^)]+)\)/)[1].split(/[\s,/]+/).filter(Boolean).map(Number);
+        const srgb = color.startsWith("color(") ? parts.slice(1) : parts.map((v, i) => (i < 3 ? v / 255 : v));
+        const [fr, fg, fb, fa = 1] = srgb;
+        for (let i = 0; i < pixels.length; i += 4) {
+          const [br, bg, bb] = [pixels[i] / 255, pixels[i + 1] / 255, pixels[i + 2] / 255];
+          const [hi, lo] = [lum(fr * fa + br * (1 - fa), fg * fa + bg * (1 - fa), fb * fa + bb * (1 - fa)), lum(br, bg, bb)].sort((a, b) => b - a);
+          lowest = Math.min(lowest, (hi + 0.05) / (lo + 0.05));
+        }
+      }
+      return Math.round(lowest * 100) / 100;
+    }, [png.toString("base64"), probe.runs]);
+    return { ratio };
+  };
 
-  const regression = (check, theme, route, key, detail, value) => {
-    regressions.push({ id: `${check}|${theme}|${route}|${key}`, scope: `${check}|${theme}|${route}`, detail, value });
+  // WCAG 2 contrast against the composited background-colour stack. A sampler: canvases and iframes
+  // under text are not seen, and on a colour stack only the element's own colour is compared. Where a
+  // background image or gradient lies under the text, the colour stack cannot describe the ground, so the
+  // element is measured against the rendered pixels instead, run by run (null, with a reason, when that is
+  // impossible). Elements inside [data-df-region] are creative content, reported apart from the interface.
+  // painted: every other element with its own text on a painted ground (not inside a sampler match), so
+  // that governed text there is measured or listed, never skipped.
+  const contrastOf = async (page, selector, { all = true, rendered = false, painted = false } = {}) => {
+    const results = await page.evaluate(([sel, every, forceRendered, paintedPass, sampled]) => {
+      const parse = (value) => {
+        let m = value.match(/^rgba?\(([^)]+)\)$/);
+        if (m) { const p = m[1].split(/[\s,/]+/).filter(Boolean).map(Number); return { r: p[0] / 255, g: p[1] / 255, b: p[2] / 255, a: p[3] ?? 1 }; }
+        m = value.match(/^color\(srgb ([^)]+)\)$/);
+        if (m) { const p = m[1].split(/[\s/]+/).filter(Boolean).map(Number); return { r: p[0], g: p[1], b: p[2], a: p[3] ?? 1 }; }
+        return null;
+      };
+      const over = (t, b) => ({ r: t.r * t.a + b.r * (1 - t.a), g: t.g * t.a + b.g * (1 - t.a), b: t.b * t.a + b.b * (1 - t.a), a: 1 });
+      const lum = ({ r, g, b }) => { const f = (c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4); return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b); };
+      // null when the ground is painted: a background image lies under the text before any opaque colour.
+      const ground = (el) => {
+        const layers = [];
+        for (let n = el; n; n = n.parentElement) {
+          const style = getComputedStyle(n);
+          if (style.backgroundImage !== "none") return null;
+          const c = parse(style.backgroundColor);
+          if (c && c.a > 0) { layers.push(c); if (c.a === 1) break; }
+        }
+        let out = layers.length && layers[layers.length - 1].a === 1 ? layers.pop() : { r: 1, g: 1, b: 1, a: 1 };
+        while (layers.length) out = over(layers.pop(), out);
+        return out;
+      };
+      const found = [];
+      for (const el of document.querySelectorAll(sel)) {
+        if (!el.checkVisibility?.() || !el.textContent.trim()) continue;
+        const region = Boolean(el.closest("[data-df-region]"));
+        if (region && !every) continue;
+        if (paintedPass) {
+          const own = [...el.childNodes].some((n) => n.nodeType === Node.TEXT_NODE && n.textContent.trim());
+          if (!own || region || ["SCRIPT", "STYLE", "NOSCRIPT", "OPTION"].includes(el.tagName) || el.closest(sampled) || ground(el)) continue;
+        }
+        const bg = forceRendered || paintedPass ? null : ground(el);
+        let ratio = null;
+        if (bg) {
+          const fg = over(parse(getComputedStyle(el).color), bg);
+          const [hi, lo] = [lum(fg), lum(bg)].sort((a, b) => b - a);
+          ratio = Math.round(((hi + 0.05) / (lo + 0.05)) * 100) / 100;
+        } else {
+          el.setAttribute("data-df-probe", String(found.length));
+        }
+        const text = (paintedPass ? [...el.childNodes].filter((n) => n.nodeType === Node.TEXT_NODE).map((n) => n.textContent).join(" ") : el.textContent).trim().replace(/\s+/g, " ").slice(0, 30);
+        const name = el.tagName.toLowerCase() + (el.classList[0] ? `.${el.classList[0]}` : "");
+        found.push({ text: paintedPass ? `${name}|${text}` : text, ratio, region, rendered: !bg, disabled: el.matches(":disabled") });
+        if (!every) break;
+      }
+      return found;
+    }, [selector, all, rendered, painted, SAMPLER_SELECTORS.join(", ")]);
+    for (const [index, result] of results.entries()) {
+      if (result.rendered) Object.assign(result, await renderedContrast(page, page.locator(`[data-df-probe="${index}"]`), { own: painted }));
+    }
+    await page.evaluate(() => document.querySelectorAll("[data-df-probe]").forEach((el) => el.removeAttribute("data-df-probe")));
+    return results;
+  };
+
+  const detail = ({ ratio, rendered, disabled }) => `${ratio}:1${rendered ? " (rendered ground)" : ""}${disabled ? " (disabled)" : ""}`;
+  const regression = (check, theme, route, key, result) => {
+    regressions.push({ id: `${check}|${theme}|${route}|${key}`, detail: detail(result), value: result.ratio });
   };
 
   for (const theme of THEMES) {
@@ -1838,28 +2081,76 @@ The compiler logic is unchanged from r1. Only its input path and its two header 
       await withPage({ theme, route }, async (page) => {
         ran.add(`contrast|${theme}|${route}`);
         ran.add(`pair|${theme}|${route}`);
+        ran.add(`painted|${theme}|${route}`);
         for (const selector of SAMPLER_SELECTORS) {
-          for (const { text, ratio } of await contrastOf(page, selector)) {
-            if (ratio < 4.5) regression("contrast", theme, route, `${selector}|${text}`, `${ratio}:1`, ratio);
+          for (const result of await contrastOf(page, selector)) {
+            const key = `${selector}|${result.text}`;
+            if (result.region) {
+              regions[`${theme}|${route}`] = (regions[`${theme}|${route}`] || 0) + 1;
+              creative.push({ id: `creative|${theme}|${route}|${key}`, detail: detail(result), value: result.ratio });
+            } else if (result.ratio === null) {
+              unmeasured.push({ id: `contrast|${theme}|${route}|${key}`, reason: result.reason });
+            } else if (result.ratio < 4.5) {
+              regression("contrast", theme, route, key, result);
+            }
           }
+        }
+        for (const result of await contrastOf(page, "body *", { painted: true })) {
+          const key = result.text;
+          if (result.ratio === null) unmeasured.push({ id: `painted|${theme}|${route}|${key}`, reason: result.reason });
+          else if (result.ratio < 4.5) regression("painted", theme, route, key, result);
         }
         for (const pair of PAIRS) {
           const target = page.locator(pair.selector).first();
           if (!(await target.count()) || !(await target.isVisible())) continue;
           uncovered.delete(pair.selector);
           if (pair.hover) await target.hover();
-          const [result] = await contrastOf(page, pair.selector, { all: false });
-          if (result && result.ratio < 4.5) regression("pair", theme, route, `${pair.selector}${pair.hover ? ":hover" : ""}`, `${result.ratio}:1`, result.ratio);
+          const [result] = await contrastOf(page, pair.selector, { all: false, rendered: pair.rendered });
+          const key = `${pair.selector}${pair.hover ? ":hover" : ""}`;
+          if (result?.ratio === null) unmeasured.push({ id: `pair|${theme}|${route}|${key}`, reason: result.reason });
+          else if (result && result.ratio < (pair.min ?? 4.5)) regression("pair", theme, route, key, result);
         }
         if (MODE === "check" && route === "/") {
           const state = await page.evaluate(() => ({
             theme: document.documentElement.dataset.theme,
             body: getComputedStyle(document.body).backgroundColor,
-            inline: [...document.documentElement.style].filter((name) => name.startsWith("--")),
+            inline: [...document.documentElement.style].map((name) => [name, document.documentElement.style.getPropertyValue(name)]),
           }));
+          const leaked = unexpectedInline(state.inline);
           invariant(state.theme === theme, `${theme}: data-theme is ${state.theme}`);
           invariant(state.body === FIELD[theme], `${theme}: page ground ${state.body} is not Darkfield field`);
-          invariant(state.inline.length === 0, `${theme}: theme values written inline on <html>`);
+          invariant(leaked.length === 0, `${theme}: unexpected inline custom properties on <html>: ${leaked.map(([name, value]) => `${name}: ${value}`).join("; ")}`);
+        }
+      });
+    }
+    for (const state of STATES) {
+      await withPage({ theme, route: state.route, clock: state.clock }, async (page) => {
+        ran.add(`state|${theme}|${state.route}`);
+        await state.prepare(page);
+        await page.mouse.move(0, 0);
+        for (const selector of state.texts ?? []) {
+          const texts = page.locator(selector);
+          for (let i = 0; i < (await texts.count()); i++) {
+            const label = (await texts.nth(i).textContent()).trim().replace(/\s+/g, " ").slice(0, 30);
+            const { ratio, reason } = await renderedContrast(page, texts.nth(i));
+            if (ratio === null) unmeasured.push({ id: `state|${theme}|${state.route}|${label}:prepared`, reason });
+            else if (ratio < 4.5) regression("state", theme, state.route, `${label}:prepared`, { ratio, rendered: true });
+          }
+        }
+        const controls = page.locator(state.controls);
+        const count = await controls.count();
+        if (!count) throw new Error(`${state.route}: no ${state.controls}`);
+        for (let i = 0; i < count; i++) {
+          const control = controls.nth(i);
+          const label = (await control.textContent()).trim().replace(/\s+/g, " ").slice(0, 30);
+          for (const [name, enter] of Object.entries(state.states)) {
+            const exit = await enter(page, control);
+            const { ratio, reason } = await renderedContrast(page, control);
+            const key = `${label}:${name}`;
+            if (ratio === null) unmeasured.push({ id: `state|${theme}|${state.route}|${key}`, reason });
+            else if (ratio < 4.5) regression("state", theme, state.route, key, { ratio, rendered: true });
+            if (exit) await exit();
+          }
         }
       });
     }
@@ -1872,25 +2163,55 @@ The compiler logic is unchanged from r1. Only its input path and its two header 
     await withPage({ javaScriptEnabled: false, route: "/projects" }, async (page) => {
       invariant(await page.evaluate(() => getComputedStyle(document.body).backgroundColor) === FIELD.dark, "no-JS route shell is not on Darkfield field");
     });
+    // Controls for the inline-property invariant: the rendered layout properties pass, and each injected
+    // property is rejected (a legacy theme variable, a Darkfield token, an unknown name, non-length values).
+    await withPage({ theme: "dark" }, async (page) => {
+      const read = () => page.evaluate(() => [...document.documentElement.style].map((name) => [name, document.documentElement.style.getPropertyValue(name)]));
+      const rendered = await read();
+      const accepted = rendered.some(([name]) => INLINE_LAYOUT.includes(name)) && unexpectedInline(rendered).length === 0;
+      invariant(accepted, "inline-property control: the rendered layout properties are not accepted");
+      const injected = [
+        ["--app-bg", "#1a1a1a"], ["--field", "#000000"], ["--darkfield-probe", "1px"],
+        ["--dock-icon-size", "#ff0000"], ["--site-dock-safe-space", "var(--field)"],
+      ];
+      await page.evaluate((list) => list.forEach(([name, value]) => document.documentElement.style.setProperty(name, value)), injected);
+      const rejected = unexpectedInline(await read()).map(([name]) => name).sort();
+      const expected = injected.map(([name]) => name).sort();
+      invariant(JSON.stringify(rejected) === JSON.stringify(expected), `inline-property control: rejected ${rejected.join(", ") || "nothing"}`);
+    });
     // Task 4 and Task 6 add their invariants here.
   }
 
   await browser.close();
   console.log(`UNCOVERED pairs (not rendered on any listed route): ${[...uncovered].join(", ") || "none"}`);
 
+  const row = ({ id, detail: text, value }) => ({ id, check: id.split("|")[0], theme: id.split("|")[1], route: id.split("|")[2], detail: text, baseline: value });
   if (MODE === "record") {
-    console.log(JSON.stringify(regressions.map(({ id, detail, value }) => ({ id, check: id.split("|")[0], theme: id.split("|")[1], route: id.split("|")[2], detail, baseline: value })), null, 2));
+    console.log(JSON.stringify({ regions, unmeasured, entries: regressions.map(row), creative: creative.map(row) }, null, 2));
     process.exit(0);
   }
 
   const ledger = JSON.parse(await readFile(new URL("./darkfield-known-deficiencies.json", import.meta.url), "utf8"));
+  const scope = (id) => id.split("|").slice(0, 3).join("|");
   const known = new Map(ledger.entries.map((entry) => [entry.id, entry]));
   const found = new Set(regressions.map((r) => r.id));
   const fresh = regressions.filter((r) => !known.has(r.id));
   const worse = regressions.filter((r) => known.has(r.id) && r.value < known.get(r.id).baseline - 0.05);
-  const stale = ledger.entries.filter((e) => ran.has(e.id.split("|").slice(0, 3).join("|")) && !found.has(e.id));
+  const stale = ledger.entries.filter((e) => ran.has(scope(e.id)) && !found.has(e.id));
+  // Baseline and candidate must exclude the same creative content, and creative content is never restyled.
+  const recordedRegions = Object.fromEntries(Object.entries(ledger.regions).filter(([key]) => ran.has(`contrast|${key}`)));
+  const recordedCreative = new Map(ledger.creative.filter((c) => ran.has(scope(c.id).replace(/^creative/, "contrast"))).map((c) => [c.id, c.baseline]));
+  const measuredCreative = new Map(creative.map((c) => [c.id, c.value]));
+  const creativeChanged = [...new Set([...recordedCreative.keys(), ...measuredCreative.keys()])]
+    .filter((id) => !(recordedCreative.has(id) && measuredCreative.has(id) && Math.abs(measuredCreative.get(id) - recordedCreative.get(id)) <= 0.05))
+    .map((id) => `${id} ${recordedCreative.get(id) ?? "absent"} -> ${measuredCreative.get(id) ?? "absent"}`);
   for (const r of regressions.filter((r) => known.has(r.id))) console.log(`KNOWN ${r.id} ${r.detail}`);
+  for (const { id, reason } of unmeasured) console.log(`UNMEASURED ${id} (${reason})`);
   assert.deepEqual(invariantFailures, [], "Darkfield invariants");
+  assert.deepEqual(regions, recordedRegions, "creative-region exclusions differ from the baseline record");
+  const ids = (list) => list.map(({ id, reason }) => `${id} (${reason})`).sort();
+  assert.deepEqual(ids(unmeasured), ids(ledger.unmeasured.filter(({ id }) => ran.has(scope(id)))), "unmeasurable text differs from the baseline record");
+  assert.deepEqual(creativeChanged, [], "creative content measured differently from the baseline record");
   assert.deepEqual(fresh.map((r) => `${r.id} ${r.detail}`), [], "new regressions (not in the baseline ledger)");
   assert.deepEqual(worse.map((r) => `${r.id} ${r.detail}`), [], "known deficiencies that got worse than baseline");
   assert.deepEqual(stale.map((e) => e.id), [], "ledger entries that no longer reproduce: remove them in this commit");
@@ -1898,24 +2219,138 @@ The compiler logic is unchanged from r1. Only its input path and its two header 
   console.log("darkfield foundation browser test passed");
   ```
 
-- [ ] **Step 3: Record the baseline ledger** (D10).
+- [ ] **Step 3: Mark the Annals creative regions, then record the baseline ledger** (D10).
 
-  ```bash
-  bash "$DF_TMP/df-serve.sh" base "$DF_TMP/baseline/web" 4174
-  cp web/scripts/darkfield-foundation-browser-test.mjs "$DF_TMP/"
-  cd web && DARKFIELD_MODE=record node "$DF_TMP/darkfield-foundation-browser-test.mjs" http://127.0.0.1:4174 "$DF_PW" > "$DF_TMP/ledger-candidates.txt"
-  ```
+  1. **Mark the Annals creative regions (r8; attributes only).**
+     - In `web/src/pages/Annals/Annals.tsx`, add `data-df-region="native"` to exactly these 6 elements, located by anchor. They are the independently authored narrative. Change nothing else: no class, style, text, markup or behaviour.
+     - This is a measurement boundary, not a D6 decision. Which Annals controls are site chrome stays open.
 
-  Then build `web/scripts/darkfield-known-deficiencies.json`:
-  - `baseline` is the `BASE` SHA.
-  - `entries` are the recorded candidates.
-  - `notes` lists the two known baseline issues in [Validation model](#validation-model).
+     | Element | Purpose: why it is creative | Anchor | Line at `a16c70f` |
+     |---|---|---|---|
+     | Masthead tagline | The world's authored subtitle | `<p className="text-stone-600 text-sm mt-1">` | 216 |
+     | Fork, no-divergence line | Narrative of the counterfactual | `<p className="text-stone-500 italic font-serif">` | 285 |
+     | Fork, fates list | The world's account of each named soul | `<div className="space-y-1.5">` | 291 |
+     | Chronicle entries | The world-authored history | the `<div>` directly inside `.annals-chronicle` (`flex flex-col-reverse">`, then `<div>`) | 347 |
+     | Feuds list | The world's account of the houses' feuds | `<div className="space-y-1">` | 412 |
+     | Feuds empty state | World-voice prose | `<p className="text-sm text-stone-400">` | 423 |
 
-  The reviewer re-runs the record against the baseline and confirms every entry reproduces. The owner accepts the ledger (D10) before the Step 11 commit.
+     **Everything else in `.annals-sheet` stays governed and unmarked.** No marker may sit on an ancestor of any of these:
+     - the route's only `h1`, and the masthead's year and population readouts;
+     - every section heading (`h2`, `h3`), including "Your Hand · available/spent", which reports the verbs' state;
+     - the verb hint, and the chronicle legend ("Gold lines are your hand…");
+     - the fork totals line and the fork houses list, readouts keyed to that legend;
+     - the favourite banner, which answers the visitor's watch action;
+     - the intervention log, which records the visitor's own actions;
+     - the footer, which holds usage instructions;
+     - every control, including the conditional ones;
+     - every scroll container: `.annals-chronicle`, the fork section, the intervention log and `<aside>`.
+
+     So never mark `.annals-sheet`, `.annals-columns`, the masthead, the fork section, the chronicle section or its scroller, the controls row or `<aside>`. Each contains governed elements, and a marker reaches every descendant (`closest`), with no way back in.
+     - The governed parchment text sits on a gradient, so the sampler and its painted-text pass measure it on rendered pixels, run by run (Step 2).
+
+     **Checked** ([E-11](#evidence-summary)). No marked subtree contains a heading, legend, label, control, `tabindex`, handler, ARIA role, component or scroll container.
+     - Statically: over the JSX, including conditional branches.
+     - Rendered, in both themes at 1440 and 700 px wide: at load, with the verbs enabled, with a verb pending, and with the fork, banner and log shown.
+     - Tab never reached an element inside a marker.
+
+     **What a marker excludes.** A marked element leaves:
+     - this sampler (its contrast is reported as `creative` instead);
+     - every Phase 6 measurement of the governed interface: area budgets, void, emission, Mono hue leaks, idle and reduced motion, typography families and geometry.
+
+     No keyboard, focus or forced-colours check reads the marker.
+
+     **Annals focus is unverified until Phase 6.**
+     - Phase 1's focus checks do not visit `/simulations/annals` (Task 6 `FOCUS_ROUTES`).
+     - The chronicle log, the intervention log and (from 768 px wide, `Annals.css`) the fork section are scroll containers that Chrome makes keyboard-focusable while their content overflows. Task 6's ring rule does not match them.
+     - All three stay unmarked.
+
+     Verify:
+
+     ```bash
+     test "$(grep -c 'data-df-region="native"' web/src/pages/Annals/Annals.tsx)" = 6
+     git show "$BASE":web/src/pages/Annals/Annals.tsx | diff - <(sed 's/ data-df-region="native"//g' web/src/pages/Annals/Annals.tsx)
+     ```
+
+     The `diff` prints nothing: the change is attribute-only.
+  2. **Record against a baseline with the same markers.** The baseline worktree gets the identical attribute-only patch, so the baseline and the candidate exclude exactly the same creative content.
+     - Never record against an unmarked baseline: it would measure the parchment against the page field.
+     - The browser test enforces this: check mode compares `regions` with the record.
+     - At session end, run `git -C "$DF_TMP/baseline" checkout -- web/src/pages/Annals/Annals.tsx` before Task P0's `git worktree remove "$DF_TMP/baseline"`. Removal refuses a modified worktree.
+
+     ```bash
+     git diff -- web/src/pages/Annals/Annals.tsx > "$DF_TMP/annals-regions.patch"
+     git -C "$DF_TMP/baseline" apply "$DF_TMP/annals-regions.patch"
+     git -C "$DF_TMP/baseline" status --porcelain   # exactly one line: " M web/src/pages/Annals/Annals.tsx"
+     bash "$DF_TMP/df-serve.sh" base "$DF_TMP/baseline/web" 4174
+     cp web/scripts/darkfield-foundation-browser-test.mjs "$DF_TMP/"
+     cd web && DARKFIELD_MODE=record node "$DF_TMP/darkfield-foundation-browser-test.mjs" http://127.0.0.1:4174 "$DF_PW" > "$DF_TMP/ledger-candidates.txt"
+     ```
+
+  3. **Rhythm Lab lane tap zones: state-specific verification (r8).**
+     - **The zones.** The zones (`RhythmHighway.tsx`) are enabled `<button>`s with `tabIndex={-1}`: operated by pointer, and mirrored by the lane keys. Their text is the key hint, for example "A / J / Left", at 0.72–0.95 rem bold. That is not large text, so the criterion is 4.5:1.
+     - **The overlays.** `.rhythm-lab-overlay` (`RhythmLab.css`) covers them during Ready Check, pause, run summary and tutorial. It sits at `z-index` 8 over the zones' 6, with a 78% black scrim and a backdrop blur.
+     - **The procedure.** The browser test does not wait for the animated route to settle. It brings each state about and checks it, with the page clock frozen after the run starts (Step 2 `STATES`):
+
+     | State | How it is reached | Control state | Pixels behind the hint | Criterion | Valid evidence |
+     |---|---|---|---|---|---|
+     | Ready Check (load) | page load | Enabled but not operable: the overlay takes the pointer, and lane keys give no feedback. Not focusable | the overlay over the zone | None asserted. The hint is obscured by a modal scrim and the zone is inactive | `unmeasured`, reason `covered by div.rhythm-lab-overlay`. Never PASS |
+     | Playing | Start, run the clock 150 ms, then freeze it | Enabled; pointer and key operable; not focusable | the highway gradient, with notes frozen | ≥ 4.5:1 | Rendered ground; nothing covers the text; two captures agree |
+     | Lane key held | the zone's first key held down | Input feedback class present; its 80 ms expiry is held by the frozen clock | the input gradient over the highway | ≥ 4.5:1 | As above, with the class verified present |
+     | Pointer pressed | mouse button held at the zone's centre | `:active` verified | the active gradient over the highway | ≥ 4.5:1 | As above |
+     | Paused | Escape | Enabled but not operable: the overlay | the pause overlay | None asserted, as at load | `unmeasured`, covered. Never PASS |
+
+     - **Context.** Like the whole browser test, these states run with `prefers-reduced-motion: reduce`.
+     - **Results.** A failure in a measurable state is an `entries` failure, compared with the baseline like any other. A state whose capture is covered or moving is `unmeasured`, with its reason.
+     - **Not assessed.** The hint under moving notes, which belong to the native playfield, is not assessed: the frozen state is the evidence.
+     - **Reporting.** Step 11 reports every Rhythm Lab `unmeasured` state to the owner as open, with no effect on `entries` and no PASS. Classifying the zones (governed or native) is D6's.
+
+  4. **Build `web/scripts/darkfield-known-deficiencies.json`.** Record mode prints the UNCOVERED line, then one JSON object.
+     - `baseline` is the `BASE` SHA.
+     - `regions`, `unmeasured`, `entries` and `creative` are copied from that object unchanged.
+     - `notes` lists:
+       - the two known baseline issues in [Validation model](#validation-model);
+       - `.error-button.primary` (below);
+       - that the baseline was recorded with the 6 Annals markers applied;
+       - the Annals verb note: the verbs are disabled at load and enabled every third year. Their r7 readings measured the page field, not their ground, and were unreliable. r8 measures every state against the rendered ground;
+       - that r7's Annals parchment readings were invalid. They are not carried into `entries`, and their absence there is not an improvement. The authored narrative is recorded under `creative` for D6. The governed parchment text is measured on rendered pixels, run by run, and its failures are `entries`;
+       - the Rhythm Lab states recorded in `unmeasured` (state table above), and that none of them is a PASS;
+       - the states this test never measures, which therefore stay unverified:
+         - the Annals conditional baseline, your-hand and fork buttons (including the pressed "close fork" state) and copy-log, which a load never renders;
+         - the Annals conditional governed text: the favourite banner, the fork headings, houses list and totals, and the intervention log;
+         - the Annals roster glyph and the seed field's value text. The glyph sits inside each roster button, on the button's opaque colour, where only the button's own colour is compared.
+           - The glyph is "·", which is decorative, at 2.19:1. Once a soul is watched it becomes "★", the visible state of the watch, at 2.35:1 on its yellow ground.
+           - Both values are the same in both themes and on `BASE` ([E-11](#evidence-summary)).
+           - The watched "★" is a known pre-existing failure outside the ledger's coverage. It is not a PASS.
+         - the hover states of cast world, replay seed and the advance button;
+         - Annals focus;
+         - the Rhythm Lab hint under moving notes.
+
+     The reviewer re-runs the record against the marked baseline. It confirms that every entry reproduces, and that `regions`, `unmeasured` and `creative` equal the ledger's. The owner accepts `entries` (D10) before the Step 11 commit. `creative` and `unmeasured` are not part of D10.
 
   Expect at least:
   - `.home-link` on the 404 probe: white on gold, 1.40:1, both themes.
   - `.btn-outline:hover`, Dark: 2.78:1 (`.btn-outline` is rendered by `FeaturedProjectsSection.tsx`).
+  - r8: at load, `regions` counts 2 per theme on `/simulations/annals`: the tagline and the feuds empty state. Those 2 elements per theme are in `creative`.
+  - r8: governed Annals parchment text that fails, measured run by run and identical on `BASE` and the Task 3 work. These are pre-existing failures for D10, not Task 3 regressions:
+    - the "Your Hand" heading, through its status span: "spent" at load, "available" in the prepared state;
+    - the chronicle legend, through its "your hand" span.
+
+    The rest of the governed parchment text (the `h1`, other headings, the verb hint, readouts, labels and the footer) measured at least 4.5:1.
+  - r8: the six disabled verbs, marked `(rendered ground) (disabled)` in both themes.
+  - r8: in Light, the Step 7 item 4 selectors fail:
+    - the roster primary action, at rest and at hover;
+    - the media bar controls, at rest and at hover;
+    - the media labels;
+    - the KS mark, on every route with a header;
+    - `.not-found h1`.
+  - r8: `unmeasured` holds, in both themes, each with its reason:
+    - the Rhythm Lab zones at load and when paused, `covered by div.rhythm-lab-overlay`;
+    - the lane labels and the "Ready" lane text at load, covered by the Ready Check overlay or its panel.
+
+  The r8 dry run ([E-11](#evidence-summary)) recorded these values; the reviewer compares them:
+  - the disabled verbs at 1.15–1.17:1 Dark and 1.22–1.24:1 Light;
+  - every Annals verb state, and every measurable Rhythm Lab state, measured at least 4.5:1 in both themes;
+  - the Annals status span: 1.86:1 Dark and 2.01:1 Light at load ("spent"), and 3.70:1 Dark and 3.99:1 Light prepared ("available"). The legend span measured 3.74:1 Dark and 4.03:1 Light.
 
   `.error-button.primary` has the same 1.40:1 pattern, but it renders only when an error boundary fires, so the run reports it UNCOVERED. Add it to the ledger `notes` with the static evidence (`ErrorBoundary.css:54`).
 
@@ -1923,7 +2358,10 @@ The compiler logic is unchanged from r1. Only its input path and its two header 
 
   Run: `cd web && node --test scripts/darkfield-bridge.test.mjs`
 
-  Expected: FAIL on "theme switching only selects a theme", plus the two bridge tests, which fail with `ENOENT` because `bridge.css` does not exist yet.
+  Expected: FAIL on all four tests.
+  - "theme switching only selects a theme".
+  - The two bridge tests, which fail with `ENOENT` because `bridge.css` does not exist yet.
+  - "no text colour reads an alias that resolves to a ground", on `pages/Home/Home.css`: `[data-theme="light"] .btn-secondary:hover` sets `color: var(--primary-color-dark)`. Step 7 item 1 deletes that rule, and the test then passes. (r7 omitted this expected failure; r8 adds it.)
 
   Run: `bash "$DF_TMP/df-serve.sh" head web 4173 && cd web && node scripts/darkfield-foundation-browser-test.mjs http://127.0.0.1:4173 "$DF_PW"`
 
@@ -2088,6 +2526,58 @@ The compiler logic is unchanged from r1. Only its input path and its two header 
      [data-theme="light"] .spider-solitaire { --spider-empty-column-border: #cfcec8; }
      ```
 
+  4. **Contrast repairs (r8).** In Light, Task 3's darker field and re-pointed text roles made already-failing texts worse ([E-11](#evidence-summary)). Each is repaired here. None is grandfathered.
+     - The criterion is the measured result. This plan prescribes no colour values.
+     - The [E-11](#evidence-summary) dry run shows each criterion can be met with existing tokens.
+
+     | File | Selector (what it is) | States | Themes | Required | Baseline → r7 head, Light |
+     |---|---|---|---|---|---|
+     | `ProjectRoster.css` | `.project-roster__action--primary` (the "Case study" links on `/projects`) | rest, hover, focus | Dark, Light | ≥ 4.5:1 | 4.47 → 4.16 |
+     | `ProjectMedia.css` | `.project-media__bar .project-media__control` (the playback controls on the case-study routes) and `.project-media__label` (the label on every media bar) | default, hover, focus-visible, active, playing (label "pause") | Dark, Light | ≥ 4.5:1 | controls 2.00 → 1.94, hover 3.04 → 3.10; label 2.00 → 1.94 |
+     | `NotFound.css` | `.not-found h1` (the 404 heading, 6rem, large text) | rest | Light (Dark measures 14.12:1 and must not change) | ≥ 3:1, and the *Text contrast* rule below | 1.34 → 1.26 |
+     | `SiteNavigation.css` | `.site-header__brand-mark` (the `KS` mark in the header's home link) | default, and link hover and focus, which do not change its colour; at every scroll position | Light (Dark passes and improved; it must not get worse) | ≥ 4.5:1 against the darkest ground the header can give it | colour stack 3.49 → 3.22; rendered, darkest observed 2.65 → 2.49 |
+
+     **Rules for all four files:**
+     - **Values.** Use existing Darkfield tokens through `var(--…)`, or existing aliases that resolve to them.
+       - No literal colours.
+       - No new or changed token, alias or held value: `tokens.runtime.json`, `tokens.css` and `bridge.css` stay as they are.
+       - `--accent-color`, `--brand-primary` and `--roster-accent` keep their global values. No global brand-token changes.
+     - **Global Constraints *Text contrast*.** Each new text/ground pair must be a §05 *Contrast, verified* pair, or measure ≥ 4.5:1 in every shipped theme. The only exception is the ProjectMedia one below. For the 404 heading, the 3:1 above is the test's floor, not a relaxation of that rule.
+     - **Scope.** Change only the named selectors and their states. Other consumers of the same variables keep their values.
+       - The roster toggle is unchanged.
+       - The `.project-media__actions` and `MediaInspector` controls, including the `[aria-pressed="true"]` view toggles, are unchanged.
+       - The 404 change applies only under `[data-theme="light"]`. `.home-link` stays a recorded deficiency (Phase 3).
+     - **Nothing else changes.** Borders keep the item 2 `edge` treatment. Geometry, layout, motion and copy are untouched, and focus styles are Task 6's.
+
+     **ProjectMedia foreground exception (owner-authorized, r8).**
+     - **What it permits.** The bar controls and the label may take an existing ground token as their foreground: `field`, `field-deep`, `surface-1`, `surface-2` or `surface-3`. They may also take an `on-*` token: `on-signal`, `on-fault` or `on-flare`.
+     - **Why it is needed.** The bar stays the fixed `#181818`, which matches the recordings' letterbox. In Light, the text tokens reach only 1.01, 1.94 and 2.91:1 on it, while every listed ground and `on-*` token reaches 13.44–17.04:1 ([E-11](#evidence-summary)).
+     - **Light only: this plan's reading.** The owner's requirement covers both themes. No single token works in both, because in Dark the ground and `on-*` tokens are near-black and reach 1.01–1.16:1.
+       - The plan therefore applies the exception in Light only.
+       - Dark keeps its current rules, which already pass (8.36:1 default, 6.78:1 hover) and must not get worse.
+       - Step 11 reports this reading to the owner.
+     - **States.** Every state's text must reach ≥ 4.5:1. Hover may keep its border change and may use a different permitted token. The decorative `▍` before each label keeps its colour.
+     - **Not authorized:**
+       - colour mixing;
+       - a control fill;
+       - a different bar or frame background;
+       - any change to bar geometry, media presentation, playback, video or image content, or other case-study styles.
+
+     **KS mark: a local accessibility correction, not a D5 ruling.**
+     - **What changes.** Only the mark's Light foreground colour changes, under `[data-theme="light"] .site-header__brand-mark`. It takes a text token, per Global Constraints *Text contrast*: `fg`, `fg-muted` or `fg-faint`.
+     - **What stays.** The letters, family, size, weight, box, border (which keeps `--brand-primary`), placement and `aria-hidden` stay as they are.
+     - **The ground.** The header is translucent: `--app-overlay`, with a backdrop blur. Content scrolled behind it therefore darkens the mark's ground. The requirement holds at the darkest case: the mark's 20% black over the header's 88% field, over black. The test's rendered pair checks each route as the run leaves it.
+     - **The dry run.** Of the text tokens, only `fg` meets the requirement in Light: 7.83:1 at the darkest observed position, against an analytic bound of 7.82:1. `fg-muted` falls to 3.98:1. No green token would reach it either (`signal` 2.79:1).
+     - **The effect.** So the correction makes the letters neutral instead of green in Light. The plan treats that as the authorized foreground-colour correction, not a redesign of the mark. Step 11 asks the owner to acknowledge it.
+     - **WCAG note.** WCAG 1.4.3 exempts logotypes; the owner's requirement applies regardless.
+
+     **Regressions and stale entries.** No other text may get worse: Step 8 and the Step 9 comparison enforce this. The sampler entries and the r8 pairs for these selectors then go stale, so remove exactly those entries in this commit.
+     - If the repaired heading measures between 3:1 and 4.5:1, its sampler entry (threshold 4.5) stays KNOWN with an improved value.
+
+     **Commit record.** Record in the commit body the repaired ratio of every listed state and theme, including the states no test renders: focus, active and the media "playing" state. For the KS mark, give its ratio at the analytic darkest case.
+
+     **Stop rule.** If no permitted token meets a criterion, stop and report to the owner. Do not choose another route.
+
 - [ ] **Step 8: Run all checks and confirm they pass.**
 
   ```bash
@@ -2099,12 +2589,106 @@ The compiler logic is unchanged from r1. Only its input path and its two header 
 
   Expected:
   - PASS.
-  - Only ledger entries are printed as KNOWN.
+  - Only ledger entries are printed as KNOWN. Only the ledger's `unmeasured` ids are printed as UNMEASURED, each with its reason.
   - The `UNCOVERED` line lists only pairs that genuinely need state the test does not create, such as the settings panel being open. Record that line in the commit body.
+  - **Stale entries (r8).** The stale entries removed in this commit are exactly the ones this task fixes. Each is re-measured as an improvement while `regions` matches the baseline, so no entry can leave through an exclusion. They are:
+    - the Step 7 item 1 fixes and the bridge's improvements, as recorded in [E-11](#evidence-summary);
+    - every entry for a Step 7 item 4 selector.
+  - The r7 Annals parchment entries never appear as stale: r8 never records them as entries.
 
 - [ ] **Step 9: Run the existing regression tests against both previews.**
 
   Run `boot-shell`, `settings-panel`, `header-overlap`, `case-study-media`, `route-metadata` and `procedural-animations` against 4173 and 4174. A test failing on head but not on base is a regression to fix in this task. A test failing on both is recorded in the ledger `notes`.
+
+  **Whole-text comparison (r8).**
+  - **What it covers.** The browser test covers selected text. This comparison covers every visible element's own text, on its colour stack, outside creative regions, on every listed route and theme.
+  - **How to run it.** Install the script in `$DF_TMP` and run it against both previews:
+
+  ```bash
+  cat > "$DF_TMP/text-compare.mjs" <<'EOF'
+  // text-compare.mjs <base URL> <head URL> <Playwright module>
+  // Every visible element with its own text, outside [data-df-region], on every routed page and theme:
+  // contrast against its composited background-colour stack, baseline versus candidate. Prints each text
+  // that is below 4.5:1 on the candidate and more than 0.05 worse than on the baseline, then how many
+  // elements it compared, skipped (painted ground or unparsed colour) or could not pair. It finds candidates for review;
+  // the browser test and the ledger decide.
+  const [baseUrl, headUrl, playwright] = process.argv.slice(2);
+  const { chromium } = await import(playwright);
+  const browser = await chromium.launch({ headless: true });
+  const ROUTES = [
+    "/", "/projects", "/case-studies", "/case-studies/aether", "/case-studies/erebus", "/case-studies/arachne",
+    "/case-studies/where-the-specification-lived", "/writing", "/simulations", "/simulations/orbital-simulator",
+    "/simulations/traffic-simulator", "/simulations/annals", "/simulations/snake", "/simulations/spider",
+    "/simulations/rhythm-lab", "/procedural-animations", "/experience", "/journey", "/terminal", "/darkfield-404-probe",
+  ];
+  const scan = async (url, theme, route) => {
+    const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" });
+    await context.addInitScript((value) => localStorage.setItem("theme", value), theme);
+    const page = await context.newPage();
+    await page.goto(`${url}${route}`, { waitUntil: "networkidle" });
+    const found = await page.evaluate(() => {
+      const parse = (value) => {
+        let m = value.match(/^rgba?\(([^)]+)\)$/);
+        if (m) { const p = m[1].split(/[\s,/]+/).filter(Boolean).map(Number); return { r: p[0] / 255, g: p[1] / 255, b: p[2] / 255, a: p[3] ?? 1 }; }
+        m = value.match(/^color\(srgb ([^)]+)\)$/);
+        if (m) { const p = m[1].split(/[\s/]+/).filter(Boolean).map(Number); return { r: p[0], g: p[1], b: p[2], a: p[3] ?? 1 }; }
+        return null;
+      };
+      const over = (t, b) => ({ r: t.r * t.a + b.r * (1 - t.a), g: t.g * t.a + b.g * (1 - t.a), b: t.b * t.a + b.b * (1 - t.a), a: 1 });
+      const lum = ({ r, g, b }) => { const f = (c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4); return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b); };
+      const ground = (el) => {
+        const layers = [];
+        for (let n = el; n; n = n.parentElement) {
+          const style = getComputedStyle(n);
+          if (style.backgroundImage !== "none") return null;
+          const c = parse(style.backgroundColor);
+          if (c && c.a > 0) { layers.push(c); if (c.a === 1) break; }
+        }
+        let out = layers.length && layers[layers.length - 1].a === 1 ? layers.pop() : { r: 1, g: 1, b: 1, a: 1 };
+        while (layers.length) out = over(layers.pop(), out);
+        return out;
+      };
+      const path = (el) => { const parts = []; for (let n = el; n && n !== document.body; n = n.parentElement) parts.unshift(n.tagName.toLowerCase() + [...n.classList].slice(0, 2).map((c) => `.${c}`).join("")); return parts.slice(-4).join(">"); };
+      const out = { rows: [], painted: 0 };
+      for (const el of document.body.querySelectorAll("*")) {
+        const own = [...el.childNodes].filter((n) => n.nodeType === 3).map((n) => n.textContent).join("").trim();
+        if (!own || ["SCRIPT", "STYLE", "NOSCRIPT", "OPTION"].includes(el.tagName) || el.closest("[data-df-region]")) continue;
+        if (!el.checkVisibility?.({ opacityProperty: true, visibilityProperty: true })) continue;
+        const bg = ground(el);
+        const color = parse(getComputedStyle(el).color);
+        if (!bg || !color) { out.painted++; continue; }
+        const [hi, lo] = [lum(over(color, bg)), lum(bg)].sort((a, b) => b - a);
+        out.rows.push([`${path(el)}|${own.replace(/\s+/g, " ").slice(0, 30)}`, Math.round(((hi + 0.05) / (lo + 0.05)) * 100) / 100]);
+      }
+      return out;
+    });
+    await context.close();
+    const lowest = new Map();
+    for (const [key, ratio] of found.rows) lowest.set(key, Math.min(ratio, lowest.get(key) ?? Infinity));
+    return { lowest, painted: found.painted };
+  };
+  let compared = 0, painted = 0, unpaired = 0, worse = 0;
+  for (const theme of ["dark", "light"]) {
+    for (const route of ROUTES) {
+      const [before, after] = [await scan(baseUrl, theme, route), await scan(headUrl, theme, route)];
+      painted += after.painted;
+      for (const [key, ratio] of after.lowest) {
+        if (!before.lowest.has(key)) { unpaired++; continue; }
+        compared++;
+        if (ratio < 4.5 && ratio < before.lowest.get(key) - 0.05) { worse++; console.log(`WORSE ${theme} ${route} ${key} ${before.lowest.get(key)} -> ${ratio}`); }
+      }
+    }
+  }
+  await browser.close();
+  console.log(`compared ${compared}; worse ${worse}; painted ground or unparsed colour (not compared) ${painted}; unpaired ${unpaired}`);
+  EOF
+  node "$DF_TMP/text-compare.mjs" http://127.0.0.1:4174 http://127.0.0.1:4173 "$DF_PW"
+  ```
+
+  - **Expected.** `worse 0`.
+  - **A WORSE line is a regression.** If its file is one that Step 7 item 4 authorizes, it is repaired under item 4's rules; otherwise it is a stop (stop condition 6). It is never accepted into the ledger.
+  - **Recording.** Record the summary line in the commit body.
+  - **What it cannot compare.** On a painted ground, the elements it could not compare are covered by the browser test's sampler and painted-text pass. Elements with an unparsed colour, or that cannot be paired between builds, are not covered by this comparison.
 
 - [ ] **Step 10: Run the visual review (human).**
 
@@ -2116,10 +2700,24 @@ The compiler logic is unchanged from r1. Only its input path and its two header 
   - unreadable text
   - control boundaries that vanished
   - creative regions (iframes, canvases, Snake/Spider/Rhythm Lab playfields, Annals panels, project media) that changed. Any change there is a **stop**.
+  - r8: the marked Annals narrative renders exactly as before. The browser test also holds its measured contrast to the baseline record.
 
 - [ ] **Step 11: Commit** after D10.
-  - Paths: the Files list above, with the confirmed control-boundary files.
-  - Message: `feat(web): drive themes from Darkfield tokens through a legacy-variable bridge`.
+  - **Before asking for D10, report to the owner:**
+    - the ledger `entries`;
+    - every `unmeasured` id, with its reason and its effect on D10. None is accepted or passed by D10; each stays an open verification item;
+    - the states recorded in `notes` as unverified;
+    - the Step 9 comparison summary;
+    - for acknowledgement: the KS mark's letters turn neutral in Light, and the ProjectMedia exception applies in Light only (Step 7 item 4);
+    - the known pre-existing failures that the test does not cover, starting with the Annals watched-roster "★" (Step 3 notes).
+  - **Owner rulings first.** If a Step 7 item 4 repair reached its stop rule, the commit waits for the owner's ruling.
+  - **The reviewer (r8)** also:
+    - re-runs the Step 9 comparison and confirms `worse 0`;
+    - checks every `unmeasured` reason against the Step 3 state table (check mode already holds the reasons to the baseline);
+    - confirms that no marker sits on, or above, a governed element;
+    - confirms that the ProjectMedia exception is used only within its scope.
+  - **Paths:** the Files list above, with the confirmed control-boundary files. r8 adds `Annals.tsx`, `ProjectRoster.css` and `NotFound.css`; `ProjectMedia.css` and `SiteNavigation.css` are already control-boundary files.
+  - **Message:** `feat(web): drive themes from Darkfield tokens through a legacy-variable bridge`.
 
 ### Task 4: Font families
 
@@ -2529,13 +3127,18 @@ Each phase gets its own plan in this directory after Phase 1 merges. The scope b
 | Simulations index | Cards, launch controls | Previews of native visuals as D6 decides | D6 |
 | NotFound, errors, loaders, toasts, modals | §13 Error and Processing signatures; no celebratory toasts | — | — |
 
-**Region marking.** Each Phase 5 task marks its creative containers with `data-df-region="artwork|native|evidence"`. The Phase 1 sampler already skips elements inside such regions. Phase 6 measurements depend on these marks; an unmarked creative region is a Phase 5 defect.
+**Region marking.** Each Phase 5 task marks its creative containers with `data-df-region="artwork|native|evidence"`.
+- The Phase 1 sampler already skips elements inside such regions. Phase 6 measurements depend on these marks; an unmarked creative region is a Phase 5 defect.
+- Task 3 already marks the Annals authored narrative (r8). Its headings, hints, legends, readouts, logs, footer and controls stay governed.
+- A marker reaches every descendant, so it goes only on a subtree with no interactive control.
+- A marker removes its subtree from the Phase 1 sampler and from every Phase 6 governed-interface measurement listed below. It never removes anything from keyboard, focus or forced-colours checks.
+- A task that adds or moves markers records the baseline with the same markers.
 
 ### Phase 6: Conformance measurement
 
 Limits are read from the canonical repository at the pinned tag; this plan cites them without restating them. Any row whose automated method would put a specification limit into public code is gated by D11.
 
-All measurements run on the **governed interface**: the viewport minus `[data-df-region]`, `<iframe>`, `<canvas>`, `<video>` and content `<img>` boxes. Each report also states the excluded share of the viewport, so the exclusions stay visible.
+All measurements run on the **governed interface**: the viewport minus `[data-df-region]`, `<iframe>`, `<canvas>`, `<video>` and content `<img>` boxes. Focus, keyboard and forced-colours checks are the exception: they exclude nothing (r8). Each report also states the excluded share of the viewport, so the exclusions stay visible.
 
 | Requirement | Method | Kind |
 |---|---|---|
@@ -2574,6 +3177,14 @@ Every line number refers to `a16c70f`. Implementers locate code by the anchor, n
 | `OrbitalSimulator/renderer.ts` palette | `theme === "dark" ? "#` |
 | `visual-review.mjs` theme check | `"--theme must be dark or light"` |
 | `TerminalDropdown.css` focus | `.terminal-dropdown-trigger:focus {` |
+| Inline layout properties (r8) | `SiteNavigation.tsx`: `style.setProperty("--site-header-measured-offset"` and `style.setProperty("--site-dock-safe-space"`; `useDock.ts`: `"--dock-icon-size"` |
+| `Annals.tsx` region markers (r8) | the 6 anchors in Task 3 Step 3 |
+| `SiteNavigation.css` KS mark (r8) | `.site-header__brand-mark {` |
+| `ProjectMedia.css` label (r8) | `.project-media__bar {` (the label's colour); `.project-media__label::before {` |
+| Rhythm Lab zones and overlay (r8) | `RhythmHighway.tsx`: `className="rhythm-lab-hit-zones"`; `RhythmLab.css`: `.rhythm-lab-hit-zone {`, `.rhythm-lab-overlay {`; `helpers.ts`: `INPUT_FEEDBACK_MS` |
+| `ProjectRoster.css` primary action (r8) | `.project-roster__action--primary {` |
+| `ProjectMedia.css` bar control (r8) | the rule that begins a line with `.project-media__control {` (line 31); `.project-media__control:hover {` |
+| `NotFound.css` heading (r8) | `.not-found h1 {` |
 
 ## Evidence summary
 
@@ -2631,6 +3242,73 @@ Every line number refers to `a16c70f`. Implementers locate code by the anchor, n
   - Verifier: it never read the tag or commit in `SOURCE.json` and read canonical files from the working tree, so a plain copy of the right files verified.
   - Neither defect affected the published files: every canonical key matches the r7 key grammar, and the pin was checked by hand in Task 1 and again by its reviewer.
   - Accepted limitations, not defects: the public tests cannot detect a short phrase in a name or a font stack, or an altered value with a recomputed hash. Only canonical verification can (see Leakage controls and the Validation model).
+- **E-11. Task 3 at r7, and the r8 dry runs** (2026-10-11 to 2026-10-13).
+  - **The previews** were throwaway builds outside the repository. Nothing was written to the repository.
+    - One of `BASE`, and one of the uncommitted Task 3 work. Both had the 6 Annals markers, applied by the same attribute-only patch.
+    - For feasibility only, a third: the Task 3 work plus illustrative repairs. It was never committed, and the plan prescribes no values.
+  - **Inline properties.**
+    - `SiteNavigation.tsx:90,133` and `useDock.ts:86` write `--site-header-measured-offset`, `--site-dock-safe-space` and `--dock-icon-size` on `<html>`, each a px length. An `rg` over `web/src` found no other custom property written there.
+    - r7's invariant rejected all three.
+    - r8's controls passed: the three rendered properties are accepted, and all five injected properties are rejected.
+    - Two deliberately broken predicates each failed the controls: one that accepts everything, and r7's, which rejects every inline custom property.
+  - **Bridge test.** At `BASE`, 4 of 4 tests fail, and test 4 names only `pages/Home/Home.css` (line 134). On the Task 3 work, 4 of 4 pass.
+  - **Annals.**
+    - `.annals-sheet` (`Annals.tsx:209`) wraps every Annals control and has a gradient background (`Annals.css`). r7's colour-stack sampler cannot see a gradient, so it measured the parchment text against the page field.
+    - **Checked:** the 6 marked subtrees contain no heading, legend, label, control, `tabindex`, handler, ARIA role, component or scroll container.
+      - Statically: the JSX, including conditional branches.
+      - Rendered, in both themes at 1440 and 700 px: load, verbs enabled, verb pending, and fork, banner and log shown.
+      - Tab never reached an element inside a marker.
+    - **Rendered measurements, run by run, identical on `BASE` and on the Task 3 work:**
+      - governed parchment text that fails:
+        - the "Your Hand" heading's status span, "spent" 1.86:1 Dark and 2.01:1 Light, and "available" 3.70:1 Dark and 3.99:1 Light;
+        - the legend's "your hand" span, 3.74:1 Dark and 4.03:1 Light.
+
+        An earlier draft compared these spans with their parent's colour and wrongly passed them. The independent review found it, and the method now measures each run in its own colour;
+      - the rest of the governed parchment text (the `h1`, the other headings, the verb hint, readouts, the seed label and the footer): every value at least 4.5:1;
+      - creative: the tagline 6.08:1 Dark and 6.54:1 Light; the feuds empty state 1.85:1 Dark and 1.99:1 Light;
+      - disabled verbs: 1.15–1.17:1 Dark and 1.22–1.24:1 Light. r7's field-based reading of 1.38 → 1.33 was unreliable;
+      - enabled, hovered and pressed verbs: at least 4.5:1.
+  - **Rhythm Lab.**
+    - The lane zones are enabled buttons with `tabIndex -1`, neither inert nor `aria-hidden`.
+    - Under the Ready Check and pause overlays (`z-index` 8 over 6; a 78% black scrim with a 10 px backdrop blur), the pointer hits the overlay, and lane keys give no feedback.
+    - A differential capture (text shown versus hidden) put the hint's effective contrast through the scrim at 1.03–1.04:1, so it is illegible.
+    - With the page clock frozen, playing, lane-key and pointer-pressed states measured at least 4.5:1 in both themes, identical on both builds. The 80 ms key feedback (`INPUT_FEEDBACK_MS`) held under the frozen clock.
+    - Under a running clock, notes moved through the zones and two captures disagreed; that is why the clock is frozen.
+    - **Measured on the Ready Check overlay:** its texts sit on a painted ground and measured at least 4.5:1.
+    - **Covered, so `unmeasured`:** the lane labels and the "Ready" lane text.
+    - **Elsewhere:** the painted-text pass found no painted-ground text outside Annals and Rhythm Lab on the listed routes.
+  - **Repair feasibility** (public `tokens.runtime.json`, and rendered pixels):
+    - **Media bar** (`#181818`, uniform):
+      - Light: `fg`, `fg-muted` and `fg-faint` reach 1.01, 1.94 and 2.91:1; the ground and `on-*` tokens reach 13.44–17.04:1.
+      - Dark: the ground and `on-*` tokens reach 1.01–1.16:1; the current colours reach 8.36:1 (default) and 6.78:1 (hover).
+    - **KS mark.** At scroll position 0 its ground is the same on every route. Content scrolled behind the header darkens it.
+      - At the darkest observed position, Light: `fg` 7.83:1, `fg-muted` 3.98:1, `fg-faint` 2.66:1, `signal` 2.79:1, `signal-dim` 2.49:1 (baseline 2.65:1).
+      - The analytic bound for black content behind gives `fg` 7.82:1.
+      - Dark `signal-dim`, darkest observed: 6.23:1 (baseline 5.41:1).
+    - **Roster tint** (16% `signal-dim` over `field`, `#d2dfd6`): `fg` 13.07:1, `fg-muted` 6.64:1, `signal` 4.66:1.
+    - **404 heading on the field:** `fg` 16.16:1, `fg-muted` 8.21:1, `fg-faint` 5.48:1.
+  - **Determinism.** Two record runs on `BASE` gave byte-identical output.
+  - **Check of the Task 3 work** (r8 test, ledger built from that record):
+    - Invariants, `regions`, `unmeasured` and `creative` pass, and there is no new regression.
+    - Worse: only the Step 7 item 4 selectors. The roster links (at rest and hover), media controls, media labels and 404 heading were worse in Light, and the KS mark on every route with a header.
+    - Stale: the Step 7 item 1 fixes and the bridge's improvements ("Read Case Studies", `.btn-primary`, `.btn-outline:hover` and "7Projects listed", all Dark).
+  - **With the illustrative repairs:**
+    - there was no new regression and nothing worse, and every item 4 entry went stale;
+    - after removing exactly the stale entries, the test passed;
+    - the only UNMEASURED items were Rhythm Lab's covered states.
+  - **Guards.** Each fails as required: against an empty `regions`, against a `creative` value shifted by 0.06, with one `unmeasured` id removed, and with one `unmeasured` reason changed.
+  - **Whole-text comparison** (Step 9 script):
+    - `BASE` → Task 3 work: every worsened element belongs to an item 4 selector.
+    - `BASE` → illustrative repairs: `worse 0`.
+  - **Known gaps.** These are recorded, not resolved:
+    - Annals focus;
+    - the Annals conditional controls, and the hover states of cast world, replay seed and advance;
+    - Rhythm Lab's covered states, and its hint under moving notes;
+    - whether any colour-stack `entries` (for example on Snake or Spider) sit over a canvas: unknown;
+    - text under other backdrop filters, which is measured on its colour stack;
+    - Mono, and viewports other than 1440×900 (the Annals census also ran at 700 px);
+    - ledger ids are not unique: for example, two "play" buttons on one route share an id. The baseline comparison then uses one of them, a property carried over from r7;
+    - on a colour stack, only the matched element's own colour is compared. The independent review measured the Annals roster glyph that way: "·" at 2.19:1, and "★" at 2.35:1 once a soul is watched. Both values are the same in both themes and on `BASE`, and the test does not record them. The seed field's value text is not measured.
 - **Dry runs in a throwaway local workspace, 2026-10-11:**
   - The Task 2 compiler and tests: 8/8 pass.
   - The bridge fence check against the r1 bridge, after the fence fix.
@@ -2640,6 +3318,32 @@ Every line number refers to `a16c70f`. Implementers locate code by the anchor, n
 
 ## Revision log
 
+- **r8 (2026-10-13, Task 3 measurement and contrast corrections).**
+  - **Inline invariant.** It permits exactly the three inline layout measurements on `<html>`, as px lengths, and rejects legacy theme variables, Darkfield tokens, unknown names and non-length values. Negative controls were added.
+  - **Step 4.** Adds the omitted expected failure: the ground-alias text test on `Home.css`, which Step 7 fixes.
+  - **Annals boundary.** Only the authored narrative is marked: 6 elements, attributes only. Governed and unmarked:
+    - the `h1`;
+    - the section headings, including "Your Hand";
+    - the verb hint and the legend;
+    - the readouts, the banner, the logs and the footer;
+    - every control and every scroll container.
+
+    The baseline is recorded with the identical patch.
+  - **Measured scope.** The ledger records `regions`, `unmeasured` (with reasons) and `creative`, and check mode requires them to match the baseline.
+  - **Rendered ground.** Text on a painted ground is measured against the rendered pixels behind each text run, in that run's own colour, never against the page field. A painted-text pass covers the elements the sampler selectors miss. Covered or moving grounds are listed as `unmeasured`, never passed. The governed Annals spans that fail on the parchment are recorded as pre-existing `entries`. The roster glyph, on a colour stack, is recorded in the notes as a known failure outside the ledger.
+  - **Prepared states.** The Annals verbs are measured enabled, hovered and pressed. The Rhythm Lab lane zones get a state table and a frozen-clock procedure.
+  - **Contrast repairs.** Step 7 item 4 authorizes local repairs for every element Task 3 made worse: the roster action, the media bar controls and labels (with an owner-authorized ground or `on-*` foreground exception, which this plan limits to Light), the 404 heading and the KS mark (not a D5 ruling). Each has a measured criterion and a stop rule.
+  - **Verification.** Pairs cover the repairs. A Step 9 whole-text comparison catches worsened text outside the sampler, and the reviewer re-runs it.
+  - **Invalid readings.** r7's Annals parchment readings were invalid. Their absence from `entries` is not an improvement.
+  - **D10's scope.** The D10 row now names what D10 accepts: `entries` only, not `creative` or `unmeasured`. The gate itself, an owner decision, is unchanged.
+  - **Unchanged:**
+    - token values and the bridge;
+    - `--accent-color` and the other global brand values;
+    - every creative surface;
+    - Annals' and Rhythm Lab's appearance and behaviour;
+    - the 0.05 tolerance;
+    - D5, D6 and every other open decision; D10 stays the owner's to decide;
+    - Tasks 1, 2 and 4–7.
 - **r7 (2026-10-11, Task 1 conformance correction).**
   - Exporter: every canonical object key must match `^[A-Za-z][A-Za-z0-9_-]*$`, checked before any path is built. Refusals show unknown path segments only by length, theme-id and JSON parse refusals no longer repeat input, and `parseCanonical` is exported.
   - Verifier: proves the checkout's local git identity (checkout root; annotated tag resolving to the pinned commit; `HEAD` at that commit), reads canonical files from the pinned commit's blobs with replace refs disabled, and ignores `GIT_*` environment overrides. `verifyCanonical` is exported for public tests on synthetic repositories.
