@@ -13,7 +13,7 @@ Phases 2–6 replace the bridge with real Darkfield grammar, surface by surface.
 
 **Tech Stack:** React 18, Vite 8, TypeScript, plain CSS. Tests use `node:test` (`web/scripts/*.test.mjs`) and the standalone Playwright browser-test convention (`web/scripts/*-browser-test.mjs`, Playwright passed in by path). No new npm dependencies.
 
-**Revision:** r8, 2026-10-13 (Task 3 measurement and contrast corrections). r1–r7 were written on 2026-10-11; see the [Revision log](#revision-log).
+**Revision:** r9, 2026-10-13 (Task 3 native-colour compatibility hold, browser-clock correction and inactive-control classification). r8 (2026-10-13) made the Task 3 measurement and contrast corrections; r1–r7 were written on 2026-10-11. See the [Revision log](#revision-log).
 
 ## Status
 
@@ -198,7 +198,7 @@ Approved token values, font stacks, hashes and identifiers are expected matches 
 | `/case-studies`, 4 case studies | Everything, including the `MediaInspector` chrome | — | `ProjectMedia` recordings and screenshots, for example the Aether visualizer clip | DOM + `<video>`/`<img>` | — |
 | `/procedural-animations`, `/procedural-animations/:slug` | Index, page chrome, the `.animation-piece__control` bar | `public/procedural-animations/*/piece.html` (own fonts and motion) | — | `<iframe>` (`ProceduralAnimationPiece.tsx:41-44`) | — |
 | `/terminal` | The whole terminal interface (site-owned feature; §07 governs its text graphics) | — | — | DOM | — |
-| `/simulations` | Cards, launch buttons, layout | Card previews that depict native game visuals (`.food-preview`, `.spider-preview-card-face` in `SimulationCard.css`) | — | DOM | **confirm** |
+| `/simulations` | Cards, launch buttons, layout | Card previews that depict native game visuals (`.food-preview`, `.spider-preview-card-face` in `SimulationCard.css`; the Orbital and Traffic SVGs in `SimulationCard.tsx`). r9: Task 3 holds the previews' ink at its baseline colours, a provisional compatibility hold, not a D6 decision | — | DOM | **confirm** |
 | `/simulations/orbital-simulator` | DOM controls, panels, readouts (`OrbitalSimulator.css`) | Canvas render (`OrbitalSimulator/renderer.ts`) | — | `<canvas>` | — |
 | `/simulations/traffic-simulator` | DOM controls, panels (`TrafficSimulator.css`) | Canvas renders (`RoadCanvas.tsx`, `SpaceTimeCanvas.tsx`, `renderer.ts`) | — | `<canvas>` | — |
 | `/simulations/snake` | Page chrome, buttons | Board, snake, food (`.food` reads `--accent-color`) | — | DOM/CSS | **confirm**: is the score HUD and game-over overlay (`.game-scores`, `.game-over-content`) chrome or native? |
@@ -218,7 +218,7 @@ Approved token values, font stacks, hashes and identifiers are expected matches 
 - `RoadCanvas.tsx`
 - `SpaceTimeCanvas.tsx`
 
-Mixed files (governed and native visuals in one stylesheet): `SnakeGame.css`, `SpiderSolitaire.css`, `RhythmLab.css`, `SimulationCard.css`, `Annals.css`. A task may change a creative-owned path or a native-visual selector in a mixed file only where the task names it explicitly. Reviewers reject anything else.
+Mixed files (governed and native visuals in one file): `SnakeGame.css`, `SpiderSolitaire.css`, `RhythmLab.css`, `SimulationCard.css`, `Annals.css`, and `SimulationCard.tsx` (its preview SVGs; r9). A task may change a creative-owned path or a native-visual selector in a mixed file only where the task names it explicitly. Reviewers reject anything else.
 
 ## Global Constraints
 
@@ -275,7 +275,7 @@ D1 is approved. Each remaining gate blocks only the tasks named.
 | **D7** | Project lifecycle statuses (Live, Active Development, Demo Ready, Maintenance, Completed) | These are not §05 system states; their current hues collide with Darkfield's reserved meanings (`ProjectRoster.css:17-21`: violet ≈ `ion`, yellow ≈ `caution`) | Context labels (`label-sm`, `fg-muted`, no hue), with `•` only on Live | Phase 3 |
 | **D8** | Primary call-to-action styling | The §13 control model has no filled primary button; a solid fill is reserved for the Pressed inverse | Idle controls on an `edge` boundary; prominence from position | Phase 3 |
 | **D9** | Execution authorization | Each is separately approvable: create branches; commit per task; push; open pull requests; merge; deploy. Your global rule is to commit or push only when asked. | **Phase 0 approved 2026-10-11:** website branch `docs/darkfield-migration-plan` with local documentation commits (P1, Task 0; superseded, never to be published); creation of private `kareemsasa/darkfield` and pushing to it (P2); the local clean-history replacement branch `docs/darkfield-migration-sanitized` from `main` at `a16c70f`, with local documentation commits. **Still open:** publication of the Phase 0 documentation: pushing the clean-history branch, a PR and a merge, each separately approved. Also open: all Phase 1 branches and commits; deploys. | Merging Phase 0; all of Phase 1 |
-| **D10** | Accept the known-deficiency ledger | Created in Task 3 from a baseline run. Accepting it means those pre-existing failures (`entries`) are tracked, not fixed, in Phase 1. The ledger's `creative` (D6 evidence) and `unmeasured` (open verification, each with its reason) lists are not accepted by D10 (r8). | Review entries, then accept | Task 3 commit |
+| **D10** | Accept the known-deficiency ledger | Created in Task 3 from a baseline run. Accepting it means those pre-existing failures (`entries`) are tracked, not fixed, in Phase 1. The ledger's `creative` (D6 evidence) and `unmeasured` (open verification, each with its reason) lists are not accepted by D10 (r8). Nor is `inactive` (r9): disabled controls, which WCAG 1.4.3 exempts, recorded as observations rather than required contrast failures. The same controls are measured normally once enabled. | Review entries, then accept | Task 3 commit |
 | **D11** | Publication of private design thresholds | **(a)** An automated check that asserts a specification-defined limit (for example area and void budgets, glow/flare/effect counts, lit-cell density, node size and chamfer limits, mark minimum size, heartbeat allowance, display-line count, motion cadence ratios, or any other specification-defined limit) would place that limit in this public repository. **(b)** Whether the canonical `tokens.json` usage notes may be published. | **(a) Open.** Owner decision; nothing is pre-authorized. Without it, such checks stay reviewer-judged or read their limits from the private repository at run time. **(b) Decided 2026-10-11:** usage notes stay private. Only runtime token values, through the allowlist export `tokens.runtime.json`, plus the OFL fonts and licences, are published. See Task 1. | (a) Phase 6 automated budget checks and any test asserting such a limit |
 
 ## Operational safety
@@ -392,11 +392,13 @@ export PLAYWRIGHT_BROWSERS_PATH="$DF_TMP/browsers" DF_PW="$DF_TMP/pw/node_module
 | `darkfield-tokens.test.mjs` | **Invariant** (static) | `tokens.css` is a faithful compile of `tokens.runtime.json` (values, escapes, themes, fonts, type classes) and is in sync | That the site uses the tokens correctly |
 | `darkfield-bridge.test.mjs` | **Invariant** (static) | Single theme source; every legacy variable mapped or explicitly held; no literal colours outside the legacy fence; no text colour reads a ground alias; font families unified outside held selectors | Rendered contrast or semantic correctness |
 | `darkfield-settings.test.mjs` | **Invariant** (unit) | Settings import accepts old exports and `mono`, and rejects unknown themes | — |
-| Browser test, invariants section | **Invariant** (rendered) | Page ground is `field` per theme. No inline custom property on `<html>` except the three layout measurements, as px lengths, with negative controls (r8). Unknown stored theme falls back to dark; no-JS shell is on `field`; fonts served and loaded; focus ring on every element reached by Tab on the listed routes; outline present under forced colors | Focus on elements not reached in 25 Tabs; the painted colour under forced colors (human check) |
+| Browser test, invariants section | **Invariant** (rendered) | Page ground is `field` per theme. No inline custom property on `<html>` except the three layout measurements, as px lengths, with negative controls (r8). Spider and Snake read their direct-load colours on every listed navigation path, and `<html>` defines no `--terminal-primary` there; the portaled Projects modal reads the page's scoped value (r9). Unknown stored theme falls back to dark; no-JS shell is on `field`; fonts served and loaded; focus ring on every element reached by Tab on the listed routes; outline present under forced colors | Focus on elements not reached in 25 Tabs; the painted colour under forced colors (human check); navigation paths not listed, and page variables other than `--terminal-primary` (r9) |
 | Browser test, enumerated pairs | **Regression** (rendered, baseline-aware) | Contrast of every fill/text pair whose ground the bridge changes (inventory E-6), in every theme, including hover where listed. A pair whose selector is not rendered on the listed routes is reported **UNCOVERED**, never passed. | Pairs not in the inventory |
-| Browser test, contrast sampler | **Sampler** (rendered, baseline-aware) | Text matched by the sampler selectors on the listed routes, against composited background *colours*. Where a background image or gradient lies under the text, against the rendered pixels behind each text run, in that run's own colour (r8); a painted-text pass also measures every other own-text element on a painted ground. Creative regions are counted and measured apart, and must match the baseline record (r8) | Text over canvases, iframes, or content `<img>`/`<video>` elements. On a colour stack, descendant text in its own colour (only the matched element's colour is compared). Text under a backdrop filter, which is measured on its colour stack (the KS mark excepted, r8). Text covered by another element or on a moving ground (listed as `unmeasured`, with the reason). States not rendered (hover, open menus). Text outside the sampler selectors. Routes not listed. It is not a WCAG audit. |
-| Browser test, prepared states (r8) | **Regression** (rendered, baseline-aware) | Against the rendered ground: the Annals verbs enabled, hovered and pressed, and the aside headings once the verbs are enabled; the Rhythm Lab lane tap zones playing, lane key held and pointer-pressed, under a frozen page clock. The paused state is recorded as covered, not measured | Other prepared states, including the Annals conditional controls and text; Rhythm Lab zones under moving notes |
+| Browser test, contrast sampler | **Sampler** (rendered, baseline-aware) | Text matched by the sampler selectors on the listed routes, against composited background *colours*. Where a background image or gradient lies under the text, against the rendered pixels behind each text run, in that run's own colour (r8); a painted-text pass also measures every other own-text element on a painted ground. Creative regions are counted and measured apart, and must match the baseline record (r8). Disabled controls are recorded as `inactive` observations, held to the baseline record and never counted as failures (r9) | Text over canvases, iframes, or content `<img>`/`<video>` elements. On a colour stack, descendant text in its own colour (only the matched element's colour is compared). Text under a backdrop filter, which is measured on its colour stack (the KS mark excepted, r8). Text covered by another element or on a moving ground (listed as `unmeasured`, with the reason). States not rendered (hover, open menus). Text outside the sampler selectors. Routes not listed. It is not a WCAG audit. |
+| Browser test, prepared states (r8) | **Regression** (rendered, baseline-aware) | Against the rendered ground: the Annals verbs enabled, hovered and pressed, and the aside headings once the verbs are enabled; the Rhythm Lab lane tap zones playing, lane key held and pointer-pressed, under a page clock frozen before navigation and advanced only in fixed steps (r9). The paused state is recorded as covered, not measured | Other prepared states, including the Annals conditional controls and text; Rhythm Lab zones under moving notes |
 | Whole-text comparison (r8; scratch script, Task 3 Step 9) | **Regression** (rendered, colour stack, baseline versus candidate) | Every visible element's own text outside creative regions on the listed routes: no text is both below 4.5:1 and more than 0.05 worse than on the baseline | Text on painted grounds or with unparsed colours; elements that cannot be paired between builds |
+| Native comparison (r9; scratch script, Task 3 Step 9) | **Regression** (rendered pixels and computed colours, baseline versus candidate) | Each `/simulations` card preview, reached directly and from `/projects`, is pixel-identical to the baseline on a fixed neutral ground, in both themes. Spider and Snake read the baseline's direct-load colours | Preview motion (captured frozen); the preview frames, which are governed chrome |
+| Hold isolation (r9; scratch script, Task 3 Step 9, run once) | **Regression** (computed styles, before versus after Step 7 item 5) | On direct load of the routes the hold can reach, with the Projects modal open, no element's rendered properties change outside the preview content | Rendering after client-side navigation, where the hold deliberately changes Light Spider and Snake to their direct-load colours (the navigation invariants cover it); routes not listed; states not rendered |
 | Existing browser tests (`boot-shell`, `settings-panel`, `header-overlap`, `case-study-media`, `route-metadata`, `procedural-animations`, `orbital`) and `npm test` | **Regression** (baseline-aware) | Existing behaviour holds | — |
 | Visual review screenshots (`scripts/visual-review.mjs`) | **Human** | Composition, readability of the transitional mixed palette, boundaries that disappeared, creative regions visibly unchanged | Anything not looked at |
 
@@ -404,9 +406,9 @@ export PLAYWRIGHT_BROWSERS_PATH="$DF_TMP/browsers" DF_PW="$DF_TMP/pw/node_module
 - **How it is created.** Task 3 runs the regression and sampler checks against the baseline preview in `DARKFIELD_MODE=record`. Every candidate is reproduced by the reviewer, and the owner accepts the list (D10).
 - **Comparable scope (r8).**
   - The baseline preview carries the same creative-region markers as the candidate (Task 3 Step 3).
-  - The ledger records the region counts (`regions`), the text no method here can measure, each with its reason (`unmeasured`), and the creative-region contrast (`creative`).
-  - Check mode requires all three to match. So no failure can disappear through a changed exclusion, and creative content cannot change unnoticed.
-  - `creative` is D6 evidence, never part of D10.
+  - The ledger records the region counts (`regions`), the text no method here can measure, each with its reason (`unmeasured`), the creative-region contrast (`creative`) and, from r9, the contrast of disabled controls (`inactive`).
+  - Check mode requires all four to match. So no failure can disappear through a changed exclusion, and neither creative content nor an inactive control can change unnoticed.
+  - `creative` is D6 evidence and `inactive` an observation; neither is part of D10.
 - **How `check` mode treats results:**
   - A failure not in the ledger is a **new regression** and fails.
   - A failure in the ledger is printed as **KNOWN** and does not fail, unless its measured value got worse than the recorded baseline value.
@@ -629,6 +631,7 @@ Phase 0 ends here. Publishing the Phase 0 documentation (clean-history branch, p
 | `RhythmLab.css` | `.rhythm-lab` (13) | `font-family` | Excluded from Task 4 |
 | `SimulationCard.css` | `.spider-preview-card-face` (≈ 250) | `font-family` | Excluded from Task 4 |
 | `Annals.css` | panel (20) | `--shadow-color` | Covered by the legacy shadow |
+| `SimulationCard.css`, `SimulationCard.tsx` | `.simulation-preview > *` (the preview content, not its frame); the Orbital and Traffic preview SVGs | `--terminal-primary`; the SVGs' inline `color` | Held at the baseline preview colours in Task 3 Step 7 item 5 (r9) |
 
 `SpiderSolitaire.css:12` and `RhythmLab.css:12` set the container text colour through `--text-color`. Container text is governed by default, so it follows `fg`. D6 may reclassify.
 
@@ -651,6 +654,7 @@ Phase 0 ends here. Publishing the Phase 0 documentation (clean-history branch, p
 | `web/src/components/SpiderSolitaire/SpiderSolitaire.css` | Modify. Pin `.spider-column:empty` (authorized native-visual hold) |
 | `web/src/pages/Annals/Annals.tsx` | Modify (r8). 6 `data-df-region="native"` attributes on authored narrative only; nothing else |
 | `web/src/components/ProjectRoster/ProjectRoster.css`, `web/src/components/ProjectMedia/ProjectMedia.css`, `web/src/pages/NotFound/NotFound.css`, `web/src/components/Navigation/SiteNavigation.css` | Modify (r8). Task 3 contrast repairs |
+| `web/src/components/SimulationCard/SimulationCard.css`, `web/src/components/SimulationCard/SimulationCard.tsx`, `web/src/pages/Simulations/Simulations.css`, `web/src/pages/Projects/Projects.css` | Modify (r9). Task 3 native-colour compatibility hold: the preview hold, and `--terminal-primary` scoped to its pages |
 | Files listed by Task 4's scan | Modify. Font families |
 | Mono files (Task 5) | Modify |
 | `TerminalDropdown.css`, `RhythmLab.css` focus blocks (Task 6) | Modify. Governed menu controls only |
@@ -1654,6 +1658,18 @@ The compiler logic is unchanged from r1. Only its input path and its two header 
 
 ### Task 3: One theme source, the bridge, and the baseline ledger (D10 gates the commit)
 
+**Status (r9).** The r8 changes were applied to the uncommitted work, which stopped before D10 again ([E-12](#evidence-summary)). The independent review of that work found three defects, and r9 corrects them:
+- **Native previews recoloured.** On `/simulations`, Task 3 changed the Snake and Rhythm Lab previews in Light, and the Orbital and Traffic SVGs in both themes.
+- **Navigation-dependent game colours.** In Light, Spider and Snake rendered different colours after client-side navigation than on direct load.
+- **A flaky clock.** The Rhythm Lab clock pause could fail under load ("Cannot fast-forward to the past").
+
+The owner approved option A″ for the first two: a four-file compatibility hold (Step 7 item 5). It is provisional and not a D6 decision. r9 also classifies disabled controls as `inactive` observations, outside D10. Apply the r9 changes to the uncommitted work:
+- the Step 2 test;
+- the Step 3 re-record, which adds `inactive`;
+- Step 7 item 5.
+
+Then re-run Step 3 and Steps 8–10, including the new Step 9 comparisons. The r9 work stays in the same Task 3 commit.
+
 **Status (r8).** Steps 1–7 were implemented at r7 and stopped before D10, uncommitted ([E-11](#evidence-summary)).
 - The r7 browser test rejected the three layout measurements the site writes on `<html>`.
 - It also measured the Annals parchment against the page field, which it cannot see.
@@ -1690,15 +1706,17 @@ Then re-run Step 3 and Steps 8–10. The working tree already carries Steps 5–
   - The control-boundary files confirmed in Step 7
   - `web/src/pages/Annals/Annals.tsx` (r8, Step 3: six `data-df-region` attributes only; authorized edit in a mixed component)
   - `web/src/components/ProjectRoster/ProjectRoster.css`, `web/src/components/ProjectMedia/ProjectMedia.css`, `web/src/pages/NotFound/NotFound.css` and `web/src/components/Navigation/SiteNavigation.css` (r8, Step 7 item 4: contrast repairs). `ProjectMedia.css` and `SiteNavigation.css` are also control-boundary files.
+  - `web/src/components/SimulationCard/SimulationCard.css`, `web/src/components/SimulationCard/SimulationCard.tsx`, `web/src/pages/Simulations/Simulations.css` and `web/src/pages/Projects/Projects.css` (r9, Step 7 item 5: the native-colour compatibility hold; owner-approved option A″)
 
 **Interfaces:**
 - Produces:
   - Every legacy variable in `LEGACY`, defined only in `bridge.css`.
   - `applyThemeToDocument(theme)` sets only `data-theme` and `color-scheme`.
-  - The ledger format (r8): `{ baseline: "<sha>", notes: [string], regions: { "<theme>|<route>": count }, unmeasured: [{ id, reason }], entries: [{ id, check, theme, route, detail, baseline }], creative: [{ id, check, theme, route, detail, baseline }] }`. It keeps four kinds of result apart:
+  - The ledger format (r9): `{ baseline: "<sha>", notes: [string], regions: { "<theme>|<route>": count }, unmeasured: [{ id, reason }], entries: [{ id, check, theme, route, detail, baseline }], creative: [{ id, check, theme, route, detail, baseline }], inactive: [{ id, check, theme, route, detail, baseline }] }`. It keeps five kinds of result apart:
     - **`entries`: verified failures.** Each is measured on a colour stack, or on rendered pixels run by run and marked `(rendered ground)`; governed text on a painted ground is measured this way, never against the page field. D10 accepts `entries` only.
     - **`creative`: independently authored presentation** inside `[data-df-region]`, measured as D6 evidence. It is neither accepted under D10 nor treated as unverified.
     - **`unmeasured`: governed text or states** that no method here could measure, each with its reason. They are never passed. They are reported to the owner with their effect on D10 (Step 11).
+    - **`inactive`: disabled controls (r9).** WCAG 1.4.3 exempts inactive controls, so their contrast is an observation, not a failure. It is never an entry and never accepted under D10. Check mode holds it to the baseline record, within 0.05, so a change is reported. Once enabled, the same controls are measured like any other text (the Step 2 prepared states). The rule covers every disabled control the test sees; at r9 those are only the six Annals verbs. Check mode fails on any `inactive` id not in the record, and any other disabled control needs the owner's review before it joins the record.
     - **Unverified states** the test cannot reach are listed in `notes`.
 
     `regions` holds the creative exclusion counts that keep the baseline and the candidate comparable. Governed text on a painted ground that measures at least 4.5:1 passes like any other text.
@@ -1776,13 +1794,23 @@ Then re-run Step 3 and Steps 8–10. The working tree already carries Steps 5–
     - the lowest ratio over all runs is reported, marked `(rendered ground)`;
     - a capture counts only if nothing covers the text and two consecutive captures agree. Otherwise the result is `unmeasured`, with the reason, for example `covered by div.rhythm-lab-overlay`. It is never passed.
   - **Painted-text pass (r8).** Every other visible element with its own text on a painted ground is measured the same way (its own text runs only), as check `painted`, or listed as `unmeasured`. This covers elements the sampler selectors do not match and that are not inside one: readouts, labels, spans and footers on painted grounds.
-    - Disabled controls are marked `(disabled)`. WCAG 1.4.3 exempts inactive controls, but they stay measured and in scope.
+    - Disabled controls are marked `(disabled)`. r9: their results go to `inactive`, not `entries` (see Interfaces). Check mode prints them as INACTIVE and requires them to match the baseline record.
   - **Creative regions (r8).** Elements inside `[data-df-region]` are counted per theme and route (`regions`), and their contrast is reported as `creative`. They never count as interface results.
     - Check mode requires `regions`, `unmeasured` (ids and reasons) and `creative` to match the baseline record, `creative` within the same 0.05.
     - So baseline and candidate always measure the same interface, and creative content stays unchanged.
   - **Prepared states (r8).** States a route load does not render are brought about deliberately and measured on rendered pixels:
     - the Annals verbs, which are disabled at load: enabled, hovered and pressed (each state verified); and the aside headings once the verbs are enabled ("Your Hand · available");
     - the Rhythm Lab lane tap zones, with the page clock frozen so that notes and feedback hold still: playing, lane key held, pointer-pressed, and under the pause overlay. Step 3 gives the state table.
+  - **Deterministic clock (r9).** r8 froze the clock after the run started, with `pauseAt(Date.now() + 1)`. Under load the page's clock could pass that time first, and the call failed with "Cannot fast-forward to the past" ([E-12](#evidence-summary)).
+    - r9 installs the clock at a fixed time and pauses it at a fixed later time, before navigation.
+    - Virtual time then moves only through `runFor`: in 100 ms steps until Start shows (at most 50 steps), then 150 ms after Start.
+    - The assertions and the measured states are unchanged.
+  - **Navigation invariants (r9).** Spider and Snake are each reached by the eight `NAVIGATION` paths: two direct loads (the route and its `/games` alias) and six client-side paths, through `/simulations`, `/projects`, `/terminal` (`cd`) and the browser's Back.
+    - On every path, `<html>` must define no `--terminal-primary`, and the game's probes must read the colours of its direct load in that theme.
+    - An intermediate page counts as reached only once its own content renders, so its stylesheet has loaded.
+  - **Portal invariant (r9).** The Projects tech-stack modal renders through a portal, outside `.projects-container`.
+    - With the modal open, it must read the page's `--terminal-primary`, and its technology names must render in the page eyebrow's colour.
+    - The check also fails if the modal stops being portaled, so that it keeps testing the portal.
   - **Repair coverage (r8).** The last five `PAIRS` cover the Step 7 item 4 repairs:
     - the roster and media hover states;
     - the media label and the KS mark, which lie outside the sampler's selectors. The mark is measured on rendered pixels, because the header is a translucent backdrop filter;
@@ -1867,16 +1895,18 @@ Then re-run Step 3 and Steps 8–10. The working tree already carries Steps 5–
     {
       // Rhythm Lab lane tap zones (RhythmHighway.tsx): enabled buttons, pointer-operated (tabIndex -1)
       // and mirrored by the lane keys. At load the Ready Check overlay covers them (the sampler lists
-      // them as unmeasured). Here the run starts and the page clock is frozen, so notes and feedback hold
-      // still. Each zone is measured playing, with its lane key held, and pointer-pressed. It is then
-      // checked under the pause overlay, where it is expected to be listed as covered.
+      // them as unmeasured). Here the page clock is frozen before navigation and only advanced in fixed
+      // steps, so the run starts at the same virtual moment every time and notes and feedback hold still.
+      // Each zone is measured playing, with its lane key held, and pointer-pressed. It is then checked
+      // under the pause overlay, where it is expected to be listed as covered.
       route: "/simulations/rhythm-lab",
       controls: ".rhythm-lab-hit-zone",
       clock: true,
       prepare: async (page) => {
-        await page.getByRole("button", { name: "Start", exact: true }).click();
+        const start = page.getByRole("button", { name: "Start", exact: true });
+        for (let step = 0; step < 50 && !(await start.isVisible()); step++) await page.clock.runFor(100);
+        await start.click();
         await page.clock.runFor(150);
-        await page.clock.pauseAt((await page.evaluate(() => Date.now())) + 1);
         if (await page.locator(".rhythm-lab-overlay").count()) throw new Error("rhythm-lab: the run did not start");
       },
       states: {
@@ -1908,19 +1938,27 @@ Then re-run Step 3 and Steps 8–10. The working tree already carries Steps 5–
   const invariantFailures = [];
   const regressions = [];
   const creative = [];
+  const inactive = [];
   const regions = {};
   const unmeasured = [];
   const ran = new Set();
   const uncovered = new Set(PAIRS.map((p) => p.selector));
   const errors = [];
   const invariant = (ok, message) => { if (!ok) invariantFailures.push(message); };
+  // A page that needs a frozen clock gets it before navigation: installed at a fixed time and paused at a
+  // fixed later time that no real elapsed time can reach first, then advanced only by runFor.
+  const CLOCK_START = new Date("2026-01-01T00:00:00Z");
+  const CLOCK_PAUSED = new Date("2026-01-01T01:00:00Z");
 
   const withPage = async ({ theme, route = "/", javaScriptEnabled = true, forcedColors = "none", clock = false }, run) => {
     const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, javaScriptEnabled, forcedColors, reducedMotion: "reduce" });
     if (theme) await context.addInitScript((value) => localStorage.setItem("theme", value), theme);
     const page = await context.newPage();
     page.on("pageerror", (error) => errors.push(`${route}: ${error.message}`));
-    if (clock) await page.clock.install();
+    if (clock) {
+      await page.clock.install({ time: CLOCK_START });
+      await page.clock.pauseAt(CLOCK_PAUSED);
+    }
     try {
       await page.goto(`${base}${route}`, { waitUntil: "networkidle" });
       await run(page);
@@ -2090,6 +2128,8 @@ Then re-run Step 3 and Steps 8–10. The working tree already carries Steps 5–
               creative.push({ id: `creative|${theme}|${route}|${key}`, detail: detail(result), value: result.ratio });
             } else if (result.ratio === null) {
               unmeasured.push({ id: `contrast|${theme}|${route}|${key}`, reason: result.reason });
+            } else if (result.disabled) {
+              inactive.push({ id: `inactive|${theme}|${route}|${key}`, detail: detail(result), value: result.ratio });
             } else if (result.ratio < 4.5) {
               regression("contrast", theme, route, key, result);
             }
@@ -2098,6 +2138,7 @@ Then re-run Step 3 and Steps 8–10. The working tree already carries Steps 5–
         for (const result of await contrastOf(page, "body *", { painted: true })) {
           const key = result.text;
           if (result.ratio === null) unmeasured.push({ id: `painted|${theme}|${route}|${key}`, reason: result.reason });
+          else if (result.disabled) inactive.push({ id: `inactive|${theme}|${route}|${key}`, detail: detail(result), value: result.ratio });
           else if (result.ratio < 4.5) regression("painted", theme, route, key, result);
         }
         for (const pair of PAIRS) {
@@ -2179,6 +2220,75 @@ Then re-run Step 3 and Steps 8–10. The working tree already carries Steps 5–
       const expected = injected.map(([name]) => name).sort();
       invariant(JSON.stringify(rejected) === JSON.stringify(expected), `inline-property control: rejected ${rejected.join(", ") || "nothing"}`);
     });
+    // Navigation-independent game colours (r9). A lazily loaded page stylesheet stays attached after
+    // client-side navigation, so a variable it defines on :root or [data-theme] reaches every later route.
+    // Each game is reached by direct load and by client-side paths; on each, <html> must not define
+    // --terminal-primary, and the game's probes must read the colours of its direct load. The probes are
+    // Spider's card ranks (native) and buttons (page chrome) and Snake's score (a D6 confirm row).
+    const GAMES = { spider: [".spider-card-rank", ".spider-button"], snake: [".game-score"] };
+    // A page counts as reached once its own content renders, which is after its stylesheet has loaded.
+    const READY = { "/projects": ".projects-container", "/simulations": ".simulation-preview", "/terminal": "input.command-input:visible" };
+    const follow = async (page, href) => {
+      await page.locator(`a[href="${href}"]:visible`).first().click();
+      await page.waitForURL((url) => url.pathname.replace(/\/$/, "") === href);
+      if (READY[href]) await page.locator(READY[href]).first().waitFor();
+      await page.waitForLoadState("networkidle");
+    };
+    const cd = async (page, path) => {
+      const input = page.locator("input.command-input:visible").first();
+      await input.fill(`cd ${path}`);
+      await input.press("Enter");
+      await page.waitForURL((url) => url.pathname.replace(/\/$/, "") === `/${path}`);
+      await page.waitForLoadState("networkidle");
+    };
+    const NAVIGATION = [
+      { name: "direct", start: (game) => `/simulations/${game}` },
+      { name: "/games alias", start: (game) => `/games/${game}` },
+      { name: "/simulations, card", start: () => "/simulations", go: (page, game) => follow(page, `/simulations/${game}`) },
+      { name: "/projects, /simulations, card", start: () => "/projects", go: async (page, game) => { await follow(page, "/simulations"); await follow(page, `/simulations/${game}`); } },
+      { name: "/terminal, cd", start: () => "/terminal", go: (page, game) => cd(page, `simulations/${game}`) },
+      { name: "/projects, /terminal, cd", start: () => "/projects", go: async (page, game) => { await follow(page, "/terminal"); await cd(page, `simulations/${game}`); } },
+      { name: "/simulations, /terminal, cd", start: () => "/simulations", go: async (page, game) => { await follow(page, "/terminal"); await cd(page, `simulations/${game}`); } },
+      { name: "game, /projects, Back", start: (game) => `/simulations/${game}`, go: async (page) => { await follow(page, "/projects"); await page.goBack({ waitUntil: "networkidle" }); } },
+    ];
+    for (const theme of THEMES) {
+      for (const [game, probes] of Object.entries(GAMES)) {
+        let direct = null;
+        for (const path of NAVIGATION) {
+          await withPage({ theme, route: path.start(game) }, async (page) => {
+            if (path.go) await path.go(page, game);
+            await page.locator(probes[0]).first().waitFor();
+            const seen = await page.evaluate((selectors) => ({
+              at: location.pathname.replace(/\/$/, ""),
+              root: getComputedStyle(document.documentElement).getPropertyValue("--terminal-primary").trim(),
+              colors: selectors.map((s) => (document.querySelector(s) ? getComputedStyle(document.querySelector(s)).color : "absent")).join(" "),
+            }), probes);
+            direct ??= seen.colors;
+            const label = `${theme} ${game} via ${path.name}`;
+            invariant(seen.at === `/simulations/${game}`, `${label}: arrived at ${seen.at}`);
+            invariant(seen.root === "", `${label}: <html> defines --terminal-primary: ${seen.root}`);
+            invariant(!seen.colors.includes("absent") && seen.colors === direct, `${label}: ${seen.colors}; direct load: ${direct}`);
+          });
+        }
+      }
+      // The Projects tech-stack modal is portaled outside .projects-container (r9). It must read the page's
+      // scoped value, so the modal renders as the page does.
+      await withPage({ theme, route: "/projects" }, async (page) => {
+        await page.getByTitle("View technical coverage").click();
+        const modal = await page.locator(".tech-stack-modal").evaluate((el) => {
+          const scope = document.querySelector(".projects-container");
+          const value = (node) => getComputedStyle(node).getPropertyValue("--terminal-primary").trim();
+          return {
+            portaled: !scope.contains(el), modal: value(el), page: value(scope),
+            name: getComputedStyle(el.querySelector(".tech-name")).color,
+            eyebrow: getComputedStyle(scope.querySelector(".projects-eyebrow")).color,
+          };
+        });
+        invariant(modal.portaled, `${theme}: the tech-stack modal is not portaled; this check no longer tests the portal`);
+        invariant(modal.page !== "" && modal.modal === modal.page && modal.name === modal.eyebrow,
+          `${theme}: tech-stack modal ${modal.modal} / ${modal.name}; page ${modal.page} / ${modal.eyebrow}`);
+      });
+    }
     // Task 4 and Task 6 add their invariants here.
   }
 
@@ -2187,7 +2297,7 @@ Then re-run Step 3 and Steps 8–10. The working tree already carries Steps 5–
 
   const row = ({ id, detail: text, value }) => ({ id, check: id.split("|")[0], theme: id.split("|")[1], route: id.split("|")[2], detail: text, baseline: value });
   if (MODE === "record") {
-    console.log(JSON.stringify({ regions, unmeasured, entries: regressions.map(row), creative: creative.map(row) }, null, 2));
+    console.log(JSON.stringify({ regions, unmeasured, entries: regressions.map(row), creative: creative.map(row), inactive: inactive.map(row) }, null, 2));
     process.exit(0);
   }
 
@@ -2205,13 +2315,22 @@ Then re-run Step 3 and Steps 8–10. The working tree already carries Steps 5–
   const creativeChanged = [...new Set([...recordedCreative.keys(), ...measuredCreative.keys()])]
     .filter((id) => !(recordedCreative.has(id) && measuredCreative.has(id) && Math.abs(measuredCreative.get(id) - recordedCreative.get(id)) <= 0.05))
     .map((id) => `${id} ${recordedCreative.get(id) ?? "absent"} -> ${measuredCreative.get(id) ?? "absent"}`);
+  // Inactive controls (r9): WCAG 1.4.3 exempts them, so they are observations, never entries. Each must
+  // still match the baseline record, so a change to them is reported rather than passing unnoticed.
+  const recordedInactive = new Map(ledger.inactive.filter((c) => ran.has(scope(c.id).replace(/^inactive/, "contrast"))).map((c) => [c.id, c.baseline]));
+  const measuredInactive = new Map(inactive.map((c) => [c.id, c.value]));
+  const inactiveChanged = [...new Set([...recordedInactive.keys(), ...measuredInactive.keys()])]
+    .filter((id) => !(recordedInactive.has(id) && measuredInactive.has(id) && Math.abs(measuredInactive.get(id) - recordedInactive.get(id)) <= 0.05))
+    .map((id) => `${id} ${recordedInactive.get(id) ?? "absent"} -> ${measuredInactive.get(id) ?? "absent"}`);
   for (const r of regressions.filter((r) => known.has(r.id))) console.log(`KNOWN ${r.id} ${r.detail}`);
   for (const { id, reason } of unmeasured) console.log(`UNMEASURED ${id} (${reason})`);
+  for (const { id, detail: text } of inactive) console.log(`INACTIVE ${id} ${text}`);
   assert.deepEqual(invariantFailures, [], "Darkfield invariants");
   assert.deepEqual(regions, recordedRegions, "creative-region exclusions differ from the baseline record");
   const ids = (list) => list.map(({ id, reason }) => `${id} (${reason})`).sort();
   assert.deepEqual(ids(unmeasured), ids(ledger.unmeasured.filter(({ id }) => ran.has(scope(id)))), "unmeasurable text differs from the baseline record");
   assert.deepEqual(creativeChanged, [], "creative content measured differently from the baseline record");
+  assert.deepEqual(inactiveChanged, [], "inactive controls measured differently from the baseline record");
   assert.deepEqual(fresh.map((r) => `${r.id} ${r.detail}`), [], "new regressions (not in the baseline ledger)");
   assert.deepEqual(worse.map((r) => `${r.id} ${r.detail}`), [], "known deficiencies that got worse than baseline");
   assert.deepEqual(stale.map((e) => e.id), [], "ledger entries that no longer reproduce: remove them in this commit");
@@ -2289,12 +2408,12 @@ Then re-run Step 3 and Steps 8–10. The working tree already carries Steps 5–
   3. **Rhythm Lab lane tap zones: state-specific verification (r8).**
      - **The zones.** The zones (`RhythmHighway.tsx`) are enabled `<button>`s with `tabIndex={-1}`: operated by pointer, and mirrored by the lane keys. Their text is the key hint, for example "A / J / Left", at 0.72–0.95 rem bold. That is not large text, so the criterion is 4.5:1.
      - **The overlays.** `.rhythm-lab-overlay` (`RhythmLab.css`) covers them during Ready Check, pause, run summary and tutorial. It sits at `z-index` 8 over the zones' 6, with a 78% black scrim and a backdrop blur.
-     - **The procedure.** The browser test does not wait for the animated route to settle. It brings each state about and checks it, with the page clock frozen after the run starts (Step 2 `STATES`):
+     - **The procedure.** The browser test does not wait for the animated route to settle. It brings each state about and checks it, with the page clock frozen before navigation and advanced only in fixed steps (r9; Step 2 `STATES`):
 
      | State | How it is reached | Control state | Pixels behind the hint | Criterion | Valid evidence |
      |---|---|---|---|---|---|
      | Ready Check (load) | page load | Enabled but not operable: the overlay takes the pointer, and lane keys give no feedback. Not focusable | the overlay over the zone | None asserted. The hint is obscured by a modal scrim and the zone is inactive | `unmeasured`, reason `covered by div.rhythm-lab-overlay`. Never PASS |
-     | Playing | Start, run the clock 150 ms, then freeze it | Enabled; pointer and key operable; not focusable | the highway gradient, with notes frozen | ≥ 4.5:1 | Rendered ground; nothing covers the text; two captures agree |
+     | Playing | Advance the frozen clock in 100 ms steps until Start shows, press Start, then advance 150 ms (r9) | Enabled; pointer and key operable; not focusable | the highway gradient, with notes frozen | ≥ 4.5:1 | Rendered ground; nothing covers the text; two captures agree |
      | Lane key held | the zone's first key held down | Input feedback class present; its 80 ms expiry is held by the frozen clock | the input gradient over the highway | ≥ 4.5:1 | As above, with the class verified present |
      | Pointer pressed | mouse button held at the zone's centre | `:active` verified | the active gradient over the highway | ≥ 4.5:1 | As above |
      | Paused | Escape | Enabled but not operable: the overlay | the pause overlay | None asserted, as at load | `unmeasured`, covered. Never PASS |
@@ -2306,14 +2425,15 @@ Then re-run Step 3 and Steps 8–10. The working tree already carries Steps 5–
 
   4. **Build `web/scripts/darkfield-known-deficiencies.json`.** Record mode prints the UNCOVERED line, then one JSON object.
      - `baseline` is the `BASE` SHA.
-     - `regions`, `unmeasured`, `entries` and `creative` are copied from that object unchanged.
+     - `regions`, `unmeasured`, `entries`, `creative` and `inactive` (r9) are copied from that object unchanged.
      - `notes` lists:
        - the two known baseline issues in [Validation model](#validation-model);
        - `.error-button.primary` (below);
        - that the baseline was recorded with the 6 Annals markers applied;
-       - the Annals verb note: the verbs are disabled at load and enabled every third year. Their r7 readings measured the page field, not their ground, and were unreliable. r8 measures every state against the rendered ground;
+       - the Annals verb note: the verbs are disabled at load and enabled every third year. Their r7 readings measured the page field, not their ground, and were unreliable. r8 measures every state against the rendered ground. r9 records the six disabled verbs as `inactive` observations, which WCAG 1.4.3 exempts, not as D10 entries; enabled, hovered and pressed, they are measured as usual;
        - that r7's Annals parchment readings were invalid. They are not carried into `entries`, and their absence there is not an improvement. The authored narrative is recorded under `creative` for D6. The governed parchment text is measured on rendered pixels, run by run, and its failures are `entries`;
        - the Rhythm Lab states recorded in `unmeasured` (state table above), and that none of them is a PASS;
+       - the residual page variables (r9, Step 7 item 5): global as at `BASE`, outside the hold, and with their effect after navigation unmeasured;
        - the states this test never measures, which therefore stay unverified:
          - the Annals conditional baseline, your-hand and fork buttons (including the pressed "close fork" state) and copy-log, which a load never renders;
          - the Annals conditional governed text: the favourite banner, the fork headings, houses list and totals, and the intervention log;
@@ -2325,7 +2445,7 @@ Then re-run Step 3 and Steps 8–10. The working tree already carries Steps 5–
          - Annals focus;
          - the Rhythm Lab hint under moving notes.
 
-     The reviewer re-runs the record against the marked baseline. It confirms that every entry reproduces, and that `regions`, `unmeasured` and `creative` equal the ledger's. The owner accepts `entries` (D10) before the Step 11 commit. `creative` and `unmeasured` are not part of D10.
+     The reviewer re-runs the record against the marked baseline. It confirms that every entry reproduces, and that `regions`, `unmeasured`, `creative` and `inactive` equal the ledger's. The owner accepts `entries` (D10) before the Step 11 commit. `creative`, `unmeasured` and `inactive` are not part of D10.
 
   Expect at least:
   - `.home-link` on the 404 probe: white on gold, 1.40:1, both themes.
@@ -2336,7 +2456,7 @@ Then re-run Step 3 and Steps 8–10. The working tree already carries Steps 5–
     - the chronicle legend, through its "your hand" span.
 
     The rest of the governed parchment text (the `h1`, other headings, the verb hint, readouts, labels and the footer) measured at least 4.5:1.
-  - r8: the six disabled verbs, marked `(rendered ground) (disabled)` in both themes.
+  - r9: the six disabled verbs, in both themes, under `inactive` and not `entries`, marked `(rendered ground) (disabled)`. They are the only disabled controls the r9 dry run recorded ([E-12](#evidence-summary)).
   - r8: in Light, the Step 7 item 4 selectors fail:
     - the roster primary action, at rest and at hover;
     - the media bar controls, at rest and at hover;
@@ -2366,6 +2486,11 @@ Then re-run Step 3 and Steps 8–10. The working tree already carries Steps 5–
   Run: `bash "$DF_TMP/df-serve.sh" head web 4173 && cd web && node scripts/darkfield-foundation-browser-test.mjs http://127.0.0.1:4173 "$DF_PW"`
 
   Expected: FAIL on invariants (`page ground rgb(26, 26, 26) is not Darkfield field`).
+
+  r9: the navigation invariants fail too, because `Simulations.css` and `Projects.css` define `--terminal-primary` on `:root` and `[data-theme="light"]`. On the uncommitted Task 3 work before item 5, the r9 dry run recorded 30 navigation failures ([E-12](#evidence-summary)):
+  - in both themes, `<html>` defined the variable on the five paths that load either page;
+  - in Light, on the same paths, the game probes differed from direct load;
+  - the direct loads and `/terminal, cd` passed.
 
 - [ ] **Step 5: Create the bridge.**
 
@@ -2578,6 +2703,66 @@ Then re-run Step 3 and Steps 8–10. The working tree already carries Steps 5–
 
      **Stop rule.** If no permitted token meets a criterion, stop and report to the owner. Do not choose another route.
 
+  5. **Native-colour compatibility hold (r9; owner-approved option A″).** This is a provisional compatibility hold, not a D6 decision: D6 still decides whether the previews and the game HUDs are native.
+     - **Root cause.**
+       - `Simulations.css` and `Projects.css` are lazily loaded with their pages. Each defines `--terminal-primary` on `:root` (`#4CAF50`) and on `[data-theme="light"]` (`var(--brand-primary)`, which the bridge points at `signal-dim`).
+       - A lazily loaded stylesheet stays attached after client-side navigation, so its global definition reaches every later route.
+       - Spider and Snake read `var(--terminal-primary, #4CAF50)`. On direct load the variable is undefined, and they render `#4CAF50`. After either page, in Light, they rendered `#2a7331` at `BASE` and `#397247` (`signal-dim`) on the Task 3 work. In Dark both values are `#4CAF50`, so the leak does not show.
+       - A path such as `/projects` → `/terminal` → `cd simulations/spider` never loads `Simulations.css` or `SimulationCard`, so no change confined to the simulations files can stop the leak ([E-12](#evidence-summary)).
+     - **Preview causes.**
+       - The Snake and Rhythm Lab previews read `--terminal-primary`, which follows the bridge in Light.
+       - The Orbital and Traffic SVGs set `color: "var(--brand-primary)"` inline (`SimulationCard.tsx`), which the bridge re-points in both themes.
+       - The preview frame (the `.simulation-preview` border) and the card chrome also read `--terminal-primary`. So the hold sits on the preview's content, not on its frame.
+     - **First,** take the Step 9 hold-isolation snapshot of the work without item 5.
+     - **The change, exactly.**
+       - `web/src/components/SimulationCard/SimulationCard.css`, directly above the `.simulation-preview` rule:
+
+         ```css
+         /* Native previews depict game visuals: their ink keeps its pre-Darkfield values until D6 classifies them.
+            Held on the preview content only; the preview frame stays on the bridge. */
+         .simulation-preview > * { --terminal-primary: #4CAF50; }
+         [data-theme="light"] .simulation-preview > * { --terminal-primary: #2a7331; }
+         ```
+
+       - `web/src/components/SimulationCard/SimulationCard.tsx`: in the `orbital` and `traffic` preview SVGs, change the inline `color: "var(--brand-primary)"` to `color: "var(--terminal-primary)"`. Nothing else in the file changes.
+       - `web/src/pages/Simulations/Simulations.css`: delete only the two `--terminal-primary` declarations, from `:root` and from `[data-theme="light"]`, and add above `:root` (after the file's opening comment):
+
+         ```css
+         /* The Simulations page's accent, scoped to the page: on :root it outlived the page after client-side
+            navigation and recoloured the games' native visuals. */
+         .simulations-container { --terminal-primary: #4CAF50; }
+         [data-theme="light"] .simulations-container { --terminal-primary: var(--brand-primary); }
+         ```
+
+       - `web/src/pages/Projects/Projects.css`: the same, scoped to the page and its portaled modal:
+
+         ```css
+         /* The Projects page's accent, scoped to the page and its portaled modal: on :root it outlived the page
+            after client-side navigation and recoloured the games' native visuals. */
+         .projects-container,
+         .tech-stack-modal { --terminal-primary: #4CAF50; }
+         [data-theme="light"] .projects-container,
+         [data-theme="light"] .tech-stack-modal { --terminal-primary: var(--brand-primary); }
+         ```
+
+         The modal selector is required. `.tech-stack-modal` renders through a portal, outside `.projects-container`. Without the selector the modal lost the variable, and in the dry run its Light colours changed on 32 elements ([E-12](#evidence-summary)).
+     - **Values.**
+       - `#4CAF50` and `#2a7331` are the pre-Darkfield values at `BASE`, carried over unchanged, as the Spider hold's are.
+       - The page-scoped declarations keep each page's existing values, so the pages render as before.
+     - **Acceptance target** (owner, r9):
+       - All six previews keep their baseline appearance in both themes, reached directly and from `/projects` (the Step 9 native comparison).
+       - Spider and Snake render the same native colours on direct load and on all eight `NAVIGATION` paths, in both themes (the Step 2 navigation invariants).
+         - The direct-load colour, `#4CAF50`, is the reference.
+         - The navigation-dependent `#2a7331` at `BASE` is a cascade defect being corrected, not behaviour to preserve.
+       - The Projects modal keeps its existing rendered appearance (the portal invariant, and the Step 9 isolation check).
+       - The site-owned card chrome stays on the bridge: on direct load, nothing outside the preview content renders differently (the Step 9 isolation check). After client-side navigation, the only intended change is Light Spider and Snake taking their direct-load colours, page chrome such as Spider's buttons included.
+       - No global Darkfield token, bridge mapping, game artwork or unrelated page variable changes.
+     - **Not changed (a recorded residual).**
+       - The other page variables in the same `:root` and `[data-theme="light"]` blocks stay global, as at `BASE`: `--terminal-font`, `--terminal-text-light`, `--terminal-text-muted`, `--terminal-error`, `--terminal-background` and `--terminal-header-bg`.
+       - Some have readers on other routes. Examples: `Journey.css` reads `--terminal-text-light`, with no fallback; the Spider and Rhythm Lab containers read `--terminal-font`, with a fallback stack.
+       - Whether they change rendering after navigation is unmeasured. They are pre-existing and outside this hold, and Step 11 reports them.
+     - **Stop rule.** If the acceptance target cannot be met within these four files, or a check shows any other change, stop and report to the owner. Do not widen the hold.
+
 - [ ] **Step 8: Run all checks and confirm they pass.**
 
   ```bash
@@ -2590,6 +2775,7 @@ Then re-run Step 3 and Steps 8–10. The working tree already carries Steps 5–
   Expected:
   - PASS.
   - Only ledger entries are printed as KNOWN. Only the ledger's `unmeasured` ids are printed as UNMEASURED, each with its reason.
+  - r9: only the ledger's `inactive` ids are printed as INACTIVE, and the navigation and portal invariants pass.
   - The `UNCOVERED` line lists only pairs that genuinely need state the test does not create, such as the settings panel being open. Record that line in the commit body.
   - **Stale entries (r8).** The stale entries removed in this commit are exactly the ones this task fixes. Each is re-measured as an improvement while `regions` matches the baseline, so no entry can leave through an exclusion. They are:
     - the Step 7 item 1 fixes and the bridge's improvements, as recorded in [E-11](#evidence-summary);
@@ -2690,6 +2876,184 @@ Then re-run Step 3 and Steps 8–10. The working tree already carries Steps 5–
   - **Recording.** Record the summary line in the commit body.
   - **What it cannot compare.** On a painted ground, the elements it could not compare are covered by the browser test's sampler and painted-text pass. Elements with an unparsed colour, or that cannot be paired between builds, are not covered by this comparison.
 
+  **Native comparison (r9).**
+  - **What it covers.** Creative visuals, apart from governed chrome:
+    - the `/simulations` card previews, against the baseline, pixel for pixel;
+    - Spider's and Snake's direct-load colours, against the baseline.
+  - **How to run it.** Install the script in `$DF_TMP` and run it against both previews:
+
+  ```bash
+  cat > "$DF_TMP/native-compare.mjs" <<'EOF'
+  // native-compare.mjs <base URL> <head URL> <Playwright module>
+  // Native visuals, baseline versus candidate (r9). 1) Each /simulations card preview, reached by direct
+  // load and from /projects, captured on a fixed neutral ground with its frame and motion suppressed, so
+  // only the preview's own content is compared; the two captures must be pixel-identical. 2) Each game's
+  // probes on direct load must read the same colours on both builds. Prints one line per comparison.
+  const [baseUrl, headUrl, playwright] = process.argv.slice(2);
+  const { chromium } = await import(playwright);
+  const browser = await chromium.launch({ headless: true });
+  const FIX = ".simulation-preview { background: #7f7f7f !important; border-color: transparent !important; box-shadow: none !important; border-radius: 0 !important; width: 320px !important; min-width: 320px !important; max-width: 320px !important; flex: none !important; margin-inline: 0 !important; }" +
+    " *, *::before, *::after { animation-play-state: paused !important; animation-delay: 0s !important; animation-duration: 0s !important; transition: none !important; caret-color: transparent !important; }";
+  const GAMES = { spider: [".spider-card-rank", ".spider-button"], snake: [".game-score"] };
+  const open = async (url, theme, route) => {
+    const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: "reduce", deviceScaleFactor: 1 });
+    await context.addInitScript((value) => localStorage.setItem("theme", value), theme);
+    const page = await context.newPage();
+    await page.goto(`${url}${route}`, { waitUntil: "networkidle" });
+    return { context, page };
+  };
+  const previews = async (url, theme, arrival) => {
+    const { context, page } = await open(url, theme, arrival === "direct" ? "/simulations" : "/projects");
+    if (arrival !== "direct") await page.locator('a[href="/simulations"]:visible').first().click();
+    await page.locator(".simulation-preview").first().waitFor();
+    await page.waitForLoadState("networkidle");
+    await page.addStyleTag({ content: FIX });
+    await page.evaluate(() => document.fonts.ready);
+    const shots = [];
+    for (let i = 0; i < (await page.locator(".simulation-preview").count()); i++) {
+      const preview = page.locator(".simulation-preview").nth(i);
+      await preview.scrollIntoViewIfNeeded();
+      // Whole-pixel interior of the preview: a fractional box would also capture a strip of the card around it.
+      const box = await preview.boundingBox();
+      const [x, y] = [Math.ceil(box.x), Math.ceil(box.y)];
+      const clip = { x, y, width: Math.floor(box.x + box.width) - x, height: Math.floor(box.y + box.height) - y };
+      shots.push({ kind: await preview.evaluate((el) => el.firstElementChild?.classList[0] ?? el.firstElementChild?.tagName.toLowerCase()), png: await page.screenshot({ clip, animations: "disabled" }) });
+    }
+    await context.close();
+    return shots;
+  };
+  const decoder = await browser.newPage();
+  const differing = (a, b) => decoder.evaluate(async ([x, y]) => {
+    const pixels = async (data) => {
+      const image = new Image();
+      image.src = `data:image/png;base64,${data}`;
+      await image.decode();
+      const canvas = new OffscreenCanvas(image.width, image.height);
+      canvas.getContext("2d").drawImage(image, 0, 0);
+      return { w: image.width, h: image.height, d: canvas.getContext("2d").getImageData(0, 0, image.width, image.height).data };
+    };
+    const [p, q] = [await pixels(x), await pixels(y)];
+    if (p.w !== q.w || p.h !== q.h) return `size ${p.w}x${p.h} vs ${q.w}x${q.h}`;
+    let n = 0;
+    for (let i = 0; i < p.d.length; i += 4) if (p.d[i] !== q.d[i] || p.d[i + 1] !== q.d[i + 1] || p.d[i + 2] !== q.d[i + 2] || p.d[i + 3] !== q.d[i + 3]) n++;
+    return n;
+  }, [a.toString("base64"), b.toString("base64")]);
+  let identical = 0, changed = 0, games = 0, gameChanged = 0;
+  for (const theme of ["dark", "light"]) {
+    for (const arrival of ["direct", "from /projects"]) {
+      const [before, after] = [await previews(baseUrl, theme, arrival), await previews(headUrl, theme, arrival)];
+      if (before.length !== after.length) { changed++; console.log(`CHANGED ${theme} ${arrival}: ${before.length} previews on base, ${after.length} on head`); continue; }
+      for (const [i, shot] of after.entries()) {
+        const diff = shot.png.equals(before[i].png) ? 0 : await differing(before[i].png, shot.png);
+        if (diff === 0) { identical++; console.log(`IDENTICAL ${theme} ${arrival} preview ${i} ${shot.kind}`); }
+        else { changed++; console.log(`CHANGED ${theme} ${arrival} preview ${i} ${shot.kind}: ${diff}${typeof diff === "number" ? " pixels differ" : ""}`); }
+      }
+    }
+    for (const [game, probes] of Object.entries(GAMES)) {
+      const read = async (url) => {
+        const { context, page } = await open(url, theme, `/simulations/${game}`);
+        await page.locator(probes[0]).first().waitFor();
+        const colors = await page.evaluate((selectors) => selectors.map((s) => getComputedStyle(document.querySelector(s)).color).join(" "), probes);
+        await context.close();
+        return colors;
+      };
+      const [before, after] = [await read(baseUrl), await read(headUrl)];
+      games++;
+      if (before === after) console.log(`SAME ${theme} ${game} direct load: ${after}`);
+      else { gameChanged++; console.log(`CHANGED ${theme} ${game} direct load: ${before} -> ${after}`); }
+    }
+  }
+  await browser.close();
+  console.log(`previews identical ${identical}, changed ${changed}; games' direct-load colours same ${games - gameChanged}, changed ${gameChanged}`);
+  EOF
+  node "$DF_TMP/native-compare.mjs" http://127.0.0.1:4174 http://127.0.0.1:4173 "$DF_PW"
+  ```
+
+  - **Expected.** `previews identical 24, changed 0; games' direct-load colours same 4, changed 0`. That is six previews, in two themes, by two arrivals.
+  - **A CHANGED line is a stop.** It is never accepted into the ledger.
+  - **Recording.** Record the summary line in the commit body.
+  - **What it does not compare.** Preview motion, because the captures are frozen. The preview frames, which are governed chrome: the isolation check below covers them.
+
+  **Hold isolation (r9; once, when Step 7 item 5 is applied).**
+  - **What it covers.** Governed chrome, apart from creative visuals: every computed property of every element on direct load of the routes the hold can reach, with the Projects modal open, before and after item 5. It does not cover rendering after client-side navigation, which the hold changes on purpose; the Step 2 navigation invariants cover that.
+  - **How to run it.** Snapshot the work before applying item 5, then serve the snapshot as a third preview and compare:
+
+  ```bash
+  # Before applying item 5, from the repository root: snapshot the work without it.
+  mkdir -p "$DF_TMP/prehold" && git ls-files -co --exclude-standard -- web | tar -cf - -T - | tar -xf - -C "$DF_TMP/prehold"
+  (cd "$DF_TMP/prehold/web" && npm ci)
+  ```
+
+  ```bash
+  # After applying item 5.
+  cat > "$DF_TMP/chrome-compare.mjs" <<'EOF'
+  // chrome-compare.mjs <before URL> <after URL> <Playwright module>
+  // Task 3 Step 7 item 5 isolation (r9): every computed property of every element and pseudo-element on the
+  // routes the hold can reach, before and after the hold, with the Projects modal open. The page clock is
+  // paused and Math.random seeded, so both builds render the same state. Custom properties are not compared.
+  // Prints each element whose rendered properties differ, marked PREVIEW inside .simulation-preview, else CHROME.
+  const [beforeUrl, afterUrl, playwright] = process.argv.slice(2);
+  const { chromium } = await import(playwright);
+  const browser = await chromium.launch({ headless: true });
+  const ROUTES = ["/simulations", "/projects", "/simulations/spider", "/simulations/snake", "/terminal", "/journey"];
+  const dump = async (url, theme, route) => {
+    const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" });
+    await context.addInitScript((value) => {
+      localStorage.setItem("theme", value);
+      let seed = 42;
+      Math.random = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
+    }, theme);
+    const page = await context.newPage();
+    await page.clock.install({ time: new Date("2026-01-01T00:00:00Z") });
+    await page.clock.pauseAt(new Date("2026-01-01T01:00:00Z"));
+    await page.goto(`${url}${route}`, { waitUntil: "networkidle" });
+    await page.clock.runFor(3000);
+    if (route === "/projects") await page.getByTitle("View technical coverage").click();
+    const rows = await page.evaluate(() => {
+      const path = (el) => { const parts = []; for (let n = el; n && n !== document.documentElement; n = n.parentElement) parts.unshift(`${n.tagName.toLowerCase()}${[...n.classList].map((c) => `.${c}`).join("")}[${n.parentElement ? [...n.parentElement.children].indexOf(n) : 0}]`); return parts.join(">"); };
+      const out = [];
+      for (const el of [document.documentElement, ...document.querySelectorAll("*")]) {
+        for (const pseudo of [null, "::before", "::after"]) {
+          const style = getComputedStyle(el, pseudo);
+          if (pseudo && ["none", "normal"].includes(style.content)) continue;
+          const props = {};
+          for (let i = 0; i < style.length; i++) if (!style[i].startsWith("--")) props[style[i]] = style.getPropertyValue(style[i]);
+          out.push([path(el) + (pseudo ?? ""), Boolean(el.closest(".simulation-preview > *")), props]);
+        }
+      }
+      return out;
+    });
+    await context.close();
+    return rows;
+  };
+  let chrome = 0, preview = 0;
+  for (const theme of ["dark", "light"]) {
+    for (const route of ROUTES) {
+      const [before, after] = [await dump(beforeUrl, theme, route), await dump(afterUrl, theme, route)];
+      const index = new Map(after.map(([key, inPreview, props]) => [key, props]));
+      if (before.length !== after.length) { chrome++; console.log(`CHROME ${theme} ${route}: ${before.length} elements before, ${after.length} after`); }
+      for (const [key, inPreview, props] of before) {
+        const next = index.get(key);
+        if (!next) { chrome++; console.log(`CHROME ${theme} ${route} missing after: ${key.slice(-120)}`); continue; }
+        const changed = Object.keys(props).filter((p) => props[p] !== next[p]);
+        if (!changed.length) continue;
+        inPreview ? preview++ : chrome++;
+        console.log(`${inPreview ? "PREVIEW" : "CHROME"} ${theme} ${route} ${key.slice(-120)}: ${changed.map((p) => `${p} ${props[p]} -> ${next[p]}`).join("; ").slice(0, 240)}`);
+      }
+    }
+  }
+  await browser.close();
+  console.log(`chrome elements changed ${chrome}; preview elements changed ${preview}`);
+  EOF
+  bash "$DF_TMP/df-serve.sh" prehold "$DF_TMP/prehold/web" 4175
+  node "$DF_TMP/chrome-compare.mjs" http://127.0.0.1:4175 http://127.0.0.1:4173 "$DF_PW"
+  bash "$DF_TMP/df-serve.sh" prehold "$DF_TMP/prehold/web" 4175 stop
+  ```
+
+  - **Expected.** `chrome elements changed 0`. PREVIEW lines appear only inside the previews' content: the Orbital and Traffic cards in both themes, and the Snake and Rhythm Lab cards in Light.
+  - **A CHROME line is a stop.**
+  - **Recording.** Record the summary line in the commit body.
+
 - [ ] **Step 10: Run the visual review (human).**
 
   ```bash
@@ -2701,6 +3065,7 @@ Then re-run Step 3 and Steps 8–10. The working tree already carries Steps 5–
   - control boundaries that vanished
   - creative regions (iframes, canvases, Snake/Spider/Rhythm Lab playfields, Annals panels, project media) that changed. Any change there is a **stop**.
   - r8: the marked Annals narrative renders exactly as before. The browser test also holds its measured contrast to the baseline record.
+  - r9: the `/simulations` previews look as they do on the baseline. The Step 9 native comparison is the measured evidence; any visible change is a stop.
 
 - [ ] **Step 11: Commit** after D10.
   - **Before asking for D10, report to the owner:**
@@ -2709,14 +3074,20 @@ Then re-run Step 3 and Steps 8–10. The working tree already carries Steps 5–
     - the states recorded in `notes` as unverified;
     - the Step 9 comparison summary;
     - for acknowledgement: the KS mark's letters turn neutral in Light, and the ProjectMedia exception applies in Light only (Step 7 item 4);
-    - the known pre-existing failures that the test does not cover, starting with the Annals watched-roster "★" (Step 3 notes).
+    - the known pre-existing failures that the test does not cover, starting with the Annals watched-roster "★" (Step 3 notes);
+    - r9: the `inactive` observations, which D10 does not accept;
+    - r9: that the Step 7 item 5 hold is provisional and not a D6 decision; the Step 9 native comparison and isolation summaries; and the residual page variables that stay global (item 5);
+    - r9: the browser-test runs under load, as supporting evidence, not a guarantee of future reliability.
   - **Owner rulings first.** If a Step 7 item 4 repair reached its stop rule, the commit waits for the owner's ruling.
   - **The reviewer (r8)** also:
     - re-runs the Step 9 comparison and confirms `worse 0`;
     - checks every `unmeasured` reason against the Step 3 state table (check mode already holds the reasons to the baseline);
     - confirms that no marker sits on, or above, a governed element;
-    - confirms that the ProjectMedia exception is used only within its scope.
-  - **Paths:** the Files list above, with the confirmed control-boundary files. r8 adds `Annals.tsx`, `ProjectRoster.css` and `NotFound.css`; `ProjectMedia.css` and `SiteNavigation.css` are already control-boundary files.
+    - confirms that the ProjectMedia exception is used only within its scope;
+    - r9: re-runs the Step 9 native comparison and confirms its expected summary;
+    - r9: confirms that the item 5 diff in its four files is exactly the change item 5 gives, and that no token, bridge mapping or other variable changed;
+    - r9: runs the browser test at least three times in a row, under representative load, and reports every result.
+  - **Paths:** the Files list above, with the confirmed control-boundary files. r8 adds `Annals.tsx`, `ProjectRoster.css` and `NotFound.css`; `ProjectMedia.css` and `SiteNavigation.css` are already control-boundary files. r9 adds `SimulationCard.css`, `SimulationCard.tsx`, `Simulations.css` and `Projects.css`.
   - **Message:** `feat(web): drive themes from Darkfield tokens through a legacy-variable bridge`.
 
 ### Task 4: Font families
@@ -3124,7 +3495,7 @@ Each phase gets its own plan in this directory after Phase 1 merges. The scope b
 | Terminal | Whole interface: §07 cell grid, Plex Mono, block cursor shown only while the terminal is accepting input (§12, §16) | — | — |
 | Snake, Spider, Rhythm Lab | Page chrome, menus, settings, buttons, and the HUD and overlay as D6 decides | Playfield visuals (board, cards, lanes, notes) | D6 |
 | Annals | Chrome and controls as D6 decides | World presentation (serif parchment) | D6 |
-| Simulations index | Cards, launch controls | Previews of native visuals as D6 decides | D6 |
+| Simulations index | Cards, launch controls | Previews of native visuals as D6 decides. D6 lifts or confirms Task 3's provisional preview hold (r9) | D6 |
 | NotFound, errors, loaders, toasts, modals | §13 Error and Processing signatures; no celebratory toasts | — | — |
 
 **Region marking.** Each Phase 5 task marks its creative containers with `data-df-region="artwork|native|evidence"`.
@@ -3309,6 +3680,40 @@ Every line number refers to `a16c70f`. Implementers locate code by the anchor, n
     - Mono, and viewports other than 1440×900 (the Annals census also ran at 700 px);
     - ledger ids are not unique: for example, two "play" buttons on one route share an id. The baseline comparison then uses one of them, a property carried over from r7;
     - on a colour stack, only the matched element's own colour is compared. The independent review measured the Annals roster glyph that way: "·" at 2.19:1, and "★" at 2.35:1 once a soul is watched. Both values are the same in both themes and on `BASE`, and the test does not record them. The seed field's value text is not measured.
+- **E-12. Task 3 r8 application, its review, and the r9 dry runs** (2026-10-13). The previews were throwaway builds outside the repository, and nothing was written to the repository.
+  - **The r8 application.**
+    - As recorded in that session's report: the browser test passed, as did the 52 public tests, typecheck, lint, build and smoke.
+    - The Step 9 tests passed on both builds, except `orbital`, which failed identically on both at line 196 (the known note).
+    - The whole-text comparison found `worse 0`.
+    - Work stopped before D10.
+  - **The independent review found:**
+    - native previews recoloured on `/simulations`: Snake and Rhythm Lab in Light, and the Orbital and Traffic SVGs in both themes;
+    - Spider's card ranks and buttons, and Snake's score, rendering a different colour in Light after client-side navigation;
+    - the r8 clock pause failing intermittently.
+  - **Root cause** (Step 7 item 5), confirmed by an independent verifier. Each game was reached by eight paths per theme.
+    - On the pre-hold work, Light Spider and Snake rendered `#397247` on every path that loaded `/simulations` or `/projects`. On direct load, the `/games` alias and `/terminal, cd`, they rendered `#4CAF50`.
+    - `BASE` showed the same pattern, at `#2a7331`.
+    - The verifier built a variant confined to the three simulations files. On the `/projects` paths, it still rendered `#397247`.
+  - **Option A″ (Step 7 item 5), dry runs:**
+    - **Native comparison** against `BASE`: previews identical 24, changed 0; games' direct-load colours the same, 4 of 4. Against the pre-hold work, 12 captures differed: Orbital and Traffic in both themes, and Snake and Rhythm Lab in Light, by both arrivals.
+    - **Navigation invariants:** pass. On the pre-hold work there were 30 failures; Step 4 describes them.
+    - **Hold isolation** against the pre-hold work: chrome elements changed 0, and preview elements changed 38, all inside the expected previews.
+    - **The Projects modal:** every computed property of its 93 elements is unchanged, in both themes. A variant without the modal selector (A′) changed 32 elements in Light, and the portal invariant fails on it in both themes.
+  - **Inactive classification.**
+    - A `BASE` record with the r9 test gave 57 entries, 12 `inactive`, 20 `unmeasured`, 4 `creative`, and the same `regions`.
+    - The 12 `inactive` are the six Annals verbs in both themes. The record contains no other disabled control. It sees only disabled elements with text that the sampler selectors or the painted-text pass reach, so a disabled `input`, `select` or untexted control would not appear.
+    - Checking A″ marked exactly 44 entries stale. Without them, the 13 remaining entries equal the r8 ledger's entries minus its 12 disabled readings.
+    - The check then passed, with 13 KNOWN, 20 UNMEASURED and 12 INACTIVE.
+    - Two guards fail as required: an `inactive` value shifted by 0.06, and one `inactive` id removed.
+  - **Record determinism under load.** A second `BASE` record, run under load, differed from the first in one value: the Light KS-mark pair on `/case-studies/where-the-specification-lived`, 3.48:1 against 2.81:1, on its rendered ground behind the translucent header. The cause is unknown. Task 3 repairs that entry and removes it as stale, so the ledger's content is unaffected. E-11 does not record the load under which its two byte-identical records ran.
+  - **Clock.** Runs were under `stress -c 12`. These results are supporting evidence, not a guarantee of future reliability.
+    - Ten alternating runs of the clock change alone, at 1-minute load averages of 14–30. The r8 test passed 5 of 10; the other 5 failed with "Cannot fast-forward to the past". The r9 clock passed 10 of 10. The retained log holds each run's exit code, load and last line. The identical KNOWN, UNMEASURED and UNCOVERED sets were compared at the time; the per-run outputs were not retained.
+    - The r9 test before the `inactive` change, against A″: 5 of 5 passed. Load averages were 23–29 from the second run; the first started as the load rose (4.13).
+    - The final r9 test against A″, with the scratch r9 ledger: 5 of 5 passed, at load averages of 13–19. All five printed the same KNOWN (13), INACTIVE (12), UNMEASURED (20) and UNCOVERED lines.
+  - **After the independent review.** The navigation invariant's missing-probe guard could never fire: `join` turned a missing probe into an empty string. Missing probes now read `absent`.
+    - The corrected test passed on A″ (13 KNOWN, 12 INACTIVE, 20 UNMEASURED).
+    - A variant whose Spider probe matches nothing failed the invariant on every path.
+    - The load runs above used the test before this one-string correction.
 - **Dry runs in a throwaway local workspace, 2026-10-11:**
   - The Task 2 compiler and tests: 8/8 pass.
   - The bridge fence check against the r1 bridge, after the fence fix.
@@ -3318,6 +3723,26 @@ Every line number refers to `a16c70f`. Implementers locate code by the anchor, n
 
 ## Revision log
 
+- **r9 (2026-10-13, Task 3 native-colour hold, clock correction and inactive controls).**
+  - **Native-colour compatibility hold (owner-approved option A″).** Step 7 item 5 authorizes four files:
+    - `SimulationCard.css` holds the preview content's ink at its baseline colours; the preview frame stays on the bridge.
+    - `SimulationCard.tsx` points the Orbital and Traffic SVGs at the held variable.
+    - `Simulations.css` and `Projects.css` scope `--terminal-primary` to their pages, and `Projects.css` also to its portaled modal.
+
+    The root cause: lazily loaded global variable definitions persisted after client-side navigation. The hold is provisional, not a D6 decision. The other page variables stay global and are recorded as a residual.
+  - **Coverage.**
+    - The browser test gains navigation invariants (eight paths per game, in each theme) and a portal invariant.
+    - Step 9 gains a native comparison (preview pixels and direct-load colours, against `BASE`) and a one-time hold-isolation check (computed styles, before versus after the hold).
+  - **Clock.** The clock is fixed before navigation and advanced only in bounded steps, replacing `pauseAt(Date.now() + 1)`. The assertions and the measured states are unchanged.
+  - **Inactive controls.** Disabled controls are `inactive` observations, held to the baseline record, outside `entries` and outside D10. Once enabled, they are measured as usual. The six disabled Annals verbs move there.
+  - **Records.** E-12, and updates to the Validation model, the file map, the native-visual holds, the surface inventory, the D10 row and the Phase 5 row.
+  - **Unchanged:**
+    - token values, the bridge and every global brand value;
+    - game artwork and every other creative surface;
+    - the r8 accessibility, contrast-repair, disclosure and creative-boundary requirements;
+    - the 0.05 tolerance;
+    - D5, D6 and every other open decision; D10 stays the owner's to decide;
+    - Tasks 1, 2 and 4–7.
 - **r8 (2026-10-13, Task 3 measurement and contrast corrections).**
   - **Inline invariant.** It permits exactly the three inline layout measurements on `<html>`, as px lengths, and rejects legacy theme variables, Darkfield tokens, unknown names and non-length values. Negative controls were added.
   - **Step 4.** Adds the omitted expected failure: the ground-alias text test on `Home.css`, which Step 7 fixes.
