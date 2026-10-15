@@ -13,7 +13,7 @@ Phases 2–6 replace the bridge with real Darkfield grammar, surface by surface.
 
 **Tech Stack:** React 18, Vite 8, TypeScript, plain CSS. Tests use `node:test` (`web/scripts/*.test.mjs`) and the standalone Playwright browser-test convention (`web/scripts/*-browser-test.mjs`, Playwright passed in by path). No new npm dependencies.
 
-**Revision:** r9, 2026-10-13 (Task 3 native-colour compatibility hold, browser-clock correction and inactive-control classification). r8 (2026-10-13) made the Task 3 measurement and contrast corrections; r1–r7 were written on 2026-10-11. See the [Revision log](#revision-log).
+**Revision:** r10, 2026-10-14 (Task 3 per-run measurement correction and contrast repairs). r9 (2026-10-13) added the Task 3 native-colour compatibility hold, browser-clock correction and inactive-control classification; r8 (2026-10-13) made the Task 3 measurement and contrast corrections; r1–r7 were written on 2026-10-11. See the [Revision log](#revision-log).
 
 ## Status
 
@@ -198,7 +198,7 @@ Approved token values, font stacks, hashes and identifiers are expected matches 
 | `/case-studies`, 4 case studies | Everything, including the `MediaInspector` chrome | — | `ProjectMedia` recordings and screenshots, for example the Aether visualizer clip | DOM + `<video>`/`<img>` | — |
 | `/procedural-animations`, `/procedural-animations/:slug` | Index, page chrome, the `.animation-piece__control` bar | `public/procedural-animations/*/piece.html` (own fonts and motion) | — | `<iframe>` (`ProceduralAnimationPiece.tsx:41-44`) | — |
 | `/terminal` | The whole terminal interface (site-owned feature; §07 governs its text graphics) | — | — | DOM | — |
-| `/simulations` | Cards, launch buttons, layout | Card previews that depict native game visuals (`.food-preview`, `.spider-preview-card-face` in `SimulationCard.css`; the Orbital and Traffic SVGs in `SimulationCard.tsx`). r9: Task 3 holds the previews' ink at its baseline colours, a provisional compatibility hold, not a D6 decision | — | DOM | **confirm** |
+| `/simulations` | Cards, launch buttons, layout | Card previews that depict native game visuals (`.food-preview`, `.spider-preview-card-face` in `SimulationCard.css`; the Orbital and Traffic SVGs in `SimulationCard.tsx`). r9: Task 3 holds the previews' ink at its baseline colours, a provisional compatibility hold, not a D6 decision. r10: Task 3 marks the six preview roots with `data-df-region="native"`, a measurement boundary, not a D6 decision | — | DOM | **confirm** |
 | `/simulations/orbital-simulator` | DOM controls, panels, readouts (`OrbitalSimulator.css`) | Canvas render (`OrbitalSimulator/renderer.ts`) | — | `<canvas>` | — |
 | `/simulations/traffic-simulator` | DOM controls, panels (`TrafficSimulator.css`) | Canvas renders (`RoadCanvas.tsx`, `SpaceTimeCanvas.tsx`, `renderer.ts`) | — | `<canvas>` | — |
 | `/simulations/snake` | Page chrome, buttons | Board, snake, food (`.food` reads `--accent-color`) | — | DOM/CSS | **confirm**: is the score HUD and game-over overlay (`.game-scores`, `.game-over-content`) chrome or native? |
@@ -395,6 +395,10 @@ export PLAYWRIGHT_BROWSERS_PATH="$DF_TMP/browsers" DF_PW="$DF_TMP/pw/node_module
 | Browser test, invariants section | **Invariant** (rendered) | Page ground is `field` per theme. No inline custom property on `<html>` except the three layout measurements, as px lengths, with negative controls (r8). Spider and Snake read their direct-load colours on every listed navigation path, and `<html>` defines no `--terminal-primary` there; the portaled Projects modal reads the page's scoped value (r9). Unknown stored theme falls back to dark; no-JS shell is on `field`; fonts served and loaded; focus ring on every element reached by Tab on the listed routes; outline present under forced colors | Focus on elements not reached in 25 Tabs; the painted colour under forced colors (human check); navigation paths not listed, and page variables other than `--terminal-primary` (r9) |
 | Browser test, enumerated pairs | **Regression** (rendered, baseline-aware) | Contrast of every fill/text pair whose ground the bridge changes (inventory E-6), in every theme, including hover where listed. A pair whose selector is not rendered on the listed routes is reported **UNCOVERED**, never passed. | Pairs not in the inventory |
 | Browser test, contrast sampler | **Sampler** (rendered, baseline-aware) | Text matched by the sampler selectors on the listed routes, against composited background *colours*. Where a background image or gradient lies under the text, against the rendered pixels behind each text run, in that run's own colour (r8); a painted-text pass also measures every other own-text element on a painted ground. Creative regions are counted and measured apart, and must match the baseline record (r8). Disabled controls are recorded as `inactive` observations, held to the baseline record and never counted as failures (r9) | Text over canvases, iframes, or content `<img>`/`<video>` elements. On a colour stack, descendant text in its own colour (only the matched element's colour is compared). Text under a backdrop filter, which is measured on its colour stack (the KS mark excepted, r8). Text covered by another element or on a moving ground (listed as `unmeasured`, with the reason). States not rendered (hover, open menus). Text outside the sampler selectors. Routes not listed. It is not a WCAG audit. |
+| Browser test, text, interaction and backdrop passes (r10) | **Regression** (rendered, baseline-aware, per run) | Every visible element's own text outside creative regions, measured once, nested text included (`text`, `painted`). Every enabled control with text, outside creative regions, hovered, focused and pressed, each text run a result of its own (`interact`). Every header control with text over the header's worst ground (black in Light, white in Dark and Mono), at rest and in each state, on `/projects` (`backdrop`). Runs and elements are paired by stable keys; a repeated id fails | Text a route renders only after further interaction; a run that only an ancestor clips (no control); text that visibly overflows its parent (measured only inside it); content positioned outside a clipping ancestor's box (may be clipped by it); viewports other than the one run (Step 9 compares four more) |
+| Browser test, measurement controls (r10) | **Invariant** (check mode, fixture pages) | The passes still detect a failing nested label on a gradient and on a solid ground, and a state worse than its rest state. They measure a nested label exactly and each text once, never read a border, outline or screen-reader-only text as ground, and class a disabled control `inactive`. A worsened run beside a failing run is still reported (masking), and repeated elements pair with themselves (pairing). The header backdrop is in force | Defects outside the fixtures' cases |
+| Run-by-run comparison (r10; scratch script, Task 3 Step 9) | **Regression** (record mode, baseline versus candidate, every run) | No run fails on the candidate only, or more than 0.05 worse than on the baseline, at 1440×900, 1280×800, 1920×1080, 768×1024 or 375×812, or after client-side arrival from `/projects` or `/simulations`. Every run pairs, with the same capture size and scroll position, and the measured scope matches. Every governed run neither build could measure is listed, and so, after an arrival, is every run the direct load records and neither build does; only the expected ones may appear | Viewports, scroll positions and arrivals not run; states the test does not create; runs listed as unmeasured on both builds |
+| Repair isolation (r10; scratch script, Task 3 Step 9, run once) | **Regression** (computed styles, before versus after Step 7 item 6) | On direct load of every listed route, with the Projects modal open, only the repaired selectors' rendered properties change | Hover and pressed states (the interaction pass measures them); rendering after client-side navigation |
 | Browser test, prepared states (r8) | **Regression** (rendered, baseline-aware) | Against the rendered ground: the Annals verbs enabled, hovered and pressed, and the aside headings once the verbs are enabled; the Rhythm Lab lane tap zones playing, lane key held and pointer-pressed, under a page clock frozen before navigation and advanced only in fixed steps (r9). The paused state is recorded as covered, not measured | Other prepared states, including the Annals conditional controls and text; Rhythm Lab zones under moving notes |
 | Whole-text comparison (r8; scratch script, Task 3 Step 9) | **Regression** (rendered, colour stack, baseline versus candidate) | Every visible element's own text outside creative regions on the listed routes: no text is both below 4.5:1 and more than 0.05 worse than on the baseline | Text on painted grounds or with unparsed colours; elements that cannot be paired between builds |
 | Native comparison (r9; scratch script, Task 3 Step 9) | **Regression** (rendered pixels and computed colours, baseline versus candidate) | Each `/simulations` card preview, reached directly and from `/projects`, is pixel-identical to the baseline on a fixed neutral ground, in both themes. Spider and Snake read the baseline's direct-load colours | Preview motion (captured frozen); the preview frames, which are governed chrome |
@@ -654,6 +658,9 @@ Phase 0 ends here. Publishing the Phase 0 documentation (clean-history branch, p
 | `web/src/components/SpiderSolitaire/SpiderSolitaire.css` | Modify. Pin `.spider-column:empty` (authorized native-visual hold) |
 | `web/src/pages/Annals/Annals.tsx` | Modify (r8). 6 `data-df-region="native"` attributes on authored narrative only; nothing else |
 | `web/src/components/ProjectRoster/ProjectRoster.css`, `web/src/components/ProjectMedia/ProjectMedia.css`, `web/src/pages/NotFound/NotFound.css`, `web/src/components/Navigation/SiteNavigation.css` | Modify (r8). Task 3 contrast repairs |
+| `web/src/components/SimulationCard/SimulationCard.tsx` | Modify (r10). Six `data-df-region="native"` attributes on the preview roots; nothing else beyond r9's change |
+| `web/src/components/SimulationCard/SimulationCard.css`, `web/src/components/Navigation/SiteNavigation.css`, `web/src/pages/OrbitalSimulator/OrbitalSimulator.css`, `web/src/pages/TrafficSimulator/TrafficSimulator.css` | Modify (r10). Task 3 contrast repairs (Step 7 item 6) |
+| `web/src/pages/Home/sections/ContactStripSection.css`, `web/src/pages/Home/sections/FeaturedProjectsSection.css`, `web/src/components/CaseStudyPage/CaseStudyPage.css`, `web/src/pages/Writing/Writing.css`, `web/src/pages/ProceduralAnimations/ProceduralAnimations.css` | Modify (r10). Task 3 contrast repairs (Step 7 item 6), new to Task 3: the contact links, the card calls to action and, in `Writing.css`, the `/writing` eyebrow (owner ruling). Each holds the rule that sets its label's colour |
 | `web/src/components/SimulationCard/SimulationCard.css`, `web/src/components/SimulationCard/SimulationCard.tsx`, `web/src/pages/Simulations/Simulations.css`, `web/src/pages/Projects/Projects.css` | Modify (r9). Task 3 native-colour compatibility hold: the preview hold, and `--terminal-primary` scoped to its pages |
 | Files listed by Task 4's scan | Modify. Font families |
 | Mono files (Task 5) | Modify |
@@ -1658,6 +1665,46 @@ The compiler logic is unchanged from r1. Only its input path and its two header 
 
 ### Task 3: One theme source, the bridge, and the baseline ledger (D10 gates the commit)
 
+**Status (r10).** The r9 changes were applied to the uncommitted work, and every r9 check passed. Work stopped before D10 again ([E-13](#evidence-summary)): a supplementary scan measured text that the r9 test never reaches, and found regressions there.
+- **What the r9 test missed.** The painted-text pass skipped text nested inside sampler matches. No pass measured hover, focus or pressed states beyond the listed pairs, and the translucent header was measured only over whatever the run left behind it.
+- **What r10's first draft missed** (found by its independent review). Its interaction pass kept one value per control and state: the lowest of the control's text runs. A run that already failed, such as a status badge or a card description, then hid a different run that got worse, such as the card's call to action. r10 now measures and compares every text run on its own (Step 2).
+- **What r10's second draft missed** (found by its independent review). If any one run of an element was covered or partly off screen, the whole element went unmeasured, and a wrapped link was checked against the paragraph around it. That left one `/case-studies` card's label and the Traffic case-study link at 1280×800 and 375×812, and three controls on `/case-studies/where-the-specification-lived` at 1280×800, unmeasured on every build, and the comparison counted them as paired. r10 now skips and retries such runs on their own, measures a wrapped run over its line boxes, and lists every governed run neither build could measure (Steps 2 and 9).
+- **The regressions found** (all genuine contrast losses, none a sampling artifact; [E-13](#evidence-summary)):
+  - Dark: the "Launch" label on every `/simulations` card, on card hover, focus and press.
+  - Light:
+    - the header navigation links on hover, press and as the current page, and the header's disclosure toggle ("Explore", "Menu") in every state at narrower viewports, against content scrolled behind the header;
+    - the Home contact links ("Email", "GitHub", "LinkedIn") on hover;
+    - the call-to-action labels of the Home featured cards, the `/case-studies` cards, the `/writing` cards and the `/procedural-animations` cards, on card hover;
+    - the `/writing` cards' eyebrows ("Essay", "Field Note"), on card hover;
+    - the Orbital "← Simulations" link in every state, and its Traffic twin at 1280×800;
+    - the Traffic case-study link when pressed.
+
+The owner ruled (r10):
+- plan a local repair for each, the header link included, measured against the header's worst translucent ground;
+- separate genuine regressions from sampling artifacts, and waive none that is confirmed;
+- keep the Launch repair and the measurement correction;
+- mark the six `/simulations` preview roots, provided no governed content lies inside them. That is a measurement boundary, not a D6 decision.
+
+After the review, the owner ruled further:
+- every text run is measured, paired and compared on its own, with masking and pairing controls;
+- every governed card call-to-action regression is repaired locally, by selector, with existing public tokens, preferably by changing only the label's local foreground colour. No global token, no site-wide hover override;
+- the Launch repair may drop the hover sweep, but the card keeps a perceptible hover and focus response;
+- a regression outside the card calls to action, or outside r10's approved scope, goes to the owner first.
+
+After the second review, the owner ruled on the `/writing` card eyebrows, which are governed text though not calls to action:
+- a failure Task 3 introduces or worsens gets the smallest local repair with existing tokens, to at least 4.5:1, preserving the card's geometry, content, hierarchy, interactions and other styling;
+- a deficiency Task 3 leaves unchanged or improves is classified for D10, not repaired;
+- no other new category is authorized: a regression needing a different scope goes to the owner.
+
+The eyebrow worsens in Light on card hover (repaired in Step 7 item 6) and fails, improved, in Dark at some scroll positions (classified for D10).
+
+D10 stays the owner's to decide. Apply the r10 changes to the uncommitted work:
+- the Step 2 test;
+- the Step 3 preview markers and the re-recorded ledger;
+- Step 7 item 6.
+
+Then re-run Step 3 and Steps 8–10, including the new Step 9 comparisons and repair isolation. The r10 work stays in the same Task 3 commit.
+
 **Status (r9).** The r8 changes were applied to the uncommitted work, which stopped before D10 again ([E-12](#evidence-summary)). The independent review of that work found three defects, and r9 corrects them:
 - **Native previews recoloured.** On `/simulations`, Task 3 changed the Snake and Rhythm Lab previews in Light, and the Orbital and Traffic SVGs in both themes.
 - **Navigation-dependent game colours.** In Light, Spider and Snake rendered different colours after client-side navigation than on direct load.
@@ -1707,13 +1754,22 @@ Then re-run Step 3 and Steps 8–10. The working tree already carries Steps 5–
   - `web/src/pages/Annals/Annals.tsx` (r8, Step 3: six `data-df-region` attributes only; authorized edit in a mixed component)
   - `web/src/components/ProjectRoster/ProjectRoster.css`, `web/src/components/ProjectMedia/ProjectMedia.css`, `web/src/pages/NotFound/NotFound.css` and `web/src/components/Navigation/SiteNavigation.css` (r8, Step 7 item 4: contrast repairs). `ProjectMedia.css` and `SiteNavigation.css` are also control-boundary files.
   - `web/src/components/SimulationCard/SimulationCard.css`, `web/src/components/SimulationCard/SimulationCard.tsx`, `web/src/pages/Simulations/Simulations.css` and `web/src/pages/Projects/Projects.css` (r9, Step 7 item 5: the native-colour compatibility hold; owner-approved option A″)
+  - r10:
+    - `SimulationCard.tsx`: six `data-df-region` attributes on the preview roots (Step 3), attributes only.
+    - `SimulationCard.css`, `SiteNavigation.css`, `OrbitalSimulator.css` and `TrafficSimulator.css`: contrast repairs (Step 7 item 6). All four are already listed.
+    - New to Task 3, contrast repairs (Step 7 item 6). Each file holds the rule that sets its label's colour, so the repair sits beside that rule:
+      - `web/src/pages/Home/sections/ContactStripSection.css`
+      - `web/src/pages/Home/sections/FeaturedProjectsSection.css`
+      - `web/src/components/CaseStudyPage/CaseStudyPage.css` (it styles the `/case-studies` cards too)
+      - `web/src/pages/Writing/Writing.css`
+      - `web/src/pages/ProceduralAnimations/ProceduralAnimations.css`
 
 **Interfaces:**
 - Produces:
   - Every legacy variable in `LEGACY`, defined only in `bridge.css`.
   - `applyThemeToDocument(theme)` sets only `data-theme` and `color-scheme`.
   - The ledger format (r9): `{ baseline: "<sha>", notes: [string], regions: { "<theme>|<route>": count }, unmeasured: [{ id, reason }], entries: [{ id, check, theme, route, detail, baseline }], creative: [{ id, check, theme, route, detail, baseline }], inactive: [{ id, check, theme, route, detail, baseline }] }`. It keeps five kinds of result apart:
-    - **`entries`: verified failures.** Each is measured on a colour stack, or on rendered pixels run by run and marked `(rendered ground)`; governed text on a painted ground is measured this way, never against the page field. D10 accepts `entries` only.
+    - **`entries`: verified failures.** Each is measured on a colour stack, or on rendered pixels run by run and marked `(rendered ground)`; governed text on a painted ground is measured this way, never against the page field. D10 accepts `entries` only. r10 adds the checks `text`, `interact` and `backdrop` (Step 2), and makes rendered results per run: such an entry's id ends with its text run's key, so each run has its own baseline value.
     - **`creative`: independently authored presentation** inside `[data-df-region]`, measured as D6 evidence. It is neither accepted under D10 nor treated as unverified.
     - **`unmeasured`: governed text or states** that no method here could measure, each with its reason. They are never passed. They are reported to the owner with their effect on D10 (Step 11).
     - **`inactive`: disabled controls (r9).** WCAG 1.4.3 exempts inactive controls, so their contrast is an observation, not a failure. It is never an entry and never accepted under D10. Check mode holds it to the baseline record, within 0.05, so a change is reported. Once enabled, the same controls are measured like any other text (the Step 2 prepared states). The rule covers every disabled control the test sees; at r9 those are only the six Annals verbs. Check mode fails on any `inactive` id not in the record, and any other disabled control needs the owner's review before it joins the record.
@@ -1786,7 +1842,7 @@ Then re-run Step 3 and Steps 8–10. The working tree already carries Steps 5–
 
 - [ ] **Step 2: Write the browser test.**
 
-  It has four parts: invariants, enumerated pairs, the sampler and prepared states (r8). It is baseline-aware.
+  It has four parts: invariants, enumerated pairs, the sampler and prepared states (r8). r10 adds a text pass, an interaction pass, a header backdrop pass, per-run measurement and measurement controls. It is baseline-aware.
   - **Inline properties (r8).** Exactly three layout measurements may sit inline on `<html>`: `--site-header-measured-offset` and `--site-dock-safe-space` (`SiteNavigation.tsx`), and `--dock-icon-size` (`useDock.ts`). Each must hold a px length. Anything else fails, including any legacy theme variable, any Darkfield token, any other custom property, or a non-length value.
     - **Negative controls:** a control run proves the rendered layout properties pass. It then injects five properties and requires every one to be rejected: a legacy variable, a token, an unknown name, and two non-length values.
   - **Rendered ground (r8).** Where a background image or gradient lies under text, the colour stack cannot describe the ground. The element is then measured against rendered pixels:
@@ -1815,6 +1871,70 @@ Then re-run Step 3 and Steps 8–10. The working tree already carries Steps 5–
     - the roster and media hover states;
     - the media label and the KS mark, which lie outside the sampler's selectors. The mark is measured on rendered pixels, because the header is a translucent backdrop filter;
     - the 404 heading's large-text floor (`min: 3`).
+  - **Text pass (r10).** It replaces r8's painted-text pass, which skipped any text nested inside a sampler match. Every visible element with its own text, outside creative regions, is measured exactly once:
+    - an element a sampler selector matches is measured by the sampler;
+    - inside a match measured on rendered pixels, the match already measured every run, so the element is skipped;
+    - inside a match measured on its colour stack, the element is skipped only when it has the match's colour and ground, so the match's result is its own;
+    - anything else is measured in its own colour: on its colour stack (check `text`) or, on a painted ground, on rendered pixels (check `painted`).
+
+    Text that renders nothing is skipped: screen-reader-only text (a box of at most one pixel, or a clip that hides it all), and text under an ancestor at opacity 0 or `visibility: hidden`. Creative text is reported under `creative`, never dropped.
+  - **Rendered runs (r10).**
+    - **The run.** A run is its visible part only: its own box, inside its parent's padding box and every clipping ancestor's padding box. So a border is never read as ground, and screen-reader-only text yields nothing. Text that overflows its control, such as a tooltip, still counts. A run is measured over its line boxes, each clipped the same way, so a run that wraps is never read against the text around it.
+    - **The capture.** One region of the page holds every run and is captured twice. Outlines are hidden during the capture, so a focus ring is never read as ground. Every pixel of each run's line boxes is compared with that run's colour.
+    - **Covers.** While covers are checked, the measured subtree takes pointer events. So text drawn by a pointer-transparent element is found, not what lies beneath it.
+    - **Ownership.** A run inside a nested sampler match belongs to that match and is measured there, never twice.
+    - **Covered and off-screen runs.** A run that something covers, or that lies partly off screen, is skipped on its own, with its reason; the element's other runs are still measured. A card taller than the viewport, or one whose top run lies under the fixed header, so loses no other run.
+      - Where the pass can re-enter the element's state, the run is then retried on its own, at up to three places: scrolled so that its middle lies at the middle of the viewport, then at 30% and at 70% of the viewport's height. Each time, its state is entered again with the pointer on the run itself, the run is measured alone, and its state is verified after the capture. Every build tries the same places in the same order.
+      - The passes that retry: the sampler, the text pass and the `PAIRS` entries without hover, which have no state to re-enter, and the interaction pass, which re-enters hover, focus or press. The passes that do not: the hover `PAIRS` entries (a retry could re-enter only the rest state, not the hover), the backdrop pass and the prepared-state checks.
+      - A run that still cannot be measured is `unmeasured` under its own id, with its reason.
+  - **Per run (r10).** Each run is a result of its own, never folded into a minimum with the element's other runs.
+    - **Its key.** The run's key is the element path from the measured element to the run's parent, then its text, then its occurrence among identical paths and texts.
+    - **Stable numbering.** Occurrences are numbered over every text node in document order, before any node is skipped, so a run keeps its key on every build.
+    - **Its id.** The id is check, theme, route, element (with its state) and run key.
+    - **What is recorded.** The run's ratio, foreground colour, lowest ground pixel, the size of each of its line boxes, and its scroll position (a retried run's own).
+    - **Colour stacks too.** An element measured on its colour stack gives each of its own text runs the same result, under the keys a rendered measurement would give them. So a run pairs across builds even if a repair changes how its ground is measured. The text pass records check `text` either way, and a rendered result's detail says `(rendered ground)`.
+  - **Recording and pairing (r10).** Every measurement, passing or failing, is recorded under its id. Record mode prints the ledger candidates and then a `MEASURED` line holding all of them.
+    - **Element identity.** Elements are numbered by name and text over everything the pass can measure, in page order, before any skip that depends on colour. So the n-th identical element pairs with the n-th on every build.
+    - **Duplicates.** An id recorded twice is a pairing defect: record mode prints it as `DUPLICATE` and exits non-zero, and check mode fails.
+    - **Check mode compares run by run.** Each failing run is compared with its own baseline value. A ledger run this build did not measure at all fails as missing; it does not pass as stale.
+  - **Interaction pass (r10).** Every enabled control with text outside creative regions is measured hovered, focused (`:focus-visible`) and pressed, as check `interact`. The controls are `a[href]`, `button`, `[role="button"]`, `summary` and button-type inputs, outer controls only. Each state is verified, then each of the control's text runs, nested ones included, is measured on rendered pixels as a result of its own.
+    - Transitions and animations are off, so a state renders at once.
+    - A control is entered at the first point inside it that nothing covers: the middle of its box, then of each of its line boxes, then of each of its text runs. A link that wraps may have no text at the middle of its box.
+    - Each state is verified before and after its capture. Entry is retried up to three times, and so is a measurement that finds no rendered text or a ground that does not hold still: a section scrolled into view may still be fading in.
+    - A control with no uncovered point, or a state that still does not take or hold, is `unmeasured`, with the reason.
+    - A press is released away from the control, so nothing is activated. A navigation fails the test.
+    - It runs last on each route but one (the backdrop pass), because it moves the pointer, focus and scroll.
+  - **Header backdrop (r10).** The header is translucent, so the ground of its text depends on what is scrolled behind it.
+    - The test hides everything but the header over the page colour farthest from the header's text: black in Light, white in Dark and Mono. That is the header's worst ground in each theme.
+    - On `/projects`, in each theme, it measures every visible header control with text at rest, hovered, focused and pressed, each state verified, run by run, as check `backdrop`. That covers the brand link and its mark, the navigation links (the current page included) and, at narrower viewports, the disclosure toggle.
+    - An invariant confirms that the backdrop is in force, so the pass cannot quietly measure an ordinary ground.
+  - **Determinism (r10).**
+    - `Math.random` is seeded on every page, because the background's reduced-motion frame is random and shows through translucent grounds.
+    - Transitions are off before the `PAIRS` hovers, which were otherwise measured mid-transition.
+    - **Scrolling.** Every capture first scrolls its element to the middle of the viewport, instantly. Its scroll position then depends only on the element, never on where an earlier step left the page, so both builds capture it alike. Instant, because the site's smooth scrolling would otherwise animate the scroll. An element in a fixed or sticky container is always in view and is not scrolled for.
+    - **Fade-ins.** After that scroll, the test waits in the page until the opacity and transform of the element, its ancestors and its descendants hold for three samples 16 ms apart (at most 2 s). A section scrolled into view may fade in, and reduced motion keeps opacity fades. On a page whose clock is frozen, nothing animates and no timer runs, so this wait and the two-frame settle return at once.
+    - **Hover.** Every hover scrolls first, waits two animation frames, then moves the pointer. A pointer moved while a scroll is still settling loses its hover moments later. Playwright's `hover()`, which scrolls and moves at once, lost the `.btn-outline` hover within 50 ms on every try.
+    - **Every pointer state.** Hover, focus and press each settle for two animation frames, because script-driven state styles (the section dots' hover and press scale, for example) apply a frame later. Each is then verified before the capture and again after it; a press must keep its hover. A state that does not hold is retried. One that never holds is `unmeasured` (for example `not hover` or `hover not held`), never passed.
+    - **Layout.** A route page loads every lazy image first and waits until the page's height holds still. Lazy images that loaded mid-pass changed the layout and the scroll positions between runs.
+    - Repeated records of one build are byte-identical ([E-13](#evidence-summary)).
+  - **Viewport and arrival (r10).**
+    - `DARKFIELD_VIEWPORT=<width>x<height>` selects the viewport. The ledger is recorded at the default 1440×900.
+    - `DARKFIELD_ARRIVE_FROM=<route>` makes the route passes reach each route by client-side navigation from that route, so the stylesheets it loaded stay attached. The arriving route fades in through its transition wrapper, `main`'s direct child. So the test waits until the opacity and transform of `main`, its ancestors and its children stop changing; deeper content, such as a game's moving playfield, is not sampled.
+    - **In-view fade-ins after an arrival.** Sections that fade in when first scrolled into view start at opacity 0 after a client-side arrival, though a direct load renders them at once, and the text pass would skip them. So, after an arrival, the test scrolls the page through in half-viewport steps and back to the top, then waits until every element in `main` with an inline opacity holds still. Pages with a frozen clock are not swept.
+    - Step 9 compares the builds at four more viewports and for two arrivals.
+  - **Measurement controls (r10).** In check mode, the passes run on fixture pages with known answers. Each control fails if the passes stop measuring what they must:
+    - a failing nested label on a gradient, and one on a solid ground;
+    - a state that fails while its rest state passes;
+    - a passing nested label's exact ratio;
+    - one text measured twice;
+    - a border, outline or screen-reader-only text read as ground, or screen-reader-only text skipped as covered instead of excluded;
+    - a disabled control not classed `inactive`;
+    - masking: in a link that also holds a failing badge, a label that passes on one fixture build and fails on the next must be reported fresh, and a failing label that falls further must be reported worse;
+    - pairing: of three identical cards, only the second worsens, and every changed result must be the second card's, with no duplicate and no missing run;
+    - run pairing: one link holds two identical text runs, and only the second worsens; every changed run must be the second, with no duplicate;
+    - covered, off-screen and wrapped runs: a card taller than the viewport, a card whose top run lies under a fixed bar when the card is centred, and a link that wraps inside a paragraph. Every worsened label must be reported fresh in every state, and nothing may be left unmeasured;
+    - a colour-dependent skip: of three identical notes, the first has its link's colour and ground on one fixture build only, so the text pass skips it there, and the second worsens. The worsening must be the second note's alone;
+    - re-entry: a card taller than the viewport, measured on rendered pixels. Without a way to re-enter its state, as for a hover pair, both off-screen runs must stay unmeasured, each with its reason; at rest, both must be retried and measured.
 
   ```js
   // web/scripts/darkfield-foundation-browser-test.mjs
@@ -1823,6 +1943,10 @@ Then re-run Step 3 and Steps 8–10. The working tree already carries Steps 5–
   // DARKFIELD_MODE=check (default): invariants must pass; regressions are compared with the ledger.
   // DARKFIELD_MODE=record: run regression checks only and print ledger candidates (use on the baseline).
   // DARKFIELD_THEMES=dark,light[,mono] selects themes.
+  // DARKFIELD_VIEWPORT=<width>x<height> selects the viewport (r10; default 1440x900, where the ledger is recorded).
+  // DARKFIELD_ARRIVE_FROM=<route> (r10): the route passes reach each route by client-side navigation from this
+  // route instead of a direct load, so the stylesheets it loaded stay attached (Step 9 compares arrivals).
+  // Record mode also prints every measurement on a MEASURED line (r10), for Step 9's run-by-run comparison.
   import assert from "node:assert/strict";
   import { readFile } from "node:fs/promises";
   const { chromium } = await import(process.argv[3] || "playwright");
@@ -1830,6 +1954,8 @@ Then re-run Step 3 and Steps 8–10. The working tree already carries Steps 5–
   const base = process.argv[2] || "http://127.0.0.1:4173";
   const MODE = process.env.DARKFIELD_MODE || "check";
   const THEMES = (process.env.DARKFIELD_THEMES || "dark,light").split(",");
+  const [VIEW_W, VIEW_H] = (process.env.DARKFIELD_VIEWPORT || "1440x900").split("x").map(Number);
+  const ARRIVE_FROM = process.env.DARKFIELD_ARRIVE_FROM || null;
   const FIELD = { dark: "rgb(7, 11, 8)", light: "rgb(239, 244, 241)", mono: "rgb(10, 10, 10)" };
   // Every routed page (web/src/routes/index.tsx at a16c70f) plus one 404 probe. /work aliases /experience.
   const ROUTES = [
@@ -1881,7 +2007,12 @@ Then re-run Step 3 and Steps 8–10. The working tree already carries Steps 5–
       states: {
         enabled: async (page) => { await page.mouse.move(0, 0); },
         hover: async (page, control) => {
-          await control.hover();
+          // Scroll, settle, then move (r10), as every hover does.
+          await reveal(control);
+          await frames(page);
+          const box = await control.boundingBox();
+          await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+          await frames(page);
           if (!(await control.evaluate((el) => el.matches(":hover")))) throw new Error("annals: verb not hovered");
         },
         pressed: async (page, control) => {
@@ -1941,6 +2072,10 @@ Then re-run Step 3 and Steps 8–10. The working tree already carries Steps 5–
   const inactive = [];
   const regions = {};
   const unmeasured = [];
+  // Every measurement, passing or failing, by id (r10): record mode prints it, and Step 9 compares builds run
+  // by run from it. An id recorded twice is a pairing defect.
+  const measured = {};
+  const duplicates = [];
   const ran = new Set();
   const uncovered = new Set(PAIRS.map((p) => p.selector));
   const errors = [];
@@ -1950,78 +2085,255 @@ Then re-run Step 3 and Steps 8–10. The working tree already carries Steps 5–
   const CLOCK_START = new Date("2026-01-01T00:00:00Z");
   const CLOCK_PAUSED = new Date("2026-01-01T01:00:00Z");
 
-  const withPage = async ({ theme, route = "/", javaScriptEnabled = true, forcedColors = "none", clock = false }, run) => {
-    const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, javaScriptEnabled, forcedColors, reducedMotion: "reduce" });
+  const withPage = async ({ theme, route = "/", javaScriptEnabled = true, forcedColors = "none", clock = false, routePass = false }, run) => {
+    const context = await browser.newContext({ viewport: { width: VIEW_W, height: VIEW_H }, javaScriptEnabled, forcedColors, reducedMotion: "reduce" });
     if (theme) await context.addInitScript((value) => localStorage.setItem("theme", value), theme);
+    // Seeded randomness (r10): decorative backgrounds draw a random static frame under reduced motion, and it
+    // shows through translucent grounds. The same seed on every load and build keeps rendered grounds
+    // reproducible, so the baseline and the candidate are compared on the same frame.
+    await context.addInitScript(() => {
+      let seed = 1;
+      Math.random = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
+    });
     const page = await context.newPage();
     page.on("pageerror", (error) => errors.push(`${route}: ${error.message}`));
     if (clock) {
       await page.clock.install({ time: CLOCK_START });
       await page.clock.pauseAt(CLOCK_PAUSED);
+      // Its animation frames and timers run only when the test advances the clock (r10: see frames and steady).
+      frozen.add(page);
     }
     try {
-      await page.goto(`${base}${route}`, { waitUntil: "networkidle" });
+      if (routePass && ARRIVE_FROM && ARRIVE_FROM !== route) {
+        // The router follows popstate, so this is the client-side navigation a link would make.
+        await page.goto(`${base}${ARRIVE_FROM}`, { waitUntil: "networkidle" });
+        await page.evaluate((to) => { history.pushState({}, "", to); dispatchEvent(new PopStateEvent("popstate")); }, route);
+        await page.waitForFunction((to) => location.pathname === to, route);
+        await page.waitForLoadState("networkidle");
+        // The arriving route fades in through its transition wrapper, the visible main's direct child: wait
+        // until the opacity and transform of main, its ancestors and its children stop changing (three samples
+        // 150 ms apart agree), so it is measured settled, as a direct load is. Deeper content, such as a game's
+        // moving playfield, is not sampled.
+        const sample = () => page.evaluate(() => {
+          const main = [...document.querySelectorAll("main")].find((m) => m.checkVisibility());
+          if (!main) return "";
+          const look = (n) => { const s = getComputedStyle(n); return `${s.opacity}${s.transform}`; };
+          const chain = [];
+          for (let n = main; n; n = n.parentElement) chain.push(look(n));
+          return chain.join() + "|" + [...main.children].map(look).join();
+        });
+        await settled(page, sample, `${route}: did not settle after client-side arrival from ${ARRIVE_FROM}`);
+        // Sections that fade in when first scrolled into view (once) start at opacity 0 after a client-side
+        // arrival, though a direct load renders them at once, and the painted pass would skip them. The page is
+        // scrolled through in half-viewport steps, instantly, and back to the top, so each has been in view;
+        // then every element in main with an inline opacity must hold still (three samples 150 ms apart agree).
+        // Pages with a frozen clock animate nothing and are not swept (r10).
+        if (!frozen.has(page)) {
+          await page.evaluate(async () => {
+            const pause = () => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
+            for (let y = 0; y <= document.documentElement.scrollHeight; y += innerHeight / 2) { scrollTo({ top: y, behavior: "instant" }); await pause(); }
+            scrollTo({ top: 0, behavior: "instant" });
+            await pause();
+          });
+          await settled(page, () => page.evaluate(() => {
+            const main = [...document.querySelectorAll("main")].find((m) => m.checkVisibility());
+            return `opacity:${main ? [...main.querySelectorAll("[style*='opacity']")].map((n) => getComputedStyle(n).opacity).join() : ""}`;
+          }), `${route}: in-view fade-ins did not settle after client-side arrival from ${ARRIVE_FROM}`);
+        }
+      } else {
+        await page.goto(`${base}${route}`, { waitUntil: "networkidle" });
+      }
+      if (routePass) {
+        // Lazy images load as they near the viewport and change the page's height, which moved controls from
+        // under the pointer and changed scroll positions between runs. Every image is loaded first, and the
+        // page's height must hold still before anything is measured.
+        await page.evaluate(async () => {
+          for (const img of document.querySelectorAll('img[loading="lazy"]')) img.loading = "eager";
+          await Promise.all([...document.images].filter((img) => !img.complete).map((img) => new Promise((done) => {
+            img.addEventListener("load", done, { once: true });
+            img.addEventListener("error", done, { once: true });
+          })));
+        });
+        await page.waitForLoadState("networkidle");
+        await settled(page, () => page.evaluate(() => String(document.documentElement.scrollHeight)), `${route}: the page's height did not hold still`);
+      }
       await run(page);
     } finally {
       await context.close();
     }
   };
 
+  // Two animation frames. A pointer moved while a scroll is still settling loses its hover moments later, so
+  // every hover scrolls first, waits for these frames, and only then moves the pointer (r10).
+  // Pages whose clock is frozen produce no frames and run no timers on their own; nothing on them animates, so
+  // the waits below return at once there.
+  const frozen = new WeakSet();
+  const frames = (page) => (frozen.has(page) ? null : page.evaluate(() => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)))));
+  // Scrolls an element to the middle of the viewport, instantly (r10). Its scroll position then depends only on
+  // the element, never on where the previous step left the page, so both builds capture it alike; the site's
+  // smooth scrolling would otherwise animate the scroll. An element in a fixed or sticky container is always in
+  // view, and scrolling for it only moves the page beneath it, so it is left where it is.
+  // Waits in the page until the opacity and transform of the element, its ancestors and its descendants hold
+  // for three samples 16 ms apart (at most 2 s): an element brought into view may start a fade-in (r10). A timer,
+  // not animation frames, paces it, because a frame is not always produced.
+  const steady = (locator) => (frozen.has(locator.page()) ? null : locator.evaluate(async (el) => {
+    const look = () => {
+      const parts = [];
+      for (let n = el.parentElement; n; n = n.parentElement) { const s = getComputedStyle(n); parts.push(s.opacity, s.transform); }
+      for (const n of [el, ...el.querySelectorAll("*")]) { const s = getComputedStyle(n); parts.push(s.opacity, s.transform); }
+      return parts.join();
+    };
+    let [last, same] = [look(), 0];
+    for (let i = 0; i < 120 && same < 3; i++) {
+      await new Promise((done) => setTimeout(done, 16));
+      const now = look();
+      same = now === last ? same + 1 : 0;
+      last = now;
+    }
+  }));
+  const reveal = (locator) => locator.evaluate((el) => {
+    for (let n = el; n; n = n.parentElement) if (["fixed", "sticky"].includes(getComputedStyle(n).position)) return;
+    el.scrollIntoView({ block: "center", inline: "nearest", behavior: "instant" });
+  });
+  // A pointer press is hover and press together: a control that stays :active after losing :hover no longer
+  // shows its pressed appearance (a tooltip shown on hover hides, for example), so both must hold.
+  const STATE_SELECTOR = { hover: ":hover", focus: ":focus-visible", active: ":active:hover" };
+
+  // Waits until sample() returns the same non-empty value three times, 150 ms apart (at most 9 s).
+  const settled = async (page, sample, failure) => {
+    let [previous, same] = [await sample(), 0];
+    for (let step = 0; step < 60 && same < 2; step++) {
+      await page.waitForTimeout(150);
+      const next = await sample();
+      same = next && next === previous ? same + 1 : 0;
+      previous = next;
+    }
+    if (same < 2) throw new Error(failure);
+  };
+
   // Rendered-ground contrast, for text whose ground the colour stack cannot describe (a gradient, image or
   // backdrop filter below it) and for prepared states. The element's text is hidden, and the pixels behind
   // each text run are compared with that run's own colour (its parent element's); the lowest ratio over all
-  // runs is reported. own: only the element's own text runs, not its descendants'. A capture counts only if
-  // nothing covers the text and two captures agree (the ground holds still). Otherwise the ratio is null,
-  // with the reason.
+  // runs is reported, with that run's text. own: only the element's own text runs, not its descendants'.
+  // r10, per run: every run is also returned on its own (runs), keyed by the path from the measured element to
+  // the run's parent, the run's text and its occurrence among identical paths and texts. The occurrence is
+  // numbered over every text node in document order, before any is skipped, so a run keeps its key on every
+  // build. exclude: a selector whose nested matches own their runs; those runs are measured there, not here.
+  // r10: a run is only its visible part, inside its parent's padding box (never the parent's border) and
+  // inside every clipping ancestor, so screen-reader-only text is not measured; outlines are hidden during
+  // the capture, so a focus ring is never read as ground. A capture counts only if nothing covers the text and
+  // two captures agree (the ground holds still). Otherwise the ratio is null, with the reason. r10 (round 3): a
+  // covered or off-screen run is skipped and retried on its own, never failing the element's other runs.
   const HIDE_TEXT = ["", " *", "::before", "::after", " *::before", " *::after"].map((s) => `[data-df-measuring]${s}`).join(", ") +
-    " { color: transparent !important; -webkit-text-fill-color: transparent !important; text-shadow: none !important; }";
+    " { color: transparent !important; -webkit-text-fill-color: transparent !important; text-shadow: none !important; outline-color: transparent !important; }" +
+    // While covers are checked, the measured subtree takes pointer events, so that elementFromPoint finds text
+    // drawn by a pointer-transparent element (a tooltip) rather than whatever lies beneath it.
+    " [data-df-cover], [data-df-cover] * { pointer-events: auto !important; }";
   const decoder = await browser.newPage();
-  const renderedContrast = async (page, locator, { own = false } = {}) => {
-    await locator.scrollIntoViewIfNeeded();
-    const probe = await locator.evaluate((el, [css, ownOnly]) => {
-      if (!document.getElementById("df-measuring")) document.head.append(Object.assign(document.createElement("style"), { id: "df-measuring", textContent: css }));
-      const box = el.getBoundingClientRect();
-      const runs = [];
-      const nodes = ownOnly ? [...el.childNodes].filter((n) => n.nodeType === Node.TEXT_NODE) : [];
-      if (!ownOnly) {
-        const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
-        for (let node = walker.nextNode(); node; node = walker.nextNode()) nodes.push(node);
+  const RETRY_PLACES = [0.5, 0.3, 0.7];
+  // One measurement of an element's runs (r10). only: measure that run alone, scrolled first so that its middle
+  // lies at the fraction place of the viewport's height (a retry). Each run is measured over its line boxes, each clipped as above: a run that wraps is
+  // never read against the text around it. A run covered or partly off screen is skipped on its own, with its
+  // reason; the element's other runs are still measured.
+  const probeRuns = (locator, { own, exclude, only, place = 0.5, mark = true }) => locator.evaluate((el, [css, ownOnly, excluded, onlyKey, at, marking]) => {
+    if (!document.getElementById("df-measuring")) document.head.append(Object.assign(document.createElement("style"), { id: "df-measuring", textContent: css }));
+    const runs = [];
+    const skipped = [];
+    const nodes = ownOnly ? [...el.childNodes].filter((n) => n.nodeType === Node.TEXT_NODE) : [];
+    if (!ownOnly) {
+      const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+      for (let node = walker.nextNode(); node; node = walker.nextNode()) nodes.push(node);
+    }
+    const seen = {};
+    const keyed = nodes.filter((node) => node.textContent.trim()).map((node) => {
+      const path = [];
+      for (let n = node.parentElement; n && n !== el; n = n.parentElement) path.unshift(n.tagName.toLowerCase() + (n.classList[0] ? `.${n.classList[0]}` : ""));
+      const text = node.textContent.trim().replace(/\s+/g, " ").slice(0, 24);
+      const base = `${path.join(">")}${path.length ? ">" : ""}"${text}"`;
+      seen[base] = (seen[base] || 0) + 1;
+      return { node, text, key: seen[base] === 1 ? base : `${base}#${seen[base]}` };
+    });
+    // The visible line boxes of a run: each of its own boxes, inside its parent's padding box and every
+    // clipping ancestor's padding box. A clip that hides all of it (screen-reader-only text) leaves nothing.
+    const boxes = (node) => {
+      let [cl, ct, cr, cb] = [-Infinity, -Infinity, Infinity, Infinity];
+      for (let n = node.parentElement, first = true; n && n !== document.documentElement; n = n.parentElement, first = false) {
+        const s = getComputedStyle(n);
+        if (s.clip === "rect(0px, 0px, 0px, 0px)" || /^inset\(50%/.test(s.clipPath)) return [];
+        if (!first && s.overflowX === "visible" && s.overflowY === "visible") continue;
+        const b = n.getBoundingClientRect();
+        cl = Math.max(cl, b.left + parseFloat(s.borderLeftWidth));
+        ct = Math.max(ct, b.top + parseFloat(s.borderTopWidth));
+        cr = Math.min(cr, b.right - parseFloat(s.borderRightWidth));
+        cb = Math.min(cb, b.bottom - parseFloat(s.borderBottomWidth));
       }
-      for (const node of nodes) {
-        if (!node.textContent.trim()) continue;
-        const range = document.createRange();
-        range.selectNodeContents(node);
-        const rects = [...range.getClientRects()].filter((r) => r.width > 0 && r.height > 0);
-        if (!rects.length) continue;
-        // Read before the text is hidden: computed styles are live.
-        const color = getComputedStyle(node.parentElement).color;
-        const left = Math.max(box.left, Math.min(...rects.map((r) => r.left)));
-        const top = Math.max(box.top, Math.min(...rects.map((r) => r.top)));
-        const right = Math.min(box.right, Math.max(...rects.map((r) => r.right)));
-        const bottom = Math.min(box.bottom, Math.max(...rects.map((r) => r.bottom)));
-        if (right - left < 1 || bottom - top < 1) continue;
-        const points = [[0.5, 0.5], [0.05, 0.1], [0.95, 0.1], [0.05, 0.9], [0.95, 0.9]];
-        const cover = points.map(([fx, fy]) => document.elementFromPoint(left + (right - left) * fx, top + (bottom - top) * fy)).find((hit) => !hit || !el.contains(hit));
-        if (cover !== undefined) return { reason: cover ? `covered by ${cover.tagName.toLowerCase()}${[...cover.classList].map((c) => `.${c}`).join("")}` : "off screen" };
-        const [x, y] = [Math.ceil(left - box.left), Math.ceil(top - box.top)];
-        const crop = { x, y, width: Math.floor(right - box.left) - x, height: Math.floor(bottom - box.top) - y };
-        if (crop.width >= 1 && crop.height >= 1) runs.push({ color, crop });
+      const range = document.createRange();
+      range.selectNodeContents(node);
+      return [...range.getClientRects()]
+        .map((r) => ({ left: Math.max(r.left, cl), top: Math.max(r.top, ct), right: Math.min(r.right, cr), bottom: Math.min(r.bottom, cb) }))
+        .filter((r) => r.right - r.left >= 1 && r.bottom - r.top >= 1);
+    };
+    const name = (hit) => `${hit.tagName.toLowerCase()}${[...hit.classList].map((c) => `.${c}`).join("")}`;
+    el.setAttribute("data-df-cover", "");
+    for (const { node, text, key } of keyed) {
+      if (onlyKey !== null && key !== onlyKey) continue;
+      // Text that renders nothing (an ancestor at opacity 0 or visibility hidden) is not measured, nor is
+      // creative text inside a governed element measured as part of it (r10).
+      if (!node.parentElement.checkVisibility({ opacityProperty: true, visibilityProperty: true })) continue;
+      if (node.parentElement.closest("[data-df-region]") && !el.closest("[data-df-region]")) continue;
+      // A run that a nested measured element owns is measured there, never twice (r10).
+      if (excluded) {
+        const owner = node.parentElement.closest(excluded);
+        if (owner && owner !== el && el.contains(owner)) continue;
       }
-      if (!runs.length) return { reason: "no rendered text" };
-      el.setAttribute("data-df-measuring", "");
-      return { runs };
-    }, [HIDE_TEXT, own]);
-    if (probe.reason) return { ratio: null, reason: probe.reason };
+      if (onlyKey !== null) {
+        // A retry: the run itself goes to its place in the viewport, instantly.
+        const all = boxes(node);
+        if (all.length) {
+          const [top, bottom] = [Math.min(...all.map((r) => r.top)), Math.max(...all.map((r) => r.bottom))];
+          window.scrollBy({ top: (top + bottom) / 2 - innerHeight * at, behavior: "instant" });
+        }
+      }
+      let parts = boxes(node);
+      if (!parts.length) continue;
+      // Read before the text is hidden: computed styles are live.
+      const color = getComputedStyle(node.parentElement).color;
+      if (parts.some((r) => r.left < 0 || r.top < 0 || r.right > innerWidth || r.bottom > innerHeight)) { skipped.push({ key, text, reason: "partly off screen" }); continue; }
+      const points = [[0.5, 0.5], [0.05, 0.1], [0.95, 0.1], [0.05, 0.9], [0.95, 0.9]];
+      let cover;
+      for (const r of parts) {
+        cover = points.map(([fx, fy]) => document.elementFromPoint(r.left + (r.right - r.left) * fx, r.top + (r.bottom - r.top) * fy)).find((hit) => !hit || !el.contains(hit));
+        if (cover !== undefined) break;
+      }
+      if (cover !== undefined) { skipped.push({ key, text, reason: cover ? `covered by ${name(cover)}` : "off screen" }); continue; }
+      parts = parts.map((r) => { const [x, y] = [Math.ceil(r.left), Math.ceil(r.top)]; return { x, y, width: Math.floor(r.right) - x, height: Math.floor(r.bottom) - y }; }).filter((c) => c.width >= 1 && c.height >= 1);
+      const centre = parts[0] && { x: parts[0].x + parts[0].width / 2, y: parts[0].y + parts[0].height / 2 };
+      if (parts.length) runs.push({ color, crops: parts, text, key, centre });
+    }
+    el.removeAttribute("data-df-cover");
+    if (!runs.length && !skipped.length) return { reason: "no rendered text" };
+    if (!runs.length || !marking) return { runs, skipped, y: Math.round(scrollY) };
+    el.setAttribute("data-df-measuring", "");
+    // One capture of the viewport region that holds every run's boxes; crops are relative to it.
+    const crops = runs.flatMap((r) => r.crops);
+    const region = { x: Math.min(...crops.map((c) => c.x)), y: Math.min(...crops.map((c) => c.y)) };
+    region.width = Math.max(...crops.map((c) => c.x + c.width)) - region.x;
+    region.height = Math.max(...crops.map((c) => c.y + c.height)) - region.y;
+    for (const c of crops) { c.x -= region.x; c.y -= region.y; }
+    return { runs, skipped, region, y: Math.round(scrollY) };
+  }, [HIDE_TEXT, own, exclude, only, place, mark]);
+  // Captures the region twice (the ground must hold still) and measures every pixel of each run's boxes.
+  const captureRuns = async (page, locator, probe) => {
     let png = null;
     for (let attempt = 0; attempt < 3 && !png; attempt++) {
-      const first = await locator.screenshot({ animations: "disabled", scale: "css" });
-      const second = await locator.screenshot({ animations: "disabled", scale: "css" });
+      const first = await page.screenshot({ clip: probe.region, animations: "disabled", scale: "css" });
+      const second = await page.screenshot({ clip: probe.region, animations: "disabled", scale: "css" });
       if (first.equals(second)) png = first;
       else await page.waitForTimeout(100);
     }
     await locator.evaluate((el) => el.removeAttribute("data-df-measuring"));
-    if (!png) return { ratio: null, reason: "ground does not hold still" };
-    const ratio = await decoder.evaluate(async ([data, runs]) => {
+    if (!png) return null;
+    return decoder.evaluate(async ([data, runs, y]) => {
       const image = new Image();
       image.src = `data:image/png;base64,${data}`;
       await image.decode();
@@ -2029,31 +2341,82 @@ Then re-run Step 3 and Steps 8–10. The working tree already carries Steps 5–
       const context = canvas.getContext("2d");
       context.drawImage(image, 0, 0);
       const lum = (r, g, b) => { const f = (c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4); return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b); };
-      let lowest = Infinity;
-      for (const { color, crop: { x, y, width, height } } of runs) {
-        const pixels = context.getImageData(x, y, width, height).data;
+      return runs.map(({ color, crops, text, key }) => {
+        let lowest = Infinity;
+        let worst = null;
         const parts = color.match(/\(([^)]+)\)/)[1].split(/[\s,/]+/).filter(Boolean).map(Number);
         const srgb = color.startsWith("color(") ? parts.slice(1) : parts.map((v, i) => (i < 3 ? v / 255 : v));
         const [fr, fg, fb, fa = 1] = srgb;
-        for (let i = 0; i < pixels.length; i += 4) {
-          const [br, bg, bb] = [pixels[i] / 255, pixels[i + 1] / 255, pixels[i + 2] / 255];
-          const [hi, lo] = [lum(fr * fa + br * (1 - fa), fg * fa + bg * (1 - fa), fb * fa + bb * (1 - fa)), lum(br, bg, bb)].sort((a, b) => b - a);
-          lowest = Math.min(lowest, (hi + 0.05) / (lo + 0.05));
+        for (const { x, y: top, width, height } of crops) {
+          const pixels = context.getImageData(x, top, width, height).data;
+          for (let i = 0; i < pixels.length; i += 4) {
+            const [br, bg, bb] = [pixels[i] / 255, pixels[i + 1] / 255, pixels[i + 2] / 255];
+            const [hi, lo] = [lum(fr * fa + br * (1 - fa), fg * fa + bg * (1 - fa), fb * fa + bb * (1 - fa)), lum(br, bg, bb)].sort((a, b) => b - a);
+            const value = (hi + 0.05) / (lo + 0.05);
+            if (value < lowest) [lowest, worst] = [value, [pixels[i], pixels[i + 1], pixels[i + 2]]];
+          }
         }
-      }
-      return Math.round(lowest * 100) / 100;
-    }, [png.toString("base64"), probe.runs]);
-    return { ratio };
+        return { key, text, ratio: Math.round(lowest * 100) / 100, fg: color, ground: `rgb(${worst.join(", ")})`, size: crops.map((c) => `${c.width}x${c.height}`).join("+"), y };
+      });
+    }, [png.toString("base64"), probe.runs, probe.y]);
   };
+  // r10, per run: a run skipped as covered or partly off screen is retried on its own when the caller can
+  // re-enter its state (enter: { reset, at(x, y), held }; the rest state re-enters trivially): the run is
+  // scrolled so that its middle lies at the middle of the viewport, then at 30% and at 70% of its height (a
+  // fixed element, such as the section dots, may sit at the middle), the state is entered on the run itself,
+  // and the run is measured alone, its state verified after the capture. A run that still cannot be measured
+  // keeps its own reason. Every build tries the same places in the same order.
+  const renderedContrast = async (page, locator, { own = false, exclude = null, enter = null } = {}) => {
+    await reveal(locator);
+    await steady(locator);
+    const probe = await probeRuns(locator, { own, exclude, only: null });
+    if (probe.reason) return { ratio: null, reason: probe.reason };
+    const runs = probe.runs.length ? await captureRuns(page, locator, probe) : [];
+    if (!runs) return { ratio: null, reason: "ground does not hold still" };
+    const held = enter && (await enter.held());
+    if (held) return { ratio: null, reason: held };
+    const skipped = [];
+    for (const miss of probe.skipped) {
+      let reason = miss.reason;
+      for (const place of RETRY_PLACES) {
+        if (!enter || !reason) break;
+        await enter.reset();
+        await probeRuns(locator, { own, exclude, only: miss.key, place, mark: false });
+        await frames(page);
+        await steady(locator);
+        const again = await probeRuns(locator, { own, exclude, only: miss.key, place, mark: false });
+        const run = again.runs?.[0];
+        if (!run) { reason = again.skipped?.[0]?.reason ?? again.reason ?? "no rendered text"; continue; }
+        reason = await enter.at(run.centre.x, run.centre.y);
+        if (reason) continue;
+        const settledProbe = await probeRuns(locator, { own, exclude, only: miss.key, place });
+        if (!settledProbe.runs?.length) { reason = settledProbe.skipped?.[0]?.reason ?? settledProbe.reason ?? "no rendered text"; continue; }
+        const measuredRun = await captureRuns(page, locator, settledProbe);
+        reason = measuredRun ? await enter.held() : "ground does not hold still";
+        if (!reason) runs.push(measuredRun[0]);
+      }
+      if (reason) skipped.push({ key: miss.key, text: miss.text, reason });
+    }
+    if (!runs.length) return { ratio: null, reason: skipped[0].reason, runs, skipped, y: probe.y };
+    const lowest = runs.reduce((a, b) => (b.ratio < a.ratio ? b : a));
+    return { ratio: lowest.ratio, run: lowest.text, runs, ...(skipped.length ? { skipped } : {}), y: probe.y };
+  };
+  // The rest state re-enters trivially: nothing to reset, enter or hold.
+  const AT_REST = { reset: async () => {}, at: async () => null, held: async () => null };
 
   // WCAG 2 contrast against the composited background-colour stack. A sampler: canvases and iframes
   // under text are not seen, and on a colour stack only the element's own colour is compared. Where a
   // background image or gradient lies under the text, the colour stack cannot describe the ground, so the
   // element is measured against the rendered pixels instead, run by run (null, with a reason, when that is
   // impossible). Elements inside [data-df-region] are creative content, reported apart from the interface.
-  // painted: every other element with its own text on a painted ground (not inside a sampler match), so
-  // that governed text there is measured or listed, never skipped.
-  const contrastOf = async (page, selector, { all = true, rendered = false, painted = false } = {}) => {
+  // painted (the text pass, r10): every other element with its own text, so that no rendered text is
+  // skipped: nested text inside a sampler match included. Each text occurrence is measured once: an element
+  // the sampler matched is measured there; inside a match measured on rendered pixels, every run already was;
+  // inside a match measured on its colour stack, a descendant is skipped only when it has the match's colour
+  // and ground (the match's result is that text). The rest is measured in its own colour: on its colour stack
+  // or, on a painted ground, on rendered pixels. Either way it is check "text" (r10); a rendered result's
+  // detail says "(rendered ground)".
+  const contrastOf = async (page, selector, { all = true, rendered = false, painted = false, enter = AT_REST } = {}) => {
     const results = await page.evaluate(([sel, every, forceRendered, paintedPass, sampled]) => {
       const parse = (value) => {
         let m = value.match(/^rgba?\(([^)]+)\)$/);
@@ -2078,15 +2441,38 @@ Then re-run Step 3 and Steps 8–10. The working tree already carries Steps 5–
         return out;
       };
       const found = [];
+      // Element identity (r10): name and text, numbered over the elements this call can measure, in page order,
+      // before any skip that depends on colour, so the n-th identical element pairs with the n-th on every build.
+      const seen = {};
       for (const el of document.querySelectorAll(sel)) {
         if (!el.checkVisibility?.() || !el.textContent.trim()) continue;
         const region = Boolean(el.closest("[data-df-region]"));
         if (region && !every) continue;
         if (paintedPass) {
           const own = [...el.childNodes].some((n) => n.nodeType === Node.TEXT_NODE && n.textContent.trim());
-          if (!own || region || ["SCRIPT", "STYLE", "NOSCRIPT", "OPTION"].includes(el.tagName) || el.closest(sampled) || ground(el)) continue;
+          if (!own || ["SCRIPT", "STYLE", "NOSCRIPT", "OPTION"].includes(el.tagName) || el.matches(sampled)) continue;
+          if (!el.checkVisibility({ opacityProperty: true, visibilityProperty: true })) continue;
+          // Screen-reader-only text renders nothing: a box of at most one pixel, or a clip that hides all of it.
+          const box = el.getBoundingClientRect();
+          const style = getComputedStyle(el);
+          if (box.width * box.height <= 1 || style.clip === "rect(0px, 0px, 0px, 0px)" || /^inset\(50%/.test(style.clipPath)) continue;
         }
-        const bg = forceRendered || paintedPass ? null : ground(el);
+        const text = (paintedPass ? [...el.childNodes].filter((n) => n.nodeType === Node.TEXT_NODE).map((n) => n.textContent).join(" ") : el.textContent).trim().replace(/\s+/g, " ").slice(0, 30);
+        const name = el.tagName.toLowerCase() + (el.classList[0] ? `.${el.classList[0]}` : "");
+        const base = paintedPass ? `${name}|${text}` : text;
+        seen[base] = (seen[base] || 0) + 1;
+        const key = seen[base] === 1 ? base : `${base}#${seen[base]}`;
+        if (paintedPass) {
+          const host = el.parentElement?.closest(sampled);
+          // Text inside a creative region is measured and reported as creative, never dropped (r10).
+          if (host && !region) {
+            const [hostGround, ownGround] = [ground(host), ground(el)];
+            if (!hostGround) continue;
+            const same = (a, b) => Math.abs(a.r - b.r) + Math.abs(a.g - b.g) + Math.abs(a.b - b.b) < 1 / 255;
+            if (ownGround && getComputedStyle(el).color === getComputedStyle(host).color && same(ownGround, hostGround)) continue;
+          }
+        }
+        const bg = forceRendered ? null : ground(el);
         let ratio = null;
         if (bg) {
           const fg = over(parse(getComputedStyle(el).color), bg);
@@ -2095,61 +2481,273 @@ Then re-run Step 3 and Steps 8–10. The working tree already carries Steps 5–
         } else {
           el.setAttribute("data-df-probe", String(found.length));
         }
-        const text = (paintedPass ? [...el.childNodes].filter((n) => n.nodeType === Node.TEXT_NODE).map((n) => n.textContent).join(" ") : el.textContent).trim().replace(/\s+/g, " ").slice(0, 30);
-        const name = el.tagName.toLowerCase() + (el.classList[0] ? `.${el.classList[0]}` : "");
-        found.push({ text: paintedPass ? `${name}|${text}` : text, ratio, region, rendered: !bg, disabled: el.matches(":disabled") });
+        const colour = (c) => (c ? `rgb(${[c.r, c.g, c.b].map((v) => Math.round(v * 255)).join(", ")})` : null);
+        // On a colour stack, the element's own text runs share its result; they take the keys a rendered
+        // measurement gives them, so a run pairs across builds even if a repair changes how its ground is measured.
+        const ownRuns = [];
+        if (bg) {
+          const runSeen = {};
+          for (const node of el.childNodes) {
+            if (node.nodeType !== Node.TEXT_NODE || !node.textContent.trim()) continue;
+            const runText = node.textContent.trim().replace(/\s+/g, " ").slice(0, 24);
+            runSeen[runText] = (runSeen[runText] || 0) + 1;
+            ownRuns.push({ key: runSeen[runText] === 1 ? `"${runText}"` : `"${runText}"#${runSeen[runText]}`, text: runText, ratio, fg: getComputedStyle(el).color, ground: colour(bg), size: null });
+          }
+        }
+        found.push({ text: key, ratio, region, rendered: !bg, disabled: el.matches(":disabled"), fg: getComputedStyle(el).color, ground: colour(bg), y: Math.round(scrollY), ...(ownRuns.length ? { runs: ownRuns } : {}) });
         if (!every) break;
       }
       return found;
     }, [selector, all, rendered, painted, SAMPLER_SELECTORS.join(", ")]);
     for (const [index, result] of results.entries()) {
-      if (result.rendered) Object.assign(result, await renderedContrast(page, page.locator(`[data-df-probe="${index}"]`), { own: painted }));
+      if (result.rendered) Object.assign(result, await renderedContrast(page, page.locator(`[data-df-probe="${index}"]`), { own: painted, exclude: painted ? null : SAMPLER_SELECTORS.join(", "), enter }));
     }
     await page.evaluate(() => document.querySelectorAll("[data-df-probe]").forEach((el) => el.removeAttribute("data-df-probe")));
     return results;
   };
 
-  const detail = ({ ratio, rendered, disabled }) => `${ratio}:1${rendered ? " (rendered ground)" : ""}${disabled ? " (disabled)" : ""}`;
-  const regression = (check, theme, route, key, result) => {
-    regressions.push({ id: `${check}|${theme}|${route}|${key}`, detail: detail(result), value: result.ratio });
+  // Interaction pass (r10): every enabled control with text, outside creative regions, hovered, focused
+  // (focus-visible) and pressed, each state verified and measured on rendered pixels over all its text runs,
+  // nested ones included. Transitions are off, so a state renders at once. A covered control is never
+  // entered; it and any state that cannot be entered are listed as unmeasured, with the reason. A press is
+  // released away from the control, so nothing is activated; a navigation fails the test.
+  const CONTROLS = 'a[href], button, [role="button"], summary, input[type="submit"], input[type="button"], input[type="reset"]';
+  const interactions = async (page) => {
+    await page.addStyleTag({ content: "*, *::before, *::after { transition: none !important; animation: none !important; }" });
+    const start = page.url();
+    const controls = await page.evaluate((sel) => {
+      const seen = {};
+      return [...document.querySelectorAll(sel)].flatMap((el, i) => {
+        if (!el.checkVisibility?.() || !el.textContent.trim() || el.closest("[data-df-region]") || el.matches(":disabled") || el.parentElement?.closest(sel)) return [];
+        el.setAttribute("data-df-control", String(i));
+        const base = `${el.tagName.toLowerCase()}|${el.textContent.trim().replace(/\s+/g, " ").slice(0, 30)}`;
+        seen[base] = (seen[base] || 0) + 1;
+        return [{ i, key: `${base}#${seen[base]}` }];
+      });
+    }, CONTROLS);
+    const results = [];
+    for (const { i, key } of controls) {
+      const control = page.locator(`[data-df-control="${i}"]`);
+      for (const state of ["hover", "focus", "active"]) {
+        await page.mouse.move(0, 0);
+        await page.evaluate(() => document.activeElement?.blur?.());
+        let reason = null;
+        let pressed = false;
+        let measuredState = null;
+        // Enters the state with the pointer at (x, y), inside the control, and verifies it.
+        const enterAt = async (x, y) => {
+          if (state === "focus") {
+            await control.evaluate((el) => el.focus({ focusVisible: true }));
+            await frames(page);
+            return (await control.evaluate((el) => el.matches(":focus-visible"))) ? null : "not focusable";
+          }
+          await page.mouse.move(x, y);
+          if (state === "active") { await page.mouse.down(); pressed = true; }
+          await frames(page);
+          return (await control.evaluate((el, s) => el.matches(s), STATE_SELECTOR[state])) ? null : `not ${state}`;
+        };
+        const coverAt = (x, y) => page.evaluate(([px, py, index]) => {
+          const hit = document.elementFromPoint(px, py);
+          if (!hit) return "off screen";
+          return document.querySelector(`[data-df-control="${index}"]`).contains(hit) ? null : `covered by ${hit.tagName.toLowerCase()}${[...hit.classList].map((c) => `.${c}`).join("")}`;
+        }, [x, y, i]);
+        // A run retried on its own (r10): the state is left, then entered again on the run itself.
+        const enter = {
+          reset: async () => {
+            await page.mouse.move(0, 0);
+            if (pressed) { await page.mouse.up(); pressed = false; }
+            await page.evaluate(() => document.activeElement?.blur?.());
+          },
+          at: async (x, y) => (await coverAt(x, y)) ?? enterAt(x, y),
+          held: async () => ((await control.evaluate((el, s) => el.matches(s), STATE_SELECTOR[state])) ? null : `${state} not held`),
+        };
+        // A state that does not take, or does not hold through its capture, is retried (r10): a settling scroll
+        // or a late layout shift can take the control from under the pointer. Only a state that fails three
+        // times is unmeasured; a press is released away first.
+        for (let attempt = 0; attempt < 3 && (attempt === 0 || reason); attempt++) {
+          if (pressed) { await page.mouse.move(0, 0); await page.mouse.up(); pressed = false; }
+          reason = null;
+          try {
+            await reveal(control);
+            await frames(page);
+            // r10: the control is entered at the first point inside it that nothing covers: the middle of its
+            // box, then of each of its line boxes, then of each of its text runs' boxes. A link that wraps may
+            // have no text at the middle of its box.
+            const point = await page.evaluate((index) => {
+              const el = document.querySelector(`[data-df-control="${index}"]`);
+              const candidates = [el.getBoundingClientRect(), ...el.getClientRects()];
+              const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+              for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+                if (!n.textContent.trim()) continue;
+                const range = document.createRange();
+                range.selectNodeContents(n);
+                candidates.push(...range.getClientRects());
+              }
+              let first = null;
+              for (const r of candidates) {
+                if (r.width < 1 || r.height < 1) continue;
+                const [x, y] = [r.left + r.width / 2, r.top + r.height / 2];
+                const hit = x >= 0 && y >= 0 && x < innerWidth && y < innerHeight ? document.elementFromPoint(x, y) : null;
+                if (hit && el.contains(hit)) return { x, y };
+                first ??= hit ? `covered by ${hit.tagName.toLowerCase()}${[...hit.classList].map((c) => `.${c}`).join("")}` : "off screen";
+              }
+              return { reason: first ?? "off screen" };
+            }, i);
+            // A state's script-driven styles (a scale on hover or press) apply on a later animation frame, so
+            // the state settles two frames before it is checked and captured.
+            reason = point.reason ?? (await enterAt(point.x, point.y));
+          } catch {
+            reason = `could not enter ${state}`;
+          }
+          if (!reason) {
+            // The state is verified again after the capture, inside the measurement, before any run is retried.
+            // A measurement that found no rendered text, or a ground that would not hold still, is retried too: a
+            // section scrolled into view may still be fading in (r10).
+            measuredState = await renderedContrast(page, control, { enter });
+            if (measuredState.reason && !measuredState.skipped) reason = measuredState.reason;
+          }
+        }
+        const result = reason ? { ratio: null, reason } : measuredState;
+        results.push({ key, state, ...result });
+        await page.mouse.move(0, 0);
+        if (pressed) await page.mouse.up();
+        if (page.url() !== start) throw new Error(`interaction pass: ${key}:${state} navigated to ${page.url()}`);
+      }
+    }
+    await page.evaluate(() => document.querySelectorAll("[data-df-control]").forEach((el) => el.removeAttribute("data-df-control")));
+    return results;
+  };
+
+  // Header backdrop (r10): the header is translucent, so the ground of its text depends on what is scrolled
+  // behind it. Its worst ground is the header over the page colour farthest from its text: black under Light's
+  // dark text, white under Dark's (and Mono's) light text. Everything else stops painting, over that page. On
+  // BACKDROP_ROUTES every visible header control with text is measured at rest, hovered,
+  // focused (focus-visible) and pressed, each state verified, on rendered pixels over all its text runs; a
+  // press is released away.
+  const BACKDROP_ROUTES = ["/projects"];
+  const backdrop = async (page, theme) => {
+    const [page_, rgb] = theme === "light" ? ["#000", "rgb(0, 0, 0)"] : ["#fff", "rgb(255, 255, 255)"];
+    const style = await page.addStyleTag({ content: `html, body { background: ${page_} !important; } body * { visibility: hidden !important; } .site-header, .site-header * { visibility: visible !important; }` });
+    // The backdrop must be in force: the theme's worst page colour with the content hidden (checked in check mode).
+    invariant(await page.evaluate((expected) => getComputedStyle(document.body).backgroundColor === expected && getComputedStyle(document.querySelector("main")).visibility === "hidden", rgb),
+      `header backdrop: the page around the header is not hidden over ${page_}`);
+    const controls = await page.evaluate(() => {
+      const seen = {};
+      return [...document.querySelectorAll(".site-header a[href], .site-header button")].flatMap((el, i) => {
+        if (!el.checkVisibility() || !el.textContent.trim()) return [];
+        el.setAttribute("data-df-backdrop", String(i));
+        const base = `${el.tagName.toLowerCase()}|${el.textContent.trim().replace(/\s+/g, " ").slice(0, 30)}`;
+        seen[base] = (seen[base] || 0) + 1;
+        return [{ i, key: `${base}#${seen[base]}` }];
+      });
+    });
+    const at = async (locator) => { const box = await locator.boundingBox(); await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2); };
+    const results = [];
+    for (const { i, key } of controls) {
+      const control = page.locator(`[data-df-backdrop="${i}"]`);
+      for (const [state, enter] of [["rest"], ["hover", at], ["focus", (l) => l.evaluate((el) => el.focus({ focusVisible: true }))], ["active", async (l) => { await at(l); await page.mouse.down(); return true; }]]) {
+        await page.mouse.move(0, 0);
+        await page.evaluate(() => document.activeElement?.blur?.());
+        const pressed = await enter?.(control);
+        await frames(page);
+        const entered = state === "rest" || (await control.evaluate((el, s) => el.matches(s), STATE_SELECTOR[state]));
+        results.push({ key: `${key}:${state}`, ...(entered ? await renderedContrast(page, control) : { ratio: null, reason: `not ${state}` }) });
+        await page.mouse.move(0, 0);
+        if (pressed) await page.mouse.up();
+      }
+    }
+    await page.evaluate(() => document.querySelectorAll("[data-df-backdrop]").forEach((el) => el.removeAttribute("data-df-backdrop")));
+    await style.evaluate((el) => el.remove());
+    return results;
+  };
+
+  const detail = ({ ratio, rendered, disabled, run }) => `${ratio}:1${rendered ? " (rendered ground)" : ""}${disabled ? " (disabled)" : ""}${run ? ` [${run}]` : ""}`;
+  // Recording (r10): every measurement goes into the inventory, keyed by check, theme, route, element and, on
+  // rendered pixels, text run, so each run is compared with its own baseline value, never hidden behind another
+  // run's. Creative and inactive results are filed apart. An id recorded twice is a pairing defect.
+  const newSink = () => ({ measured: {}, regressions: [], creative: [], inactive: [], unmeasured: [], duplicates: [] });
+  const SINK = { measured, regressions, creative, inactive, unmeasured, duplicates };
+  const record = (check, theme, route, key, result, { limit = 4.5, sink = SINK } = {}) => {
+    const base = `${check}|${theme}|${route}|${key}`;
+    const kind = result.region ? "creative" : result.disabled ? "inactive" : null;
+    const items = result.runs || result.skipped
+      ? [...(result.runs ?? []).map((r) => ({ id: `${base}|${r.key}`, value: r.ratio, fg: r.fg, ground: r.ground, setup: `${r.size ?? ""}@${r.y ?? result.y}`, detail: detail({ ratio: r.ratio, rendered: result.rendered !== false, disabled: result.disabled, run: r.text }) })),
+        ...(result.skipped ?? []).map((r) => ({ id: `${base}|${r.key}`, reason: r.reason }))]
+      : result.ratio === null ? [{ id: base, reason: result.reason }]
+      : [{ id: base, value: result.ratio, fg: result.fg, ground: result.ground, setup: `@${result.y}`, detail: detail(result) }];
+    for (const item of items) {
+      const id = kind === "creative" || (kind === "inactive" && !item.reason) ? item.id.replace(/^[a-z]+/, kind) : item.id;
+      if (sink.measured[id]) sink.duplicates.push(id);
+      const failing = !kind && !item.reason && item.value < limit;
+      sink.measured[id] = item.reason ? { reason: item.reason }
+        : { value: item.value, fg: item.fg, ground: item.ground, setup: item.setup, ...(failing ? { failing } : {}), ...(limit !== 4.5 ? { limit } : {}) };
+      if (kind === "creative") sink.creative.push({ id, detail: item.detail ?? `null:1 (${item.reason})`, value: item.value ?? null });
+      else if (item.reason) sink.unmeasured.push({ id, reason: item.reason });
+      else if (kind === "inactive") sink.inactive.push({ id, detail: item.detail, value: item.value });
+      else if (failing) sink.regressions.push({ id, detail: item.detail, value: item.value });
+    }
+  };
+  // Per-run comparison (r10), for check mode and the measurement controls: the baseline's failing runs
+  // (entries, with their baseline values) against every measurement of this build. fresh: fails here only.
+  // worse: fails on both, more than 0.05 lower here. stale: measured here and passing. missing: not measured
+  // here at all, so it cannot be paired.
+  const compareRuns = (entries, current, inScope = () => true) => {
+    const known = new Map(entries.map((e) => [e.id, e]));
+    const failing = Object.entries(current).filter(([, m]) => m.failing);
+    return {
+      fresh: failing.filter(([id]) => !known.has(id)).map(([id]) => id),
+      worse: failing.filter(([id, m]) => known.has(id) && m.value < known.get(id).baseline - 0.05).map(([id]) => id),
+      stale: entries.filter((e) => inScope(e.id) && current[e.id] && !current[e.id].reason && !current[e.id].failing).map((e) => e.id),
+      missing: entries.filter((e) => inScope(e.id) && !current[e.id]).map((e) => e.id),
+    };
   };
 
   for (const theme of THEMES) {
     for (const route of ROUTES) {
-      await withPage({ theme, route }, async (page) => {
+      await withPage({ theme, route, routePass: true }, async (page) => {
         ran.add(`contrast|${theme}|${route}`);
         ran.add(`pair|${theme}|${route}`);
-        ran.add(`painted|${theme}|${route}`);
+        ran.add(`text|${theme}|${route}`);
+        ran.add(`interact|${theme}|${route}`);
+        if (BACKDROP_ROUTES.includes(route)) ran.add(`backdrop|${theme}|${route}`);
         for (const selector of SAMPLER_SELECTORS) {
           for (const result of await contrastOf(page, selector)) {
-            const key = `${selector}|${result.text}`;
-            if (result.region) {
-              regions[`${theme}|${route}`] = (regions[`${theme}|${route}`] || 0) + 1;
-              creative.push({ id: `creative|${theme}|${route}|${key}`, detail: detail(result), value: result.ratio });
-            } else if (result.ratio === null) {
-              unmeasured.push({ id: `contrast|${theme}|${route}|${key}`, reason: result.reason });
-            } else if (result.disabled) {
-              inactive.push({ id: `inactive|${theme}|${route}|${key}`, detail: detail(result), value: result.ratio });
-            } else if (result.ratio < 4.5) {
-              regression("contrast", theme, route, key, result);
-            }
+            if (result.region) regions[`${theme}|${route}`] = (regions[`${theme}|${route}`] || 0) + 1;
+            record("contrast", theme, route, `${selector}|${result.text}`, result);
           }
         }
         for (const result of await contrastOf(page, "body *", { painted: true })) {
-          const key = result.text;
-          if (result.ratio === null) unmeasured.push({ id: `painted|${theme}|${route}|${key}`, reason: result.reason });
-          else if (result.disabled) inactive.push({ id: `inactive|${theme}|${route}|${key}`, detail: detail(result), value: result.ratio });
-          else if (result.ratio < 4.5) regression("painted", theme, route, key, result);
+          if (result.region) regions[`${theme}|${route}`] = (regions[`${theme}|${route}`] || 0) + 1;
+          record("text", theme, route, result.text, result);
         }
+        // Transitions off before any hover (r10): a hover measured mid-transition depends on timing.
+        await page.addStyleTag({ content: "*, *::before, *::after { transition: none !important; }" });
         for (const pair of PAIRS) {
           const target = page.locator(pair.selector).first();
           if (!(await target.count()) || !(await target.isVisible())) continue;
           uncovered.delete(pair.selector);
-          if (pair.hover) await target.hover();
-          const [result] = await contrastOf(page, pair.selector, { all: false, rendered: pair.rendered });
+          // A hover is verified before it is measured (r10): a late layout shift can move the element from under
+          // the pointer. It is retried, and a hover that never holds is unmeasured, never passed.
+          // It must still hold after the measurement, or both are retried.
           const key = `${pair.selector}${pair.hover ? ":hover" : ""}`;
-          if (result?.ratio === null) unmeasured.push({ id: `pair|${theme}|${route}|${key}`, reason: result.reason });
-          else if (result && result.ratio < (pair.min ?? 4.5)) regression("pair", theme, route, key, result);
+          let [hovered, result] = [!pair.hover, null];
+          for (let attempt = 0; attempt < 3; attempt++) {
+            if (pair.hover) {
+              await reveal(target);
+              await frames(page);
+              const box = await target.boundingBox();
+              await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+              await frames(page);
+              hovered = await target.evaluate((el) => el.matches(":hover"));
+              if (!hovered) continue;
+            }
+            // A hover pair is not retried at rest (r10): a skipped run of it stays unmeasured, with its reason.
+            [result] = await contrastOf(page, pair.selector, { all: false, rendered: pair.rendered, enter: pair.hover ? null : AT_REST });
+            if (!pair.hover || (await target.evaluate((el) => el.matches(":hover")))) break;
+            [hovered, result] = [false, null];
+          }
+          if (!hovered) { record("pair", theme, route, key, { ratio: null, reason: "not hover" }); continue; }
+          if (result) record("pair", theme, route, key, result, { limit: pair.min ?? 4.5 });
         }
         if (MODE === "check" && route === "/") {
           const state = await page.evaluate(() => ({
@@ -2162,6 +2760,11 @@ Then re-run Step 3 and Steps 8–10. The working tree already carries Steps 5–
           invariant(state.body === FIELD[theme], `${theme}: page ground ${state.body} is not Darkfield field`);
           invariant(leaked.length === 0, `${theme}: unexpected inline custom properties on <html>: ${leaked.map(([name, value]) => `${name}: ${value}`).join("; ")}`);
         }
+        for (const result of await interactions(page)) record("interact", theme, route, `${result.key}:${result.state}`, result);
+        // Last on the route: it hides the page around the header.
+        if (BACKDROP_ROUTES.includes(route)) {
+          for (const result of await backdrop(page, theme)) record("backdrop", theme, route, result.key, result);
+        }
       });
     }
     for (const state of STATES) {
@@ -2173,9 +2776,7 @@ Then re-run Step 3 and Steps 8–10. The working tree already carries Steps 5–
           const texts = page.locator(selector);
           for (let i = 0; i < (await texts.count()); i++) {
             const label = (await texts.nth(i).textContent()).trim().replace(/\s+/g, " ").slice(0, 30);
-            const { ratio, reason } = await renderedContrast(page, texts.nth(i));
-            if (ratio === null) unmeasured.push({ id: `state|${theme}|${state.route}|${label}:prepared`, reason });
-            else if (ratio < 4.5) regression("state", theme, state.route, `${label}:prepared`, { ratio, rendered: true });
+            record("state", theme, state.route, `${label}:prepared`, await renderedContrast(page, texts.nth(i)));
           }
         }
         const controls = page.locator(state.controls);
@@ -2186,10 +2787,7 @@ Then re-run Step 3 and Steps 8–10. The working tree already carries Steps 5–
           const label = (await control.textContent()).trim().replace(/\s+/g, " ").slice(0, 30);
           for (const [name, enter] of Object.entries(state.states)) {
             const exit = await enter(page, control);
-            const { ratio, reason } = await renderedContrast(page, control);
-            const key = `${label}:${name}`;
-            if (ratio === null) unmeasured.push({ id: `state|${theme}|${state.route}|${key}`, reason });
-            else if (ratio < 4.5) regression("state", theme, state.route, key, { ratio, rendered: true });
+            record("state", theme, state.route, `${label}:${name}`, await renderedContrast(page, control));
             if (exit) await exit();
           }
         }
@@ -2289,6 +2887,132 @@ Then re-run Step 3 and Steps 8–10. The working tree already carries Steps 5–
           `${theme}: tech-stack modal ${modal.modal} / ${modal.name}; page ${modal.page} / ${modal.eyebrow}`);
       });
     }
+    // Measurement controls (r10): the contrast passes, run on a fixture with known answers, so that a pass
+    // that stops measuring nested text, interaction states or inactive controls, or that reads borders,
+    // outlines or screen-reader-only text as ground, fails here.
+    const FIXTURE = `<!doctype html><style>
+      body { margin: 0; background: #ffffff; color: #000000; font: 16px/1.5 sans-serif; }
+      main { display: grid; gap: 24px; padding: 24px; justify-items: start; }
+      a, button { display: inline-block; padding: 8px 12px; color: #000000; background: #ffffff; text-decoration: none; font: inherit; }
+      .gradient { display: inline-block; padding: 4px 8px; color: #ffffff; background: linear-gradient(90deg, #ffffff, #d0d0d0); }
+      .solid { display: inline-block; padding: 4px 8px; color: #777777; background: #888888; }
+      .shade { color: #111111; }
+      .worse:hover .label, .worse:focus-visible .label, .worse:active .label { color: #eeeeee; }
+      .framed { border: 6px solid #000000; outline: 4px solid #000000; outline-offset: -16px; padding: 0 4px; line-height: 2; position: relative; }
+      .sr-only { color: #eeeeee; position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+      button:disabled { color: #999999; background: #aaaaaa; border: 0; }
+    </style><main>
+      <a href="#a">Card A <span class="gradient">Gradient label</span></a>
+      <a href="#b">Card B <span class="solid">Solid label</span></a>
+      <a href="#c" class="worse"><span class="label">Hover worse</span></a>
+      <a href="#d"><span class="shade">Passing nested</span></a>
+      <a href="#e"><span>Same colour and ground</span></a>
+      <a href="#f" class="framed">Framed<span class="sr-only"> for the fixture (opens in a new tab)</span></a>
+      <button disabled>Disabled control</button>
+    </main>`;
+    await withPage({ theme: "dark" }, async (page) => {
+      await page.setContent(FIXTURE);
+      const sampled = [...(await contrastOf(page, "a")), ...(await contrastOf(page, "button"))];
+      const texts = await contrastOf(page, "body *", { painted: true });
+      const states = await interactions(page);
+      const text = (label) => texts.filter((r) => r.text.endsWith(`|${label}`));
+      const state = (label, name) => states.find((r) => r.key.startsWith(`a|${label}`) && r.state === name);
+      const control = (ok, message) => invariant(ok, `measurement control: ${message}`);
+      control(text("Gradient label").length === 1 && text("Gradient label")[0].rendered && text("Gradient label")[0].ratio < 4.5, "a failing nested label on a gradient is not detected");
+      control(text("Solid label").length === 1 && !text("Solid label")[0].rendered && text("Solid label")[0].ratio < 4.5, "a failing nested label on a solid ground is not detected");
+      const rest = sampled.find((r) => r.text === "Hover worse");
+      control(rest?.ratio >= 4.5 && ["hover", "focus", "active"].every((name) => state("Hover worse", name)?.ratio < 4.5), "a state that worsens while the rest state passes is not detected");
+      control(text("Passing nested").length === 1 && Math.abs(text("Passing nested")[0].ratio - 18.88) <= 0.05, `passing nested text is mismeasured: ${text("Passing nested")[0]?.ratio}`);
+      control(text("Same colour and ground").length === 0 && sampled.filter((r) => r.text === "Same colour and ground").length === 1, "one text occurrence is measured twice");
+      control(["hover", "focus", "active"].every((name) => state("Framed", name)?.ratio >= 20 && !state("Framed", name).skipped) && !texts.some((r) => r.text.includes("for the fixture")), "a border, outline or screen-reader-only text is read as text contrast, or skipped instead of excluded");
+      const disabled = sampled.find((r) => r.text === "Disabled control");
+      control(disabled?.disabled === true && disabled.ratio < 4.5 && !states.some((r) => r.key.startsWith("button|Disabled")), "an inactive control is not classified as inactive");
+    });
+    // Masking and pairing controls (r10): the per-run comparison, on two fixture builds with known differences.
+    // Masking: a link holds a failing badge and a label; on the candidate, a label that passed on the baseline
+    // fails on hover, focus and press (fresh), and a label that already failed falls further (worse). Pairing:
+    // three identical cards; only the second worsens, so every changed result must be the second card's. Run
+    // pairing: one link holds two identical runs; only the second worsens, so every changed run must be it.
+    const BUILD = (label1, label2, card2, twin2, edge, note1, note2) => `<!doctype html><style>
+      body { margin: 0; background: #ffffff; color: #000000; font: 16px/1.5 sans-serif; }
+      main { display: grid; gap: 24px; padding: 60vh 24px; justify-items: start; }
+      .bar { position: fixed; top: 0; left: 0; right: 0; height: 30vh; background: #ffffff; }
+      .dots { position: fixed; top: 50%; transform: translateY(-50%); left: 280px; width: 20px; height: 60px; background: #000000; }
+      .beside { margin-left: 240px; } .beside:hover .label, .beside:focus-visible .label, .beside:active .label { color: ${edge}; }
+      .tall, .under { display: block; } .tall .gap { display: block; height: 130vh; } .under .gap { display: block; height: 70vh; }
+      .tall:hover .label, .tall:focus-visible .label, .tall:active .label, .under:hover .label, .under:focus-visible .label, .under:active .label,
+      .wrap:hover .label, .wrap:focus-visible .label, .wrap:active .label { color: ${edge}; }
+      .wrapper { width: 220px; margin: 0; } .wrapper a.wrap { display: inline; padding: 0; }
+      .note-1 .note { color: ${note1}; } .note-2 .note { color: ${note2}; } .note-3 .note { color: #000000; }
+      a { display: inline-block; padding: 8px 12px; color: #000000; background: #ffffff; text-decoration: none; }
+      .badge { color: #999999; background: #aaaaaa; padding: 0 4px; }
+      .one:hover .label, .one:focus-visible .label, .one:active .label { color: ${label1}; }
+      .two:hover .label, .two:focus-visible .label, .two:active .label { color: ${label2}; }
+      .card { color: #959595; } .card-2 .card { color: ${card2}; } .card-3 .card { color: #000000; }
+      .twin { color: #000000; } .twin .go + .go { color: ${twin2}; }
+    </style><main>
+      <a href="#one" class="one"><span class="badge">Done</span> <span class="label">Read more →</span></a>
+      <a href="#two" class="two"><span class="badge">Done</span> <span class="label">Read on →</span></a>
+      <a href="#c1" class="card-1"><span class="card">Read →</span></a>
+      <a href="#c2" class="card-2"><span class="card">Read →</span></a>
+      <a href="#c3" class="card-3"><span class="card">Read →</span></a>
+      <a href="#tw" class="twin"><span class="go">Go</span> <span class="go">Go</span></a>
+    </main><main>
+      <a href="#tall" class="tall"><span class="label">Above →</span><span class="gap"></span><span class="label">Below →</span></a>
+      <a href="#under" class="under"><span class="label">Under bar →</span><span class="gap"></span><span class="label">Clear →</span></a>
+      <a href="#beside" class="beside"><span class="label">Beside the dots →</span></a>
+      <a href="#n1" class="note-1"><span class="note">Note</span></a>
+      <a href="#n2" class="note-2"><span class="note">Note</span></a>
+      <a href="#n3" class="note-3"><span class="note">Note</span></a>
+      <p class="wrapper">Before it comes <a href="#wrap" class="wrap"><span class="label">the wrapped link label</span></a> ends here.</p>
+    </main><div class="bar"></div><div class="dots"></div>`;
+    const fixtureBuild = async (html) => {
+      const sink = newSink();
+      await withPage({ theme: "dark" }, async (page) => {
+        await page.setContent(html);
+        for (const r of await contrastOf(page, "body *", { painted: true })) record("text", "fixture", "/", r.text, r, { sink });
+        for (const r of await interactions(page)) record("interact", "fixture", "/", `${r.key}:${r.state}`, r, { sink });
+      });
+      return sink;
+    };
+    const before = await fixtureBuild(BUILD("#767676", "#787878", "#777777", "#777777", "#767676", "#000000", "#787878"));
+    const after = await fixtureBuild(BUILD("#7b7b7b", "#808080", "#888888", "#888888", "#7b7b7b", "#010101", "#808080"));
+    const diff = compareRuns(before.regressions.map((r) => ({ id: r.id, baseline: r.value })), after.measured);
+    const ofLabel = (list, text) => list.filter((id) => id.startsWith("interact|") && id.endsWith(`"${text}"`));
+    const control = (ok, message) => invariant(ok, `measurement control: ${message}`);
+    control(ofLabel(diff.fresh, "Read more →").length === 3 && ofLabel(diff.worse, "Read on →").length === 3,
+      `a worsened label beside a failing badge is masked: fresh ${diff.fresh.length}, worse ${diff.worse.length}`);
+    const changed = [...diff.fresh, ...diff.worse].filter((id) => id.includes("Read →"));
+    control(before.duplicates.length === 0 && after.duplicates.length === 0 && diff.missing.length === 0 && changed.length >= 2 &&
+      changed.every((id) => id.includes("Read →#2")),
+      `repeated cards are not paired with themselves: ${changed.join("; ") || "nothing changed"}; duplicates ${before.duplicates.length + after.duplicates.length}`);
+    const twins = diff.worse.filter((id) => id.startsWith("interact|") && id.includes("|a|Go Go#1:"));
+    control(before.duplicates.length === 0 && after.duplicates.length === 0 && twins.length === 3 && twins.every((id) => id.endsWith('span.go>"Go"#2')),
+      `repeated runs in one control are not paired with themselves: ${twins.join("; ") || "nothing changed"}`);
+    // Covered, off-screen and wrapped runs (r10): a run off screen or under a fixed bar when its card is centred,
+    // a run under a fixed box at the middle of the viewport (like the section dots), and a link that wraps inside
+    // a paragraph, are each measured on their own, never hiding the card's other runs; every worsened label is
+    // reported fresh in every state, and nothing is left unmeasured.
+    const edgeLabels = ["Above →", "Below →", "Under bar →", "Clear →", "Beside the dots →", "the wrapped link label"];
+    const edgeUnmeasured = [...before.unmeasured, ...after.unmeasured].map(({ id, reason }) => `${id} (${reason})`);
+    control(edgeLabels.every((text) => ofLabel(diff.fresh, text).length === 3) && edgeUnmeasured.length === 0,
+      `a covered, off-screen or wrapped run is not measured on its own: ${edgeLabels.map((text) => `${text} ${ofLabel(diff.fresh, text).length}`).join(", ")}; unmeasured ${edgeUnmeasured.join("; ") || "none"}`);
+    // Element pairing across a colour-dependent skip (r10): the first of three identical notes has its link's
+    // colour and ground on the baseline only, so the text pass skips it there; the second already fails and
+    // worsens. Elements are numbered before that skip, so the worsening must be the second note's alone.
+    const notes = [...diff.fresh, ...diff.worse].filter((id) => id.startsWith("text|") && id.includes("span.note|Note"));
+    control(notes.length === 1 && diff.worse.includes('text|fixture|/|span.note|Note#2|"Note"'),
+      `elements are not paired across a colour-dependent skip: ${notes.join("; ") || "nothing changed"}`);
+    // Re-entry (r10): a card taller than the viewport, measured on rendered pixels. Without a way to re-enter its
+    // state (a hover pair), both off-screen runs stay unmeasured, each with its reason; at rest they are retried
+    // and measured.
+    await withPage({ theme: "dark" }, async (page) => {
+      await page.setContent(BUILD("#767676", "#787878", "#777777", "#777777", "#767676", "#000000", "#787878"));
+      const [without] = await contrastOf(page, ".tall", { all: false, rendered: true, enter: null });
+      const [rest] = await contrastOf(page, ".tall", { all: false, rendered: true });
+      control(without?.ratio === null && without.skipped?.length === 2 && !without.runs?.length && rest?.runs?.length === 2 && !rest.skipped,
+        `re-entry is not honoured: without ${without?.runs?.length ?? 0} measured, ${without?.skipped?.length ?? 0} skipped; at rest ${rest?.runs?.length ?? 0} measured, ${rest?.skipped?.length ?? 0} skipped`);
+    });
     // Task 4 and Task 6 add their invariants here.
   }
 
@@ -2297,17 +3021,20 @@ Then re-run Step 3 and Steps 8–10. The working tree already carries Steps 5–
 
   const row = ({ id, detail: text, value }) => ({ id, check: id.split("|")[0], theme: id.split("|")[1], route: id.split("|")[2], detail: text, baseline: value });
   if (MODE === "record") {
+    // The ledger candidates, then every measurement on one MEASURED line (r10). A repeated id fails the record.
+    for (const id of duplicates) console.log(`DUPLICATE ${id}`);
     console.log(JSON.stringify({ regions, unmeasured, entries: regressions.map(row), creative: creative.map(row), inactive: inactive.map(row) }, null, 2));
-    process.exit(0);
+    console.log(`MEASURED ${JSON.stringify(measured)}`);
+    process.exit(duplicates.length ? 1 : 0);
   }
 
   const ledger = JSON.parse(await readFile(new URL("./darkfield-known-deficiencies.json", import.meta.url), "utf8"));
   const scope = (id) => id.split("|").slice(0, 3).join("|");
   const known = new Map(ledger.entries.map((entry) => [entry.id, entry]));
-  const found = new Set(regressions.map((r) => r.id));
-  const fresh = regressions.filter((r) => !known.has(r.id));
-  const worse = regressions.filter((r) => known.has(r.id) && r.value < known.get(r.id).baseline - 0.05);
-  const stale = ledger.entries.filter((e) => ran.has(scope(e.id)) && !found.has(e.id));
+  const details = new Map(regressions.map((r) => [r.id, r.detail]));
+  // Per run (r10): each failing run against its own baseline value; ledger runs this build did not measure fail
+  // as missing rather than passing as stale.
+  const { fresh, worse, stale, missing } = compareRuns(ledger.entries, measured, (id) => ran.has(scope(id)));
   // Baseline and candidate must exclude the same creative content, and creative content is never restyled.
   const recordedRegions = Object.fromEntries(Object.entries(ledger.regions).filter(([key]) => ran.has(`contrast|${key}`)));
   const recordedCreative = new Map(ledger.creative.filter((c) => ran.has(scope(c.id).replace(/^creative/, "contrast"))).map((c) => [c.id, c.baseline]));
@@ -2331,9 +3058,11 @@ Then re-run Step 3 and Steps 8–10. The working tree already carries Steps 5–
   assert.deepEqual(ids(unmeasured), ids(ledger.unmeasured.filter(({ id }) => ran.has(scope(id)))), "unmeasurable text differs from the baseline record");
   assert.deepEqual(creativeChanged, [], "creative content measured differently from the baseline record");
   assert.deepEqual(inactiveChanged, [], "inactive controls measured differently from the baseline record");
-  assert.deepEqual(fresh.map((r) => `${r.id} ${r.detail}`), [], "new regressions (not in the baseline ledger)");
-  assert.deepEqual(worse.map((r) => `${r.id} ${r.detail}`), [], "known deficiencies that got worse than baseline");
-  assert.deepEqual(stale.map((e) => e.id), [], "ledger entries that no longer reproduce: remove them in this commit");
+  assert.deepEqual(duplicates, [], "measurement ids recorded twice (a pairing defect)");
+  assert.deepEqual(fresh.map((id) => `${id} ${details.get(id)}`), [], "new regressions (not in the baseline ledger)");
+  assert.deepEqual(worse.map((id) => `${id} ${details.get(id)}`), [], "known deficiencies that got worse than baseline");
+  assert.deepEqual(missing, [], "ledger runs this build did not measure (unpaired)");
+  assert.deepEqual(stale, [], "ledger entries that no longer reproduce: remove them in this commit");
   assert.deepEqual(errors, [], "page errors");
   console.log("darkfield foundation browser test passed");
   ```
@@ -2391,21 +3120,55 @@ Then re-run Step 3 and Steps 8–10. The working tree already carries Steps 5–
      ```
 
      The `diff` prints nothing: the change is attribute-only.
-  2. **Record against a baseline with the same markers.** The baseline worktree gets the identical attribute-only patch, so the baseline and the candidate exclude exactly the same creative content.
+  2. **Mark the `/simulations` preview roots (r10; attributes only).**
+     - In `web/src/components/SimulationCard/SimulationCard.tsx`, add `data-df-region="native"` to exactly these six elements, each the root of one card's preview. Change nothing else.
+     - This is a measurement boundary, not a D6 decision. D6 still decides whether the previews are native. The owner approved the markers on condition that no marked subtree holds governed content.
+
+     | Preview | Root (anchor) | Line at `a16c70f` | Content |
+     |---|---|---|---|
+     | Snake | `<div className="snake-preview" aria-hidden="true">` | 24 | four empty shapes |
+     | Spider | `<div className="spider-preview" aria-hidden="true">` | 33 | card shapes and four rank glyphs (K, 9, Q, 7) |
+     | Rhythm Lab | `<div className="rhythm-preview" aria-hidden="true">` | 61 | lanes, notes and a target line |
+     | Annals | `<div className="annals-preview" aria-hidden="true">` | 76 | masthead and line shapes |
+     | Orbital | the `orbital` case's `<svg viewBox="0 0 240 140" … aria-hidden="true">` | 87 | ellipses and circles |
+     | Traffic | the `traffic` case's `<svg viewBox="0 0 240 140" … aria-hidden="true">` | 97 | lines and rectangles |
+
+     - **Why.** Without the markers, the r10 text pass measures the Spider preview's decorative rank glyphs (1.01–1.07:1 on their card shapes) as governed text.
+     - **Checked** ([E-13](#evidence-summary)).
+       - Each marker is the first child of its `.simulation-preview`, and `aria-hidden`.
+       - Statically, over the JSX, and rendered, in both themes at 1440, 768 and 375 px wide: no marked subtree holds a control, link, heading, label, image, `tabindex`, handler, ARIA role or label, or scroll container. Its only text is the four rank glyphs.
+       - The card's heading, badges, description and "Launch" label all lie outside the markers, and Tab never reached inside one.
+     - **What stays unmarked.** The preview frame (`.simulation-preview`) stays governed. The unused `placeholder` case is not marked.
+     - **Apply and verify.** The same `MARK` expression marks the baseline in item 3.
+       - `MARK` adds the attribute only where it is absent, so applying it twice changes nothing.
+       - `MARKED` counts occurrences, not lines, and fails if any element carries the attribute twice.
+
+     ```bash
+     MARK='s/(className="(?:snake|spider|rhythm|annals)-preview" aria-hidden="true")(?! data-df-region)/$1 data-df-region="native"/; s/(<svg viewBox="0 0 240 140" width="240" height="140" aria-hidden="true")(?! data-df-region)/$1 data-df-region="native"/'
+     MARKED() { test "$(grep -o 'data-df-region="native"' "$1" | wc -l)" = 6 && ! grep -q 'data-df-region="native"[^>]*data-df-region' "$1"; }
+     perl -pi -e "$MARK" web/src/components/SimulationCard/SimulationCard.tsx
+     MARKED web/src/components/SimulationCard/SimulationCard.tsx
+     git show "$BASE":web/src/components/SimulationCard/SimulationCard.tsx | sed 's/var(--brand-primary)/var(--terminal-primary)/' | diff - <(sed 's/ data-df-region="native"//g' web/src/components/SimulationCard/SimulationCard.tsx)
+     ```
+
+     `MARKED` succeeds and the `diff` prints nothing. Apart from the markers, the file differs from `BASE` only by Step 7 item 5's two inline colours.
+  3. **Record against a baseline with the same markers.** The baseline worktree gets the identical attribute-only patches, so the baseline and the candidate exclude exactly the same creative content. From r10, that means both the Annals markers and the preview markers.
      - Never record against an unmarked baseline: it would measure the parchment against the page field.
      - The browser test enforces this: check mode compares `regions` with the record.
-     - At session end, run `git -C "$DF_TMP/baseline" checkout -- web/src/pages/Annals/Annals.tsx` before Task P0's `git worktree remove "$DF_TMP/baseline"`. Removal refuses a modified worktree.
+     - At session end, run `git -C "$DF_TMP/baseline" checkout -- web/src/pages/Annals/Annals.tsx web/src/components/SimulationCard/SimulationCard.tsx` before Task P0's `git worktree remove "$DF_TMP/baseline"`. Removal refuses a modified worktree.
 
      ```bash
      git diff -- web/src/pages/Annals/Annals.tsx > "$DF_TMP/annals-regions.patch"
      git -C "$DF_TMP/baseline" apply "$DF_TMP/annals-regions.patch"
-     git -C "$DF_TMP/baseline" status --porcelain   # exactly one line: " M web/src/pages/Annals/Annals.tsx"
+     (cd "$DF_TMP/baseline" && perl -pi -e "$MARK" web/src/components/SimulationCard/SimulationCard.tsx)   # r10, item 2
+     MARKED "$DF_TMP/baseline/web/src/components/SimulationCard/SimulationCard.tsx"
+     git -C "$DF_TMP/baseline" status --porcelain   # exactly two lines (r10): " M web/src/components/SimulationCard/SimulationCard.tsx" and " M web/src/pages/Annals/Annals.tsx"
      bash "$DF_TMP/df-serve.sh" base "$DF_TMP/baseline/web" 4174
      cp web/scripts/darkfield-foundation-browser-test.mjs "$DF_TMP/"
      cd web && DARKFIELD_MODE=record node "$DF_TMP/darkfield-foundation-browser-test.mjs" http://127.0.0.1:4174 "$DF_PW" > "$DF_TMP/ledger-candidates.txt"
      ```
 
-  3. **Rhythm Lab lane tap zones: state-specific verification (r8).**
+  4. **Rhythm Lab lane tap zones: state-specific verification (r8).**
      - **The zones.** The zones (`RhythmHighway.tsx`) are enabled `<button>`s with `tabIndex={-1}`: operated by pointer, and mirrored by the lane keys. Their text is the key hint, for example "A / J / Left", at 0.72–0.95 rem bold. That is not large text, so the criterion is 4.5:1.
      - **The overlays.** `.rhythm-lab-overlay` (`RhythmLab.css`) covers them during Ready Check, pause, run summary and tutorial. It sits at `z-index` 8 over the zones' 6, with a 78% black scrim and a backdrop blur.
      - **The procedure.** The browser test does not wait for the animated route to settle. It brings each state about and checks it, with the page clock frozen before navigation and advanced only in fixed steps (r9; Step 2 `STATES`):
@@ -2423,13 +3186,13 @@ Then re-run Step 3 and Steps 8–10. The working tree already carries Steps 5–
      - **Not assessed.** The hint under moving notes, which belong to the native playfield, is not assessed: the frozen state is the evidence.
      - **Reporting.** Step 11 reports every Rhythm Lab `unmeasured` state to the owner as open, with no effect on `entries` and no PASS. Classifying the zones (governed or native) is D6's.
 
-  4. **Build `web/scripts/darkfield-known-deficiencies.json`.** Record mode prints the UNCOVERED line, then one JSON object.
+  5. **Build `web/scripts/darkfield-known-deficiencies.json`.** Record mode prints the UNCOVERED line, then one JSON object.
      - `baseline` is the `BASE` SHA.
      - `regions`, `unmeasured`, `entries`, `creative` and `inactive` (r9) are copied from that object unchanged.
      - `notes` lists:
        - the two known baseline issues in [Validation model](#validation-model);
        - `.error-button.primary` (below);
-       - that the baseline was recorded with the 6 Annals markers applied;
+       - that the baseline was recorded with the 6 Annals markers applied, and from r10 with the 6 preview markers (item 2);
        - the Annals verb note: the verbs are disabled at load and enabled every third year. Their r7 readings measured the page field, not their ground, and were unreliable. r8 measures every state against the rendered ground. r9 records the six disabled verbs as `inactive` observations, which WCAG 1.4.3 exempts, not as D10 entries; enabled, hovered and pressed, they are measured as usual;
        - that r7's Annals parchment readings were invalid. They are not carried into `entries`, and their absence there is not an improvement. The authored narrative is recorded under `creative` for D6. The governed parchment text is measured on rendered pixels, run by run, and its failures are `entries`;
        - the Rhythm Lab states recorded in `unmeasured` (state table above), and that none of them is a PASS;
@@ -2441,9 +3204,17 @@ Then re-run Step 3 and Steps 8–10. The working tree already carries Steps 5–
            - The glyph is "·", which is decorative, at 2.19:1. Once a soul is watched it becomes "★", the visible state of the watch, at 2.35:1 on its yellow ground.
            - Both values are the same in both themes and on `BASE` ([E-11](#evidence-summary)).
            - The watched "★" is a known pre-existing failure outside the ledger's coverage. It is not a PASS.
-         - the hover states of cast world, replay seed and the advance button;
          - Annals focus;
          - the Rhythm Lab hint under moving notes.
+
+         r10's interaction pass measures the hover, focus and pressed states of every control a route renders at load. So the hover states of cast world, replay seed and the advance button are no longer in this list. Its text pass measures the roster's "·" glyph, which is now an entry (2.19:1 in both themes, on `BASE` and the Task 3 work alike). The watched "★" still needs a watch action no step performs, and stays a known failure outside the ledger.
+       - r10: the Light background residual (Step 7 item 6), with its measured range;
+       - r10: the limits of the rendered runs ([E-13](#evidence-summary)):
+         - no control covers a run that only an ancestor clips;
+         - text that visibly overflows its parent is measured only inside the parent;
+         - content positioned outside a clipping ancestor's box may be clipped by that ancestor anyway;
+         - the interaction pass measures header controls over whatever the earlier steps left behind the header. The backdrop pass gives their bound in each theme: black under Light, white under Dark and Mono;
+         - a run is identified by its element path, text and occurrence, so a change to a card's markup or text unpairs its runs. Step 9 reports every unpaired run.
 
      The reviewer re-runs the record against the marked baseline. It confirms that every entry reproduces, and that `regions`, `unmeasured`, `creative` and `inactive` equal the ledger's. The owner accepts `entries` (D10) before the Step 11 commit. `creative`, `unmeasured` and `inactive` are not part of D10.
 
@@ -2457,6 +3228,13 @@ Then re-run Step 3 and Steps 8–10. The working tree already carries Steps 5–
 
     The rest of the governed parchment text (the `h1`, other headings, the verb hint, readouts, labels and the footer) measured at least 4.5:1.
   - r9: the six disabled verbs, in both themes, under `inactive` and not `entries`, marked `(rendered ground) (disabled)`. They are the only disabled controls the r9 dry run recorded ([E-12](#evidence-summary)).
+  - r10 ([E-13](#evidence-summary)):
+    - `regions`: 4 per theme on `/simulations` (the Spider preview's rank glyphs), and 5 per theme on `/simulations/annals`, where the text pass now also reaches spans nested in the marked narrative. Each is recorded under `creative`.
+    - `backdrop`: in Light, over black, the brand link (its "KS" mark, 2.69:1) and the current-page link (4.35:1) in every state, and every other navigation link hovered and pressed; at narrower viewports, the disclosure toggle too. In Dark, over white, the current-page link in every state and every other link hovered and pressed (3.32:1). The Task 3 work repairs all of them: Dark through the bridge (5.63:1 or more), Light through Step 7 item 6.
+    - `interact`: the Dark "Launch" label on every `/simulations` card, hovered, focused and pressed.
+    - `text`: nested governed text the r9 test never measured. Examples are the status badges reading "Completed" (1.96:1 in Dark) and each Annals roster glyph (`·`).
+    - `unmeasured`: still only Rhythm Lab text under its overlay or panel, now including the zones' `interact` states.
+    - Each rendered entry is one run: its id ends with the run's key, for example `…|interact|light|/writing|a|…#1:hover|span.writing-card-link>"Read →"`.
   - r8: in Light, the Step 7 item 4 selectors fail:
     - the roster primary action, at rest and at hover;
     - the media bar controls, at rest and at hover;
@@ -2762,6 +3540,170 @@ Then re-run Step 3 and Steps 8–10. The working tree already carries Steps 5–
        - Some have readers on other routes. Examples: `Journey.css` reads `--terminal-text-light`, with no fallback; the Spider and Rhythm Lab containers read `--terminal-font`, with a fallback stack.
        - Whether they change rendering after navigation is unmeasured. They are pre-existing and outside this hold, and Step 11 reports them.
      - **Stop rule.** If the acceptance target cannot be met within these four files, or a check shows any other change, stop and report to the owner. Do not widen the hold.
+  6. **Contrast repairs (r10).** The r10 test, compared run by run at five viewports (Step 9), found these Task 3 regressions ([E-13](#evidence-summary)). The census covered every governed text run the test measures, card calls to action included, at rest, hovered, focused and pressed, in both themes; client-side arrivals from `/projects` and `/simulations` changed no result. The runs that neither build could measure are listed in Step 9 and E-13; none is a card call to action.
+     - **Each is genuine, not a sampling artifact.** The lowest pixels lie at the same place on `BASE` and on the Task 3 work, and every percentile of the run falls, not only the minimum. Removing the text's decoration, or the element itself, leaves those pixels: they are the ground behind the text. The card labels and the eyebrow were also confirmed by independent probes ([E-13](#evidence-summary)).
+     - Each is repaired here. None is grandfathered. The eyebrow's repair is under the owner's ruling (Status (r10)); its Dark deficiency, which Task 3 improves, is classified for D10 below.
+
+     | File | Selector (what it is) | States | Themes | Required | `BASE` → Task 3, measured |
+     |---|---|---|---|---|---|
+     | `SimulationCard.css` | `.launch-button` and its `::before` (the "Launch" label on each `/simulations` card) | rest, and card hover, focus and press | Dark, Light | ≥ 4.5:1 | Dark: card hover, focus and press 2.85 → 2.67 at 1440×900, lowest 2.82 → 2.64 at 1280×800; rest 3.06 → 3.57 (independent) |
+     | `SiteNavigation.css` | `.site-header__link` (the header navigation) | hover, press and current page (`.active`); focus keeps its rest colour | Light | ≥ 4.5:1 over the header's worst ground (black behind it in Light) | over black (backdrop pass), current page in every state and the others hovered and pressed: 4.35 → 3.94 at every viewport; with page content behind (independent sweep), for example `/case-studies` current page 4.43 → 4.02, `/projects` hover 4.52 → 4.01 |
+     | `SiteNavigation.css` | `.site-header__disclosure-toggle` (the "Explore" and "Menu" toggles, rendered below the widest layout) | every state | Light | ≥ 4.5:1 over the header's worst ground | over black: rest and focus 4.08 → 3.94, hover and press 2.69 → 2.47; with page content behind, at 375×812: rest 3.49 → 3.22, focus 2.98 → 2.74, hover and press 2.72 → 2.50 |
+     | `ContactStripSection.css` | `.contact-strip-link` (the Home contact links) | hover, press | Light | ≥ 4.5:1 | "Email" 4.58 → 4.45 at 1440×900; "GitHub" 4.42 → 4.30 at 768×1024; "LinkedIn" 4.59 → 4.46 at 375×812 |
+     | `FeaturedProjectsSection.css` | `.featured-project-link-text` (the Home "Read case study →" label) | card hover, press | Light | ≥ 4.5:1 | 4.44 → 4.32 at 1440×900; 4.58 → 4.45 at 1280×800; 4.49 → 4.37 at 375×812 |
+     | `CaseStudyPage.css` | `.case-study-card-link` (the `/case-studies` "Read case study →" label) | card hover, press | Light | ≥ 4.5:1 | 4.35 → 4.22 at 1440×900; lowest 4.11 → 3.99 at 375×812 |
+     | `Writing.css` | `.writing-card-link` (the `/writing` "Read →" label) | card hover, press | Light | ≥ 4.5:1 | 4.35 → 4.22 at 1440×900; lowest 4.11 → 3.99 at 375×812 |
+     | `Writing.css` | `.writing-card-eyebrow` (the card's "Essay" or "Field Note" eyebrow; owner ruling, not a call to action) | card hover, press | Light | ≥ 4.5:1 | 4.48 → 4.35 at 1440×900, 768×1024 and 375×812; 4.52 → 4.39 at 1280×800 |
+     | `ProceduralAnimations.css` | `.procedural-animations-card__link` (the "View piece →" label) | card hover, press | Light | ≥ 4.5:1 | 4.42 → 4.30 at 1440×900; lowest 4.11 → 3.99 at 375×812 |
+     | `OrbitalSimulator.css` | `.orbital-header a` (the "← Simulations" link) | every state | Light | ≥ 4.5:1 | 4.66 → 4.49 at 1440×900, 4.62 → 4.49 at 1280×800; passes at the other viewports |
+     | `TrafficSimulator.css` | `.traffic-header a` (its "← Simulations" link) | every state | Light | ≥ 4.5:1 | 4.62 → 4.49 at 1280×800; passes at the other viewports |
+     | `TrafficSimulator.css` | `.traffic-context a` (the case-study link in "About the model"; unstyled, so it is pressed in the browser's red) | press | Light | ≥ 4.5:1 | 4.00 → 3.84 at every viewport |
+
+     - **Why they regressed.**
+       - **Launch.** The bridge re-points `--text-color` and `--primary-color-dark`. In Dark, `fg` sits on a gradient through `#4CAF50`, and card hover and focus reveal a reversed gradient. No foreground can fix it: even white reaches only about 2.78:1 against `#4CAF50`.
+       - **The Light green links.** The bridge maps `--brand-primary` to `signal-dim` (`#397247`): 5.14:1 on `field`, against 5.59:1 for the legacy `#2a7331` on the legacy field. Wherever the ground is darker than `field`, that margin is gone. Darker grounds come from content behind the translucent header, and from the background's grid lines showing through hover tints and the header scrim.
+       - **The card calls to action and the `/writing` eyebrow.** Their labels, and the eyebrow, are `signal-dim` on the cards' green hover tint, through which the background's grid lines show: the same loss of margin. The first r10 draft did not see them, because each card's lowest run was a description or badge that already failed (Status (r10)).
+       - **The disclosure toggle.** Its `fg-muted` label (green when hovered, pressed or open) sits on a 20% black tint over the translucent header, and the bridge's darker field and re-pointed text roles lowered every state.
+       - **The Traffic case-study link.** Its panel changed from white to `surface-1`, under the browser's pressed red.
+     - **The change, exactly.**
+       - `SimulationCard.css`: in `.launch-button` and in `.launch-button::before`, replace the `linear-gradient(…)` background with `background: var(--primary-color-dark);`. Add above `.launch-button`:
+
+         ```css
+         /* The label is fg on a solid signal-deep ground in every state, a verified pair: the gradient through the
+            accent fell below 4.5:1 behind the label, worst on card hover and focus. */
+         ```
+
+       - `SiteNavigation.css`, directly after the `.site-header__link:hover, .site-header__link.active` rule:
+
+         ```css
+         /* Light: the hover and current-page label is fg; green falls below 4.5:1 when dark content scrolls
+            behind the translucent header. The tint and border keep the brand colour. */
+         [data-theme="light"] .site-header__link:hover,
+         [data-theme="light"] .site-header__link.active {
+             color: var(--fg);
+         }
+         ```
+
+       - `SiteNavigation.css`, directly after the `.site-header__disclosure-toggle:hover, .site-header__disclosure-toggle.active, .site-header__disclosure-toggle[aria-expanded="true"]` rule:
+
+         ```css
+         /* Light: the label is fg in every state; fg-muted and green fall below 4.5:1 on the toggle's dark tint
+            when dark content scrolls behind the translucent header. */
+         [data-theme="light"] .site-header__disclosure-toggle,
+         [data-theme="light"] .site-header__disclosure-toggle:hover,
+         [data-theme="light"] .site-header__disclosure-toggle.active,
+         [data-theme="light"] .site-header__disclosure-toggle[aria-expanded="true"] {
+             color: var(--fg);
+         }
+         ```
+
+       - **The Launch hover sweep.** With both the button and its `::before` on `--primary-color-dark`, the `::before` reveal on card hover and focus no longer changes anything visible. The gradient sweep is lost, and r10 accepts that. The card still responds, as [E-13](#evidence-summary) measured:
+         - on hover and on any focus, its shadow, background and border change, and the button's glow changes;
+         - without reduced motion, the card lifts and the button scales;
+         - keyboard focus adds the card's `:focus-visible` outline.
+
+         Nothing else in the file changes.
+       - `ContactStripSection.css`, directly after `.contact-strip-link:hover`:
+
+         ```css
+         /* Light: the hover label is fg; green falls below 4.5:1 where the background shows through the hover tint. */
+         [data-theme="light"] .contact-strip-link:hover {
+           color: var(--fg);
+         }
+         ```
+
+       - `FeaturedProjectsSection.css`, directly after `.featured-project-link-text`:
+
+         ```css
+         /* Light: on card hover the label is fg; green falls below 4.5:1 where the background shows through the hover tint. */
+         [data-theme="light"] .featured-project-link:hover .featured-project-link-text {
+           color: var(--fg);
+         }
+         ```
+
+       - `CaseStudyPage.css`, directly after `.case-study-card-link`:
+
+         ```css
+         /* Light: on card hover the label is fg; green falls below 4.5:1 where the background shows through the hover tint. */
+         [data-theme="light"] .case-study-card:hover .case-study-card-link {
+           color: var(--fg);
+         }
+         ```
+
+       - `Writing.css`, directly after `.writing-card-eyebrow`:
+
+         ```css
+         /* Light: on card hover the eyebrow is fg-muted, still secondary to the title; green falls below 4.5:1 where the
+            background shows through the hover tint. */
+         [data-theme="light"] .writing-card:hover .writing-card-eyebrow {
+           color: var(--fg-muted);
+         }
+         ```
+
+         The eyebrow takes `fg-muted`, the smallest change that clears 4.5:1 with margin: it keeps the eyebrow secondary to the card's title, as `signal-dim` did. `fg` would also pass.
+       - `Writing.css`, directly after `.writing-card-link`:
+
+         ```css
+         /* Light: on card hover the label is fg; green falls below 4.5:1 where the background shows through the hover tint. */
+         [data-theme="light"] .writing-card:hover .writing-card-link {
+           color: var(--fg);
+         }
+         ```
+
+       - `ProceduralAnimations.css`, directly after `.procedural-animations-card__link`:
+
+         ```css
+         /* Light: on card hover the label is fg; green falls below 4.5:1 where the background shows through the hover tint. */
+         [data-theme="light"] .procedural-animations-card:hover .procedural-animations-card__link {
+           color: var(--fg);
+         }
+         ```
+
+       - `OrbitalSimulator.css`, directly after `.orbital-header a`, and `TrafficSimulator.css`, directly after `.traffic-header a`, each with its own selector:
+
+         ```css
+         /* Light: green falls below 4.5:1 on the background's grid lines behind the header. */
+         [data-theme="light"] .orbital-header a {
+           color: var(--fg-muted);
+         }
+         ```
+
+       - `TrafficSimulator.css`, directly after `.traffic-context p`:
+
+         ```css
+         /* Light: the pressed link label is fg; the browser's pressed red falls below 4.5:1 on the panel. */
+         [data-theme="light"] .traffic-context a:active {
+           color: var(--fg);
+         }
+         ```
+
+     - **Results** (the [E-13](#evidence-summary) dry run).
+       - **Launch:** 9.90:1 Dark and 14.22:1 Light, in every state, on all six cards, at 1440 and 375 px. `fg` on `signal-deep` is a §05 *Contrast, verified* pair.
+       - **Header links:** 12.40:1 over the darkest ground at 1440, 768 and 375 px, and at least 12.40:1 over every scroll position swept. Focus keeps `fg-muted`, at 6.22:1 over the darkest ground.
+       - **Disclosure toggle:** 7.76:1 over the darkest ground, in every state, at 768 and 375 px.
+       - **The rest:** the contact links at least 13.51:1; the card labels at least 12.55:1 (featured 13.58, case study 12.55, writing 12.55, procedural animations 12.55); the `/writing` eyebrow at least 6.95:1, with `fg-muted`; the Orbital and Traffic back links at least 7.17:1, and at each of nine viewports from 375 to 1920 px wide in an independent sweep; the Traffic case-study link pressed 17.26:1. Except where marked independent, these are the lowest candidate values over every viewport and arrival in the final records.
+       - **Dark:** the values of the Light-only repairs are unchanged.
+     - **Rules.**
+       - **Values.**
+         - Existing Darkfield tokens or aliases only: no literal colour, and no new or changed token, alias, held value or global brand value.
+         - Text takes `fg` or `fg-muted`: Global Constraints *Text contrast*, and §13's state model gives the Hover label `fg`.
+         - Launch's ground is `signal-deep`, through `--primary-color-dark`.
+       - **Scope.**
+         - Only the named selectors and states change. Light-only rules sit under `[data-theme="light"]`; Dark is unchanged.
+         - Tints, borders, geometry, copy and focus styles are untouched. Focus is Task 6's. The only motion change is the lost Launch sweep (above).
+         - No rule targets hover labels site-wide: each repair names its own card or control.
+       - **Pairs.** Every new text/ground pair is a §05 *Contrast, verified* pair, or measures ≥ 4.5:1 in the theme it applies to.
+     - **Stop rule.** If a criterion cannot be met within these files and rules, stop and report to the owner.
+     - **Residual, not repaired (pre-existing, reported in Step 11).**
+       - **The finding.** The Light background's darkest pixels lie at grid intersections near the viewport's edges: about `rgb(212, 218, 214)` on the Task 3 work and `rgb(217, 218, 213)` on `BASE`. There, `signal-dim` text measures 4.03–4.12:1 and, on `BASE`'s pixels, `#2a7331` 4.16–4.23:1. Both are below 4.5:1, and Task 3's value is 0.11–0.13 lower.
+       - **What it reaches.** Which text lies over such a pixel depends on the viewport and the scroll position. The test measures fixed positions. Step 9's run-by-run comparisons, at five viewports and two arrivals, found no other text crossing 4.5:1.
+       - **Why it is not repaired here.** Removing the exposure needs a global brand mapping or a background change. The first is outside Task 3's rules; the second is the Phase 2 atmosphere work (D3).
+       - **Where it is recorded.** The ledger `notes`.
+     - **Classified for D10, not repaired (pre-existing; owner ruling on the `/writing` eyebrow).**
+       - **The finding.** In Dark, on card hover and press, the `/writing` eyebrow fails 4.5:1 where the background's grid lines show through the hover tint. Task 3 improves it but does not clear it: `BASE` → Task 3, 3.41 → 4.27 at 768×1024, on the last card at the foot of the page (the final records and an independent probe agree), and, in the round-3 reviewer's sweep over five scroll places, down to 3.16 → 3.95 at 1440×900. At the probe's centred positions it passes at the other viewports (`BASE` at least 5.11, Task 3 at least 6.17).
+       - **Why it is not repaired.** Task 3 neither introduces nor worsens it, so under the owner's ruling it is classified for D10 rather than repaired. At rest and on keyboard focus it passes in both themes.
+       - **What the test sees.** The test captures each card at one scroll position. There, the Dark eyebrow fails only at 768×1024; the round-3 reviewer's sweep found a failing position at 1440×900 too ([E-13](#evidence-summary)).
+       - **Where it is recorded.** The ledger `notes`, and Step 11's report for D10.
 
 - [ ] **Step 8: Run all checks and confirm they pass.**
 
@@ -2781,6 +3723,11 @@ Then re-run Step 3 and Steps 8–10. The working tree already carries Steps 5–
     - the Step 7 item 1 fixes and the bridge's improvements, as recorded in [E-11](#evidence-summary);
     - every entry for a Step 7 item 4 selector.
   - The r7 Annals parchment entries never appear as stale: r8 never records them as entries.
+  - **r10.**
+    - The measurement controls, the masking and pairing controls and the backdrop invariant pass.
+    - No id is recorded twice, and no ledger run is missing.
+    - KNOWN prints only ledger entries, run by run, including the r10 checks' `text`, `interact` and `backdrop` entries that `BASE` already failed.
+    - The stale entries removed are the bridge's improvements and every entry for a Step 7 item 4 or item 6 selector.
 
 - [ ] **Step 9: Run the existing regression tests against both previews.**
 
@@ -3054,6 +4001,196 @@ Then re-run Step 3 and Steps 8–10. The working tree already carries Steps 5–
   - **A CHROME line is a stop.**
   - **Recording.** Record the summary line in the commit body.
 
+  **Run-by-run comparison (r10).**
+  - **What it covers.** Every measurement of the two builds, run by run, in five viewports and for two client-side arrivals. Check mode sees only the ledger's failures at one viewport after direct loads, so this comparison covers what it cannot:
+    - text that passes on one build and fails on the other, wherever it is;
+    - text over the translucent header or the Light background that meets a different ground at another viewport. In [E-13](#evidence-summary), the Traffic "← Simulations" link failed at 1280×800 and passed at 1440×900;
+    - stylesheets that stay attached after client-side navigation.
+  - **How to run it.** The test runs in record mode against both previews: at 1440×900 and four more viewports, then at 1440×900 arriving from `/projects` and from `/simulations`. The records are compared run by run:
+
+  ```bash
+  cat > "$DF_TMP/record-compare.mjs" <<'EOF'
+  // record-compare.mjs <baseline record> <candidate record> [label] [reference record]
+  // Two DARKFIELD_MODE=record outputs of the browser test, compared run by run (r10). Each record holds the
+  // UNCOVERED line, the ledger candidates and a MEASURED line with every measurement: one text run, in one
+  // state, measured on its colour stack or on rendered pixels. fresh: fails on the candidate only, including a
+  // run measured on the candidate only. worse: fails on both, more than 0.05 lower on the candidate. UNPAIRED:
+  // recorded on one build only (measured or not), or measured on one and unmeasurable on the other. UNMEASURED: a governed run
+  // unmeasurable on both builds, listed with its reason so that no gap in coverage passes as paired. SETUP: a
+  // paired run both builds captured on rendered pixels, at a different scroll position, with a different number
+  // of line boxes, or with a line box more than 1 px different in size. METHOD: a paired run measured
+  // on rendered pixels on one build and on its colour stack on the other (a repair changed its ground).
+  // SCOPE: regions, creative and inactive values (within 0.05), and the UNCOVERED line. DUPLICATE: an id
+  // recorded twice. ABSENT (with a reference record, such as the baseline's direct load for an arrival): a governed
+  // id the reference records and neither build does, so a run that both builds skip is never taken as verified.
+  import { readFileSync } from "node:fs";
+  const load = (path) => {
+    const text = readFileSync(path, "utf8");
+    const lines = text.split("\n");
+    const at = text.lastIndexOf("\nMEASURED ");
+    return {
+      uncovered: lines[0],
+      duplicates: lines.filter((line) => line.startsWith("DUPLICATE ")),
+      measured: JSON.parse(text.slice(at + "\nMEASURED ".length).split("\n")[0]),
+      ...JSON.parse(text.slice(text.indexOf("{"), at)),
+    };
+  };
+  const [basePath, candidatePath, label = "", referencePath] = process.argv.slice(2);
+  const [base, candidate] = [load(basePath), load(candidatePath)];
+  const absent = referencePath ? Object.keys(load(referencePath).measured).filter((id) => /^(creative|inactive)\|/.test(id) === false && !(id in base.measured) && !(id in candidate.measured)).sort() : [];
+  const fails = (m) => !m.reason && m.value < (m.limit ?? 4.5);
+  const governed = (id) => !/^(creative|inactive)\|/.test(id);
+  const show = (m) => `${m.value} (${m.fg} on ${m.ground})`;
+  const [fresh, worse, unpaired, both, setup, method, scope] = [[], [], [], [], [], [], []];
+  let paired = 0;
+  for (const id of [...new Set([...Object.keys(base.measured), ...Object.keys(candidate.measured)])].sort()) {
+    const [b, c] = [base.measured[id], candidate.measured[id]];
+    if (!b || !c) {
+      unpaired.push(`${id} recorded on the ${b ? "baseline" : "candidate"} only (${(b ?? c).reason ?? "measured"})`);
+      if (c && governed(id) && fails(c)) fresh.push(`${id} unpaired -> ${show(c)}`);
+      continue;
+    }
+    if (b.reason !== c.reason) { unpaired.push(`${id} ${b.reason ?? b.value} -> ${c.reason ?? c.value}`); continue; }
+    paired++;
+    if (b.reason) { if (governed(id)) both.push(`${id} (${b.reason})`); continue; }
+    const [bSize, cSize] = [b.setup.split("@")[0], c.setup.split("@")[0]];
+    if (Boolean(bSize) !== Boolean(cSize)) method.push(`${id} ${bSize ? "rendered" : "colour stack"} -> ${cSize ? "rendered" : "colour stack"}`);
+    else if (bSize) {
+      // The scroll position must match exactly; each line box may differ by 1 px in each dimension, from rounding.
+      const boxes = (size) => size.split("+").map((box) => box.split("x").map(Number));
+      const [bb, cb] = [boxes(bSize), boxes(cSize)];
+      if (b.setup.split("@")[1] !== c.setup.split("@")[1] || bb.length !== cb.length || bb.some(([w, h], k) => Math.abs(w - cb[k][0]) > 1 || Math.abs(h - cb[k][1]) > 1)) setup.push(`${id} ${b.setup} -> ${c.setup}`);
+    }
+    if (!governed(id)) { if (Math.abs(b.value - c.value) > 0.05) scope.push(`${id} ${b.value} -> ${c.value}`); continue; }
+    if (fails(c) && !fails(b)) fresh.push(`${id} ${show(b)} -> ${show(c)}`);
+    else if (fails(c) && c.value < b.value - 0.05) worse.push(`${id} ${show(b)} -> ${show(c)}`);
+  }
+  if (JSON.stringify(base.regions) !== JSON.stringify(candidate.regions)) scope.push("regions differ");
+  if (base.uncovered !== candidate.uncovered) scope.push("UNCOVERED lines differ");
+  for (const x of [...base.duplicates, ...candidate.duplicates]) console.log(x);
+  for (const x of fresh) console.log(`FRESH ${x}`);
+  for (const x of worse) console.log(`WORSE ${x}`);
+  for (const x of unpaired) console.log(`UNPAIRED ${x}`);
+  for (const x of both) console.log(`UNMEASURED ${x}`);
+  for (const x of setup) console.log(`SETUP ${x}`);
+  for (const x of method) console.log(`METHOD ${x}`);
+  for (const x of scope) console.log(`SCOPE ${x}`);
+  for (const x of absent) console.log(`ABSENT ${x}`);
+  console.log(`${label}: paired ${paired}; fresh ${fresh.length}; worse ${worse.length}; unpaired ${unpaired.length}; unmeasured on both ${both.length}; setup differences ${setup.length}; method changes ${method.length}; scope differences ${scope.length}; duplicates ${base.duplicates.length + candidate.duplicates.length}${referencePath ? `; absent from both ${absent.length}` : ""}`);
+  EOF
+  for run in 1440x900: 1280x800: 1920x1080: 768x1024: 375x812: 1440x900:/projects 1440x900:/simulations; do
+    vp=${run%%:*} from=${run#*:} name=$(printf '%s%s' "$vp" "$from" | tr / -)
+    for side in base:4174 head:4173; do
+      DARKFIELD_MODE=record DARKFIELD_VIEWPORT=$vp DARKFIELD_ARRIVE_FROM=$from node "$DF_TMP/darkfield-foundation-browser-test.mjs" "http://127.0.0.1:${side#*:}" "$DF_PW" > "$DF_TMP/runs-${side%%:*}-$name.txt"
+    done
+    ref=; [ -n "$from" ] && ref="$DF_TMP/runs-base-1440x900.txt"   # an arrival is checked against BASE's direct load
+    node "$DF_TMP/record-compare.mjs" "$DF_TMP/runs-base-$name.txt" "$DF_TMP/runs-head-$name.txt" "$name" $ref
+  done
+  ```
+
+  - **Expected.** For every viewport and arrival: `fresh 0; worse 0; unpaired 0; setup differences 0; scope differences 0; duplicates 0`, and `unmeasured on both` counts only the expected runs below.
+    - Method changes appear only where Step 7 item 6 changes the kind of a ground: the 12 "Launch" label runs (six cards, two themes), on a gradient on `BASE` and on a solid ground after the repair.
+    - Any other METHOD line is a stop.
+    - **ABSENT** lines (the two arrivals only) list governed runs that `BASE`'s direct load records and neither build records after the arrival, so a run both builds skip is never taken as measured. Each must be a Spider card rank (`span.spider-card-rank`): Spider deals a different hand after an arrival, because the arriving page has already used the seeded random numbers. Any other is a stop: a coverage gap, reported to the owner.
+    - **UNMEASURED** lines list governed runs that neither build could measure, each with its reason, so that a gap in coverage never passes as paired. Each must be Rhythm Lab text under its overlay or panel (the ledger's `unmeasured` class) or, at 1280×800 only, the six "Open the Traffic Simulator" runs on `/case-studies/where-the-specification-lived` that the fixed section dots cover at every scroll position ([E-13](#evidence-summary)); Step 11 reports both. Any other is a stop: a coverage gap, reported to the owner.
+  - **A FRESH or WORSE line is a regression.**
+    - It is repaired under Step 7 item 6's rules only if it is a selector and state that item 6 already names, or the label of a governed card call to action.
+    - Anything else is a stop (stop condition 6), reported to the owner for a ruling before the plan grows.
+    - It is never accepted into the ledger.
+  - **Any other line is a stop:** UNPAIRED, SETUP, SCOPE or DUPLICATE. Such a line means the two builds were not measured alike.
+  - **Recording.** Record each summary line in the commit body.
+
+  **Repair isolation (r10; once, when Step 7 item 6 is applied).**
+  - **What it covers.** Every computed property of every element, on direct load of every listed route, with the Projects modal open, before and after item 6. The hover and pressed repairs do not render at load; the browser test's interaction pass measures them.
+  - **How to run it.** Snapshot the work before applying item 6, then serve the snapshot as a third preview and compare:
+
+  ```bash
+  # Before applying item 6, from the repository root: snapshot the work without it.
+  mkdir -p "$DF_TMP/prerepair" && git ls-files -co --exclude-standard -- web | tar -cf - -T - | tar -xf - -C "$DF_TMP/prerepair"
+  (cd "$DF_TMP/prerepair/web" && npm ci)
+  ```
+
+  ```bash
+  # After applying item 6.
+  cat > "$DF_TMP/repair-compare.mjs" <<'EOF'
+  // repair-compare.mjs <before URL> <after URL> <Playwright module>
+  // Task 3 Step 7 item 6 isolation (r10): every computed property of every element and pseudo-element on every
+  // listed route, before and after the repairs, with the Projects modal open. The page clock is paused and
+  // Math.random seeded, so both builds render the same state. Custom properties are not compared. Prints each
+  // element whose rendered properties differ: REPAIR inside a repaired selector's subtree, else CHROME.
+  const [beforeUrl, afterUrl, playwright] = process.argv.slice(2);
+  const { chromium } = await import(playwright);
+  const browser = await chromium.launch({ headless: true });
+  const ROUTES = [
+    "/", "/projects", "/case-studies", "/case-studies/aether", "/case-studies/erebus", "/case-studies/arachne",
+    "/case-studies/where-the-specification-lived", "/writing", "/simulations", "/simulations/orbital-simulator",
+    "/simulations/traffic-simulator", "/simulations/annals", "/simulations/snake", "/simulations/spider",
+    "/simulations/rhythm-lab", "/procedural-animations", "/experience", "/journey", "/terminal", "/darkfield-404-probe",
+  ];
+  // The repairs visible at rest: the Launch label's ground (both themes); in Light, the current-page header link,
+  // the header's disclosure toggle and the Orbital and Traffic back links. Hover and pressed repairs do not
+  // render at rest.
+  const REPAIR = { dark: ".launch-button", light: ".launch-button, .site-header__link.active, .site-header__disclosure-toggle, .orbital-header a, .traffic-header a" };
+  const dump = async (url, theme, route) => {
+    const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" });
+    await context.addInitScript((value) => {
+      localStorage.setItem("theme", value);
+      let seed = 42;
+      Math.random = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
+    }, theme);
+    const page = await context.newPage();
+    await page.clock.install({ time: new Date("2026-01-01T00:00:00Z") });
+    await page.clock.pauseAt(new Date("2026-01-01T01:00:00Z"));
+    await page.goto(`${url}${route}`, { waitUntil: "networkidle" });
+    await page.clock.runFor(3000);
+    if (route === "/projects") await page.getByTitle("View technical coverage").click();
+    const rows = await page.evaluate((sel) => {
+      const path = (el) => { const parts = []; for (let n = el; n && n !== document.documentElement; n = n.parentElement) parts.unshift(`${n.tagName.toLowerCase()}${[...n.classList].map((c) => `.${c}`).join("")}[${n.parentElement ? [...n.parentElement.children].indexOf(n) : 0}]`); return parts.join(">"); };
+      const out = [];
+      for (const el of [document.documentElement, ...document.querySelectorAll("*")]) {
+        for (const pseudo of [null, "::before", "::after"]) {
+          const style = getComputedStyle(el, pseudo);
+          if (pseudo && ["none", "normal"].includes(style.content)) continue;
+          const props = {};
+          for (let i = 0; i < style.length; i++) if (!style[i].startsWith("--")) props[style[i]] = style.getPropertyValue(style[i]);
+          out.push([path(el) + (pseudo ?? ""), Boolean(el.closest(sel)), props]);
+        }
+      }
+      return out;
+    }, REPAIR[theme]);
+    await context.close();
+    return rows;
+  };
+  let chrome = 0, repairs = 0;
+  for (const theme of ["dark", "light"]) {
+    for (const route of ROUTES) {
+      const [before, after] = [await dump(beforeUrl, theme, route), await dump(afterUrl, theme, route)];
+      const index = new Map(after.map(([key, repaired, props]) => [key, props]));
+      if (before.length !== after.length) { chrome++; console.log(`CHROME ${theme} ${route}: ${before.length} elements before, ${after.length} after`); }
+      for (const [key, repaired, props] of before) {
+        const next = index.get(key);
+        if (!next) { chrome++; console.log(`CHROME ${theme} ${route} missing after: ${key.slice(-120)}`); continue; }
+        const changed = Object.keys(props).filter((p) => props[p] !== next[p]);
+        if (!changed.length) continue;
+        repaired ? repairs++ : chrome++;
+        console.log(`${repaired ? "REPAIR" : "CHROME"} ${theme} ${route} ${key.slice(-120)}: ${changed.map((p) => `${p} ${props[p]} -> ${next[p]}`).join("; ").slice(0, 240)}`);
+      }
+    }
+  }
+  await browser.close();
+  console.log(`chrome elements changed ${chrome}; repair elements changed ${repairs}`);
+  EOF
+  bash "$DF_TMP/df-serve.sh" prerepair "$DF_TMP/prerepair/web" 4175
+  node "$DF_TMP/repair-compare.mjs" http://127.0.0.1:4175 http://127.0.0.1:4173 "$DF_PW"
+  bash "$DF_TMP/df-serve.sh" prerepair "$DF_TMP/prerepair/web" 4175 stop
+  ```
+
+  - **Expected.** `chrome elements changed 0`. REPAIR lines appear only for:
+    - the "Launch" labels and their `::before`, in both themes;
+    - in Light, the current-page header link, the disclosure toggle (where the route renders it) and the Orbital and Traffic back links.
+  - **A CHROME line is a stop.**
+  - **Recording.** Record the summary line in the commit body.
+
 - [ ] **Step 10: Run the visual review (human).**
 
   ```bash
@@ -3066,6 +4203,10 @@ Then re-run Step 3 and Steps 8–10. The working tree already carries Steps 5–
   - creative regions (iframes, canvases, Snake/Spider/Rhythm Lab playfields, Annals panels, project media) that changed. Any change there is a **stop**.
   - r8: the marked Annals narrative renders exactly as before. The browser test also holds its measured contrast to the baseline record.
   - r9: the `/simulations` previews look as they do on the baseline. The Step 9 native comparison is the measured evidence; any visible change is a stop.
+  - r10: the Step 7 item 6 labels read as intended.
+    - In Light, the header's current-page link keeps its tint and border with an `fg` label.
+    - The card labels turn `fg` only on card hover.
+    - The "Launch" labels sit on a solid ground in both themes. Their gradient sweep is gone, but the card visibly responds to hover and to keyboard focus.
 
 - [ ] **Step 11: Commit** after D10.
   - **Before asking for D10, report to the owner:**
@@ -3078,6 +4219,14 @@ Then re-run Step 3 and Steps 8–10. The working tree already carries Steps 5–
     - r9: the `inactive` observations, which D10 does not accept;
     - r9: that the Step 7 item 5 hold is provisional and not a D6 decision; the Step 9 native comparison and isolation summaries; and the residual page variables that stay global (item 5);
     - r9: the browser-test runs under load, as supporting evidence, not a guarantee of future reliability.
+    - r10:
+      - the Step 7 item 6 repairs and their ratios, with the census of card calls to action;
+      - the loss of the Launch hover sweep;
+      - the Light background residual (item 6) and the limits of the rendered runs (Step 3 notes);
+      - the six preview markers: a measurement boundary, not a D6 decision;
+      - the Step 9 viewport comparison and repair isolation summaries, with every run listed as unmeasured on both builds;
+      - the Dark `/writing` eyebrow, classified for D10 (item 6), and the section dots that overlap the "Open the Traffic Simulator" link at 1280×800, a pre-existing layout finding;
+      - that the links in the opened "Explore" panel are not measured by the test ([E-13](#evidence-summary) limits).
   - **Owner rulings first.** If a Step 7 item 4 repair reached its stop rule, the commit waits for the owner's ruling.
   - **The reviewer (r8)** also:
     - re-runs the Step 9 comparison and confirms `worse 0`;
@@ -3087,7 +4236,12 @@ Then re-run Step 3 and Steps 8–10. The working tree already carries Steps 5–
     - r9: re-runs the Step 9 native comparison and confirms its expected summary;
     - r9: confirms that the item 5 diff in its four files is exactly the change item 5 gives, and that no token, bridge mapping or other variable changed;
     - r9: runs the browser test at least three times in a row, under representative load, and reports every result.
-  - **Paths:** the Files list above, with the confirmed control-boundary files. r8 adds `Annals.tsx`, `ProjectRoster.css` and `NotFound.css`; `ProjectMedia.css` and `SiteNavigation.css` are already control-boundary files. r9 adds `SimulationCard.css`, `SimulationCard.tsx`, `Simulations.css` and `Projects.css`.
+    - r10:
+      - confirms that the preview markers sit only on the six roots, with nothing governed beneath them;
+      - confirms that the item 6 diff in its nine files is exactly the change item 6 gives;
+      - re-runs the Step 9 run-by-run comparison and the repair isolation;
+      - runs the measurement-control bypasses of [E-13](#evidence-summary), including those that mask runs or break pairing. Each must fail its own control.
+  - **Paths:** the Files list above, with the confirmed control-boundary files. r8 adds `Annals.tsx`, `ProjectRoster.css` and `NotFound.css`; `ProjectMedia.css` and `SiteNavigation.css` are already control-boundary files. r9 adds `SimulationCard.css`, `SimulationCard.tsx`, `Simulations.css` and `Projects.css`. r10 adds `ContactStripSection.css`, `FeaturedProjectsSection.css`, `CaseStudyPage.css`, `Writing.css` and `ProceduralAnimations.css`. Its other files are already listed.
   - **Message:** `feat(web): drive themes from Darkfield tokens through a legacy-variable bridge`.
 
 ### Task 4: Font families
@@ -3495,12 +4649,13 @@ Each phase gets its own plan in this directory after Phase 1 merges. The scope b
 | Terminal | Whole interface: §07 cell grid, Plex Mono, block cursor shown only while the terminal is accepting input (§12, §16) | — | — |
 | Snake, Spider, Rhythm Lab | Page chrome, menus, settings, buttons, and the HUD and overlay as D6 decides | Playfield visuals (board, cards, lanes, notes) | D6 |
 | Annals | Chrome and controls as D6 decides | World presentation (serif parchment) | D6 |
-| Simulations index | Cards, launch controls | Previews of native visuals as D6 decides. D6 lifts or confirms Task 3's provisional preview hold (r9) | D6 |
+| Simulations index | Cards, launch controls | Previews of native visuals as D6 decides. D6 lifts or confirms Task 3's provisional preview hold (r9) and its preview markers (r10) | D6 |
 | NotFound, errors, loaders, toasts, modals | §13 Error and Processing signatures; no celebratory toasts | — | — |
 
 **Region marking.** Each Phase 5 task marks its creative containers with `data-df-region="artwork|native|evidence"`.
 - The Phase 1 sampler already skips elements inside such regions. Phase 6 measurements depend on these marks; an unmarked creative region is a Phase 5 defect.
 - Task 3 already marks the Annals authored narrative (r8). Its headings, hints, legends, readouts, logs, footer and controls stay governed.
+- Task 3 also marks the six `/simulations` preview roots (r10). The preview frames and the cards stay governed. D6 confirms or lifts these markers along with the preview hold.
 - A marker reaches every descendant, so it goes only on a subtree with no interactive control.
 - A marker removes its subtree from the Phase 1 sampler and from every Phase 6 governed-interface measurement listed below. It never removes anything from keyboard, focus or forced-colours checks.
 - A task that adds or moves markers records the baseline with the same markers.
@@ -3714,6 +4869,162 @@ Every line number refers to `a16c70f`. Implementers locate code by the anchor, n
     - The corrected test passed on A″ (13 KNOWN, 12 INACTIVE, 20 UNMEASURED).
     - A variant whose Spider probe matches nothing failed the invariant on every path.
     - The load runs above used the test before this one-string correction.
+- **E-13. Task 3 r9 application, the r10 findings and the r10 dry runs** (2026-10-13 to 2026-10-14). The previews were throwaway builds outside the repository, and nothing was written to the repository.
+  - **The r9 application** (as recorded in that session's report).
+    - Every prescribed r9 check passed: the browser test (13 KNOWN, 12 INACTIVE, 20 UNMEASURED), 5 of 5 runs under `stress -c 12`, the whole-text comparison (`worse 0`) and the native comparison (24 of 24).
+    - `orbital` failed identically on both builds at line 196, the known note.
+    - A supplementary hover and focus scan then found the Dark "Launch" regression, and showed that the painted pass never measured text nested in sampler matches. A first r10 scratch test found the Light worsenings listed in Status (r10).
+  - **The builds for the r10 dry runs (2026-10-14).**
+    - `BASE`, with the 6 Annals markers and the 6 preview markers;
+    - the Task 3 work as reviewed under r9, with the preview markers;
+    - the candidate: that work plus Step 7 item 6, in its nine files.
+
+    Unless stated otherwise, every run was at 1440×900, in both themes, with reduced motion and seeded randomness.
+  - **The first draft and its review.**
+    - The first r10 draft passed every check it defined.
+    - Its independent review failed it, for one blocking defect: the interaction pass kept the lowest run per control and state, so a failing badge or description hid a call-to-action label that got worse. Reproduced: on card hover in Light, the label run alone fell from 4.42 to 4.29 (`/case-studies`), 4.35 to 4.22 (`/writing`) and 4.27 to 4.15 (`/procedural-animations`), while that draft reported `worse 0`.
+    - The review's other findings:
+      - repeated ids were numbered only among reported failures, so a fixed failure could re-pair the next one;
+      - the black backdrop is a bound in Light only;
+      - the Launch repair removes the hover sweep;
+      - the marker expression was not idempotent.
+
+      Each is corrected in this revision (Step 2, Step 3 item 2 and Step 7 item 6).
+  - **The second draft and its review.**
+    - Its independent review failed it, for one blocking defect: a run covered or partly off screen failed its whole element, and a wrapped link was checked against its paragraph, so the fourth `/case-studies` card and the Traffic case-study link at 1280×800 and 375×812, and three controls on `/case-studies/where-the-specification-lived` at 1280×800, were unmeasured on every build, and the comparison counted them as paired. The reviewer measured the hidden card label on card hover in Light: 4.39 → 4.26 at 1280×800 and 4.11 → 3.99 at 375×812, and 13.4 and 12.55 on the candidate.
+    - A second blocking finding: three table values in Step 7 item 6 came from records taken before the scroll-centring fix. They are replaced from the final records below.
+    - Non-blocking: no control caught element numbering moved after the colour-dependent skip; the `/writing` eyebrow lay outside the approved call-to-action scope; Step 9's repair rule was wider than the approved selectors; and the commit text called the header's Dark bound its darkest ground.
+    - Corrections: runs are skipped and retried on their own, at three places in the viewport; wrapped runs are measured over their line boxes; a control is entered at its first uncovered point; measurement reasons are retried; the comparison lists runs neither build measured; new controls cover each (Step 2). The eyebrow went to the owner, who ruled (Status (r10)). Step 9's rule and the commit text were narrowed.
+    - Section dots: after the first correction, three controls on `/case-studies/where-the-specification-lived` stayed unmeasured at 1280×800, each with one run under the fixed section dots, which sit at the middle of the viewport's height. Retrying at 30% and 70% of the height as well measures the two summaries. The link's run stays covered at every place: see below.
+  - **The third draft's review.** It failed only the proposed commit text, which still said the eyebrow awaited a ruling; the plan passed every required check, and the reviewer found no measurement blind spot. Its non-blocking findings are corrected here: the eyebrow probe now measures line boxes (the Dark values below are revised), the opened "Explore" panel is reported as unmeasured, and the comparison script calls a one-sided run recorded, not measured.
+  - **The fourth draft's review.** It found one blocking gap: after a client-side arrival, each record lacked 54 of the direct load's runs on every build, unreported, because the comparison could not see a run absent from both. 44 were sections that fade in when first scrolled into view, still at opacity 0 (per theme, 14 `/journey` dates and, on Home, the capability indices, the featured labels and status badges); 10 were Spider card ranks, a different deal. Corrections: arrivals scroll the page through first, and Step 9 checks each arrival against `BASE`'s direct load, listing every run both builds lack as ABSENT. After them, each arrival pairs 7,064 runs, as a direct load does; the 44 runs equal their direct-load values exactly, no run measured before changed, and only the 10 Spider ranks are absent. Its non-blocking wording findings are corrected too.
+  - **The sixth draft's review.** It found that the plan and the commit text wrongly said the `PAIRS` entries do not retry. They measure through the sampler's path, which retried every skipped run at rest, hover pairs included, so a hover pair's run could have been retried without its hover. Corrections: hover pairs no longer retry, so their skipped runs stay unmeasured, each with its reason; a re-entry control covers the mechanism; the plan gives the three retry places. No hover `PAIRS` run was skipped in any record: none carries a reason. A non-hover pair's run that was skipped and then retried successfully would leave no trace, so that case is not established. The 23 records taken after the change are byte-identical to those before it.
+  - **The per-run census** (the final test, run by run, `BASE` → the Task 3 work):
+
+    | Comparison | Runs paired | Fresh | Worse | Unmeasured on both |
+    |---|---|---|---|---|
+    | 1440×900 | 7,064 | 26 | 79 | 38 |
+    | 1280×800 | 7,064 | 26 | 77 | 44 |
+    | 1920×1080 | 7,064 | 34 | 60 | 38 |
+    | 768×1024 | 6,040 | 8 | 111 | 38 |
+    | 375×812 | 6,040 | 43 | 167 | 38 |
+    | 1440×900, arriving from `/projects` | 7,064 | 26 | 79 | 38 |
+    | 1440×900, arriving from `/simulations` | 7,064 | 26 | 79 | 38 |
+
+    Every comparison had no unpaired run, no setup difference, no scope difference and no duplicate. Checked against `BASE`'s direct load, each arrival is absent only 10 runs on both builds, all Spider card ranks (below). The 841 fresh and worse runs, counted across all seven comparisons, are grouped below.
+
+    - **Every fresh or worse run** belongs to these groups, all now repaired in Step 7 item 6:
+      - Dark: the "Launch" label.
+      - Light:
+        - the header links and the disclosure toggle;
+        - the Home contact links;
+        - the featured, case-study, writing and procedural-animation card labels, and the `/writing` eyebrow;
+        - the Orbital and Traffic back links;
+        - the Traffic case-study link when pressed.
+    - **Nothing outside these groups.** No Dark regression besides "Launch", and no governed text outside the card calls to action, the eyebrow (owner ruling) and r10's first-draft scope.
+    - **Measured on neither build:** 38 runs in every comparison, all Rhythm Lab text under its overlay or panel (the ledger's `unmeasured`). At 1280×800 only, 6 more: the "Open the Traffic Simulator" run on `/case-studies/where-the-specification-lived`, hovered, focused and pressed in both themes. The fixed section dots overlap it at every scroll position the page allows, on every build: it sits at the foot of the page, under the dots' column. Measured independently at 1280×800 with the dots hidden, at rest, hovered, focused and pressed, both themes: `BASE` at least 11.83, Task 3 and candidate at least 13.12. The overlap itself is pre-existing layout, reported in Step 11 and not repaired here.
+    - **Client-side arrivals** from `/projects` and from `/simulations` gave the same regressions as direct loads: the same 105 runs (26 fresh, 79 worse) as the direct load at 1440×900, from both; the two arrival records are byte-identical.
+  - **The findings, measured independently.** Each was measured as the per-pixel distribution of the rendered ground behind the text, with the text hidden. Values are minima unless stated.
+    - **Launch:**
+      - Dark: `BASE` rest 3.06, hover, focus and press 2.85; Task 3 3.57 and 2.67; candidate 9.90 in every state.
+      - Light: `BASE` 1.99 and 2.17; Task 3 6.16 and 4.52; candidate 14.22.
+      - Six cards, at 1440 and 375 px.
+    - **Launch hover and focus.** The first `/simulations` card at rest, hovered and keyboard-focused, both themes, with and without reduced motion:
+      - The candidate changes the card's shadow, background and border and the button's glow on hover and on keyboard focus. Without reduced motion, it also lifts the card and scales the button. Keyboard focus adds the `:focus-visible` outline.
+      - That is 193,697–217,725 pixels of the card changed on the candidate, against 207,314–230,942 on `BASE`. The difference is the lost gradient sweep.
+    - **Header links (Light).**
+      - Swept over every scroll position, in 150 px steps, on six routes: `BASE` 4.35–4.77, Task 3 3.94–4.36. For example, `/case-studies` current page 4.43 → 4.02, and `/projects` hover 4.52 → 4.01.
+      - With black under the header: 4.35 → 3.94. The analytic bound is 4.36 → 4.00.
+      - Candidate: at least 12.40 at 1440, 768 and 375 px. Focus keeps `fg-muted`: 6.22 over black.
+      - Dark, unchanged on the candidate: at least 5.63 over every scroll position swept. Black is not Dark's worst ground; the backdrop pass measures Dark over white (Step 2).
+    - **Disclosure toggle** (Light, 768 and 375 px, over black): `BASE` rest 4.08, hover and press 2.69; Task 3 3.94 and 2.47; candidate 7.76.
+    - **Contact links** (Light hover): "Email" 4.58 → 4.45 (first percentile 4.71 → 4.59; median 5.03 → 4.89), candidate 13.99. "GitHub" and "LinkedIn" fall the same way at narrower viewports (from the records).
+    - **Featured label** (Light card hover): the Erebus card 4.61 → 4.48 (median 5.04 → 4.89); the Arachne card 4.87 → 4.74, passing. Candidate 14.07 and 14.91.
+    - **Card calls to action** (Light card hover, label run only): the first review's reproduction, at the first draft's capture positions, was `/case-studies` 4.42 → 4.29, `/writing` 4.35 → 4.22 and `/procedural-animations` 4.27 → 4.15. In the final records: `/case-studies` 4.35 → 4.22, `/writing` 4.35 → 4.22 and `/procedural-animations` 4.42 → 4.30 at 1440×900, each falling to 3.99 at 375×812; featured 4.44 → 4.32 at 1440×900. Candidate, over every viewport and arrival: at least 12.55 (case study 12.55, writing 12.55, procedural animations 12.55, featured 13.58).
+    - **The `/writing` eyebrow** (an independent probe, separate from the test: every card's eyebrow centred in the viewport, rest, hover, focus-visible and press, each state verified, both themes, five viewports; and the round-3 reviewer's own sweep):
+      - Light, card hover and press: at the probe's positions `BASE` 4.48–4.73 → Task 3 4.35–4.59, failing on both at 768×1024 and 375×812. The final records, at the test's positions, agree: 4.48 → 4.35 at 1440×900, and a fresh failure at 1280×800, 4.52 → 4.39. The round-3 reviewer's sweep over five scroll places gave `BASE` 4.34–4.62 → Task 3 4.22–4.50. With `fg-muted`, at least 6.95 at the probe's positions and 6.74 in the reviewer's sweep; with `fg`, at least 13.67.
+      - Light, rest and keyboard focus: 5.59 → 5.14, passing.
+      - Dark, card hover and press: 3.41 → 4.27 at 768×1024 (the last card, at the foot of the page), passing at the probe's positions elsewhere (`BASE` at least 5.11, Task 3 at least 6.17); the reviewer's sweep found 3.16 → 3.95 at 1440×900, at one of its five scroll places, on three cards, and Task 3 higher than `BASE` at every position by at least 0.79. Improved but failing: classified for D10. The failing pixels are the background's grid lines through the hover tint.
+      - Dark, rest and keyboard focus: 6.26 → 7.57, passing.
+      - The probe measures each eyebrow's text line boxes with the text hidden. A first version measured the paragraph's whole box, and overstated the Dark failures.
+    - **Orbital back link** (Light, every state): 4.66 → 4.49 (median 5.12 → 4.98). Candidate 7.17.
+    - **Traffic back link** (Light): 4.62 → 4.49 at 1280×800; it passes at the other eight viewports from 375 to 1920 px wide (4.50–4.68). Candidate at least 7.17 at all nine.
+    - **Traffic case-study link** (Light, pressed): a uniform ground, 4.00 → 3.84. That is the browser's pressed red on white, then on `surface-1`. Candidate 17.26.
+    - **Why none is an artifact.**
+      - In each case the lowest pixels lie at the same coordinates on both builds, and the whole distribution shifts, not only the minimum.
+      - For the Orbital link, removing the underline, or hiding the element, left the same lowest pixel: a minor grid line of the fixed background, at viewport y = 140.
+      - For Email, hiding the element left it too, slightly lighter without the link's own hover tint.
+      - None is antialiasing.
+    - **The Light background** (all content hidden; 1440, 1280, 1920, 768 and 375 px wide).
+      - Darkest pixels: `rgb(212, 218, 214)` to `rgb(215, 220, 217)` on the Task 3 work, and `rgb(217, 218, 213)` to `rgb(218, 220, 216)` on `BASE`, at grid intersections near the edges.
+      - Computed against them: `signal-dim` 4.03–4.12, and `#2a7331` on `BASE`'s pixels 4.16–4.23.
+    - **Preview markers.**
+      - Checked as Step 3 item 2 states: the six roots only, nothing governed beneath them, Tab never inside. Both themes, at 1440, 768 and 375 px.
+      - `MARK` applied twice gives the same bytes as once, on the `BASE` and Task 3 files.
+      - `MARKED` fails on a file with one duplicate attribute, and on one whose count is right but has a duplicate on one element.
+  - **The measurement model, checked.**
+    - **Arrival.** After a client-side arrival, the route's transition wrapper fades in from opacity 0.
+      - Measured at once, 73 runs were missing on `/writing` and `/case-studies`.
+      - Waiting for everything in `main` to hold still never ended on `/simulations/snake`, whose playfield keeps moving, so the wait samples the wrapper only.
+      - With that wait, arrivals from `/projects` to `/simulations/snake`, `/writing` and `/case-studies` matched direct loads exactly: 1,478 runs paired, none unpaired, no setup difference.
+    - **Determinism.** Five defects made records differ, or set up captures differently on the two builds, and all five are fixed (Step 2):
+      - lazy images that loaded mid-pass moved the long case-study page by 350 px;
+      - Playwright's `hover()` lost its hover within 50 ms after scrolling. Scrolling, waiting two frames, then moving held it for 2 s in every try;
+      - the section dots' hover and press scale is script-driven and lands a frame after the pointer, so a pressed dot was captured at either scale. Each state now settles for two frames;
+      - a Home section scrolled into view fades in, so after an arrival the "GitHub" link's pressed state was captured as `no rendered text` on one build and measured on the other. Captures now wait for the element to hold still. A first version of that wait paced itself by animation frames and hung on the Rhythm Lab's frozen-clock page, so it runs on a timer and is skipped where the clock is frozen;
+      - each capture scrolled only if needed, so its scroll position depended on the step before. On the candidate, the "Launch" labels' colour stack needs no scroll, and the next captures sat about 100 px lower than on `BASE` at 375×812. Every capture now centres its element.
+
+      Earlier drafts had also recorded `pair|dark|/|.btn-outline:hover` without its hover, in 1 of 15 `BASE` records, and `interact|dark|/|button|Read Case Studies#1:hover` as `not hover`, in 2 of 14.
+  - **Records.** Every record, and the check-mode runs and bypasses below, ran on the Step 2 test (SHA-256 `b23fc14636218507a9a4dfece9014b8ac9b9dfacc5efc6121c54f74164452f4f`); each record's command line and load average were logged. All 23 records are byte-identical to those taken on the two previous test versions, which lacked the hover-pair change, the newer check-mode controls and, for the direct loads, the arrival scroll-through.
+    - **Determinism.** Two records of each build at 1440×900, run six at a time, were byte-identical: `BASE` and the candidate.
+    - **`BASE` → candidate, run by run (Step 9):** at 1440×900 (7,064 runs), 1280×800 (7,064), 1920×1080 (7,064), 768×1024 (6,040) and 375×812 (6,040), and arriving from `/projects` and from `/simulations` (7,064 each), every comparison gave `fresh 0; worse 0; unpaired 0; setup differences 0; scope differences 0; duplicates 0`, with 12 method changes and the same runs unmeasured on both builds as `BASE` → the Task 3 work; each arrival gave `absent from both 10`, all Spider card ranks.
+    - **The method changes** are exactly the 12 "Launch" label runs.
+    - **The ledger.** `BASE` records 639 entries at 1440×900, and the candidate 136. Every one of the 136 is also a `BASE` entry, so the ledger is those 136. Its `unmeasured` (38, all Rhythm Lab text under its overlay or panel), `creative` (20) and `inactive` (12) are identical on both builds.
+  - **The other comparisons**, against the candidate with all nine files, rebuilt after the eyebrow ruling:
+    - native comparison, `BASE` → candidate: `previews identical 24, changed 0; games' direct-load colours same 4, changed 0`;
+    - repair isolation, the Task 3 work → candidate: `chrome elements changed 0; repair elements changed 43`. The changes are the six "Launch" labels and their `::before` in both themes, and in Light the current-page link on 17 routes and the two back links. The card repairs and the disclosure toggle do not render at rest at 1440×900;
+    - whole-text comparison (r8), `BASE` → candidate: `compared 2294; worse 0`, with 12 elements unpaired. An instrumented copy, rerun, gave `compared 2296; worse 0` with 8 unpaired and named them: the "Launch" labels, which it measures on the candidate only (on `BASE` their gradient makes them painted), and Spider card ranks. The r8 script does not seed randomness, so Spider deals differently on every load, and the count varies from run to run;
+    - the 52 public tests, `darkfield-tokens.mjs --check`, typecheck and lint pass;
+    - against both previews, `boot-shell`, `settings-panel`, `header-overlap`, `case-study-media`, `route-metadata` and `procedural-animations` pass, and `orbital` fails identically on both at line 196, the known note.
+  - **Check mode** (scratch ledger: 136 entries, 12 `inactive`, 38 `unmeasured`, 20 `creative`). Five of five runs of the Step 2 test passed against the candidate. Three ran together beside `stress -c 12` (load averages 7.1, 10.8 and 13.7 as they started), then two more beside a second `stress -c 12` (4.2 and 10.7). All five printed the same KNOWN (136), INACTIVE (12), UNMEASURED (38) and UNCOVERED lines. Earlier test versions, differing only in the arrival branch, the hover-pair retry and check-mode controls, passed fifteen more runs the same way at load averages of 4.6–15.1. These are supporting evidence, not a guarantee of future reliability.
+  - **Check-mode bypasses.** Each single change below was made to the final test, scoped to `/projects` in Dark, and run in check mode; the unchanged scoped test passed. Each change failed its own control, except the last, a redundant guard.
+    - No interaction pass: the state, masking, pairing, border and coverage controls.
+    - Outlines read as ground: the border and screen-reader control, and the coverage control.
+    - No run clipping: the border and screen-reader control (the screen-reader-only run is skipped instead of excluded).
+    - r9's nested-text skip: both nested-label controls, the exact-ratio control and the colour-skip control.
+    - No `inactive` class: the inactive control.
+    - No backdrop: the backdrop invariant (Dark's white page).
+    - The lowest run per control and state (the first draft's model): the masking, run-pairing, colour-skip and coverage controls.
+    - No element numbering: both pairing controls and the colour-skip control.
+    - No run numbering: both pairing controls.
+    - Elements numbered after the colour-dependent skip (the second review's variant): the colour-skip control.
+    - A covered or off-screen run failing its whole element (the second draft's model): the coverage and re-entry controls.
+    - No per-run retry: the coverage and re-entry controls.
+    - A run measured as one box around its line boxes: the coverage control (the wrapped link).
+    - A control entered only at the middle of its box: the coverage control (the wrapped link).
+    - Retrying only at the middle of the viewport: the coverage control (the run beside the fixed box).
+    - Retrying at rest whatever the caller's re-entry (the sixth draft's model): the re-entry control.
+    - r9's guards still fire: an absent Spider probe fails the navigation invariant on every path, and an inline filter that accepts everything fails the inline-property control.
+    - Removing only the explicit screen-reader clip line did not fail the controls. The clipping loop still excludes that text, so the line is a redundant guard.
+  - **Step 9 ABSENT detection (not a check-mode control).** The scroll-through after an arrival has no check-mode control: the test arrives client-side only when `DARKFIELD_ARRIVE_FROM` is set, which Step 8's check-mode run never does. Its negative case is the fourth draft's own arrival records, made before the scroll-through existed. Compared with `BASE`'s direct load, as Step 9 compares them, each gives `absent from both 54`: the 44 in-view fade-ins still at opacity 0 and the 10 Spider card ranks.
+  - **The r9 navigation timeout.** It is load-dependent, and r10 leaves r9's assertions unchanged.
+    - **Where it appeared.** Under extreme oversubscription, r9's navigation step and r8's Annals verb click each timed out once or more. That load was 11–15 concurrent browser tests plus `stress -c 12` on 12 cores, at load averages near 22.
+    - **The first case.** The navigation step clicks the header's "Projects" link from a game page; the link was reported not visible for 30 s.
+    - **A later batch.** Seven of thirteen scoped runs timed out. The four whose output was examined stopped at the Annals verb click (`locator.click: Timeout 30000ms exceeded`); the other three outputs were overwritten before they were read.
+    - **What did not fail.**
+      - A diagnostic that repeats the navigation step, in the test's conditions, ran 120 navigations (4 × 30, logged) at a load average near 19, with no failure. Full check runs and `stress -c 12` ran at the same time; the diagnostic's logs record its own navigations, not those runs.
+      - No full check run failed at any load.
+      - Rerun at moderate load, every scoped run behaved as expected.
+    - **Cause.** Unknown. Both steps are r8 and r9 code that r10 does not change; r10 adds no delay and no retry to them.
+  - **Limits** (the last four reported by the first r10 session's verifier):
+    - each element is captured at the scroll positions the test chooses. The Dark `/writing` eyebrow also fails at a position the test does not reach at 1440×900, which the round-3 reviewer's sweep found (above);
+    - the links in the opened "Explore" panel (768 and 375 px) are never listed or measured: the panel opens only on interaction. The round-3 reviewer opened it and measured them on colour stacks: in Light, rest 8.86 → 8.77, and the first link hovered 5.73 → 5.34 on Task 3 and 16.8 on the candidate; Dark improves (hover 3.73 → 6.96). No regression below 4.5:1 was found, but the gap is reported in Step 11;
+    - a run covered at all three retry places stays unmeasured, and Step 9 lists it;
+    - no control detects a defect in clipping by an ancestor alone;
+    - text that visibly overflows its parent is measured only inside it;
+    - positioned content may be clipped by an ancestor that does not contain it;
+    - the interaction pass measures header controls over whatever earlier steps left behind the header. From r10 the backdrop pass bounds them, with black under Light and white under Dark and Mono.
+  - **Not run:** Mono, and the r10 changes in the working tree (this is a plan amendment).
 - **Dry runs in a throwaway local workspace, 2026-10-11:**
   - The Task 2 compiler and tests: 8/8 pass.
   - The bridge fence check against the r1 bridge, after the fence fix.
@@ -3723,6 +5034,33 @@ Every line number refers to `a16c70f`. Implementers locate code by the anchor, n
 
 ## Revision log
 
+- **r10 (2026-10-14, Task 3 measurement correction and contrast repairs).**
+  - **Measurement.** The browser test gains:
+    - a text pass, which measures nested text once;
+    - an interaction pass (hover, focus-visible and press);
+    - a header backdrop pass, over the header's worst ground in each theme;
+    - per-run measurement, with stable run and element keys, a `MEASURED` inventory and a failure on repeated ids;
+    - check mode compared run by run, with missing runs failing;
+    - a selectable viewport and client-side arrival;
+    - seeded randomness, stable pointer states and settled layout;
+    - fixture measurement controls, masking and pairing among them.
+  - **After the first draft's independent review failed** for masked runs, the per-run model replaced the minimum per control, and a census found the card calls to action.
+  - **After the second draft's review failed** for runs left unmeasured on both builds, covered and off-screen runs are skipped and retried on their own, wrapped runs are measured over their line boxes, and the comparison lists every run neither build measured, with new controls for each. After the fourth review, arrivals scroll the page through so in-view fade-ins are measured, and each arrival is checked against the direct load for runs both builds skip.
+  - **Preview markers.** Step 3 item 2 marks the six `/simulations` preview roots (owner-approved conditionally): a measurement boundary, not a D6 decision. The baseline is recorded with them, by an idempotent, guarded command.
+  - **Contrast repairs.** Step 7 item 6 repairs every Task 3 regression found:
+    - the "Launch" label (Dark), losing its hover sweep;
+    - in Light: the header links and disclosure toggle, the Home contact links, the featured, case-study, writing and procedural-animation card calls to action, the `/writing` eyebrow (owner ruling), the Orbital and Traffic back links, and the Traffic case-study link when pressed.
+
+    It names five files new to Task 3, records a pre-existing Light background residual, and classifies the Dark `/writing` eyebrow for D10.
+  - **Step 9** gains a run-by-run comparison, over five viewports and two arrivals, and a one-time repair isolation.
+  - **Records.** E-13, and updates to the Validation model, the surface inventory, Phase 5 and the file map.
+  - **Unchanged:**
+    - token values, the bridge and every global brand value;
+    - game artwork and every other creative surface;
+    - the r8 and r9 requirements, holds and invariants;
+    - the 0.05 tolerance;
+    - D5, D6 and every other open decision; D10 stays the owner's to decide;
+    - Tasks 1, 2 and 4–7.
 - **r9 (2026-10-13, Task 3 native-colour hold, clock correction and inactive controls).**
   - **Native-colour compatibility hold (owner-approved option A″).** Step 7 item 5 authorizes four files:
     - `SimulationCard.css` holds the preview content's ink at its baseline colours; the preview frame stays on the bridge.
