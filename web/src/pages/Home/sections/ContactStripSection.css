@@ -63,6 +63,11 @@
   background: rgba(0, 255, 0, 0.05);
 }
 
+/* Light: the hover label is fg; green falls below 4.5:1 where the background shows through the hover tint. */
+[data-theme="light"] .contact-strip-link:hover {
+  color: var(--fg);
+}
+
 @media (max-width: 768px) {
   .contact-strip-section {
     min-height: auto;

@@ -11,6 +11,10 @@
 .orbital-header a {
   color: var(--brand-primary);
 }
+/* Light: green falls below 4.5:1 on the background's grid lines behind the header. */
+[data-theme="light"] .orbital-header a {
+  color: var(--fg-muted);
+}
 .orbital-header h1 {
   color: var(--brand-primary);
   font-size: clamp(1.7rem, 4vw, 2.8rem);
@@ -50,7 +54,7 @@
   font: inherit;
   font-size: 0.8rem;
   color: var(--app-text);
-  border: 1px solid var(--app-border);
+  border: 1px solid var(--edge);
   border-radius: 4px;
   background: var(--app-bg);
   min-height: 44px;

@@ -1,12 +1,15 @@
 /* Terminal Matrix Theme for Simulations Page */
+/* The Simulations page's accent, scoped to the page: on :root it outlived the page after client-side
+   navigation and recoloured the games' native visuals. */
+.simulations-container { --terminal-primary: #4CAF50; }
+[data-theme="light"] .simulations-container { --terminal-primary: var(--brand-primary); }
+
 :root {
-    --terminal-primary: #4CAF50;
     --terminal-font: 'Courier New', 'Monaco', 'Menlo', monospace;
 }
 
 /* Light theme overrides for Simulations page */
 [data-theme="light"] {
-    --terminal-primary: var(--brand-primary);
     --terminal-text-light: #2c2c2c;
     --terminal-text-muted: #6a6a6a;
     --terminal-error: #d73a49;

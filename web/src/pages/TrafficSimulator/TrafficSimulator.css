@@ -26,6 +26,10 @@ html[data-theme="light"] .traffic-container {
 .traffic-header a {
   color: var(--brand-primary);
 }
+/* Light: green falls below 4.5:1 on the background's grid lines behind the header. */
+[data-theme="light"] .traffic-header a {
+  color: var(--fg-muted);
+}
 .traffic-header h1 {
   color: var(--brand-primary);
   font-size: clamp(1.7rem, 4vw, 2.8rem);
@@ -65,7 +69,7 @@ html[data-theme="light"] .traffic-container {
   font: inherit;
   font-size: 0.8rem;
   color: var(--app-text);
-  border: 1px solid var(--app-border);
+  border: 1px solid var(--edge);
   border-radius: 4px;
   background: var(--app-bg);
   min-height: 44px;
@@ -364,6 +368,10 @@ html[data-theme="light"] .traffic-container {
 }
 .traffic-context p {
   margin: 0.75rem 0 0;
+}
+/* Light: the pressed link label is fg; the browser's pressed red falls below 4.5:1 on the panel. */
+[data-theme="light"] .traffic-context a:active {
+  color: var(--fg);
 }
 .traffic-warning {
   border-color: var(--brand-primary);

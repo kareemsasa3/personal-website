@@ -100,6 +100,11 @@
     transition: color 0.3s ease;
 }
 
+/* Native previews depict game visuals: their ink keeps its pre-Darkfield values until D6 classifies them.
+   Held on the preview content only; the preview frame stays on the bridge. */
+.simulation-preview > * { --terminal-primary: #4CAF50; }
+[data-theme="light"] .simulation-preview > * { --terminal-primary: #2a7331; }
+
 .simulation-preview {
     display: flex;
     justify-content: center;
@@ -391,11 +396,13 @@
     background: #b91c1c;
 }
 
+/* The label is fg on a solid signal-deep ground in every state, a verified pair: the gradient through the
+   accent fell below 4.5:1 behind the label, worst on card hover and focus. */
 .launch-button {
     position: relative;
     z-index: 1;
     overflow: hidden;
-    background: linear-gradient(135deg, var(--terminal-primary, #4CAF50) 0%, var(--primary-color-dark) 100%);
+    background: var(--primary-color-dark);
     color: var(--text-color);
     padding: 12px 24px;
     border-radius: 25px;
@@ -415,7 +422,7 @@
     left: -100%;
     right: 0;
     bottom: 0;
-    background: linear-gradient(135deg, var(--primary-color-dark) 0%, var(--terminal-primary, #4CAF50) 100%);
+    background: var(--primary-color-dark);
     opacity: 0;
     transition: opacity var(--transition-normal);
     z-index: -1;

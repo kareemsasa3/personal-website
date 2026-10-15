@@ -76,6 +76,12 @@
     font-weight: 800;
 }
 
+/* Light: only fg keeps 4.5:1 when dark content scrolls behind the translucent header.
+   The border keeps the brand colour (an accessibility correction, not a D5 ruling). */
+[data-theme="light"] .site-header__brand-mark {
+    color: var(--fg);
+}
+
 .site-header__brand-name {
     font-size: 0.95rem;
     font-weight: 700;
@@ -133,6 +139,13 @@
     color: var(--brand-primary);
 }
 
+/* Light: the hover and current-page label is fg; green falls below 4.5:1 when dark content scrolls
+   behind the translucent header. The tint and border keep the brand colour. */
+[data-theme="light"] .site-header__link:hover,
+[data-theme="light"] .site-header__link.active {
+    color: var(--fg);
+}
+
 .site-header__brand:focus-visible,
 .site-header__link:focus-visible,
 .site-header__disclosure-toggle:focus-visible,
@@ -176,7 +189,7 @@
     gap: 0.45rem;
     min-height: 2.4rem;
     padding: 0.55rem 0.7rem;
-    border: 1px solid color-mix(in srgb, var(--app-border) 80%, transparent);
+    border: 1px solid color-mix(in srgb, var(--edge) 80%, transparent);
     border-radius: 6px;
     background: rgba(0, 0, 0, 0.2);
     color: var(--app-text-secondary);
@@ -193,6 +206,15 @@
 .site-header__disclosure-toggle[aria-expanded="true"] {
     border-color: color-mix(in srgb, var(--brand-primary) 58%, transparent);
     color: var(--brand-primary);
+}
+
+/* Light: the label is fg in every state; fg-muted and green fall below 4.5:1 on the toggle's dark tint
+   when dark content scrolls behind the translucent header. */
+[data-theme="light"] .site-header__disclosure-toggle,
+[data-theme="light"] .site-header__disclosure-toggle:hover,
+[data-theme="light"] .site-header__disclosure-toggle.active,
+[data-theme="light"] .site-header__disclosure-toggle[aria-expanded="true"] {
+    color: var(--fg);
 }
 
 .site-header__caret {
@@ -253,7 +275,7 @@
     place-items: center;
     width: 2.4rem;
     aspect-ratio: 1;
-    border: 1px solid color-mix(in srgb, var(--app-border) 80%, transparent);
+    border: 1px solid color-mix(in srgb, var(--edge) 80%, transparent);
     border-radius: 6px;
     background: rgba(0, 0, 0, 0.2);
     color: var(--app-text);

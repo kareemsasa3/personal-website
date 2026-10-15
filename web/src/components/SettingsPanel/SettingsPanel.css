@@ -189,7 +189,7 @@
     display: inline-flex;
     gap: 2px;
     padding: 3px;
-    border: 1px solid color-mix(in srgb, var(--app-border) 75%, transparent);
+    border: 1px solid color-mix(in srgb, var(--edge) 75%, transparent);
     border-radius: 8px;
     background: color-mix(in srgb, var(--app-bg) 60%, transparent);
 }

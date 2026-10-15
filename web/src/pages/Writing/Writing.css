@@ -58,6 +58,12 @@
   font-size: 0.7rem;
 }
 
+/* Light: on card hover the eyebrow is fg-muted, still secondary to the title; green falls below 4.5:1 where the
+   background shows through the hover tint. */
+[data-theme="light"] .writing-card:hover .writing-card-eyebrow {
+  color: var(--fg-muted);
+}
+
 /* Reading-order hint for essays that belong to a sequence. The feed stays
    newest-first; this only makes the intended order legible on the card. */
 .writing-card-series {
@@ -92,6 +98,11 @@
   color: var(--brand-primary);
   font-size: 0.85rem;
   font-weight: 650;
+}
+
+/* Light: on card hover the label is fg; green falls below 4.5:1 where the background shows through the hover tint. */
+[data-theme="light"] .writing-card:hover .writing-card-link {
+  color: var(--fg);
 }
 
 @media (max-width: 480px) {

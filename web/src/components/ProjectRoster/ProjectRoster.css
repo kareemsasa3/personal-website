@@ -235,6 +235,12 @@ with globally bundled card/badge styles.
     color: var(--roster-accent);
 }
 
+/* Light: the accent on its own tint is below 4.5:1, so the label takes fg at rest and on hover. */
+[data-theme="light"] .project-roster__action--primary,
+[data-theme="light"] .project-roster__action--primary:hover {
+    color: var(--fg);
+}
+
 .project-roster__toggle:focus-visible,
 .project-roster__action:focus-visible {
     outline: 2px solid var(--roster-accent);

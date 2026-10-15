@@ -242,54 +242,6 @@ template {
 
 /* Custom Properties */
 :root {
-  --app-bg: #1a1a1a;
-  --app-bg-secondary: #2d2d2d;
-  --app-surface: #2d2d2d;
-  --app-surface-elevated: #404040;
-  --app-overlay: rgba(26, 26, 26, 0.88);
-  --app-text: #f8f9fa;
-  --app-text-secondary: #adb5bd;
-  --app-text-muted: #a0a8b0;
-  --app-border: #495057;
-  --app-shadow: rgba(0, 0, 0, 0.3);
-  --brand-primary: #4CAF50;
-  --brand-primary-soft: #81C784;
-  --brand-primary-medium: #66BB6A;
-  --brand-primary-dark: #388E3C;
-  --bg-canvas-fill: #0f0f0f;
-  --bg-canvas-glyph: 0, 255, 0;
-  --bg-glow-color: rgba(108, 117, 125, 0.10);
-  --bg-grid-major: rgba(129, 199, 132, 0.08);
-  --bg-grid-minor: rgba(129, 199, 132, 0.03);
-  --bg-topology: rgba(129, 199, 132, 0.12);
-  --bg-signal: rgba(129, 199, 132, 0.16);
-  --bg-center-lift: rgba(255, 255, 255, 0.03);
-  --bg-vignette: rgba(0, 0, 0, 0.18);
-
-  /* Color Palette */
-  --primary-color: var(--brand-primary);
-  --primary-color-light: var(--brand-primary-soft);
-  --primary-color-medium: var(--brand-primary-medium);
-  --overlay-color-light: rgba(0, 0, 0, 0.8);
-  --overlay-color-medium: rgba(0, 0, 0, 0.9);
-  --primary-color-dark: var(--brand-primary-dark);
-  --accent-color: #FFD700;
-
-  /* Theme colors - kept as aliases for compatibility */
-  --background-color: var(--app-bg);
-  --background-color-secondary: var(--app-bg-secondary);
-  --background-color-tertiary: var(--app-surface-elevated);
-  --background-color-transparent: rgba(26, 26, 26, 0.7);
-  --background-color-overlay: rgba(26, 26, 26, 0.95);
-  --card-background: var(--app-surface);
-  --panel-bg-color: var(--app-surface);
-  --text-color: var(--app-text);
-  --text-color-secondary: var(--app-text-secondary);
-  --text-secondary: var(--text-color-secondary);
-  --text-color-muted: var(--app-text-muted);
-  --text-muted-color: var(--app-text-muted);
-  --border-color: var(--app-border);
-  --shadow-color: var(--app-shadow);
 
   /* Typography - Updated to use system UI fonts for better performance and readability */
   --font-family-primary: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';

@@ -64,7 +64,7 @@
 .error-button.secondary {
     background: transparent;
     color: var(--text-color);
-    border: 2px solid var(--border-color);
+    border: 2px solid var(--edge);
 }
 
 .error-button.secondary:hover {

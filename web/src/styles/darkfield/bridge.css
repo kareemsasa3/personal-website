@@ -1,0 +1,77 @@
+/* web/src/styles/darkfield/bridge.css
+   Darkfield bridge: the site's legacy variables re-pointed at Darkfield roles (§05), so every
+   existing surface follows data-theme. Values live in tokens.css. Variables whose re-pointing
+   would mislead or reach creative content keep their legacy values inside the legacy fence;
+   later phases remove them. Remove an alias once nothing reads it. */
+:root {
+  /* Grounds and surfaces. */
+  --app-bg: var(--field);
+  --app-bg-secondary: var(--surface-1);
+  --app-surface: var(--surface-1);
+  --app-surface-elevated: var(--surface-2);
+  --app-overlay: color-mix(in srgb, var(--field) 88%, transparent);
+
+  /* Text. fg-faint is reserved for annotations (§06), so both old muted levels map to fg-muted. */
+  --app-text: var(--fg);
+  --app-text-secondary: var(--fg-muted);
+  --app-text-muted: var(--fg-muted);
+
+  /* Seams are rule (L1). Control boundaries use var(--edge) directly (L2, §13 Idle). */
+  --app-border: var(--rule);
+
+  /* Signal at rest; full signal is for live, active, current, focus, new (§05). */
+  --brand-primary: var(--signal-dim);
+  --brand-primary-medium: var(--signal-dim);
+  --brand-primary-soft: var(--signal-deep);
+  --brand-primary-dark: var(--signal-deep);
+
+  --primary-color: var(--brand-primary);
+  --primary-color-light: var(--brand-primary-soft);
+  --primary-color-medium: var(--brand-primary-medium);
+  --primary-color-dark: var(--brand-primary-dark);
+
+  --background-color: var(--app-bg);
+  --background-color-secondary: var(--app-bg-secondary);
+  --background-color-tertiary: var(--app-surface-elevated);
+  --card-background: var(--app-surface);
+  --panel-bg-color: var(--app-surface);
+  --text-color: var(--app-text);
+  --text-color-secondary: var(--app-text-secondary);
+  --text-secondary: var(--app-text-secondary);
+  --text-color-muted: var(--app-text-muted);
+  --text-muted-color: var(--app-text-muted);
+  --border-color: var(--app-border);
+  --shadow-color: var(--app-shadow);
+
+  --bg-canvas-fill: var(--field);
+}
+
+/* Held legacy values, carried over unchanged from index.css and ThemeContext.tsx at a16c70f.
+   accent: read by Snake's native visuals and by two buttons with a recorded 1.40:1 deficiency (Phase 3).
+   app-shadow: read by Annals' native panel; shadow removal is Phase 2.
+   bg-*: atmosphere, re-derived in Phase 2. Mono inherits the :root (dark) values unless overridden. */
+/* legacy:start */
+:root,
+[data-theme="dark"] {
+  --accent-color: #FFD700;
+  --app-shadow: rgba(0, 0, 0, 0.3);
+  --bg-glow-color: rgba(108, 117, 125, 0.10);
+  --bg-grid-major: rgba(129, 199, 132, 0.08);
+  --bg-grid-minor: rgba(129, 199, 132, 0.03);
+  --bg-topology: rgba(129, 199, 132, 0.12);
+  --bg-signal: rgba(129, 199, 132, 0.16);
+  --bg-center-lift: rgba(255, 255, 255, 0.03);
+  --bg-vignette: rgba(0, 0, 0, 0.18);
+}
+
+[data-theme="light"] {
+  --app-shadow: rgba(0, 0, 0, 0.08);
+  --bg-glow-color: rgba(106, 106, 106, 0.10);
+  --bg-grid-major: rgba(0, 0, 0, 0.11);
+  --bg-grid-minor: rgba(0, 0, 0, 0.055);
+  --bg-topology: rgba(42, 115, 49, 0.16);
+  --bg-signal: rgba(42, 115, 49, 0.08);
+  --bg-center-lift: rgba(255, 255, 255, 0.18);
+  --bg-vignette: rgba(18, 24, 32, 0.06);
+}
+/* legacy:end */

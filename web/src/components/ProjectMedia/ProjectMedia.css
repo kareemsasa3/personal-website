@@ -31,7 +31,7 @@
 .project-media__control {
   min-height: 1.6rem;
   padding: 0 0.5rem;
-  border: 1px solid color-mix(in srgb, var(--border-color) 80%, transparent);
+  border: 1px solid color-mix(in srgb, var(--edge) 80%, transparent);
   border-radius: 4px;
   background: transparent;
   color: var(--text-secondary);
@@ -59,6 +59,13 @@
 .project-media__control[aria-pressed="true"] {
   border-color: var(--primary-color);
   color: var(--primary-color);
+}
+
+/* Light: the bar stays #181818 (the recordings' letterbox), where no text token reaches 4.5:1.
+   Its label and controls take the field token in every state (owner-approved exception). */
+[data-theme="light"] .project-media__bar .project-media__label,
+[data-theme="light"] .project-media__bar .project-media__control {
+  color: var(--field);
 }
 
 /* Caption sits on the theme surface so it stays legible in both themes. */

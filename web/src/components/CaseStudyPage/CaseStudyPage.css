@@ -271,6 +271,11 @@
   font-weight: 700;
 }
 
+/* Light: on card hover the label is fg; green falls below 4.5:1 where the background shows through the hover tint. */
+[data-theme="light"] .case-study-card:hover .case-study-card-link {
+  color: var(--fg);
+}
+
 @media (max-width: 768px) {
   .case-study-title {
     font-size: clamp(2rem, 10vw, 3rem);

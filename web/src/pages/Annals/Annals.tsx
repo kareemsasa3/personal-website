@@ -213,7 +213,7 @@ export default function Annals() {
           <div className="flex items-end justify-between flex-wrap gap-3">
             <div>
               <h1 className="text-4xl tracking-tight font-bold">The Annals</h1>
-              <p className="text-stone-600 text-sm mt-1">
+              <p data-df-region="native" className="text-stone-600 text-sm mt-1">
                 a world that writes its own history · <span className="font-mono">history = f(seed, your hand)</span>
               </p>
             </div>
@@ -282,13 +282,13 @@ export default function Annals() {
             </h2>
 
             {fork.fates.length === 0 && fork.houses.length === 0 ? (
-              <p className="text-stone-500 italic font-serif">Your hand bent the same arcs. No fates diverged — yet.</p>
+              <p data-df-region="native" className="text-stone-500 italic font-serif">Your hand bent the same arcs. No fates diverged — yet.</p>
             ) : (
               <>
                 {fork.fates.length > 0 && (
                   <div className="mb-3">
                     <h3 className="text-xs uppercase tracking-widest text-stone-500 mb-1.5">Fates That Diverged</h3>
-                    <div className="space-y-1.5">
+                    <div data-df-region="native" className="space-y-1.5">
                       {fork.fates.map((f: ForkFate, i: number) => (
                         <div key={i}>
                           <span className="font-semibold">{f.name}</span>
@@ -344,7 +344,7 @@ export default function Annals() {
           <section>
             <h2 className="text-xs uppercase tracking-widest text-stone-500 mb-2">The Chronicle</h2>
             <div className="annals-chronicle bg-stone-50/70 border border-stone-300 rounded p-4 h-[460px] overflow-y-auto font-mono text-[13px] leading-relaxed flex flex-col-reverse">
-              <div>
+              <div data-df-region="native">
                 {world.chronicle.map((e: ChronicleEvent, i: number) => (
                   <div key={i} className="mb-1.5">
                     <span className="text-stone-400 select-none mr-2">{String(e.year).padStart(3, "·")}</span>
@@ -409,7 +409,7 @@ export default function Annals() {
             {/* feuds */}
             <h2 className="text-xs uppercase tracking-widest text-stone-500 mb-2">Standing Feuds</h2>
             {feuds.length ? (
-              <div className="space-y-1">
+              <div data-df-region="native" className="space-y-1">
                 {feuds.map(([k, v]) => {
                   const [h1, h2] = k.split("|");
                   return (
@@ -420,7 +420,7 @@ export default function Annals() {
                   );
                 })}
               </div>
-            ) : <p className="text-sm text-stone-400">None yet. Give it time.</p>}
+            ) : <p data-df-region="native" className="text-sm text-stone-400">None yet. Give it time.</p>}
 
             {/* intervention log */}
             {world.interventions.length > 0 && (

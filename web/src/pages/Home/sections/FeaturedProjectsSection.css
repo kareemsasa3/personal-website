@@ -68,6 +68,11 @@
   font-weight: 700;
 }
 
+/* Light: on card hover the label is fg; green falls below 4.5:1 where the background shows through the hover tint. */
+[data-theme="light"] .featured-project-link:hover .featured-project-link-text {
+  color: var(--fg);
+}
+
 .featured-projects-cta {
   display: flex;
   justify-content: center;

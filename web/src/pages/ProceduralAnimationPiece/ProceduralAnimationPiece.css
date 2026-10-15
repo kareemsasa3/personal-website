@@ -47,7 +47,7 @@ html:has(.animation-piece) {
 
 .animation-piece__control:hover {
   color: var(--brand-primary);
-  border-color: var(--app-border);
+  border-color: var(--edge);
 }
 
 .animation-piece__control:focus-visible,

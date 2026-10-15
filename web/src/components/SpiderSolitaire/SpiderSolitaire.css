@@ -1,3 +1,7 @@
+/* Native playfield colour, held at its pre-Darkfield value until D6 classifies it. */
+.spider-solitaire { --spider-empty-column-border: #495057; }
+[data-theme="light"] .spider-solitaire { --spider-empty-column-border: #cfcec8; }
+
 .spider-solitaire {
   width: 100%;
   height: 100%;
@@ -180,6 +184,6 @@
     font-size: 0.8rem;
   }
 }
-.spider-column:empty { min-height: 0; height: auto; aspect-ratio: 5 / 7; border: 1px dashed var(--app-border); }
+.spider-column:empty { min-height: 0; height: auto; aspect-ratio: 5 / 7; border: 1px dashed var(--spider-empty-column-border); }
 .spider-stats, .spider-actions { flex-wrap: wrap; gap: .75rem; }
 @media (prefers-reduced-motion: reduce) { .spider-card, .spider-button { transition: none; } }

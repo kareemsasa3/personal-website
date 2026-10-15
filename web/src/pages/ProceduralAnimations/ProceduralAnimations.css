@@ -75,6 +75,11 @@
   font-weight: 650;
 }
 
+/* Light: on card hover the label is fg; green falls below 4.5:1 where the background shows through the hover tint. */
+[data-theme="light"] .procedural-animations-card:hover .procedural-animations-card__link {
+  color: var(--fg);
+}
+
 @media (max-width: 480px) {
   .procedural-animations-grid {
     grid-template-columns: 1fr;

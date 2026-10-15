@@ -146,7 +146,7 @@
 .modal-button-secondary {
     background: color-mix(in srgb, var(--app-surface) 80%, transparent);
     color: var(--app-text);
-    border: 1px solid var(--app-border);
+    border: 1px solid var(--edge);
 }
 
 .modal-button-secondary:hover {
