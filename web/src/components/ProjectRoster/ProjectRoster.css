@@ -26,7 +26,7 @@ with globally bundled card/badge styles.
     padding: 0;
     list-style: none;
     border-bottom: 1px solid var(--roster-rule);
-    font-family: var(--terminal-font, 'Courier New', 'Monaco', 'Menlo', monospace);
+    font-family: var(--font-family-mono);
     color: var(--text-color);
 }
 

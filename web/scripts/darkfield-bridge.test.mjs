@@ -56,3 +56,30 @@ test("no text colour reads an alias that resolves to a ground", async () => {
     assert.doesNotMatch(css, new RegExp(`(?<![-\\w])color:\\s*var\\(--(${GROUND_ALIASES})\\b`), file);
   }
 });
+
+// Held for D6 (native-visual or preview typography) and Annals (creative): file → selector.
+const FONT_HOLDS = [
+  ["components/SnakeGame/SnakeGame.css", ".game-scores"],
+  ["components/SnakeGame/SnakeGame.css", ".game-over-content"],
+  ["components/SpiderSolitaire/SpiderSolitaire.css", ".spider-solitaire"],
+  ["components/RhythmLab/RhythmLab.css", ".rhythm-lab"],
+  ["components/SimulationCard/SimulationCard.css", ".spider-preview-card-face"],
+];
+test("site CSS names fonts only through the Darkfield families, except recorded holds", async () => {
+  const legacyStack = /(font-family|--terminal-font):[^;]*(Courier New|Monaco|Menlo|Ubuntu Mono|ui-monospace|-apple-system)[^;]*;/g;
+  for (const file of await cssFiles()) {
+    if (file.startsWith("pages/Annals/") || file === "styles/darkfield/tokens.css") continue;
+    const css = await read(`src/${file}`);
+    for (const rule of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+      if (!legacyStack.test(rule[2])) continue;
+      legacyStack.lastIndex = 0;
+      const selector = rule[1].trim().split(/\s*\n\s*/).pop();
+      assert.ok(FONT_HOLDS.some(([f, s]) => f === file && selector.endsWith(s)), `${file} ${selector}`);
+    }
+    legacyStack.lastIndex = 0;
+  }
+  assert.doesNotMatch(await read("index.html"), /font-family:[^;]*-apple-system/, "index.html route shell");
+  const bridge = await read("src/styles/darkfield/bridge.css");
+  assert.match(bridge, /--font-family-primary: var\(--font-sans\);/);
+  assert.match(bridge, /--font-family-mono: var\(--font-mono\);/);
+});

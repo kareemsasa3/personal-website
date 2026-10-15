@@ -14,7 +14,7 @@
   flex-direction: column;
   gap: 1rem;
   color: var(--text-color, #ffffff);
-  font-family: var(--terminal-font, "Courier New", Monaco, monospace);
+  font-family: "Courier New", Monaco, monospace;
 }
 
 .spider-header {

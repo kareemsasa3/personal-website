@@ -36,7 +36,7 @@
   height: 100vh;
   background: transparent;
   color: var(--terminal-text-primary);
-  font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
+  font-family: var(--font-family-mono);
   overflow: hidden;
   display: flex;
   align-items: center;

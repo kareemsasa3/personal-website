@@ -4,6 +4,10 @@
    would mislead or reach creative content keep their legacy values inside the legacy fence;
    later phases remove them. Remove an alias once nothing reads it. */
 :root {
+  /* Three voices (§06): Narrator sans, Machine mono. Instrument (narrow) is applied per element in Phase 3. */
+  --font-family-primary: var(--font-sans);
+  --font-family-mono: var(--font-mono);
+
   /* Grounds and surfaces. */
   --app-bg: var(--field);
   --app-bg-secondary: var(--surface-1);

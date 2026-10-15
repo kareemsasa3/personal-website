@@ -4,7 +4,7 @@
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
+    font-family: var(--font-family-mono);
 }
 
 .terminal-dropdown-label {
@@ -30,7 +30,7 @@
     background: transparent;
     color: var(--terminal-primary, #4CAF50);
     font-size: 0.9rem;
-    font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
+    font-family: var(--font-family-mono);
     cursor: pointer;
     transition: all 0.3s ease;
     display: flex;
@@ -144,7 +144,7 @@
     background: transparent;
     border: none;
     color: var(--terminal-text-light, #ffffff);
-    font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
+    font-family: var(--font-family-mono);
     font-size: 0.9rem;
     text-align: left;
     cursor: pointer;

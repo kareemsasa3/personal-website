@@ -97,7 +97,7 @@
     padding: 1rem;
     background: var(--background-secondary);
     color: var(--text-secondary);
-    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-family: var(--font-family-mono);
     font-size: 0.875rem;
     line-height: 1.4;
     white-space: pre-wrap;
@@ -130,7 +130,7 @@
     background: rgba(255, 107, 107, 0.1);
     border-left: 3px solid #ff6b6b;
     color: #ff6b6b;
-    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-family: var(--font-family-mono);
     font-size: 0.875rem;
     margin-bottom: 1rem;
 }

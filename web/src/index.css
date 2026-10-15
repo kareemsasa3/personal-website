@@ -243,10 +243,6 @@ template {
 /* Custom Properties */
 :root {
 
-  /* Typography - Updated to use system UI fonts for better performance and readability */
-  --font-family-primary: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
-  --font-family-mono: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
-
   /* Spacing */
   --spacing-xs: 0.5rem;
   --spacing-sm: 1rem;

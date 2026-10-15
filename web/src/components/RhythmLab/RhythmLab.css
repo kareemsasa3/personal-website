@@ -10,7 +10,7 @@
   grid-template-rows: auto minmax(0, 1fr);
   gap: clamp(0.75rem, 1.6vw, 1.25rem);
   color: var(--text-color, #ffffff);
-  font-family: var(--terminal-font, "Courier New", Monaco, monospace);
+  font-family: "Courier New", Monaco, monospace;
   outline: none;
   overflow: hidden;
 }

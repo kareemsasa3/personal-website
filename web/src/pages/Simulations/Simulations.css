@@ -5,7 +5,7 @@
 [data-theme="light"] .simulations-container { --terminal-primary: var(--brand-primary); }
 
 :root {
-    --terminal-font: 'Courier New', 'Monaco', 'Menlo', monospace;
+    --terminal-font: var(--font-family-mono);
 }
 
 /* Light theme overrides for Simulations page */

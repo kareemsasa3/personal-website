@@ -1074,6 +1074,50 @@ if (MODE === "check") {
     control(without?.ratio === null && without.skipped?.length === 2 && !without.runs?.length && rest?.runs?.length === 2 && !rest.skipped,
       `re-entry is not honoured: without ${without?.runs?.length ?? 0} measured, ${without?.skipped?.length ?? 0} skipped; at rest ${rest?.runs?.length ?? 0} measured, ${rest?.skipped?.length ?? 0} skipped`);
   });
+  await withPage({ theme: "dark" }, async (page) => {
+    for (const file of ["Archivo-Variable-Latin", "ArchivoNarrow-Latin-600", "IBMPlexMono-Regular"]) {
+      const response = await page.request.get(`${base}/fonts/darkfield/${file}.woff2`);
+      invariant(response.status() === 200, `${file}.woff2 not served (${response.status()})`);
+    }
+    const fonts = await page.evaluate(async () => ({
+      body: getComputedStyle(document.body).fontFamily,
+      archivo: (await document.fonts.load('15px "Archivo"')).length,
+      plexMono: (await document.fonts.load('13px "IBM Plex Mono"')).length,
+    }));
+    invariant(/^"?Archivo"?,/.test(fonts.body), `body is set in ${fonts.body}`);
+    invariant(fonts.archivo > 0 && fonts.plexMono > 0, "Darkfield faces did not load");
+  });
+  // Font holds (Task 4 fix): the three held declarations that read --terminal-font keep the stack their
+  // direct load renders, however the route is reached. Simulations.css and Projects.css define
+  // --terminal-font on :root once their chunk loads, so client-side arrivals must not pick it up.
+  {
+    const HELD_FONTS = [
+      { route: "/simulations", selector: ".spider-preview-card-face", stack: '"Courier New", Monaco, Menlo, monospace' },
+      { route: "/simulations/spider", selector: ".spider-solitaire", stack: '"Courier New", Monaco, monospace' },
+      { route: "/simulations/rhythm-lab", selector: ".rhythm-lab", stack: '"Courier New", Monaco, monospace' },
+    ];
+    const click = async (page, href) => {
+      await page.locator(`a[href="${href}"]:visible`).first().click();
+      await page.waitForURL((url) => url.pathname.replace(/\/$/, "") === href);
+      await page.waitForLoadState("networkidle");
+    };
+    const FONT_PATHS = [
+      { name: "direct", start: (route) => route },
+      { name: "/simulations, card", start: () => "/simulations", go: (page, route) => click(page, route) },
+      { name: "/projects, /simulations, card", start: () => "/projects", go: async (page, route) => { await click(page, "/simulations"); await click(page, route); } },
+    ];
+    for (const { route, selector, stack } of HELD_FONTS) {
+      for (const path of FONT_PATHS) {
+        if (route === "/simulations" && path.go) continue;
+        await withPage({ theme: "dark", route: path.start(route) }, async (page) => {
+          if (path.go) await path.go(page, route);
+          await page.locator(selector).first().waitFor();
+          const family = await page.evaluate((s) => getComputedStyle(document.querySelector(s)).fontFamily, selector);
+          invariant(family === stack, `${selector} via ${path.name} is set in ${family}, not its held stack ${stack}`);
+        });
+      }
+    }
+  }
   // Task 4 and Task 6 add their invariants here.
 }
 

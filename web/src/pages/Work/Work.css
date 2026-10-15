@@ -26,7 +26,7 @@
     margin: 0;
     padding-left: 1rem;
     position: relative;
-    font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
+    font-family: var(--font-family-mono);
     white-space: nowrap;
     text-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
 }
@@ -48,7 +48,7 @@
     max-width: 620px;
     margin: 1.5rem auto 0;
     color: var(--text-secondary);
-    font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
+    font-family: var(--font-family-mono);
     font-size: 1rem;
     line-height: 1.7;
 }
@@ -182,7 +182,7 @@
     border: 1px solid var(--border-color);
     border-radius: 12px;
     background: var(--background-color);
-    font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
+    font-family: var(--font-family-mono);
 }
 
 .work-contact-eyebrow {

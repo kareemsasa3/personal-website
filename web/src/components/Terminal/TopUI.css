@@ -10,7 +10,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
+    font-family: var(--font-family-mono);
 }
 
 .top-container {

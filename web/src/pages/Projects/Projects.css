@@ -16,7 +16,7 @@ primary comprehension layer.
 [data-theme="light"] .tech-stack-modal { --terminal-primary: var(--brand-primary); }
 
 :root {
-    --terminal-font: 'Courier New', 'Monaco', 'Menlo', monospace;
+    --terminal-font: var(--font-family-mono);
 }
 
 [data-theme="light"] {

@@ -39,7 +39,7 @@
     /* Higher than settings overlay (9999) and panel (10000) */
 
     /* Terminal-inspired styling */
-    font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
+    font-family: var(--font-family-mono);
 
     /* Ensure dock stays within viewport bounds */
     transform-origin: bottom center;
@@ -71,7 +71,7 @@
     pointer-events: none;
     border: 1px solid var(--border-color);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
+    font-family: var(--font-family-mono);
 }
 
 .dock-tooltip::after {

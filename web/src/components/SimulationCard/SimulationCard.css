@@ -70,7 +70,7 @@
     text-align: center;
     font-weight: 700;
     text-shadow: 0 0 10px var(--terminal-primary, #4CAF50);
-    font-family: var(--terminal-font, 'Courier New', 'Monaco', 'Menlo', monospace);
+    font-family: var(--font-family-mono);
 }
 
 .simulation-card-badge {
@@ -84,7 +84,7 @@
     border-radius: 999px;
     color: var(--terminal-primary, #4CAF50);
     background: rgba(0, 255, 0, 0.08);
-    font-family: var(--terminal-font, 'Courier New', 'Monaco', 'Menlo', monospace);
+    font-family: var(--font-family-mono);
     font-size: 0.75rem;
     font-weight: 700;
     line-height: 1.2;
@@ -252,7 +252,7 @@
     padding: 5px;
     color: rgba(0, 255, 0, 0.9);
     background: rgba(235, 245, 235, 0.9);
-    font-family: var(--terminal-font, 'Courier New', 'Monaco', 'Menlo', monospace);
+    font-family: "Courier New", Monaco, Menlo, monospace;
     font-size: 0.85rem;
     font-weight: 700;
 }
@@ -411,7 +411,7 @@
     transition: transform var(--transition-normal), box-shadow var(--transition-normal);
     border: none;
     cursor: pointer;
-    font-family: var(--terminal-font, 'Courier New', 'Monaco', 'Menlo', monospace);
+    font-family: var(--font-family-mono);
     box-shadow: 0 4px 12px var(--shadow-color);
 }
 

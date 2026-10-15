@@ -3,7 +3,7 @@
   max-width: 1280px;
   margin: 0 auto;
   min-width: 0;
-  font-family: "Courier New", "Monaco", "Menlo", monospace;
+  font-family: var(--font-family-mono);
 }
 
 .procedural-animations-container > * + * {
