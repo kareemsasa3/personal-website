@@ -34,7 +34,7 @@ export default function RoadCanvas({ engine, playing, revision }: RoadCanvasProp
         element.height = h;
       }
       context.setTransform(dpr, 0, 0, dpr, 0, 0);
-      drawRoad(context, engine.current, layout, width, theme);
+      drawRoad(context, engine.current, layout, width, theme === "light" ? "light" : "dark");
     };
     const resize = new ResizeObserver(([entry]) => {
       width = entry.contentRect.width;

@@ -53,8 +53,8 @@ const TimelineItem: React.FC<TimelineItemProps> = ({ data, isLeft }) => {
     if (typeof image === "string") {
       return { preferred: image, fallback: null as string | null };
     }
-    const preferred = theme === "dark" ? image.dark : image.light;
-    const fallback = theme === "dark" ? image.light : image.dark;
+    const preferred = theme === "light" ? image.light : image.dark;
+    const fallback = theme === "light" ? image.dark : image.light;
     return { preferred, fallback };
   }, [image, theme]);
 

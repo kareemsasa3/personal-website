@@ -2,7 +2,7 @@ import React, { useState, useLayoutEffect, ReactNode } from "react";
 import { ThemeContext } from "./ThemeContextTypes";
 
 // Export the Theme type
-export type Theme = "light" | "dark";
+export type Theme = "light" | "dark" | "mono";
 
 const THEME_STORAGE_KEY = "theme";
 const THEME_SWITCHING_CLASS = "theme-switching";
@@ -10,7 +10,7 @@ const THEME_SWITCHING_CLASS = "theme-switching";
 const resolveInitialTheme = (): Theme => {
   try {
     const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
-    if (savedTheme === "light" || savedTheme === "dark") {
+    if (savedTheme === "light" || savedTheme === "dark" || savedTheme === "mono") {
       return savedTheme;
     }
   } catch {

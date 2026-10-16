@@ -58,17 +58,17 @@ export function drawField(
   view: View,
   selected: string,
   trails: boolean,
-  theme: "dark" | "light",
+  theme: "dark" | "light" | "mono",
 ) {
   const { width, height, scale } = view;
-  const ink = theme === "dark" ? "#bec9c3" : "#34483c";
-  ctx.fillStyle = theme === "dark" ? "#101a16" : "#f5faf6";
+  const ink = theme === "light" ? "#34483c" : "#bec9c3";
+  ctx.fillStyle = theme === "light" ? "#f5faf6" : "#101a16";
   ctx.fillRect(0, 0, width, height);
   // An AU grid and scale bar make zoom and distance interpretable.
   const raw = 80 / scale;
   const base = 10 ** Math.floor(Math.log10(raw));
   const spacing = [1, 2, 5, 10].find((n) => n * base >= raw)! * base;
-  ctx.strokeStyle = theme === "dark" ? "#25392e" : "#d8e4db";
+  ctx.strokeStyle = theme === "light" ? "#d8e4db" : "#25392e";
   ctx.lineWidth = 1;
   ctx.beginPath();
   const left = view.center.x - width / (2 * scale),
@@ -94,7 +94,7 @@ export function drawField(
   ctx.stroke();
   if (trails)
     engine.trails.forEach((trail, i) => {
-      ctx.strokeStyle = colors[theme][engine.bodies[i].color];
+      ctx.strokeStyle = colors[theme === "light" ? "light" : "dark"][engine.bodies[i].color];
       ctx.globalAlpha = 0.55;
       ctx.lineWidth = 1.3;
       ctx.beginPath();
@@ -128,7 +128,7 @@ export function drawField(
       offscreen++;
       return;
     }
-    ctx.fillStyle = colors[theme][b.color];
+    ctx.fillStyle = colors[theme === "light" ? "light" : "dark"][b.color];
     ctx.beginPath();
     ctx.arc(p.x, p.y, b.radius, 0, 2 * Math.PI);
     ctx.fill();

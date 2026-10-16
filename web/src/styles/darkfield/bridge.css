@@ -79,3 +79,13 @@
   --bg-vignette: rgba(18, 24, 32, 0.06);
 }
 /* legacy:end */
+
+[data-theme="mono"] {
+  --bg-glow-color: transparent;
+  --bg-grid-major: color-mix(in srgb, var(--fg) 6%, transparent);
+  --bg-grid-minor: transparent;
+  --bg-topology: transparent;
+  --bg-signal: transparent;
+  --bg-center-lift: transparent;
+  --bg-vignette: transparent;
+}

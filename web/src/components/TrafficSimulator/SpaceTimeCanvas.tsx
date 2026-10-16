@@ -55,7 +55,7 @@ export default function SpaceTimeCanvas({ engine, playing, revision }: SpaceTime
         element.height = h;
       }
       context.setTransform(dpr, 0, 0, dpr, 0, 0);
-      drawSpaceTime(context, engine.current, width, theme, dots);
+      drawSpaceTime(context, engine.current, width, theme === "light" ? "light" : "dark", dots);
       drawn = latest;
       drawnWidth = width;
     };

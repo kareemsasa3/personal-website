@@ -16,7 +16,7 @@ export interface UserSettings {
 
   // Theme can be included in exported settings, but runtime ownership
   // lives in ThemeContext rather than this persistence utility.
-  theme?: "light" | "dark";
+  theme?: "light" | "dark" | "mono";
 }
 
 // Default settings
@@ -171,7 +171,7 @@ export const setSettingsOpen = (open: boolean) => {
 
 // Get all non-theme settings. Theme can be passed in by the caller when exporting.
 export const getAllSettings = (
-  theme?: "light" | "dark"
+  theme?: "light" | "dark" | "mono"
 ): UserSettings => {
   return {
     ...DEFAULT_SETTINGS,
@@ -222,7 +222,7 @@ export function parseSettingsImport(value: unknown): Partial<UserSettings> {
     result[key] = supplied;
   }
   if (data.theme !== undefined) {
-    if (data.theme !== "dark" && data.theme !== "light") throw new Error("Invalid theme");
+    if (data.theme !== "dark" && data.theme !== "light" && data.theme !== "mono") throw new Error("Invalid theme");
     result.theme = data.theme;
   }
   if (data.navMode !== undefined) {
