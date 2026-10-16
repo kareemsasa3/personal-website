@@ -148,7 +148,7 @@ TABLE OF CONTENTS
   height: 3px;
   background: linear-gradient(90deg, var(--primary-color), #000000);
   border-radius: 2px;
-  animation: titleUnderlineScale 2s ease-in-out infinite alternate;
+  transform: translateX(-50%);
 }
 
 
@@ -156,27 +156,6 @@ TABLE OF CONTENTS
    4. ANIMATIONS & KEYFRAMES
    ======================================== */
 
-@keyframes titleUnderlineScale {
-  from {
-    transform: translateX(-50%) scaleX(0.75);
-    opacity: 0.7;
-  }
-
-  to {
-    transform: translateX(-50%) scaleX(1);
-    opacity: 1;
-  }
-}
-
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0px);
-  }
-
-  50% {
-    transform: translateY(-10px);
-  }
-}
 
 
 /* ========================================

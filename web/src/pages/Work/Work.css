@@ -36,11 +36,10 @@
     bottom: -10px;
     left: 50%;
     transform: translateX(-50%);
-    width: 60px;
+    width: 80px;
     height: 3px;
     background: linear-gradient(90deg, var(--primary-color), #000000);
     border-radius: 2px;
-    animation: titleUnderline 2s ease-in-out infinite alternate;
 }
 
 .work-subtitle {
@@ -50,18 +49,6 @@
     font-family: var(--font-family-mono);
     font-size: 1rem;
     line-height: 1.7;
-}
-
-@keyframes titleUnderline {
-    0% {
-        width: 60px;
-        opacity: 0.7;
-    }
-
-    100% {
-        width: 80px;
-        opacity: 1;
-    }
 }
 
 /* Timeline Layout */

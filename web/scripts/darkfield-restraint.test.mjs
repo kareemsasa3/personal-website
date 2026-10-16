@@ -194,3 +194,22 @@ test("T9 framer: no springs, overshoot, hover scale, parallax or literal timing;
   }
   assert.deepEqual(bad, []);
 });
+
+// Terminal cursor and top-row motion: the Phase 5 terminal task. Native keyframes: D6 ruling.
+const KEYFRAME_HANDOFF = { "components/Terminal/TerminalView.css": ["blink"], "components/Terminal/VimUI.css": ["blink"], "components/Terminal/TopUI.css": ["processUpdate"] };
+const NATIVE_KEYFRAMES = { "components/SnakeGame/SnakeGame.css": ["pulse"], "components/SimulationCard/SimulationCard.css": ["snakeMove", "pulse", "rhythmPreviewDrift"], "components/RhythmLab/RhythmLab.css": ["rhythmLabHitBurst", "rhythmLabJudgmentReadout"] };
+test("T10 keyframes: each governed @keyframes is annotated and timed by tokens", async () => {
+  const bad = [];
+  for (const f of await governed(".css")) {
+    const css = await read(f);
+    const skip = [...(KEYFRAME_HANDOFF[f] ?? []), ...(NATIVE_KEYFRAMES[f] ?? [])];
+    for (const m of css.matchAll(/@keyframes\s+([\w-]+)/g)) {
+      if (skip.includes(m[1])) continue;
+      if (!/§12:[^*]*\*\/\s*$/.test(css.slice(Math.max(0, m.index - 240), m.index))) bad.push(`${f}: @keyframes ${m[1]} lacks a §12 annotation`);
+      for (const d of declarations(css).filter((x) => x.prop === "animation" && new RegExp(`\\b${m[1]}\\b`).test(x.value))) {
+        if (!/var\(--dur-/.test(d.value) || !/var\(--ease-/.test(d.value)) bad.push(`${where({ file: f, ...d })} not timed by tokens`);
+      }
+    }
+  }
+  assert.deepEqual(bad, []);
+});

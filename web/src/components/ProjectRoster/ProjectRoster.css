@@ -248,19 +248,13 @@ with globally bundled card/badge styles.
 }
 
 .project-roster__detail:not([hidden]) {
-    animation: project-roster-reveal 0.2s ease-out;
+    animation: project-roster-reveal var(--dur-base) var(--ease-settle);
 }
 
+/* §12: state transition (create) · project detail opened */
 @keyframes project-roster-reveal {
-    from {
-        opacity: 0;
-        transform: translateY(-6px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 .project-roster__description {

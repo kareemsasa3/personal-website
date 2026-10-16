@@ -176,22 +176,7 @@
 .sidecar-icon {
   font-size: 24px;
   color: var(--terminal-text-primary);
-  animation: pulse 2s infinite;
   transition: color 0.3s ease;
-}
-
-.sidecar-icon:hover {
-  animation: none;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-
-  50% {
-    opacity: 0.7;
-  }
 }
 
 /* Responsive Design */

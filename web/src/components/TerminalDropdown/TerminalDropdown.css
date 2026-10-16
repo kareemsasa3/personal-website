@@ -90,19 +90,13 @@
     z-index: 1000;
     max-height: 300px;
     overflow: hidden;
-    animation: dropdownSlideDown 0.2s ease-out;
+    animation: dropdownSlideDown var(--dur-base) var(--ease-settle);
 }
 
+/* §12: state transition (create) · dropdown opened */
 @keyframes dropdownSlideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 .terminal-dropdown-header {
