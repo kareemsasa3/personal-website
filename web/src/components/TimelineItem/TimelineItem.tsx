@@ -19,8 +19,10 @@ const TimelineItem: React.FC<TimelineItemProps> = ({ data, isLeft }) => {
   const reduceMotion = useReducedMotion();
 
   const flipVariants = {
-    front: { rotateY: 0 },
-    back: { rotateY: 180 },
+    // §12: state transition (reveal) · card turned to its image
+    back: { rotateY: 180, transition: reduceMotion ? INSTANT : motionToken("--dur-base", "--ease-settle") },
+    // §12: state transition (conceal) · card turned back to its text
+    front: { rotateY: 0, transition: reduceMotion ? INSTANT : motionToken("--dur-fast", "--ease-depart") },
   };
 
   const handleMouseEnter = () => {
@@ -97,8 +99,6 @@ const TimelineItem: React.FC<TimelineItemProps> = ({ data, isLeft }) => {
           className="timeline-flip-card"
           variants={flipVariants}
           animate={isFlipped ? "back" : "front"}
-          // §12: state transition (reveal) · card turned to its image
-          transition={reduceMotion ? INSTANT : motionToken("--dur-base", "--ease-standard")}
           style={{ transformStyle: "preserve-3d" }}
         >
           {/* Front of card */}

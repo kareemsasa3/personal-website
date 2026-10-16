@@ -106,7 +106,7 @@ const Toast: React.FC<ToastProps> = ({
               className="toast-progress"
               initial={{ scaleX: 1 }}
               animate={{ scaleX: 0 }}
-              // §12: state transition (continuous change) · time until the notification is dismissed
+              // §12: state transition (continuous change, constant rate per Easing: ease-linear) · time remaining until the notification is dismissed
               transition={{ ...motionToken("--dur-base", "--ease-linear"), duration: progressSeconds }}
             />
           )}

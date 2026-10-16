@@ -186,9 +186,9 @@ const ProjectRosterItem = ({ project }: ProjectRosterItemProps) => {
           {isExpanded && (
             <motion.div
               initial={{ height: 0, opacity: 0 }}
-              // §12: state transition (continuous change) · detail panel opened
+              // §12: state transition (reveal) · detail panel opened
               animate={{ height: "auto", opacity: 1, transition: reduceMotion ? INSTANT : motionToken("--dur-base", "--ease-settle") }}
-              // §12: state transition (continuous change) · detail panel closed
+              // §12: state transition (conceal) · detail panel closed
               exit={{ height: 0, opacity: 0, transition: reduceMotion ? INSTANT : motionToken("--dur-fast", "--ease-depart") }}
               style={{ overflow: "hidden" }}
             >

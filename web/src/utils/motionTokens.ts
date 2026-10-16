@@ -32,8 +32,12 @@ const read = (name: string) => getComputedStyle(document.documentElement).getPro
 
 /** A tween timed by a duration token and an easing token. Call during render, not at module load. */
 export const motionToken = (duration: `--dur-${string}`, ease: `--ease-${string}`) => {
-  const d = read(duration);
-  const e = read(ease);
-  if (!d || !e) return INSTANT; // tokens.css not applied: show the end state rather than throw in render
-  return { type: "tween" as const, duration: parseDuration(d), ease: parseEase(e) };
+  try {
+    const d = read(duration);
+    const e = read(ease);
+    if (!d || !e) return INSTANT; // tokens.css not applied: show the end state rather than throw in render
+    return { type: "tween" as const, duration: parseDuration(d), ease: parseEase(e) };
+  } catch {
+    return INSTANT; // a malformed token value degrades to no animation instead of throwing in render
+  }
 };
