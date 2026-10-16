@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
 import { useEffect, useMemo } from "react";
-import TypeWriterText from "../TypeWriterText";
 import { CaseStudy, CaseStudySectionId, sectionTitle } from "../../data/caseStudies";
 import { projectsData } from "../../data/projects";
 import ProjectMedia from "../ProjectMedia";
@@ -62,7 +61,7 @@ const CaseStudyPage = ({ caseStudy }: CaseStudyPageProps) => {
               {caseStudy.kind === "experiment" ? "Experiment Case Study" : "Engineering Case Study"}
             </p>
             <h1 className="case-study-title">
-              <TypeWriterText text={caseStudy.title} speed={60} />
+              {caseStudy.title}
             </h1>
             <p className="case-study-summary">{caseStudy.shortDescription}</p>
           </header>

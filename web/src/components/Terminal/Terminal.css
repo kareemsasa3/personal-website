@@ -222,11 +222,6 @@
   }
 }
 
-/* Typewriter text animation */
-.typewriter-text {
-  display: inline-block;
-}
-
 /* Selection styles */
 .terminal-screen,
 .terminal-screen * {

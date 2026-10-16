@@ -17,15 +17,6 @@ const TimelineItem: React.FC<TimelineItemProps> = ({ data, isLeft }) => {
   const { theme } = useTheme();
   const reduceMotion = useReducedMotion();
 
-  const itemVariants = {
-    hidden: { opacity: 0, x: reduceMotion ? 0 : isLeft ? -100 : 100 },
-    visible: {
-      opacity: 1,
-      x: 0,
-      transition: { duration: 0.6, ease: "easeOut" },
-    },
-  };
-
   const flipVariants = {
     front: { rotateY: 0 },
     back: { rotateY: 180 },
@@ -88,13 +79,7 @@ const TimelineItem: React.FC<TimelineItemProps> = ({ data, isLeft }) => {
   }, [preferredAndFallbackUrls]);
 
   return (
-    <motion.div
-      className={`timeline-item ${isLeft ? "left" : "right"}`}
-      variants={itemVariants}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, amount: 0.5 }}
-    >
+    <div className={`timeline-item ${isLeft ? "left" : "right"}`}>
       <div className={`timeline-icon-wrapper ${category}`}>
         <FontAwesomeIcon icon={icon} />
       </div>
@@ -155,7 +140,7 @@ const TimelineItem: React.FC<TimelineItemProps> = ({ data, isLeft }) => {
         </motion.div>
         {loadedImageUrl && <button className="timeline-flip-toggle" aria-pressed={isFlipped} aria-label={`${isFlipped ? "Show story" : "View image"}: ${title}`} onClick={() => setIsFlipped(v => !v)}>{isFlipped ? "Show story" : "View image"} ↻</button>}
       </div>
-    </motion.div>
+    </div>
   );
 };
 

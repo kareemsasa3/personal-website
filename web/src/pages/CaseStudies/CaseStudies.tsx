@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom";
-import TypeWriterText from "../../components/TypeWriterText";
 import ProjectMedia from "../../components/ProjectMedia";
 import { caseStudyCards, type CaseStudyCard } from "../../data/caseStudies";
 import "../../components/CaseStudyPage/CaseStudyPage.css";
@@ -54,7 +53,7 @@ const CaseStudies = () => {
         <header id="case-studies-overview" className="case-studies-header prose-surface prose-surface--start">
           <p className="case-study-eyebrow">System Case Studies</p>
           <h1>
-            <TypeWriterText text="Case Studies" speed={60} />
+            Case Studies
           </h1>
           <p>
             These studies are the narrative layer for the flagship systems,

@@ -1,7 +1,6 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { motion, MotionStyle } from "framer-motion";
 import { forwardRef, ForwardedRef } from "react";
-import TypeWriterText from "../../../components/TypeWriterText";
 import { socialContent } from "../../../data/siteContent";
 
 interface SocialLinksSectionProps {
@@ -27,7 +26,7 @@ export const SocialLinksSection = forwardRef(
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
-            <TypeWriterText text={socialContent.title} delay={0} speed={80} />
+            {socialContent.title}
           </motion.div>
           <motion.div
             className="social-links-grid"

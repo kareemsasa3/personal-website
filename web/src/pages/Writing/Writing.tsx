@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom";
-import TypeWriterText from "../../components/TypeWriterText";
 import { articlesData } from "../../data/generated/articles";
 import {
   KIND_LABELS,
@@ -15,7 +14,7 @@ const Writing = () => {
         <header id="writing-overview" className="writing-header prose-surface prose-surface--start">
           <p className="writing-eyebrow">Long-form</p>
           <h1>
-            <TypeWriterText text="Writing" speed={60} />
+            Writing
           </h1>
           <p>
             Essays and field notes on constraints, coordination, and systems

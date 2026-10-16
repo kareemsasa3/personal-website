@@ -1,20 +1,20 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import "./ContactStripSection.css";
-import { motion, MotionStyle } from "framer-motion";
-import { forwardRef, ForwardedRef } from "react";
+import { motion } from "framer-motion";
+import { forwardRef, ForwardedRef, CSSProperties } from "react";
 import {
   professionalContactContent,
   socialContent,
 } from "../../../data/siteContent";
 
 interface ContactStripSectionProps {
-  style?: MotionStyle;
+  style?: CSSProperties;
 }
 
 export const ContactStripSection = forwardRef(
   ({ style }: ContactStripSectionProps, ref: ForwardedRef<HTMLElement>) => {
     return (
-      <motion.section
+      <section
         ref={ref}
         className="contact-strip-section"
         role="region"
@@ -22,33 +22,21 @@ export const ContactStripSection = forwardRef(
         style={style}
       >
         <div className="contact-strip-content interactive-card">
-          <motion.h2
+          <h2
             id="contact-title"
             className="contact-strip-title"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.5, delay: 0.1 }}
           >
             {socialContent.title}
-          </motion.h2>
-          <motion.p
+          </h2>
+          <p
             className="contact-strip-description"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.5, delay: 0.15 }}
           >
             {professionalContactContent.description}
-          </motion.p>
-          <motion.div
+          </p>
+          <div
             className="contact-strip-links"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.5, delay: 0.2 }}
           >
-            {socialContent.links.map((link, index) => (
+            {socialContent.links.map((link) => (
               <motion.a
                 key={link.name}
                 href={link.url}
@@ -59,19 +47,15 @@ export const ContactStripSection = forwardRef(
                     : "noopener noreferrer"
                 }
                 className="contact-strip-link"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-100px" }}
-                transition={{ duration: 0.45, delay: 0.3 + index * 0.08 }}
                 whileHover={{ y: -2 }}
               >
                 <span aria-hidden="true"><FontAwesomeIcon icon={link.icon} /></span>
                 <span>{link.name}</span>
               </motion.a>
             ))}
-          </motion.div>
+          </div>
         </div>
-      </motion.section>
+      </section>
     );
   }
 );

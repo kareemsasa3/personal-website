@@ -1,6 +1,4 @@
 import React, { useRef, useEffect, useLayoutEffect } from "react";
-import { AnimatePresence } from "framer-motion";
-import TypeWriterText from "../TypeWriterText";
 import "./TerminalView.css";
 
 interface CommandHistoryItem {
@@ -50,6 +48,15 @@ const TerminalView: React.FC<TerminalViewProps> = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const followOutputRef = useRef(true);
 
+  // The welcome line is plain text, so the intro is complete on mount.
+  useEffect(() => {
+    if (!hasShownIntro) {
+      onIntroComplete();
+    }
+    // Mount only: the callback is re-created every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Focus input when prompt is shown
   useEffect(() => {
     if (showPrompt && inputRef.current) {
@@ -98,33 +105,13 @@ const TerminalView: React.FC<TerminalViewProps> = ({
       if (!window.getSelection()?.toString() && !(event.target as HTMLElement).closest("a, button")) inputRef.current?.focus();
     }}>
       <div className="terminal-message">
-        {!hasShownIntro ? (
-          // Layout suppresses initial animations. Give the welcome its own
-          // boundary so its completion callback can reveal the command prompt.
-          <AnimatePresence initial={true}>
-            <TypeWriterText
-              text="Welcome to my terminal."
-              delay={0}
-              speed={30}
-              onComplete={onIntroComplete}
-            />
-          </AnimatePresence>
-        ) : (
-          <span>Welcome to my terminal.</span>
-        )}
+        <span>Welcome to my terminal.</span>
       </div>
 
       <div className="command-history">
         {commandHistory.map((line, index) => (
           <div key={index} className={`history-line ${line.type || ""}`}>
-            {line.useTypewriter ? (
-              <TypeWriterText
-                text={line.text}
-                delay={0}
-                speed={30}
-                onComplete={() => {}}
-              />
-            ) : line.highlightedText ? (
+            {line.highlightedText ? (
               <span
                 dangerouslySetInnerHTML={{
                   __html: line.highlightedText.replace(

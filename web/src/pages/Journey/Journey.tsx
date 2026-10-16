@@ -2,7 +2,6 @@ import { useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { timelineData, TimelineEvent } from "../../data/timelineData";
 import TimelineItem from "../../components/TimelineItem";
-import TypeWriterText from "../../components/TypeWriterText";
 import { useLayoutContext, PageSection } from "../../contexts/LayoutContext";
 import "./Journey.css";
 
@@ -53,14 +52,10 @@ const Journey = () => {
     >
       <header id="journey-intro" className="journey-header prose-surface prose-surface--start">
         <h1 className="journey-title">
-          <TypeWriterText text="Background & Journey" speed={80} delay={200} />
+          Background &amp; Journey
         </h1>
         <p className="journey-subtitle">
-          <TypeWriterText
-            text="A narrative of how my work evolved and what I focused on over time."
-            speed={50}
-            delay={1000}
-          />
+          A narrative of how my work evolved and what I focused on over time.
         </p>
       </header>
 

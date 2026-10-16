@@ -23,15 +23,6 @@ const Home = () => {
     };
   }, []);
 
-  // Check if home intro has been shown before
-  const [hasShownHomeIntro, setHasShownHomeIntro] = useState(() => {
-    try {
-      return window.localStorage.getItem("home-intro-shown") === "true";
-    } catch {
-      return false;
-    }
-  });
-
   // Consolidated loading states for navigation buttons
   const [loadingStates, setLoadingStates] = useState({
     projects: false,
@@ -106,15 +97,6 @@ const Home = () => {
     });
   };
 
-  const handleIntroComplete = () => {
-    setHasShownHomeIntro(true);
-    try {
-      window.localStorage.setItem("home-intro-shown", "true");
-    } catch {
-      // Non-critical. Intro state can remain in memory.
-    }
-  };
-
   return (
     <div className="page-content home-page">
       <div className="home-container">
@@ -124,8 +106,6 @@ const Home = () => {
           style={{ y: isMobile ? 0 : heroYMotion }}
         >
           <HeroSection
-            hasShownHomeIntro={hasShownHomeIntro}
-            onIntroComplete={handleIntroComplete}
             onNavigateToCaseStudies={handleNavigateToCaseStudies}
             onNavigateToWork={handleNavigateToWork}
             onNavigateToContact={handleNavigateToContact}

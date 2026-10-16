@@ -6,10 +6,8 @@ import {
 } from "../../data/siteContent";
 import { workExperienceData } from "../../data/workExperience";
 import WorkDetails from "../../components/WorkDetails";
-import TypeWriterText from "../../components/TypeWriterText";
 import React, { useEffect } from "react";
 import { useLayoutContext, PageSection } from "../../contexts/LayoutContext";
-import { useLocation } from "react-router-dom";
 
 // Create sections outside the component to prevent recreation on every render
 const workSections: PageSection[] = workExperienceData.map((exp) => ({
@@ -25,9 +23,6 @@ const linkedInLink = socialContent.links.find(
 );
 
 const Work = () => {
-  // Get the current location to create a key for TypeWriterText
-  const location = useLocation();
-
   // Get the section management from our context
   const { setSections } = useLayoutContext();
 
@@ -62,12 +57,7 @@ const Work = () => {
     >
       <header className="work-header prose-surface">
         <h1 className="work-title">
-          <TypeWriterText
-            key={`work-title-${location.pathname}`}
-            text="Experience"
-            speed={400}
-            delay={600}
-          />
+          Experience
         </h1>
         <p className="work-subtitle">
           Professional experience across consulting, delivery, and platform

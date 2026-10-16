@@ -1,11 +1,7 @@
 import "./HeroSection.css";
-import { motion } from "framer-motion";
-import TypeWriterText from "../../../components/TypeWriterText";
 import { heroContent, heroProofContent } from "../../../data/siteContent";
 
 interface HeroSectionProps {
-  hasShownHomeIntro: boolean;
-  onIntroComplete: () => void;
   onNavigateToCaseStudies: () => void;
   onNavigateToWork: () => void;
   onNavigateToContact: () => void;
@@ -14,8 +10,6 @@ interface HeroSectionProps {
 }
 
 export const HeroSection = ({
-  hasShownHomeIntro,
-  onIntroComplete,
   onNavigateToCaseStudies,
   onNavigateToWork,
   onNavigateToContact,
@@ -23,63 +17,31 @@ export const HeroSection = ({
   isNavigatingToWork,
 }: HeroSectionProps) => {
   return (
-    <motion.section
+    <section
       className="hero-section"
       aria-labelledby="home-hero-title"
     >
       <div className="hero-content prose-surface">
-        <motion.h1
+        <h1
           id="home-hero-title"
           className="hero-title"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "0px" }}
-          transition={{ duration: 0.6, delay: 0.2 }}
         >
-          {!hasShownHomeIntro ? (
-            <TypeWriterText
-              text={heroContent.title}
-              speed={80}
-            />
-          ) : (
-            heroContent.title
-          )}
-        </motion.h1>
-        <motion.p
+          {heroContent.title}
+        </h1>
+        <p
           className="hero-subtitle"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "0px" }}
-          transition={{ duration: 0.6, delay: 0.4 }}
         >
-          {!hasShownHomeIntro ? (
-            <TypeWriterText
-              text={heroContent.subtitle}
-              delay={2000}
-              speed={60}
-              onComplete={onIntroComplete}
-            />
-          ) : (
-            heroContent.subtitle
-          )}
-        </motion.p>
-        <motion.p
+          {heroContent.subtitle}
+        </p>
+        <p
           className="hero-description"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "0px" }}
-          transition={{ duration: 0.6, delay: 0.6 }}
         >
           {heroContent.description}
-        </motion.p>
-        <motion.div
+        </p>
+        <div
           className="hero-buttons"
           role="group"
           aria-label="Primary actions"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "0px" }}
-          transition={{ duration: 0.6, delay: 0.8 }}
         >
           <button
             className="btn btn-primary"
@@ -104,14 +66,10 @@ export const HeroSection = ({
           >
             Contact
           </button>
-        </motion.div>
-        <motion.div
+        </div>
+        <div
           className="hero-proof-strip"
           aria-label="Professional credibility highlights"
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "0px" }}
-          transition={{ duration: 0.6, delay: 0.95 }}
         >
           {heroProofContent.map((item) => (
             <div className="hero-proof-item" key={item.label}>
@@ -120,8 +78,8 @@ export const HeroSection = ({
               <span className="hero-proof-detail">{item.detail}</span>
             </div>
           ))}
-        </motion.div>
+        </div>
       </div>
-    </motion.section>
+    </section>
   );
 };

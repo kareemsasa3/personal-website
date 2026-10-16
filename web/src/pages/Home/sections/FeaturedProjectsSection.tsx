@@ -1,6 +1,6 @@
 import "./FeaturedProjectsSection.css";
-import { motion, MotionStyle } from "framer-motion";
-import { forwardRef, ForwardedRef } from "react";
+import { motion } from "framer-motion";
+import { forwardRef, ForwardedRef, CSSProperties } from "react";
 import { Link } from "react-router-dom";
 import { caseStudyCards } from "../../../data/caseStudies";
 import { featuredProjectIds } from "../../../data/siteContent";
@@ -14,7 +14,7 @@ interface FeaturedProjectsSectionProps {
   onNavigateToProjects: () => void;
   isNavigatingToCaseStudies: boolean;
   isNavigatingToProjects: boolean;
-  style?: MotionStyle;
+  style?: CSSProperties;
 }
 
 export const FeaturedProjectsSection = forwardRef(
@@ -29,37 +29,25 @@ export const FeaturedProjectsSection = forwardRef(
     ref: ForwardedRef<HTMLElement>
   ) => {
     return (
-      <motion.section
+      <section
         ref={ref}
         className="featured-projects-section"
         role="region"
         aria-labelledby="featured-projects-title"
         style={style}
       >
-        <motion.h2
+        <h2
           id="featured-projects-title"
           className="section-title"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.6, delay: 0.2 }}
         >
           Featured Systems
-        </motion.h2>
-        <motion.div
+        </h2>
+        <div
           className="featured-projects-grid"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.6, delay: 0.4 }}
         >
-          {featuredProjects.map((caseStudy, index) => (
+          {featuredProjects.map((caseStudy) => (
             <motion.article
               key={caseStudy.slug}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.6, delay: 0.6 + index * 0.1 }}
               whileHover={{
                 y: -8,
                 transition: { duration: 0.3 },
@@ -98,13 +86,9 @@ export const FeaturedProjectsSection = forwardRef(
               </Link>
             </motion.article>
           ))}
-        </motion.div>
-        <motion.div
+        </div>
+        <div
           className="featured-projects-cta"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.6, delay: 0.8 }}
         >
           <button
             className="btn btn-outline"
@@ -122,8 +106,8 @@ export const FeaturedProjectsSection = forwardRef(
           >
             {isNavigatingToProjects ? "Loading..." : "Browse All Projects →"}
           </button>
-        </motion.div>
-      </motion.section>
+        </div>
+      </section>
     );
   }
 );

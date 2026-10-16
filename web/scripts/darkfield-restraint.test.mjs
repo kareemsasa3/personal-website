@@ -171,3 +171,10 @@ test("T7 dock: fixed-size icons, no magnification or responsiveness", async () =
     assert.doesNotMatch(await read(f), /[Mm]agnification|dockStiffness|DockStiffness|DOCK_STIFFNESS|Responsiveness|useSpring/, f);
   }
 });
+
+test("T8 narrator: no typing or reveal animation", async () => {
+  assert.ok(!(await readdir(resolve(src, "components"))).includes("TypeWriterText"), "TypeWriterText still exists");
+  const bad = [];
+  for (const f of (await reachable()).filter((x) => x.endsWith(".tsx"))) if (/\bwhileInView\b|TypeWriterText/.test(await read(f))) bad.push(f);
+  assert.deepEqual(bad, []);
+});

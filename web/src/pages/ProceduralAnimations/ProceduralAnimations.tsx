@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom";
-import TypeWriterText from "../../components/TypeWriterText";
 import { proceduralAnimationsData } from "../../data/proceduralAnimations";
 import "./ProceduralAnimations.css";
 
@@ -13,7 +12,7 @@ const ProceduralAnimations = () => {
         >
           <p className="procedural-animations-eyebrow">Computational Motion</p>
           <h1>
-            <TypeWriterText text="Procedural Animations" speed={60} />
+            Procedural Animations
           </h1>
           <p>
             Self-contained motion pieces where movement is generated in code
