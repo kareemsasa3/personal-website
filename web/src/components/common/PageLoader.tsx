@@ -22,11 +22,10 @@ const PageLoader: React.FC = () => {
   const loaderElement = (
     <div className="page-loader-overlay" role="status" aria-live="polite">
       <div className="loader-content">
-        {/* Thematic Matrix/Terminal Spinner */}
-        <div className="matrix-spinner">
-          <div className="matrix-spinner-text">01</div>
+        <div className="page-loader__row">
+          <p className="loading-text">{message}</p>
+          <span className="page-loader__scan" aria-hidden="true" />
         </div>
-        <p className="loading-text">{message}</p>
       </div>
     </div>
   );

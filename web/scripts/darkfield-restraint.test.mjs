@@ -122,3 +122,14 @@ test("T1 atmosphere: one static ground behind Layout, no drift or reading scrim;
   assert.doesNotMatch(await read("styles/darkfield/bridge.css"), /--bg-/, "bridge still defines --bg-*");
   assert.ok(!declarations(await read("index.css")).some((d) => /prose-surface/.test(d.selector) && /shadow|backdrop|gradient/.test(`${d.prop} ${d.value}`)), "reading scrim");
 });
+
+test("T3 loader: a row scan; no circular spinner, glow or glass", async () => {
+  const css = await read("components/common/PageLoader.css");
+  assert.doesNotMatch(css, /rotate\(|border-radius:\s*50%|text-shadow|backdrop-filter/);
+  const scan = declarations(css).find((d) => innermost(d.selector) === ".page-loader__scan" && d.prop === "animation");
+  assert.ok(scan && /var\(--dur-scan\)/.test(scan.value) && /var\(--ease-linear\)/.test(scan.value), "scan timed by dur-scan and ease-linear");
+  assert.match(css, /prefers-reduced-motion:\s*reduce/);
+  const tsx = await read("components/common/PageLoader.tsx");
+  assert.match(tsx, /className="page-loader__scan"/);
+  assert.doesNotMatch(tsx, />\s*01\s*</, "binary-digit motif");
+});
