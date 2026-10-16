@@ -129,8 +129,10 @@ test("T7 voices: Phase 3 sets mono only on Machine text; Narrator inherits; uppe
   assert.ok(sub.length > 0 && sub.every((d) => d.prop !== "opacity" && (d.prop !== "color" || d.value === "var(--fg-muted)")), sub.map(where).join("\n"));
   // Instrument names carry the type class in markup (the class sets family, case and tracking).
   const LABELLED = [["components/WorkDetails/WorkDetails.tsx", /section-title|highlights-title|tech-stack-title/],
-    ["components/SettingsPanel/SettingsControls.tsx", /settings-section-title|settings-segmented__button|setting-switch"/],
+    ["components/SettingsPanel/SettingsControls.tsx", /settings-section-title|settings-segmented__button|(^|\s)setting-switch(\s|$)/],
     ["components/SettingsPanel/SettingsPanel.tsx", /(^|\s)settings-action(\s|$)/], ["components/Navigation/HeaderNavigation.tsx", /site-header__explore-label|site-header__panel-heading/],
+    ["components/ProjectRoster/ProjectRosterItem.tsx", /project-roster__detail-heading/], ["components/ArticlePage/ArticlePage.tsx", /article-series-link-label/],
+    ["pages/Home/sections/HeroSection.tsx", /hero-proof-label/],
     ["components/Dock/DockIcon.tsx", /dock-tooltip/], ["components/Dock/DockExploreStack.tsx", /dock-explore__link/],
     ["components/TerminalDropdown/TerminalDropdown.tsx", /(^|\s)terminal-dropdown-(label|trigger|option)(\s|$)/]];
   for (const [f, names] of LABELLED) {
@@ -139,6 +141,14 @@ test("T7 voices: Phase 3 sets mono only on Machine text; Narrator inherits; uppe
     assert.ok(found.length > 0, f);
     for (const c of found) assert.match(c, /(^|\s)df-label(\s|$)/, `${f}: ${c}`);
   }
+  assert.match(await read("components/Navigation/HeaderNavigation.tsx"), /linkClassName="df-label"/, "wide Explore links");
+  // §06 colour by role: display and headings fg, supporting text and region names fg-muted, annotation fg-faint.
+  const colour = (sel) => decls.filter((d) => d.prop === "color" && innermost(d.selector) === sel && !(sel === ".section-title" && d.file === "pages/Home/Home.css")).map((d) => d.value);
+  for (const [sel, want] of [[".journey-title", "var(--fg)"], [".work-role", "var(--fg-muted)"], [".work-dates", "var(--fg-faint)"],
+    [".section-title", "var(--fg-muted)"], [".tech-stack-title, .highlights-title", "var(--fg-muted)"], [".dock-tooltip", "var(--fg-muted)"]]) {
+    assert.deepEqual([...new Set(colour(sel))], [want], sel);
+  }
+  assert.deepEqual(decls.filter((d) => d.prop === "opacity" && innermost(d.selector) === ".timeline-back-content p").map(where), []);
   for (const [f, cls] of [["components/WorkDetails/WorkDetails.tsx", "work-dates"], ["components/SettingsPanel/BuildIdentifier.tsx", "settings-build"]]) {
     assert.match(await read(f), new RegExp(`className="${cls}[^"]*df-annotation`), f);
   }

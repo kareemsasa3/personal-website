@@ -37,7 +37,7 @@ TABLE OF CONTENTS
     margin-bottom: 10px;
     font-size: 2.5rem;
     font-weight: 700;
-    color: var(--signal-dim);
+    color: var(--fg);
 }
 
 .journey-subtitle {

@@ -16,7 +16,7 @@
 }
 
 .work-dates {
-    color: var(--signal-dim);
+    color: var(--fg-faint);
     font-weight: 400;
     font-size: 1rem;
     padding: 0.5rem 1rem;
@@ -43,7 +43,7 @@
 
 .work-role {
     font-size: 1.2rem;
-    color: var(--signal-dim);
+    color: var(--fg-muted);
     font-weight: 600;
 }
 
@@ -66,7 +66,7 @@
 
 .section-title {
     font-size: 1.1rem;
-    color: var(--fg);
+    color: var(--fg-muted);
     margin: 0 0 1rem 0;
     border-bottom: 1px solid var(--rule);
     padding-bottom: 0.5rem;
@@ -115,7 +115,7 @@
 .tech-stack-title,
 .highlights-title {
     font-size: 1rem;
-    color: var(--fg);
+    color: var(--fg-muted);
     margin: 0 0 1rem 0;
 }
 
