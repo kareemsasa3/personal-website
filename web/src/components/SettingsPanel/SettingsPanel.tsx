@@ -33,6 +33,7 @@ import type { NavigationMode } from "../../contexts/NavigationModeContextTypes";
 import { useWindowSize } from "../../hooks";
 import { Modal, useToast } from "../common";
 import ViewportPortal from "../common/ViewportPortal";
+import { INSTANT, motionToken } from "../../utils/motionTokens";
 import "./SettingsPanel.css";
 
 interface SettingsPanelProps {
@@ -215,10 +216,11 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
             {/* Settings Panel */}
             <motion.aside
               className="settings-sidebar"
-              initial={{ x: "100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "100%" }}
-              transition={{ type: "spring", damping: 30, stiffness: 220 }}
+              initial={{ opacity: 0 }}
+              // §12: state transition (create) · the settings panel opened
+              animate={{ opacity: 1, transition: reducedMotion ? INSTANT : motionToken("--dur-base", "--ease-settle") }}
+              // §12: state transition (remove) · the settings panel closed
+              exit={{ opacity: 0, transition: reducedMotion ? INSTANT : motionToken("--dur-fast", "--ease-depart") }}
               role="dialog"
               aria-modal="false"
               aria-labelledby="settings-title"
@@ -226,23 +228,21 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
               <div className="settings-panel">
                 <div className="settings-header">
                   <h3 id="settings-title">Settings</h3>
-                  <motion.button
+                  <button
                     className="settings-close"
                     ref={closeButtonRef}
                     onClick={onClose}
                     aria-label="Close settings"
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.95 }}
                   >
                     <FontAwesomeIcon icon={faTimes} />
-                  </motion.button>
+                  </button>
                 </div>
 
                 <motion.div
                   className="settings-content"
                   initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.1, duration: 0.2 }}
+                  // §12: state transition (create) · the settings content appeared with its panel
+                  animate={{ opacity: 1, transition: reducedMotion ? INSTANT : motionToken("--dur-base", "--ease-settle") }}
                 >
                 <SettingsSection id="settings-appearance" title="Appearance">
                   <SettingRow labelId="settings-theme-label" label="Theme">

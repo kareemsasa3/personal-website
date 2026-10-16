@@ -178,3 +178,19 @@ test("T8 narrator: no typing or reveal animation", async () => {
   for (const f of (await reachable()).filter((x) => x.endsWith(".tsx"))) if (/\bwhileInView\b|TypeWriterText/.test(await read(f))) bad.push(f);
   assert.deepEqual(bad, []);
 });
+
+const NUMERIC = /\b(duration|delay|staggerChildren|delayChildren)\s*:[^,}\n]*?(?<![\w.$])(?:0?\.\d*[1-9]\d*|[1-9]\d*(?:\.\d+)?)(?![\w.])/;
+test("T9 framer: no springs, overshoot, hover scale, parallax or literal timing; transitions annotated", async () => {
+  const bad = [];
+  for (const f of await governed(".tsx")) {
+    const code = await read(f);
+    if (!/from "framer-motion"/.test(code)) continue;
+    for (const re of [/type:\s*["']spring["']/, /\buseSpring\b/, /\bstiffness\b/, /\bdamping\b/, /\bwhileHover\b/, /\bwhileTap\b/,
+      /\blayoutId\b/, /\bease:\s*["']/, /filter:\s*["']blur/, /\bscale:\s*[\d.]/, NUMERIC]) if (re.test(code)) bad.push(`${f}: ${re}`);
+    if (/\buseScroll\b/.test(code) && f !== "components/Layout/GlobalScrollProgress.tsx") bad.push(`${f}: useScroll`);
+    const transitions = (code.match(/\btransition\s*[=:]/g) ?? []).length;
+    const notes = (code.match(/§12:/g) ?? []).length;
+    if (notes < transitions) bad.push(`${f}: ${transitions} transitions, ${notes} §12 annotations`);
+  }
+  assert.deepEqual(bad, []);
+});

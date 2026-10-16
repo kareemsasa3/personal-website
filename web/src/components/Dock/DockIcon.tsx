@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { IconDefinition } from "@fortawesome/fontawesome-svg-core";
+import { INSTANT, motionToken } from "../../utils/motionTokens";
 import "./Dock.css";
 
 interface DockIconProps {
@@ -23,6 +24,7 @@ const DockIcon: React.FC<DockIconProps> = ({
   // Tooltip visibility state
   const [isHovered, setIsHovered] = useState(false);
   const [isFocusVisible, setIsFocusVisible] = useState(false);
+  const reduce = useReducedMotion();
 
   return (
     <div className="dock-icon-container">
@@ -54,10 +56,17 @@ const DockIcon: React.FC<DockIconProps> = ({
           <motion.div
             className="dock-tooltip"
             aria-hidden="true"
-            initial={{ opacity: 0, y: 10, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 10, scale: 0.9 }}
-            transition={{ duration: 0.15, ease: "easeOut" }}
+            initial={{ opacity: 0 }}
+            animate={{
+              opacity: 1,
+              // §12: state transition (create) · label shown for the hovered or focused link
+              transition: reduce ? INSTANT : motionToken("--dur-base", "--ease-settle"),
+            }}
+            exit={{
+              opacity: 0,
+              // §12: state transition (remove) · label hidden when the link is no longer hovered or focused
+              transition: reduce ? INSTANT : motionToken("--dur-fast", "--ease-depart"),
+            }}
           >
             {label}
           </motion.div>

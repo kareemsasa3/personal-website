@@ -1,7 +1,6 @@
 import "./Home.css";
 import { useNavigation } from "../../hooks/useNavigation";
 import { useState, useRef, useEffect } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
 import { useIsMobile } from "../../hooks/useIsMobile";
 
 import {
@@ -53,14 +52,7 @@ const Home = () => {
     requestAnimationFrame(resetOnNextFrame);
   };
 
-  const { scrollYProgress } = useScroll();
-
-  // Map scroll progress to different parallax effects for each section
-  // These ranges are approximate and can be fine-tuned based on actual content
   const isMobile = useIsMobile();
-  const heroYMotion = useTransform(scrollYProgress, [0, 0.2], [0, -100]);
-  const projectsYMotion = useTransform(scrollYProgress, [0.2, 0.4], [0, -50]);
-  const capabilitiesYMotion = useTransform(scrollYProgress, [0.4, 0.6], [0, -30]);
 
   // Navigation handlers - simplified and more robust
   const handleNavigateToProjects = () => {
@@ -101,10 +93,7 @@ const Home = () => {
     <div className="page-content home-page">
       <div className="home-container">
         {/* Hero Section */}
-        <motion.div
-          id="hero"
-          style={{ y: isMobile ? 0 : heroYMotion }}
-        >
+        <div id="hero">
           <HeroSection
             onNavigateToCaseStudies={handleNavigateToCaseStudies}
             onNavigateToWork={handleNavigateToWork}
@@ -112,28 +101,22 @@ const Home = () => {
             isNavigatingToCaseStudies={loadingStates.caseStudies}
             isNavigatingToWork={loadingStates.work}
           />
-        </motion.div>
+        </div>
 
         {/* Featured Projects Section */}
-        <motion.div
-          id="projects"
-          style={{ y: isMobile ? 0 : projectsYMotion }}
-        >
+        <div id="projects">
           <FeaturedProjectsSection
             onNavigateToCaseStudies={handleNavigateToCaseStudies}
             onNavigateToProjects={handleNavigateToProjects}
             isNavigatingToCaseStudies={loadingStates.caseStudies}
             isNavigatingToProjects={loadingStates.projects}
           />
-        </motion.div>
+        </div>
 
         {/* Capabilities Section */}
-        <motion.div
-          id="capabilities"
-          style={{ y: isMobile ? 0 : capabilitiesYMotion }}
-        >
+        <div id="capabilities">
           <CapabilitiesSection />
-        </motion.div>
+        </div>
 
         {/* Contact Section */}
         <div id="contact">

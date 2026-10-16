@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faCheckCircle,
@@ -8,6 +8,7 @@ import {
   faTimes,
   faExclamationCircle,
 } from "@fortawesome/free-solid-svg-icons";
+import { INSTANT, motionToken } from "../../utils/motionTokens";
 import "./Toast.css";
 
 export interface ToastProps {
@@ -28,6 +29,9 @@ const Toast: React.FC<ToastProps> = ({
   onClose,
 }) => {
   const [isVisible, setIsVisible] = useState(true);
+  const reduce = useReducedMotion();
+  // The toast's own lifetime is data, not a design value.
+  const progressSeconds = duration / 1000;
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -63,10 +67,17 @@ const Toast: React.FC<ToastProps> = ({
       {isVisible && (
         <motion.div
           className={`toast toast-${type}`}
-          initial={{ opacity: 0, x: 300, scale: 0.8 }}
-          animate={{ opacity: 1, x: 0, scale: 1 }}
-          exit={{ opacity: 0, x: 300, scale: 0.8 }}
-          transition={{ type: "spring", damping: 25, stiffness: 300 }}
+          initial={{ opacity: 0 }}
+          animate={{
+            opacity: 1,
+            // §12: state transition (create) · a notification was raised
+            transition: reduce ? INSTANT : motionToken("--dur-base", "--ease-settle"),
+          }}
+          exit={{
+            opacity: 0,
+            // §12: state transition (remove) · the notification was dismissed or timed out
+            transition: reduce ? INSTANT : motionToken("--dur-fast", "--ease-depart"),
+          }}
           role="alert"
           aria-live="assertive"
         >
@@ -79,23 +90,26 @@ const Toast: React.FC<ToastProps> = ({
             {message && <p className="toast-message">{message}</p>}
           </div>
 
-          <motion.button
+          <button
             className="toast-close"
             onClick={handleClose}
             aria-label="Close notification"
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
           >
             <FontAwesomeIcon icon={faTimes} />
-          </motion.button>
+          </button>
 
-          {/* Progress bar */}
-          <motion.div
-            className="toast-progress"
-            initial={{ scaleX: 1 }}
-            animate={{ scaleX: 0 }}
-            transition={{ duration: duration / 1000, ease: "linear" }}
-          />
+          {/* Progress bar: under reduced motion it renders without animation. */}
+          {reduce ? (
+            <div className="toast-progress" />
+          ) : (
+            <motion.div
+              className="toast-progress"
+              initial={{ scaleX: 1 }}
+              animate={{ scaleX: 0 }}
+              // §12: state transition (continuous change) · time until the notification is dismissed
+              transition={{ ...motionToken("--dur-base", "--ease-linear"), duration: progressSeconds }}
+            />
+          )}
         </motion.div>
       )}
     </AnimatePresence>

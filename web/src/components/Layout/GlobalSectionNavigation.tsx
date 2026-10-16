@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { useLayoutContext, PageSection } from "../../contexts/LayoutContext";
+import { INSTANT, motionToken } from "../../utils/motionTokens";
 import "./GlobalSectionNavigation.css";
 
 const getMeasuredHeaderOffset = () => {
@@ -18,6 +19,7 @@ const getMeasuredHeaderOffset = () => {
 
 const GlobalSectionNavigation = () => {
   const { sections, activeSection, setActiveSection } = useLayoutContext();
+  const reduce = useReducedMotion();
 
   // Use a ref to track the active section without causing re-renders
   const activeSectionRef = useRef(activeSection);
@@ -121,17 +123,15 @@ const GlobalSectionNavigation = () => {
     <motion.nav
       className="global-section-navigation"
       aria-label="Page sections"
-      initial={{ opacity: 0, x: 50 }}
-      animate={{
-        opacity: 1,
-        x: 0,
-      }}
-      transition={{ duration: 0.3, ease: "easeInOut" }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      // §12: state transition (create) · the page's sections were listed
+      transition={reduce ? INSTANT : motionToken("--dur-base", "--ease-settle")}
     >
       <ul className="nav-dots">
         {sections.map((section: PageSection) => (
           <li key={section.id}>
-            <motion.button
+            <button
               className={`nav-dot ${
                 activeSection === section.id ? "active" : ""
               }`}
@@ -139,15 +139,9 @@ const GlobalSectionNavigation = () => {
               aria-label={`Go to ${section.label} section`}
               aria-current={activeSection === section.id ? "location" : undefined}
               title={section.label}
-              whileHover={{ scale: 1.2 }}
-              whileTap={{ scale: 0.95 }}
-              animate={
-                activeSection === section.id ? { scale: 1.1 } : { scale: 1 }
-              }
-              transition={{ duration: 0.2 }}
             >
               <span className="dot-tooltip">{section.label}</span>
-            </motion.button>
+            </button>
           </li>
         ))}
       </ul>

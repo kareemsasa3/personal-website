@@ -1,5 +1,4 @@
 import "./FeaturedProjectsSection.css";
-import { motion } from "framer-motion";
 import { forwardRef, ForwardedRef, CSSProperties } from "react";
 import { Link } from "react-router-dom";
 import { caseStudyCards } from "../../../data/caseStudies";
@@ -46,13 +45,7 @@ export const FeaturedProjectsSection = forwardRef(
           className="featured-projects-grid"
         >
           {featuredProjects.map((caseStudy) => (
-            <motion.article
-              key={caseStudy.slug}
-              whileHover={{
-                y: -8,
-                transition: { duration: 0.3 },
-              }}
-            >
+            <article key={caseStudy.slug}>
               <Link
                 to={`/case-studies/${caseStudy.slug}`}
                 className="featured-project-card interactive-card featured-project-link"
@@ -84,7 +77,7 @@ export const FeaturedProjectsSection = forwardRef(
                   </span>
                 </div>
               </Link>
-            </motion.article>
+            </article>
           ))}
         </div>
         <div

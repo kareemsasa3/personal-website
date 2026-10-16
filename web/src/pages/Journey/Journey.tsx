@@ -1,5 +1,4 @@
 import { useEffect, useMemo } from "react";
-import { motion } from "framer-motion";
 import { timelineData, TimelineEvent } from "../../data/timelineData";
 import TimelineItem from "../../components/TimelineItem";
 import { useLayoutContext, PageSection } from "../../contexts/LayoutContext";
@@ -43,12 +42,8 @@ const Journey = () => {
   }, [eraNames, setSections]); // Only depends on eraNames - setSections is stable from context
 
   return (
-    <motion.div
+    <div
       className="page-content journey-page"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.3 }}
     >
       <header id="journey-intro" className="journey-header prose-surface prose-surface--start">
         <h1 className="journey-title">
@@ -77,7 +72,7 @@ const Journey = () => {
           </section>
         ))}
       </div>
-    </motion.div>
+    </div>
   );
 };
 

@@ -3,7 +3,6 @@ import {
   motion,
   useReducedMotion,
   useIsPresent,
-  type Transition,
   type Variants,
 } from "framer-motion";
 import {
@@ -21,24 +20,13 @@ import type { NavigationMode } from "../../contexts/NavigationModeContextTypes";
 import { useNavigationMode } from "../../contexts/NavigationModeContext";
 import { useSettings } from "../../contexts/SettingsContext";
 import HeaderNavigation from "./HeaderNavigation";
+import { INSTANT, motionToken } from "../../utils/motionTokens";
 import "./SiteNavigation.css";
-
-const headerNavVariants: Variants = {
-  initial: { opacity: 0, y: -12, scale: 0.99, filter: "blur(3px)" },
-  animate: { opacity: 1, y: 0, scale: 1, filter: "blur(0px)" },
-  exit: { opacity: 0, y: -8, scale: 0.99, filter: "blur(2px)" },
-};
-
-const reducedMotionNavVariants: Variants = {
-  initial: { opacity: 0 },
-  animate: { opacity: 1 },
-  exit: { opacity: 0 },
-};
 
 type SiteNavigationModeConfig = {
   key: string;
   className?: string;
-  getVariants?: (shouldReduceMotion: boolean) => Variants;
+  fades?: boolean;
   renderNavigation: (args: {
     dockControls: DockControls;
     shouldReduceMotion: boolean;
@@ -59,8 +47,7 @@ const siteNavigationModeConfig: Record<NavigationMode, SiteNavigationModeConfig>
   header: {
     key: "header-navigation",
     className: "site-nav-presentation site-nav-presentation--header",
-    getVariants: (shouldReduceMotion) =>
-      shouldReduceMotion ? reducedMotionNavVariants : headerNavVariants,
+    fades: true,
     renderNavigation: ({ headerRef }) => <HeaderNavigation ref={headerRef} />,
   },
 };
@@ -79,9 +66,20 @@ const SiteNavigation = () => {
   const headerRef = useRef<HTMLElement>(null);
   const isPresent = useIsPresent();
   const shouldReduceMotion = useReducedMotion() ?? false;
-  const transition: Transition = shouldReduceMotion
-    ? { duration: 0.01 }
-    : { duration: 0.24, ease: "easeOut" };
+  // The header fades in and out when the navigation mode changes (opacity only).
+  const navVariants: Variants = {
+    initial: { opacity: 0 },
+    animate: {
+      opacity: 1,
+      // §12: state transition (create) · navigation mode changed to header
+      transition: shouldReduceMotion ? INSTANT : motionToken("--dur-base", "--ease-settle"),
+    },
+    exit: {
+      opacity: 0,
+      // §12: state transition (remove) · navigation mode changed away from header
+      transition: shouldReduceMotion ? INSTANT : motionToken("--dur-fast", "--ease-depart"),
+    },
+  };
   const setMeasuredHeaderOffset = useCallback((value: string) => {
     const layoutShell = shellRef.current?.parentElement;
     if (!layoutShell) return;
@@ -150,20 +148,18 @@ const SiteNavigation = () => {
     shouldReduceMotion,
     headerRef,
   });
-  const activeVariants = activeNavigationMode.getVariants?.(shouldReduceMotion);
 
   return (
     <div ref={shellRef} className="site-navigation-shell">
       <AnimatePresence initial={false} mode="popLayout">
-        {activeVariants ? (
+        {activeNavigationMode.fades ? (
           <motion.div
             key={activeNavigationMode.key}
             className={activeNavigationMode.className}
             initial="initial"
             animate="animate"
             exit="exit"
-            variants={activeVariants}
-            transition={transition}
+            variants={navVariants}
           >
             {activeNavigation}
           </motion.div>

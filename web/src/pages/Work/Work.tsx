@@ -1,5 +1,4 @@
 import "./Work.css";
-import { motion } from "framer-motion";
 import {
   professionalContactContent,
   socialContent,
@@ -35,25 +34,17 @@ const Work = () => {
   // Check if data is available
   if (!workExperienceData || workExperienceData.length === 0) {
     return (
-      <motion.div
+      <div
         className="page-content work-page"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.3 }}
       >
         <div>Loading work experience data...</div>
-      </motion.div>
+      </div>
     );
   }
 
   return (
-    <motion.div
+    <div
       className="page-content work-page"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.3 }}
     >
       <header className="work-header prose-surface">
         <h1 className="work-title">
@@ -107,7 +98,7 @@ const Work = () => {
           )}
         </div>
       </section>
-    </motion.div>
+    </div>
   );
 };
 

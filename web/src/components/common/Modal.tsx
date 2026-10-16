@@ -1,10 +1,11 @@
 import React from "react";
 import FocusTrap from "focus-trap-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTimes } from "@fortawesome/free-solid-svg-icons";
 import "./Modal.css";
 import ViewportPortal from "./ViewportPortal";
+import { INSTANT, motionToken } from "../../utils/motionTokens";
 
 interface ModalProps {
   isOpen: boolean;
@@ -31,6 +32,10 @@ const Modal: React.FC<ModalProps> = ({
   type = "info",
   showCloseButton = true,
 }) => {
+  const reduce = useReducedMotion();
+  const enter = reduce ? INSTANT : motionToken("--dur-base", "--ease-settle");
+  const leave = reduce ? INSTANT : motionToken("--dur-fast", "--ease-depart");
+
   const handleConfirm = () => {
     onConfirm?.();
     onClose();
@@ -56,8 +61,10 @@ const Modal: React.FC<ModalProps> = ({
             onKeyDown={(event) => { if (event.key === "Escape") { event.stopPropagation(); onClose(); } }}
             className="modal-overlay"
             initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            // §12: state transition (create) · the dialog opened
+            animate={{ opacity: 1, transition: enter }}
+            // §12: state transition (remove) · the dialog closed
+            exit={{ opacity: 0, transition: leave }}
             onClick={handleBackdropClick}
             role="dialog"
             aria-modal="true"
@@ -65,10 +72,11 @@ const Modal: React.FC<ModalProps> = ({
           >
             <motion.div
               className={`modal-content modal-${type}`}
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              initial={{ opacity: 0 }}
+              // §12: state transition (create) · the dialog opened
+              animate={{ opacity: 1, transition: enter }}
+              // §12: state transition (remove) · the dialog closed
+              exit={{ opacity: 0, transition: leave }}
               onClick={(e) => e.stopPropagation()}
             >
               <div className="modal-header">
@@ -76,15 +84,13 @@ const Modal: React.FC<ModalProps> = ({
                   {title}
                 </h2>
                 {showCloseButton && (
-                  <motion.button
+                  <button
                     className="modal-close"
                     onClick={onClose}
                     aria-label="Close modal"
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.95 }}
                   >
                     <FontAwesomeIcon icon={faTimes} />
-                  </motion.button>
+                  </button>
                 )}
               </div>
 
@@ -93,24 +99,20 @@ const Modal: React.FC<ModalProps> = ({
               {(onConfirm || onCancel) && (
                 <div className="modal-footer">
                   {onCancel && (
-                    <motion.button
+                    <button
                       className="modal-button modal-button-secondary"
                       onClick={handleCancel}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
                     >
                       {cancelText}
-                    </motion.button>
+                    </button>
                   )}
                   {onConfirm && (
-                    <motion.button
+                    <button
                       className={`modal-button modal-button-${type}`}
                       onClick={handleConfirm}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
                     >
                       {confirmText}
-                    </motion.button>
+                    </button>
                   )}
                 </div>
               )}

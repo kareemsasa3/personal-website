@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import Prism from "prismjs";
 import "prismjs/themes/prism-tomorrow.css";
 // Only import the most commonly used languages to reduce bundle size
@@ -13,6 +13,7 @@ import "prismjs/components/prism-markdown";
 import "prismjs/components/prism-bash";
 import "prismjs/components/prism-markup";
 // Removed sourceFileSystem dependency
+import { INSTANT, motionToken } from "../../utils/motionTokens";
 import "./VimUI.css";
 
 interface VimUIProps {
@@ -32,6 +33,7 @@ const VimUI: React.FC<VimUIProps> = ({
   onSave,
   isReadOnly = false,
 }) => {
+  const reduce = useReducedMotion();
   const [editedContent, setEditedContent] = useState<string[]>(content);
   const [cursorPosition, setCursorPosition] = useState({ line: 0, column: 0 });
   const [scrollPosition, setScrollPosition] = useState(0);
@@ -247,9 +249,10 @@ const VimUI: React.FC<VimUIProps> = ({
         <motion.div
           className="vim-overlay"
           initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
+          // §12: state transition (create) · editor opened
+          animate={{ opacity: 1, transition: reduce ? INSTANT : motionToken("--dur-base", "--ease-settle") }}
+          // §12: state transition (remove) · editor closed
+          exit={{ opacity: 0, transition: reduce ? INSTANT : motionToken("--dur-fast", "--ease-depart") }}
         >
           <div className="vim-container">
             {/* Vim Header */}

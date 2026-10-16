@@ -1,6 +1,5 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import "./ContactStripSection.css";
-import { motion } from "framer-motion";
 import { forwardRef, ForwardedRef, CSSProperties } from "react";
 import {
   professionalContactContent,
@@ -37,7 +36,7 @@ export const ContactStripSection = forwardRef(
             className="contact-strip-links"
           >
             {socialContent.links.map((link) => (
-              <motion.a
+              <a
                 key={link.name}
                 href={link.url}
                 target={link.url.startsWith("mailto:") ? undefined : "_blank"}
@@ -47,11 +46,10 @@ export const ContactStripSection = forwardRef(
                     : "noopener noreferrer"
                 }
                 className="contact-strip-link"
-                whileHover={{ y: -2 }}
               >
                 <span aria-hidden="true"><FontAwesomeIcon icon={link.icon} /></span>
                 <span>{link.name}</span>
-              </motion.a>
+              </a>
             ))}
           </div>
         </div>

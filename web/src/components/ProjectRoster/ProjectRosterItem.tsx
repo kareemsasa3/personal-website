@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { Project } from "../../data/projects";
 import { caseStudyByProjectId } from "../../data/caseStudies";
 import ProjectMedia from "../ProjectMedia";
+import { INSTANT, motionToken } from "../../utils/motionTokens";
 
 const STATUS_LABELS: Partial<Record<Project["status"], string>> = {
   Development: "In progress",
@@ -182,9 +183,18 @@ const ProjectRosterItem = ({ project }: ProjectRosterItemProps) => {
         </div>
 
         <AnimatePresence initial={false}>
-          {isExpanded && <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: reduceMotion ? 0 : .18 }} style={{ overflow: "hidden" }}>
-            <ProjectRosterDetail project={project} detailId={detailId} />
-          </motion.div>}
+          {isExpanded && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              // §12: state transition (continuous change) · detail panel opened
+              animate={{ height: "auto", opacity: 1, transition: reduceMotion ? INSTANT : motionToken("--dur-base", "--ease-settle") }}
+              // §12: state transition (continuous change) · detail panel closed
+              exit={{ height: 0, opacity: 0, transition: reduceMotion ? INSTANT : motionToken("--dur-fast", "--ease-depart") }}
+              style={{ overflow: "hidden" }}
+            >
+              <ProjectRosterDetail project={project} detailId={detailId} />
+            </motion.div>
+          )}
         </AnimatePresence>
       </article>
     </li>

@@ -3,6 +3,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { TimelineEvent } from "../../data/timelineData";
 import { useTheme } from "../../contexts/ThemeContext";
+import { INSTANT, motionToken } from "../../utils/motionTokens";
 import "./TimelineItem.css";
 
 interface TimelineItemProps {
@@ -96,7 +97,8 @@ const TimelineItem: React.FC<TimelineItemProps> = ({ data, isLeft }) => {
           className="timeline-flip-card"
           variants={flipVariants}
           animate={isFlipped ? "back" : "front"}
-          transition={{ duration: reduceMotion ? 0 : 0.6, ease: "easeInOut" }}
+          // §12: state transition (reveal) · card turned to its image
+          transition={reduceMotion ? INSTANT : motionToken("--dur-base", "--ease-standard")}
           style={{ transformStyle: "preserve-3d" }}
         >
           {/* Front of card */}
