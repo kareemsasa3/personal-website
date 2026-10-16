@@ -27,7 +27,8 @@
 }
 
 .hero-subtitle {
-  margin: 0 0 2rem 0;
+  max-width: var(--measure-body);
+  margin: 0 auto 2rem auto;
   color: var(--signal-dim);
   font-size: clamp(1.1rem, 3.5vw, 1.5rem);
   font-weight: 600;
@@ -38,7 +39,7 @@
 }
 
 .hero-description {
-  max-width: 600px;
+  max-width: var(--measure-body);
   margin: 0 auto 3rem auto;
   color: var(--fg-muted);
   font-size: clamp(1rem, 2.7vw, 1.2rem);

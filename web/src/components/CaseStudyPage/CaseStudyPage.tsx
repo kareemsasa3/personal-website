@@ -63,7 +63,7 @@ const CaseStudyPage = ({ caseStudy }: CaseStudyPageProps) => {
             <h1 className="case-study-title">
               {caseStudy.title}
             </h1>
-            <p className="case-study-summary">{caseStudy.shortDescription}</p>
+            <p className="case-study-summary df-prose">{caseStudy.shortDescription}</p>
           </header>
           <div className="case-study-focus-list">
             {caseStudy.focusAreas.map((focusArea) => (
@@ -85,7 +85,7 @@ const CaseStudyPage = ({ caseStudy }: CaseStudyPageProps) => {
         <section id="problem" className="case-study-section prose-surface">
           <h2>{sectionTitle(caseStudy, "problem", "Problem")}</h2>
           {before("problem")}
-          <p>{caseStudy.problem}</p>
+          <p className="df-prose">{caseStudy.problem}</p>
           {after("problem")}
         </section>
 
@@ -122,7 +122,7 @@ const CaseStudyPage = ({ caseStudy }: CaseStudyPageProps) => {
               <p>Inspection exposes both raw event history and inferred state.</p>
             </figure>
           )}
-          <ul className="case-study-list">
+          <ul className="case-study-list df-prose">
             {caseStudy.architecture.map((item) => (
               <li key={item}>{item}</li>
             ))}
@@ -169,7 +169,7 @@ const CaseStudyPage = ({ caseStudy }: CaseStudyPageProps) => {
             {sectionTitle(caseStudy, "outcome", caseStudy.slug === "erebus" ? "Current Outcome" : "Outcome")}
           </h2>
           {before("outcome")}
-          <ul className="case-study-list">
+          <ul className="case-study-list df-prose">
             {caseStudy.outcome.map((item) => (
               <li key={item}>{item}</li>
             ))}

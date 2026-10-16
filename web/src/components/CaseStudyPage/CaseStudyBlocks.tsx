@@ -18,7 +18,7 @@ const CaseStudyBlocks = ({ blocks }: { blocks?: CaseStudyBlock[] }) => {
               <div key={key} className="case-study-block">
                 {block.heading && <h3>{block.heading}</h3>}
                 {block.paragraphs.map((paragraph) => (
-                  <p key={paragraph}>{paragraph}</p>
+                  <p key={paragraph} className="df-prose">{paragraph}</p>
                 ))}
               </div>
             );

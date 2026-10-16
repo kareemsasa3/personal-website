@@ -116,7 +116,7 @@ const ArticlePage = ({ article }: ArticlePageProps) => {
           ) : null}
 
           <article
-            className="article-body prose-surface prose-surface--reading"
+            className="article-body df-prose prose-surface prose-surface--reading"
             dangerouslySetInnerHTML={{ __html: article.bodyHtml }}
           />
         </div>
@@ -158,7 +158,7 @@ const ArticlePage = ({ article }: ArticlePageProps) => {
           <div className="article-provenance-section">
             <h3>Abstract</h3>
             <div
-              className="article-prose"
+              className="article-prose df-prose"
               dangerouslySetInnerHTML={{
                 __html: article.provenance.abstractHtml,
               }}
@@ -168,7 +168,7 @@ const ArticlePage = ({ article }: ArticlePageProps) => {
           <details className="article-provenance-section">
             <summary>Sources ({article.provenance.sourceCount})</summary>
             <div
-              className="article-prose"
+              className="article-prose df-prose-links"
               dangerouslySetInnerHTML={{
                 __html: article.provenance.sourcesHtml,
               }}
@@ -180,7 +180,7 @@ const ArticlePage = ({ article }: ArticlePageProps) => {
               Fact-check table ({article.provenance.factCheckRowCount})
             </summary>
             <div
-              className="article-prose"
+              className="article-prose df-prose-links"
               dangerouslySetInnerHTML={{
                 __html: article.provenance.factCheckHtml,
               }}
@@ -190,7 +190,7 @@ const ArticlePage = ({ article }: ArticlePageProps) => {
           <details className="article-provenance-section">
             <summary>Editorial note: original synthesis</summary>
             <div
-              className="article-prose"
+              className="article-prose df-prose"
               dangerouslySetInnerHTML={{
                 __html: article.provenance.editorialNoteHtml,
               }}

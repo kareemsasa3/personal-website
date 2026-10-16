@@ -162,3 +162,21 @@ test("T7 cascade guard: a header paragraph rule excludes its eyebrow so the labe
     for (const d of rules) assert.ok(innermost(d.selector).includes(`:not(.${eyebrow})`), where({ file, ...d }));
   }
 });
+
+test("T8 measure: no Phase 3 max-width or grid track holds a literal ch value; prose containers carry df-prose", async () => {
+  const decls = await phase3Decls();
+  const bad = decls.filter((d) => /^(max-width|grid-template-columns)$/.test(d.prop) && /\d\s*ch\b/.test(d.value));
+  assert.deepEqual(bad.map(where), []);
+  assert.ok(decls.some((d) => d.prop === "max-width" && /--measure-body/.test(d.value)), "measure-body is read nowhere");
+  assert.match(await read("components/ArticlePage/ArticlePage.tsx"), /className="article-body df-prose /);
+  const art = await read("components/ArticlePage/ArticlePage.tsx");
+  const containers = [...art.matchAll(/className="article-prose (df-prose(?:-links)?)"\s+dangerouslySetInnerHTML=\{\{\s+__html: article\.provenance\.(\w+)/g)].map((m) => `${m[2]}:${m[1]}`);
+  // Tables live in Sources and Fact-check: those stay full width (links only); Abstract and Editorial note take the measure.
+  assert.deepEqual(containers, ["abstractHtml:df-prose", "sourcesHtml:df-prose-links", "factCheckHtml:df-prose-links", "editorialNoteHtml:df-prose"]);
+  const marker = declarations(await read("styles/darkfield/grammar.css")).filter((d) => /a:hover::before/.test(d.selector) && /df-prose/.test(d.selector));
+  assert.deepEqual(marker.map(where), [], "inline prose links take no › marker (DEV-3)");
+  assert.match(await read("components/CaseStudyPage/CaseStudyPage.tsx"), /case-study-summary df-prose/);
+  assert.match(await read("components/CaseStudyPage/CaseStudyBlocks.tsx"), /<p key=\{paragraph\} className="df-prose">/);
+  const rules = declarations(await read("styles/darkfield/grammar.css")).filter((d) => /^\.df-prose/.test(innermost(d.selector)));
+  assert.ok(rules.some((d) => d.prop === "max-width" && d.value.trim() === "var(--measure-body)"));
+});

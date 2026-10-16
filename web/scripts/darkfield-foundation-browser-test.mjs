@@ -1357,6 +1357,28 @@ if (MODE === "check") {
       invariant(bad.length === 0, `${route}: voice ${JSON.stringify(bad.slice(0, 8))}`);
     });
   }
+  // Phase 3 Task 8 (§06): running text keeps to the body measure. The probe resolves the measure in the paragraph's own font.
+  for (const route of P3_ROUTES) for (const width of [VIEW_W, 768]) {
+    await withPage({ theme: THEMES[0], route }, async (page) => {
+      await page.setViewportSize({ width, height: VIEW_H });
+      const wide = await page.evaluate((skip) => {
+        const out = [];
+        const own = (el) => [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim());
+        for (const el of document.querySelectorAll("main p")) {
+          if (!el.getClientRects().length || !own(el) || el.closest(`${skip}, [class*="df-label"]`)) continue;
+          const probe = document.createElement("span");
+          probe.style.cssText = "position:absolute;visibility:hidden;width:var(--measure-body)";
+          el.appendChild(probe);
+          const limit = probe.getBoundingClientRect().width;
+          probe.remove();
+          const width = el.getBoundingClientRect().width;
+          if (width > limit + 0.5) out.push(`${el.tagName.toLowerCase()}.${el.className} ${Math.round(width)}/${Math.round(limit)}`);
+        }
+        return out;
+      }, P3_SKIP);
+      invariant(wide.length === 0, `${route} @${width}: measure ${JSON.stringify(wide.slice(0, 8))}`);
+    });
+  }
   // Guard for the eyebrow cascade (T6): a page header's paragraph rule must not override the label's
   // line height or colour. Each eyebrow is compared with a probe label.
   for (const route of ["/case-studies", "/writing", "/procedural-animations"]) {

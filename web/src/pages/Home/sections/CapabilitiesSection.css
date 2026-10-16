@@ -63,7 +63,7 @@
 }
 
 .capability-row p {
-  max-width: 60ch;
+  max-width: var(--measure-body);
   margin: 0;
   color: var(--fg-muted);
   line-height: 1.6;

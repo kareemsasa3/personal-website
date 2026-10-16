@@ -41,7 +41,7 @@ TABLE OF CONTENTS
 }
 
 .journey-subtitle {
-    max-width: 600px;
+    max-width: var(--measure-body);
     margin: 0;
     font-size: 1.1rem;
     font-weight: 400;

@@ -29,6 +29,7 @@
 }
 
 .contact-strip-description {
+  max-width: var(--measure-body);
   margin: 0;
   color: var(--fg-muted);
   font-size: 0.9rem;

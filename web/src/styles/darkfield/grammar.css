@@ -135,3 +135,19 @@
   font-family: var(--font-mono);
   margin-inline-end: var(--space-1);
 }
+
+/* Narrator prose (§06): running text keeps to measure-body. Inline links are operable (§13 Hover). .df-prose-links
+   gives the same link treatment to a full-width container (tables stay outside the measure). */
+.df-prose { max-width: var(--measure-body); }
+:is(.df-prose, .df-prose-links) a {
+  position: relative;
+  color: var(--fg);
+  text-decoration-line: underline;
+  text-decoration-color: var(--edge);
+  text-decoration-thickness: var(--stroke-hair);
+  text-underline-offset: var(--space-1);
+  transition: background-color var(--dur-fast) var(--ease-standard), text-decoration-color var(--dur-fast) var(--ease-standard);
+}
+:is(.df-prose, .df-prose-links) a:hover { background-color: var(--df-ground-up, var(--surface-1)); text-decoration-color: var(--fg-muted); }
+/* DEV-3: no › marker on inline prose links — running text has no free cell before the label (§13 hover) */
+:is(.df-prose, .df-prose-links) a:is(:active, [data-df-pressed]) { background-color: var(--signal); color: var(--on-signal); text-decoration-color: currentColor; transition: none; }

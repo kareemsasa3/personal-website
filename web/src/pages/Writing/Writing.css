@@ -20,7 +20,7 @@
 
 .writing-header p:not(.writing-eyebrow) {
   color: var(--fg-muted);
-  max-width: 68ch;
+  max-width: var(--measure-body);
   line-height: 1.6;
 }
 
@@ -54,6 +54,7 @@
 /* Reading-order hint for essays that belong to a sequence. The feed stays
    newest-first; this only makes the intended order legible on the card. */
 .writing-card-series {
+  max-width: var(--measure-body);
   margin: -0.3rem 0 0;
   color: var(--fg-muted);
   font-size: 0.74rem;

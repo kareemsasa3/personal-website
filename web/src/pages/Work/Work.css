@@ -42,7 +42,7 @@
 }
 
 .work-subtitle {
-    max-width: 620px;
+    max-width: var(--measure-body);
     margin: 1.5rem auto 0;
     color: var(--fg-muted);
     font-size: 1rem;
@@ -167,6 +167,7 @@
 }
 
 .work-contact-cta p:last-child {
+    max-width: var(--measure-body);
     margin: 0.75rem 0 0;
     color: var(--fg-muted);
     line-height: 1.6;

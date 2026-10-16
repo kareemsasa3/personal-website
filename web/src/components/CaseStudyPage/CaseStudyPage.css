@@ -42,7 +42,6 @@
 }
 
 .case-study-summary {
-  max-width: 760px;
   margin: 1rem 0 0;
   color: var(--fg);
   font-size: 1.05rem;
@@ -75,6 +74,7 @@
 .case-study-list li,
 .case-study-card p,
 .case-studies-header p:not(.case-study-eyebrow) {
+  max-width: var(--measure-body);
   color: var(--fg);
   line-height: 1.8;
   overflow-wrap: anywhere;
@@ -116,6 +116,7 @@
 }
 
 .case-study-artifact-note {
+  max-width: var(--measure-body);
   margin-top: 0.75rem;
   color: var(--fg-muted);
   font-size: 0.92rem;
@@ -184,7 +185,7 @@ a.case-study-link:hover {
 }
 
 .case-studies-header p {
-  max-width: 760px;
+  max-width: var(--measure-body);
   margin: 0;
 }
 
@@ -316,7 +317,7 @@ a.case-study-link:hover {
 .case-study-figure { width: fit-content; max-width: 100%; margin-left: auto; margin-right: auto; }
 .case-study-figure__images { display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem; align-items: flex-start; }
 .case-study-figure__item { flex: 1 1 280px; min-width: 0; }
-.case-study-figure figcaption { contain: inline-size; max-width: 760px; margin-top: 0.75rem; color: var(--fg-muted); font-size: 0.85rem; line-height: 1.6; }
+.case-study-figure figcaption { contain: inline-size; max-width: var(--measure-body); margin-top: 0.75rem; color: var(--fg-muted); font-size: 0.85rem; line-height: 1.6; }
 
 .case-study-comparison { overflow-x: auto; }
 .case-study-comparison table { width: 100%; border-collapse: collapse; font-size: 0.85rem; line-height: 1.5; }

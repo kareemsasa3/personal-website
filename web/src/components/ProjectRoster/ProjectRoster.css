@@ -118,7 +118,7 @@ with globally bundled card/badge styles.
 
 .project-roster__deck {
     grid-area: deck;
-    max-width: 62ch;
+    max-width: var(--measure-body);
     margin: 0.55rem 0 0;
     color: var(--fg-muted);
     font-size: 1rem;
@@ -216,7 +216,7 @@ with globally bundled card/badge styles.
 }
 
 .project-roster__description {
-    max-width: 72ch;
+    max-width: var(--measure-body);
     margin: 0;
     color: var(--fg);
     font-size: 1rem;
