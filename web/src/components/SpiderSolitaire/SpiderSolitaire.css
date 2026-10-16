@@ -37,19 +37,18 @@
 }
 
 .spider-button {
-  background: rgba(0, 0, 0, 0.6);
-  color: var(--terminal-primary, #4caf50);
-  border: 1px solid var(--terminal-primary, #4caf50);
+  background: var(--surface-1);
+  color: var(--signal);
+  border: 1px solid var(--signal);
   padding: 0.5rem 1rem;
   border-radius: 0.4rem;
   cursor: pointer;
   font-weight: 600;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition: background-color 0.15s ease;
 }
 
 .spider-button:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 0 12px rgba(76, 175, 80, 0.5);
+  background: var(--surface-2);
 }
 
 .spider-button:disabled {

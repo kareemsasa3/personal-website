@@ -1168,6 +1168,20 @@ if (MODE === "check") {
       }
     });
   }
+  // Phase 2 Task 1 (D3 ruling): Layout routes have no rain canvas, and the static ground runs no animation.
+  // /simulations/rhythm-lab is immersive (outside Layout) and keeps its own rain (P2-3), so it is not listed.
+  for (const theme of THEMES) {
+    for (const route of ["/", "/projects", "/writing"]) {
+      await withPage({ theme, route }, async (page) => {
+        const state = await page.evaluate(() => ({
+          rain: document.querySelectorAll("canvas.matrix-rain-3d-background, canvas.matrix-background, canvas.bionic-canvas").length,
+          ground: document.querySelectorAll(".static-background").length,
+          moving: document.getAnimations().filter((a) => a.effect?.target?.closest?.(".static-background")).length,
+        }));
+        invariant(state.rain === 0 && state.ground === 1 && state.moving === 0, `${theme} ${route}: atmosphere ${JSON.stringify(state)}`);
+      });
+    }
+  }
 }
 
 await browser.close();

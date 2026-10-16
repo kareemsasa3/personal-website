@@ -16,11 +16,9 @@ const LEGACY = [
   "background-color", "background-color-secondary", "background-color-tertiary",
   "card-background", "panel-bg-color", "text-color", "text-color-secondary", "text-secondary",
   "text-color-muted", "text-muted-color", "border-color", "shadow-color",
-  "bg-canvas-fill", "bg-glow-color", "bg-grid-major", "bg-grid-minor", "bg-topology",
-  "bg-signal", "bg-center-lift", "bg-vignette",
 ];
 // Variables whose legacy literal values are deliberately held (Phase 1 review): only these may sit in the fence.
-const HELD = ["accent-color", "app-shadow", "bg-glow-color", "bg-grid-major", "bg-grid-minor", "bg-topology", "bg-signal", "bg-center-lift", "bg-vignette"];
+const HELD = ["accent-color", "app-shadow"];
 // Aliases that resolve to grounds (signal-deep), so they must never colour text.
 const GROUND_ALIASES = "brand-primary-soft|primary-color-light|brand-primary-dark|primary-color-dark";
 const FENCE = /\/\* legacy:start \*\/([\s\S]*?)\/\* legacy:end \*\//g;

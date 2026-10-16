@@ -46,46 +46,19 @@
   --text-muted-color: var(--app-text-muted);
   --border-color: var(--app-border);
   --shadow-color: var(--app-shadow);
-
-  --bg-canvas-fill: var(--field);
 }
 
 /* Held legacy values, carried over unchanged from index.css and ThemeContext.tsx at a16c70f.
    accent: read by Snake's native visuals and by two buttons with a recorded 1.40:1 deficiency (Phase 3).
-   app-shadow: read by Annals' native panel; shadow removal is Phase 2.
-   bg-*: atmosphere, re-derived in Phase 2. Mono inherits the :root (dark) values unless overridden. */
+   app-shadow: read by Annals' native panel; shadow removal is Phase 2. */
 /* legacy:start */
 :root,
 [data-theme="dark"] {
   --accent-color: #FFD700;
   --app-shadow: rgba(0, 0, 0, 0.3);
-  --bg-glow-color: rgba(108, 117, 125, 0.10);
-  --bg-grid-major: rgba(129, 199, 132, 0.08);
-  --bg-grid-minor: rgba(129, 199, 132, 0.03);
-  --bg-topology: rgba(129, 199, 132, 0.12);
-  --bg-signal: rgba(129, 199, 132, 0.16);
-  --bg-center-lift: rgba(255, 255, 255, 0.03);
-  --bg-vignette: rgba(0, 0, 0, 0.18);
 }
 
 [data-theme="light"] {
   --app-shadow: rgba(0, 0, 0, 0.08);
-  --bg-glow-color: rgba(106, 106, 106, 0.10);
-  --bg-grid-major: rgba(0, 0, 0, 0.11);
-  --bg-grid-minor: rgba(0, 0, 0, 0.055);
-  --bg-topology: rgba(42, 115, 49, 0.16);
-  --bg-signal: rgba(42, 115, 49, 0.08);
-  --bg-center-lift: rgba(255, 255, 255, 0.18);
-  --bg-vignette: rgba(18, 24, 32, 0.06);
 }
 /* legacy:end */
-
-[data-theme="mono"] {
-  --bg-glow-color: transparent;
-  --bg-grid-major: color-mix(in srgb, var(--fg) 6%, transparent);
-  --bg-grid-minor: transparent;
-  --bg-topology: transparent;
-  --bg-signal: transparent;
-  --bg-center-lift: transparent;
-  --bg-vignette: transparent;
-}
