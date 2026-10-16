@@ -46,9 +46,7 @@
 }
 
 .terminal-dropdown-trigger:focus {
-    outline: none;
     border-color: var(--terminal-primary, #4CAF50);
-    box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
     background: rgba(0, 255, 0, 0.1);
 }
 

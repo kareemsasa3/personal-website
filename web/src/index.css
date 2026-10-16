@@ -305,10 +305,15 @@ select {
   transition: var(--interaction-transition);
 }
 
-/* Focus states for accessibility - scoped to interactive elements for better performance */
-:where(a, button, input, textarea, select, [tabindex]):focus-visible {
-  outline: 2px solid var(--primary-color);
+/* Keyboard focus (§13, §17): the focus-ring token, enforced over component rules; glow never
+   stands in for it. box-shadow draws the token's ring; the transparent outline is what forced-
+   colors mode paints, because it discards box-shadow. */
+:is(a, button, input, textarea, select, summary, [tabindex]):focus-visible {
+  outline: 2px solid transparent !important;
   outline-offset: 2px;
+  box-shadow: var(--focus-ring) !important;
+  /* Focus arrives instantly (§13), so no component transition may fade the ring in. */
+  transition: none !important;
 }
 
 /* Set by ThemeContext for the frame the theme tokens change, so every surface

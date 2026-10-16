@@ -146,8 +146,8 @@ const invariant = (ok, message) => { if (!ok) invariantFailures.push(message); }
 const CLOCK_START = new Date("2026-01-01T00:00:00Z");
 const CLOCK_PAUSED = new Date("2026-01-01T01:00:00Z");
 
-const withPage = async ({ theme, route = "/", javaScriptEnabled = true, forcedColors = "none", clock = false, routePass = false }, run) => {
-  const context = await browser.newContext({ viewport: { width: VIEW_W, height: VIEW_H }, javaScriptEnabled, forcedColors, reducedMotion: "reduce" });
+const withPage = async ({ theme, route = "/", javaScriptEnabled = true, forcedColors = "none", reducedMotion = "reduce", clock = false, routePass = false }, run) => {
+  const context = await browser.newContext({ viewport: { width: VIEW_W, height: VIEW_H }, javaScriptEnabled, forcedColors, reducedMotion });
   if (theme) await context.addInitScript((value) => localStorage.setItem("theme", value), theme);
   // Seeded randomness (r10): decorative backgrounds draw a random static frame under reduced motion, and it
   // shows through translucent grounds. The same seed on every load and build keeps rendered grounds
@@ -1118,7 +1118,56 @@ if (MODE === "check") {
       }
     }
   }
-  // Task 4 and Task 6 add their invariants here.
+  // Focus ring (Task 6): every keyboard-focused control shows the focus-ring token's spread shadow, and
+  // forced-colors mode keeps a painted outline (it discards box-shadow). Focus that enters an <iframe>
+  // belongs to the artwork's own document and is not asserted here.
+  {
+    const RING = { dark: "rgb(108, 255, 149)", light: "rgb(4, 110, 48)", mono: "rgb(255, 255, 255)" };
+    const FOCUS_ROUTES = ["/", "/projects", "/terminal", "/simulations/rhythm-lab", "/simulations/orbital-simulator", "/procedural-animations"];
+    const focusStates = async (page, presses = 25) => {
+      const states = [];
+      for (let i = 0; i < presses; i += 1) {
+        await page.keyboard.press("Tab");
+        const state = await page.evaluate(() => {
+          const el = document.activeElement;
+          if (!el || el === document.body || el.tagName === "IFRAME") return null;
+          const c = getComputedStyle(el);
+          return { label: `${el.tagName} ${(el.getAttribute("aria-label") || el.textContent || "").trim().slice(0, 30)}`, boxShadow: c.boxShadow, outlineStyle: c.outlineStyle, outlineWidth: c.outlineWidth };
+        });
+        if (state) states.push(state);
+      }
+      return states;
+    };
+    for (const theme of THEMES) {
+      for (const route of FOCUS_ROUTES) {
+        await withPage({ theme, route }, async (page) => {
+          for (const state of await focusStates(page)) {
+            invariant(state.boxShadow.includes(`${RING[theme]} 0px 0px 0px 4px`), `${theme} ${route}: ${state.label} lacks focus-ring (${state.boxShadow})`);
+          }
+        });
+      }
+    }
+    // Focus appears instantly (§13): with motion allowed, the ring is complete as soon as focus lands,
+    // not part-way through a transition. Read right after the key press, before any transition could finish.
+    for (const route of FOCUS_ROUTES) {
+      await withPage({ theme: "dark", route, reducedMotion: "no-preference" }, async (page) => {
+        for (let i = 0; i < 25; i += 1) {
+          await page.keyboard.press("Tab");
+          const state = await page.evaluate(() => {
+            const el = document.activeElement;
+            if (!el || el === document.body || el.tagName === "IFRAME") return null;
+            return { label: `${el.tagName} ${(el.getAttribute("aria-label") || el.textContent || "").trim().slice(0, 30)}`, boxShadow: getComputedStyle(el).boxShadow };
+          });
+          if (state) invariant(state.boxShadow.includes(`${RING.dark} 0px 0px 0px 4px`), `instant focus ${route}: ${state.label} ring is not complete on arrival (${state.boxShadow})`);
+        }
+      });
+    }
+    await withPage({ theme: "dark", route: "/", forcedColors: "active" }, async (page) => {
+      for (const state of await focusStates(page, 10)) {
+        invariant(state.outlineStyle === "solid" && state.outlineWidth === "2px", `forced colors: ${state.label} outline ${state.outlineStyle} ${state.outlineWidth}`);
+      }
+    });
+  }
 }
 
 await browser.close();
