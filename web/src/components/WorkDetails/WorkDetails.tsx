@@ -51,7 +51,7 @@ const WorkDetails: React.FC<WorkDetailsProps> = ({
           <h4 className="tech-stack-title">Tools & Skills</h4>
           <div className="tech-tags">
             {techStack.map((tech, index) => (
-              <span key={index} className="tech-tag">
+              <span key={index} className="tech-tag df-label-sm df-context">
                 {tech}
               </span>
             ))}
@@ -62,7 +62,7 @@ const WorkDetails: React.FC<WorkDetailsProps> = ({
             <h4 className="highlights-title">Focus Areas</h4>
             <div className="highlights-tags">
               {highlights.map((highlight, index) => (
-                <span key={index} className="highlight-tag">
+                <span key={index} className="highlight-tag df-label-sm df-context">
                   {highlight}
                 </span>
               ))}

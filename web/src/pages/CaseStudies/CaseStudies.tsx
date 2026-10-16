@@ -25,7 +25,9 @@ const CaseStudyCardLink = ({ caseStudy }: { caseStudy: CaseStudyCard }) => (
       </div>
       <div className="case-study-card-meta">
         <span
-          className={`status-badge ${caseStudy.status.toLowerCase()}`}
+          className={`status-badge df-label-sm df-context${
+            caseStudy.status.toLowerCase() === "live" ? " df-context--live" : ""
+          }`}
         >
           {caseStudy.status}
         </span>
@@ -34,7 +36,7 @@ const CaseStudyCardLink = ({ caseStudy }: { caseStudy: CaseStudyCard }) => (
 
     <div className="case-study-focus-list">
       {caseStudy.focusAreas.map((focusArea) => (
-        <span key={focusArea} className="tech-tag">
+        <span key={focusArea} className="tech-tag df-label-sm df-context">
           {focusArea}
         </span>
       ))}

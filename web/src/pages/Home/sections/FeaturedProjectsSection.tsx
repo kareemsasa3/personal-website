@@ -55,7 +55,9 @@ export const FeaturedProjectsSection = forwardRef(
                   <h3 className="project-title">{caseStudy.title}</h3>
                   <div className="project-badges">
                     <span
-                      className={`status-badge ${caseStudy.status.toLowerCase()}`}
+                      className={`status-badge df-label-sm df-context${
+            caseStudy.status.toLowerCase() === "live" ? " df-context--live" : ""
+          }`}
                     >
                       {caseStudy.status}
                     </span>
@@ -66,7 +68,7 @@ export const FeaturedProjectsSection = forwardRef(
                 </p>
                 <div className="project-tech">
                   {caseStudy.focusAreas.map((focusArea) => (
-                    <span key={focusArea} className="tech-tag">
+                    <span key={focusArea} className="tech-tag df-label-sm df-context">
                       {focusArea}
                     </span>
                   ))}

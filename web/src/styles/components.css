@@ -19,40 +19,18 @@ a.interactive-card:hover {
   border-color: var(--signal-dim);
 }
 
+/* Lifecycle statuses and tags are context labels (D7): the voice and colour come from
+   .df-label-sm and .df-context; these rules keep layout only. */
 .status-badge {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
   flex: 0 0 auto;
   box-sizing: border-box;
   width: fit-content;
   max-width: 100%;
-  padding: 0.25rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: white;
-  line-height: 1.2;
   overflow-wrap: normal;
   white-space: nowrap;
   word-break: normal;
-}
-
-.status-badge.live {
-  background: #51cf66;
-  color: white;
-}
-
-.status-badge.development {
-  background: #ffd43b;
-  color: #333;
-}
-
-.status-badge.completed {
-  background: #74c0fc;
-  color: white;
 }
 
 .tech-tag {
@@ -61,20 +39,9 @@ a.interactive-card:hover {
   box-sizing: border-box;
   width: fit-content;
   max-width: 100%;
-  padding: 0.25rem 0.75rem;
-  /* Solid dark-green pill with light text: 4.86:1 contrast in both themes.
-     The old pale-green fill with green text was 1.38:1 and needed per-page patches. */
-  background: #2e7d32;
-  border: 1px solid var(--signal-dim);
-  border-radius: 15px;
-  color: #f8f9fa;
-  font-size: 0.8rem;
-  font-weight: 500;
-  line-height: 1.25;
   overflow-wrap: normal;
   white-space: normal;
   word-break: normal;
-  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 @media (max-width: 480px) {
@@ -84,8 +51,7 @@ a.interactive-card:hover {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .interactive-card,
-  .tech-tag {
+  .interactive-card {
     transition: none;
   }
 }

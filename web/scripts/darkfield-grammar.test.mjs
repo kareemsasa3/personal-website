@@ -82,3 +82,18 @@ test("T3 grammar.css: tokens only; imported after the bridge and before componen
     }
   }
 });
+
+test("T5 D7: statuses and tags are context labels without hue; • only on Live", async () => {
+  const decls = await phase3Decls();
+  const bad = decls.filter((d) => /status|tech-tag|highlight-tag|artifact-meta/.test(d.selector) &&
+    (/^(background|background-color|border-radius|box-shadow)$/.test(d.prop) && !/^(none|transparent|var\(--radius-0\))$/.test(d.value)
+     || d.prop === "color" && d.value !== "var(--fg-muted)" || /^--roster-status/.test(d.prop)));
+  assert.deepEqual(bad.map(where), []);
+  const live = decls.filter((d) => d.prop === "content" && /•/.test(d.value));
+  assert.ok(live.length > 0 && live.every((d) => /\.df-context--live::before/.test(d.selector)), live.map(where).join("\n"));
+  for (const f of ["components/ProjectRoster/ProjectRosterItem.tsx", "pages/CaseStudies/CaseStudies.tsx", "pages/Home/sections/FeaturedProjectsSection.tsx"]) {
+    const code = await read(f);
+    assert.doesNotMatch(code, /status-dot/, f);
+    assert.match(code, /df-label-sm[^"`]*df-context|df-context[^"`]*df-label-sm/, f);
+  }
+});

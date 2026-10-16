@@ -132,9 +132,10 @@ const ProjectRosterItem = ({ project }: ProjectRosterItemProps) => {
             <span
               className={`project-roster__meta-item project-roster__status project-roster__status--${statusModifier(
                 project.status
-              )}`}
+              )} df-label-sm df-context${
+                statusLabel.toLowerCase() === "live" ? " df-context--live" : ""
+              }`}
             >
-              <span className="project-roster__status-dot" aria-hidden="true" />
               {statusLabel}
             </span>
           </p>

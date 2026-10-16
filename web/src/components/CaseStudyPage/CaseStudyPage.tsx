@@ -67,7 +67,7 @@ const CaseStudyPage = ({ caseStudy }: CaseStudyPageProps) => {
           </header>
           <div className="case-study-focus-list">
             {caseStudy.focusAreas.map((focusArea) => (
-              <span key={focusArea} className="tech-tag">
+              <span key={focusArea} className="tech-tag df-label-sm df-context">
                 {focusArea}
               </span>
             ))}
@@ -183,8 +183,8 @@ const CaseStudyPage = ({ caseStudy }: CaseStudyPageProps) => {
             {caseStudy.artifacts.map((artifact) => (
               <article key={artifact.title} className="interactive-card">
                 <div className="case-study-artifact-meta">
-                  <span>{artifact.kind}</span>
-                  <span>{artifact.status}</span>
+                  <span className="df-label-sm df-context">{artifact.kind}</span>
+                  <span className="df-label-sm df-context">{artifact.status}</span>
                 </div>
                 <h3>{artifact.title}</h3>
                 <p>{artifact.description}</p>

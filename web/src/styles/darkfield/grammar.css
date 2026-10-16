@@ -125,3 +125,13 @@
   transition: none;
 }
 .df-control--card.df-control--card:is(:active, [data-df-pressed]) * { color: inherit; }
+
+/* Context labels (D7; §05 State encoding, §06 Interface label): lifecycle statuses and tags speak in the
+   label voice at the muted tier with no hue. Only Live carries a marker; the word carries the meaning. */
+.df-context { color: var(--fg-muted); }
+.df-context--live::before {
+  content: "•";
+  content: "•" / "";
+  font-family: var(--font-mono);
+  margin-inline-end: var(--space-1);
+}

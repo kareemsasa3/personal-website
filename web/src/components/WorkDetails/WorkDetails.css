@@ -132,31 +132,12 @@
 .highlights-tags {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
+    gap: var(--space-3);
 }
 
-.tech-tag {
-    background: var(--surface-1);
-    color: var(--signal-dim);
-    padding: 0.25rem 0.75rem;
-    border-radius: 15px;
-    font-size: 0.8rem;
-    font-weight: 500;
-    border: 1px solid var(--signal-dim);
-    font-family: var(--font-mono);
-    transition: all 0.2s ease;
-}
-
+.tech-tag,
 .highlight-tag {
-    background: var(--surface-1);
-    color: var(--fg);
-    padding: 0.25rem 0.75rem;
-    border-radius: 15px;
-    font-size: 0.8rem;
-    font-weight: 500;
-    border: 1px solid var(--rule);
-    font-family: var(--font-mono);
-    transition: all 0.2s ease;
+    display: inline-block;
 }
 
 /* Responsive Design */
@@ -195,17 +176,6 @@
 
     .work-company {
         font-size: 1.3rem;
-    }
-
-    .tech-tags,
-    .highlights-tags {
-        gap: 0.25rem;
-    }
-
-    .tech-tag,
-    .highlight-tag {
-        font-size: 0.75rem;
-        padding: 0.2rem 0.6rem;
     }
 
     .section-title {
