@@ -7,7 +7,6 @@
     width: 100%;
     max-width: 400px;
     box-sizing: border-box;
-    backdrop-filter: blur(10px);
     transition: transform var(--transition-normal),
         border-color var(--transition-normal),
         background var(--transition-normal);

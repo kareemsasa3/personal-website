@@ -19,9 +19,7 @@
     width: min(100%, var(--settings-sidebar-width, 360px));
     height: 100%;
     max-height: 100%;
-    background: var(--app-overlay);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    background: var(--app-surface-elevated);
     display: flex;
     flex-direction: column;
     transform: translateZ(0);
@@ -41,9 +39,7 @@
     align-items: center;
     padding: 1rem;
     border-bottom: 1px solid var(--app-border);
-    background: color-mix(in srgb, var(--app-surface) 85%, transparent);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    background: var(--app-surface-elevated);
     flex-shrink: 0;
 }
 
@@ -63,7 +59,7 @@
 }
 
 .settings-close {
-    background: color-mix(in srgb, var(--app-surface) 75%, transparent);
+    background: var(--app-surface-elevated);
     border: 1px solid var(--app-border);
     color: var(--text-color, #ffffff);
     font-size: 1.1rem;
@@ -71,8 +67,6 @@
     padding: 0.5rem;
     border-radius: 8px;
     transition: all 0.3s ease;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
     border: none;
     outline: none;
 }
@@ -99,7 +93,7 @@
    Rows sit directly on the panel, so it is solid: page text behind a
    translucent surface competes with the controls. */
 .settings-panel {
-    background: var(--app-bg);
+    background: var(--app-surface-elevated);
     --settings-divider: color-mix(in srgb, var(--app-border) 55%, transparent);
     --settings-danger: #ff6b6b;
 }
@@ -107,7 +101,7 @@
 [data-theme="light"] .settings-panel {
     /* Elevated surface: the light page canvas and content surfaces sit
        below it, so it reads as floating without heavier chrome. */
-    background: var(--app-surface);
+    background: var(--app-surface-elevated);
     --settings-danger: #b42318;
 }
 
@@ -535,6 +529,6 @@
     background: rgba(255, 255, 255, 0.3);
 }
 
-.settings-header { position: sticky; top: 0; z-index: 1; background: var(--app-surface); }
+.settings-header { position: sticky; top: 0; z-index: 1; background: var(--app-surface-elevated); }
 
 .settings-close:focus-visible { outline: 2px solid var(--brand-primary); outline-offset: 2px; }

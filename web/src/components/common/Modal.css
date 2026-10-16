@@ -6,7 +6,6 @@
     bottom: 0;
     height: 100dvh;
     background: var(--app-overlay);
-    backdrop-filter: blur(8px);
     display: flex;
     align-items: center;
     justify-content: center;

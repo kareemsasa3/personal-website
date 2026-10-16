@@ -140,3 +140,15 @@ test("T4 emission: no text-shadow; box-shadow only the focus ring", async () => 
     (d.prop === "text-shadow" && d.value !== "none") || (d.prop === "box-shadow" && d.value !== "none" && !isFocusRing(d.value)));
   assert.deepEqual(bad.map(where), []);
 });
+
+test("T5 glass: no backdrop or blur filter; former glass panels are opaque", async () => {
+  const decls = await governedDecls();
+  const bad = decls.filter((d) => (/backdrop-filter$/.test(d.prop) && d.value !== "none") || (d.prop === "filter" && /blur\(/.test(d.value)));
+  const panels = { "components/Navigation/SiteNavigation.css": ".site-header", "components/SettingsPanel/SettingsPanel.css": ".settings-panel", "pages/Home/sections/HeroSection.css": ".hero-proof-strip" };
+  for (const [file, sel] of Object.entries(panels)) {
+    for (const d of decls.filter((x) => x.file === file && innermost(x.selector) === sel && /^background(-color)?$/.test(x.prop))) {
+      if (/transparent|--app-overlay/.test(d.value)) bad.push(d);
+    }
+  }
+  assert.deepEqual(bad.map(where), []);
+});

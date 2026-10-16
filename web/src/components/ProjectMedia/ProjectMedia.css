@@ -128,7 +128,6 @@
     max(0.75rem, env(safe-area-inset-bottom))
     max(0.75rem, env(safe-area-inset-left));
   background: var(--app-overlay);
-  backdrop-filter: blur(6px);
   overscroll-behavior: contain;
   animation: media-inspector-in 0.15s ease-out;
 }

@@ -1309,7 +1309,6 @@
   padding: 1rem;
   box-sizing: border-box;
   background: rgba(0, 0, 0, 0.78);
-  backdrop-filter: blur(10px);
 }
 
 .rhythm-lab-overlay-panel {
@@ -1986,7 +1985,6 @@
   padding: 1rem;
   box-sizing: border-box;
   background: rgba(0, 0, 0, 0.78);
-  backdrop-filter: blur(10px);
 }
 
 .rhythm-lab-delete-dialog {

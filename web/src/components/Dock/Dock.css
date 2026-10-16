@@ -4,7 +4,7 @@
 
     /* Terminal-inspired theme variables */
     --dock-primary: var(--brand-primary);
-    --dock-background: var(--app-overlay);
+    --dock-background: var(--app-bg);
     --dock-border: var(--brand-primary);
     --dock-text: var(--app-text);
     --dock-text-muted: var(--app-text-muted);
@@ -28,8 +28,6 @@
 
     background: var(--dock-background);
     border-radius: 16px;
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
 
     will-change: transform;
     /* Performance optimization */
