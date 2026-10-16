@@ -48,11 +48,30 @@ test("ownership: every reachable governed stylesheet belongs to exactly one phas
   const css = (await governed(".css")).filter((f) => !OUTSIDE.includes(f));
   const missing = css.filter((f) => PHASE3.includes(f) === PHASE5.includes(f));
   assert.deepEqual(missing, [], "files in neither or both lists");
-  assert.deepEqual(PHASE3.filter((f) => f !== "styles/darkfield/grammar.css" && !css.includes(f)), [], "PHASE3 names a file the walk does not reach");
+  assert.deepEqual(PHASE3.filter((f) => !css.includes(f)), [], "PHASE3 names a file the walk does not reach");
   assert.deepEqual(PHASE5.filter((f) => !css.includes(f)), [], "PHASE5 names a file the walk does not reach");
 });
 
 test("T2 bridge: only --app-overlay and the --accent-color hold remain", async () => {
   const defined = declarations(await read("styles/darkfield/bridge.css")).filter((d) => d.prop.startsWith("--")).map((d) => d.prop.slice(2));
   assert.deepEqual([...new Set(defined)].sort(), ["accent-color", "app-overlay"]);
+});
+
+const LITERAL = /#[0-9a-f]{3,8}\b|\b(rgba?|hsla?|hwb|lab|lch|oklch|oklab)\(|\b(white|black|red|green|blue|gray|grey|silver|gold|yellow)\b/i;
+test("T3 grammar.css: tokens only; imported after the bridge and before component CSS", async () => {
+  const css = await read("styles/darkfield/grammar.css");
+  assert.doesNotMatch(css.replace(/\/\*[\s\S]*?\*\//g, ""), LITERAL);
+  for (const d of declarations(css)) if (/^(transition|animation)/.test(d.prop)) assert.match(d.value, /^(none|.*var\(--dur-[a-z]+\).*var\(--ease-[a-z]+\).*)$/, where({ file: "grammar.css", ...d }));
+  const index = await read("index.tsx");
+  const order = ["tokens.css", "index.css", "bridge.css", "grammar.css", "components.css"].map((f) => index.indexOf(`/${f}"`));
+  assert.deepEqual([...order].sort((a, b) => a - b), order); assert.ok(!order.includes(-1));
+  for (const sel of [".df-control", ".df-control--latch", ".df-control--card", ".df-control--light", ".df-control--unavailable"]) assert.ok(css.includes(sel), sel);
+  for (const f of ["pages/NotFound/NotFound.tsx", "components/common/ErrorBoundary.tsx", "components/common/AppErrorBoundary.tsx"]) {
+    for (const m of (await read(f)).matchAll(/className="([^"]*(home-link|error-button)[^"]*)"/g)) assert.match(m[1], /\bdf-control\b/, `${f}: ${m[1]}`);
+  }
+  for (const f of ["pages/NotFound/NotFound.css", "components/common/ErrorBoundary.css"]) {
+    for (const d of declarations(await read(f)).filter((x) => /home-link|error-button/.test(x.selector))) {
+      assert.ok(!/^(background|color|border|border-color|border-radius|transform|transition)$/.test(d.prop), where({ file: f, ...d }));
+    }
+  }
 });

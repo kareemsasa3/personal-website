@@ -54,11 +54,11 @@ class AppErrorBoundary extends Component<Props, State> {
             <div className="error-actions">
               <button
                 onClick={() => window.location.reload()}
-                className="error-button primary"
+                className="error-button primary df-control df-label"
               >
                 Reload Application
               </button>
-              <Link to="/" className="error-button secondary">
+              <Link to="/" className="error-button secondary df-control df-label">
                 Try Home Page
               </Link>
             </div>

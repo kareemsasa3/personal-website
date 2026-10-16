@@ -1202,6 +1202,130 @@ if (MODE === "check") {
       });
     }
   }
+  // Phase 3 (§13): every listed control is a df-control and renders Idle, Hover, Pressed and its hold.
+  // Tasks 9–13 and 15 add entries; prepare(page) brings controls on screen (Settings open, dock mode). Token colours are read from the page.
+  const P3_CONTROLS = [
+    { route: "/darkfield-404-probe", selectors: [".home-link"] },
+    // The error-boundary actions: the Journey route chunk fails to load after a client-side navigation, so its lazy
+    // import rejects and the Layout error boundary renders in place of the route.
+    { route: "/darkfield-404-probe", selectors: [".error-button"], prepare: async (page) => {
+      await page.route("**/assets/Journey-*.js", (r) => r.abort());
+      await page.evaluate(() => { history.pushState({}, "", "/journey"); dispatchEvent(new PopStateEvent("popstate")); });
+      await page.locator(".error-button").first().waitFor();
+    } },
+  ];
+  const tokenRgb = (page, name) => page.evaluate((n) => { const p = document.createElement("i"); p.style.color = `var(${n})`;
+    document.body.append(p); const c = getComputedStyle(p).color; p.remove(); return c; }, name);
+  const look = (el) => el.evaluate((e) => { const c = getComputedStyle(e); return { b: c.borderTopColor, bg: c.backgroundColor,
+    fg: c.color, r: c.borderTopLeftRadius, marker: getComputedStyle(e, "::before").content, card: e.matches(".df-control--card"),
+    light: e.matches(".df-control--light"),
+    sel: e.matches('[aria-current]:not([aria-current="false"]), [aria-selected="true"], [aria-pressed="true"]:not(.df-control--latch)'),
+    off: e.matches(':disabled, [aria-disabled="true"], .df-control--unavailable') }; });
+  // Where the label starts, and where the ::before marker's box ends. A pseudo-element has no rect: an absolute marker
+  // is located from its offsets; an in-flow marker ends where an empty probe placed right after it begins, less the
+  // marker's trailing margin and, in a flex row, the gap the probe adds (taken relative to the control, which may
+  // re-centre when the probe widens it).
+  const geometry = (el) => el.evaluate((e) => {
+    const range = document.createRange(); range.selectNodeContents(e);
+    const label = range.getBoundingClientRect();
+    const before = getComputedStyle(e, "::before");
+    let marker;
+    if (before.position === "absolute" || before.position === "fixed") {
+      marker = e.getBoundingClientRect().left + parseFloat(getComputedStyle(e).borderLeftWidth) + parseFloat(before.left) + parseFloat(before.width);
+    } else {
+      const own = getComputedStyle(e);
+      const gap = /flex|grid/.test(own.display) ? parseFloat(own.columnGap) || 0 : 0;
+      const start = e.getBoundingClientRect().left;
+      const probe = document.createElement("span"); e.prepend(probe);
+      marker = start + probe.getBoundingClientRect().left - e.getBoundingClientRect().left - gap - parseFloat(before.marginRight);
+      probe.remove();
+    }
+    return { left: label.left, top: label.top, marker };
+  });
+  const pressed = (el) => el.evaluate((e) => e.hasAttribute("data-df-pressed"));
+  // Hover at the current viewport: the label does not move, and the › marker ends where the label begins (§13 Hover).
+  const hoverGeometry = async (page, el, where) => {
+    await el.scrollIntoViewIfNeeded(); await page.mouse.move(0, 0); await frames(page);
+    const rest = await geometry(el);
+    await el.hover(); await frames(page);
+    const hover = await geometry(el);
+    invariant(Math.abs(hover.left - rest.left) <= 0.5 && Math.abs(hover.top - rest.top) <= 0.5,
+      `${where}: label moves on hover (${rest.left},${rest.top} -> ${hover.left},${hover.top})`);
+    invariant(Math.abs(hover.marker - hover.left) <= 0.5, `${where}: hover marker ends at ${hover.marker}, label starts at ${hover.left}`);
+  };
+  for (const theme of THEMES) {
+    for (const { route, prepare, selectors } of P3_CONTROLS) {
+      await withPage({ theme, route }, async (page) => {
+        if (prepare) await prepare(page);
+        const t = {}; for (const n of ["--edge", "--fg-muted", "--fg", "--signal", "--on-signal"]) t[n] = await tokenRgb(page, n);
+        const instant = await page.evaluate(() => parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--dur-instant")));
+        for (const selector of selectors) {
+          const all = page.locator(selector);
+          invariant((await all.count()) > 0, `${theme} ${route}: ${selector} not rendered`);
+          for (let i = 0; i < (await all.count()); i++) {
+            const el = all.nth(i);
+            if (!(await el.isVisible())) continue;
+            invariant(await el.evaluate((e) => e.matches(".df-control")), `${theme} ${route}: ${selector}#${i} is not a df-control`);
+            if (i > 0) continue; // states on the first visible instance
+            await el.scrollIntoViewIfNeeded(); await page.mouse.move(0, 0); await frames(page);
+            const rest = await look(el);
+            invariant(rest.r === "0px", `${theme} ${route}: ${selector} radius ${rest.r}`);
+            if (rest.off) continue;
+            if (!rest.sel && !rest.card) invariant(rest.fg === t["--fg-muted"], `${theme} ${route}: ${selector} idle label ${rest.fg}`);
+            if (!rest.sel && !rest.light) invariant(rest.b === t["--edge"], `${theme} ${route}: ${selector} idle boundary ${rest.b}`);
+            await el.hover(); await frames(page);
+            const hover = await look(el);
+            invariant(hover.marker.startsWith('"›"'), `${theme} ${route}: ${selector} hover marker ${hover.marker}`);
+            if (!rest.sel) {
+              invariant(hover.bg !== rest.bg, `${theme} ${route}: ${selector} hover has no ground step`);
+              invariant(hover.fg === t["--fg"], `${theme} ${route}: ${selector} hover label ${hover.fg}`);
+              if (!rest.light) invariant(hover.b === t["--fg-muted"], `${theme} ${route}: ${selector} hover boundary ${hover.b}`);
+            }
+            await hoverGeometry(page, el, `${theme} ${route} ${VIEW_W}px: ${selector}`);
+            await page.mouse.move(0, 0); await el.hover(); await frames(page);
+            // Released off the control: no activation (§13 Activation). A click, or the reload a click causes, fails.
+            const origin = await page.evaluate(() => performance.timeOrigin);
+            await el.evaluate((e) => { window.dfClicks = 0; e.addEventListener("click", () => { window.dfClicks += 1; }, { capture: true }); });
+            await page.mouse.down(); await frames(page);
+            const down = await look(el);
+            invariant(down.bg === t["--signal"] && down.fg === t["--on-signal"], `${theme} ${route}: ${selector} pressed ${down.bg} ${down.fg}`);
+            await page.mouse.move(0, 0); await page.mouse.up();
+            await page.waitForTimeout(instant * 2);
+            const after = await page.evaluate(() => [performance.timeOrigin, window.dfClicks]);
+            invariant(after[0] === origin && after[1] === 0, `${theme} ${route}: ${selector} activated on a release off the control ${after}`);
+            // Hold: contact and release in one task, sampled before any timer can run (synthetic events never click).
+            const hold = await el.evaluate((e) => { e.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
+              e.dispatchEvent(new PointerEvent("pointerup", { bubbles: true }));
+              return [e.hasAttribute("data-df-pressed"), getComputedStyle(e).backgroundColor]; });
+            invariant(hold[0] && hold[1] === t["--signal"], `${theme} ${route}: ${selector} inverse not held after a quick release ${hold}`);
+            await page.waitForTimeout(instant * 2);
+            invariant(!(await pressed(el)), `${theme} ${route}: ${selector} inverse never released`);
+            await el.evaluate((e) => e.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true })));
+            invariant(await pressed(el), `${theme} ${route}: ${selector} no key-down acknowledgement`);
+            // Another key's release does not end a held Enter.
+            await el.evaluate((e) => e.dispatchEvent(new KeyboardEvent("keyup", { key: "Shift", bubbles: true })));
+            await page.waitForTimeout(instant * 2);
+            invariant(await pressed(el), `${theme} ${route}: ${selector} inverse ended by another key's release while Enter is held`);
+            await el.evaluate((e) => e.dispatchEvent(new KeyboardEvent("keyup", { key: "Enter", bubbles: true })));
+            await page.waitForTimeout(instant * 2);
+            invariant(!(await pressed(el)), `${theme} ${route}: ${selector} inverse not released after Enter key-up`);
+            // A new contact within dur-instant of a quick release keeps the inverse while it is held.
+            await el.evaluate((e) => { e.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
+              e.dispatchEvent(new PointerEvent("pointerup", { bubbles: true })); e.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true })); });
+            await page.waitForTimeout(instant * 2);
+            invariant(await pressed(el), `${theme} ${route}: ${selector} re-press within dur-instant lost the inverse while held`);
+            await el.evaluate((e) => e.dispatchEvent(new PointerEvent("pointerup", { bubbles: true })));
+            await page.waitForTimeout(instant * 2);
+            invariant(!(await pressed(el)), `${theme} ${route}: ${selector} inverse not released after the re-press`);
+            // The marker geometry again at a phone width, where layouts stretch and centre controls.
+            await page.setViewportSize({ width: 375, height: 812 });
+            await hoverGeometry(page, el, `${theme} ${route} 375px: ${selector}`);
+            await page.setViewportSize({ width: VIEW_W, height: VIEW_H });
+          }
+        }
+      });
+    }
+  }
 }
 
 await browser.close();

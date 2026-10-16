@@ -8,7 +8,8 @@
 }
 
 /* Held legacy values, carried over unchanged from index.css and ThemeContext.tsx at a16c70f.
-   accent: read by Snake's native visuals and by two buttons with a recorded 1.40:1 deficiency (Phase 3). */
+   accent: read by Snake's HUD and native visuals, the simulation card's food preview, the 404 heading and the
+   error-boundary headings and frame (all Phase 5). */
 /* legacy:start */
 :root,
 [data-theme="dark"] {

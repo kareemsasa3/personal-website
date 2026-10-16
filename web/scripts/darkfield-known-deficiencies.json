@@ -3,7 +3,6 @@
   "notes": [
     "scripts/orbital-browser-test.mjs:196 clicks a \"Switch to light mode\" button that no longer exists (baseline issue outside the ledger checks).",
     "Dark Projects stat-card green-on-green, about 1.15:1 (deferred finding from the earlier theme work; outside the ledger checks).",
-    ".error-button.primary: white text on the --accent-color fill, the same 1.40:1 pattern as .home-link (ErrorBoundary.css:54). It renders only when an error boundary fires, so the browser test reports it UNCOVERED.",
     "The baseline was recorded with the 6 Annals data-df-region markers applied and, from r10, the 6 /simulations preview-root markers (SimulationCard.tsx: the Snake, Spider, Rhythm Lab and Annals preview roots and the Orbital and Traffic preview SVGs), the same attribute-only patches as the candidate, so both measure the same interface. The preview markers are a measurement boundary, not a D6 decision.",
     "Annals verbs (\"Your Hand\"): disabled at load and enabled every third year. Their r7 readings measured the page field, not their ground, and were unreliable. r8 measures every state against the rendered ground. r9 records the six disabled verbs under inactive: WCAG 1.4.3 exempts inactive controls, so they are observations held to this record, not D10 entries. Enabled, hovered and pressed, they are measured as prepared states like any other text.",
     "r7's Annals parchment readings were invalid: they compared parchment text with the page field. They are not carried into entries, and their absence is not an improvement. The authored narrative is recorded under creative for D6; the governed parchment text is measured on rendered pixels, run by run, and its failures are entries.",
@@ -642,30 +641,6 @@
       "baseline": 2.01
     },
     {
-      "id": "contrast|dark|/darkfield-404-probe|a|Return Home|\"Return Home\"",
-      "check": "contrast",
-      "theme": "dark",
-      "route": "/darkfield-404-probe",
-      "detail": "1.4:1 [Return Home]",
-      "baseline": 1.4
-    },
-    {
-      "id": "pair|dark|/darkfield-404-probe|.home-link|\"Return Home\"",
-      "check": "pair",
-      "theme": "dark",
-      "route": "/darkfield-404-probe",
-      "detail": "1.4:1 [Return Home]",
-      "baseline": 1.4
-    },
-    {
-      "id": "interact|dark|/darkfield-404-probe|a|Return Home#1:focus|\"Return Home\"",
-      "check": "interact",
-      "theme": "dark",
-      "route": "/darkfield-404-probe",
-      "detail": "1.4:1 (rendered ground) [Return Home]",
-      "baseline": 1.4
-    },
-    {
       "id": "state|dark|/simulations/annals|Your Hand · available:prepared|span.text-yellow-700>\"· available\"",
       "check": "state",
       "theme": "dark",
@@ -1152,46 +1127,6 @@
       "route": "/simulations/snake",
       "detail": "3.59:1 [0]",
       "baseline": 3.59
-    },
-    {
-      "id": "contrast|light|/darkfield-404-probe|a|Return Home|\"Return Home\"",
-      "check": "contrast",
-      "theme": "light",
-      "route": "/darkfield-404-probe",
-      "detail": "1.4:1 [Return Home]",
-      "baseline": 1.4
-    },
-    {
-      "id": "pair|light|/darkfield-404-probe|.home-link|\"Return Home\"",
-      "check": "pair",
-      "theme": "light",
-      "route": "/darkfield-404-probe",
-      "detail": "1.4:1 [Return Home]",
-      "baseline": 1.4
-    },
-    {
-      "id": "interact|light|/darkfield-404-probe|a|Return Home#1:hover|\"Return Home\"",
-      "check": "interact",
-      "theme": "light",
-      "route": "/darkfield-404-probe",
-      "detail": "1.08:1 (rendered ground) [Return Home]",
-      "baseline": 1.08
-    },
-    {
-      "id": "interact|light|/darkfield-404-probe|a|Return Home#1:focus|\"Return Home\"",
-      "check": "interact",
-      "theme": "light",
-      "route": "/darkfield-404-probe",
-      "detail": "1.4:1 (rendered ground) [Return Home]",
-      "baseline": 1.4
-    },
-    {
-      "id": "interact|light|/darkfield-404-probe|a|Return Home#1:active|\"Return Home\"",
-      "check": "interact",
-      "theme": "light",
-      "route": "/darkfield-404-probe",
-      "detail": "1.08:1 (rendered ground) [Return Home]",
-      "baseline": 1.08
     },
     {
       "id": "state|light|/simulations/annals|Your Hand · available:prepared|span.text-yellow-700>\"· available\"",

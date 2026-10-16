@@ -3,13 +3,16 @@ import ReactDOM from "react-dom/client";
 import "./styles/darkfield/tokens.css";
 import "./index.css";
 import "./styles/darkfield/bridge.css";
+import "./styles/darkfield/grammar.css";
 import "./styles/components.css";
 import App from "./App";
+import { installPressAcknowledge } from "./utils/pressAcknowledge";
 
 const rootElement = document.getElementById("root");
 
 if (rootElement) {
   try {
+    installPressAcknowledge();
     const root = ReactDOM.createRoot(rootElement);
     root.render(
       <React.StrictMode>

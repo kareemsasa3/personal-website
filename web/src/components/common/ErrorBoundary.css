@@ -40,34 +40,8 @@
 }
 
 .error-button {
-    padding: 0.75rem 1.5rem;
-    border-radius: 8px;
-    font-weight: 600;
-    text-decoration: none;
-    transition: all 0.2s ease;
-    border: none;
-    cursor: pointer;
-    font-size: 1rem;
-}
-
-.error-button.primary {
-    background: var(--accent-color);
-    color: white;
-}
-
-.error-button.primary:hover {
-    background: var(--accent-hover);
-}
-
-.error-button.secondary {
-    background: transparent;
-    color: var(--fg);
-    border: 2px solid var(--edge);
-}
-
-.error-button.secondary:hover {
-    background: var(--hover-color);
-    border-color: var(--accent-color);
+    /* The actions sit on the surface-1 panel, so hover rises to the next surface (§13 Hover). */
+    --df-ground-up: var(--surface-2);
 }
 
 .error-details {
