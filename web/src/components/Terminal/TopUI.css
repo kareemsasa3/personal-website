@@ -331,28 +331,3 @@
 .top-process-row.updating {
     animation: processUpdate 0.5s ease-out;
 }
-
-/* Matrix-style glow effect */
-.top-container::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: radial-gradient(circle at 20% 80%, rgba(0, 255, 0, 0.05) 0%, transparent 50%),
-        radial-gradient(circle at 80% 20%, rgba(0, 255, 0, 0.03) 0%, transparent 50%);
-    pointer-events: none;
-    z-index: -1;
-    animation: matrixGlow 10s ease-in-out infinite;
-}
-
-@keyframes matrixGlow {
-    0%, 100% {
-        opacity: 0.3;
-    }
-
-    50% {
-        opacity: 0.6;
-    }
-}

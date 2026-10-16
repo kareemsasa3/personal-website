@@ -82,7 +82,6 @@
     background-color: var(--panel-bg-color);
     border-radius: 8px;
     border: 1px solid var(--border-color);
-    box-shadow: 0 4px 15px var(--shadow-color);
     transition: all 0.3s ease;
     min-height: 200px;
 }
@@ -139,7 +138,6 @@
 
 .timeline-item:hover .timeline-content {
     border-color: var(--primary-color);
-    box-shadow: 0 6px 20px var(--shadow-color);
 }
 
 /* --- REFINEMENT: Perfect Timeline Arrow --- */

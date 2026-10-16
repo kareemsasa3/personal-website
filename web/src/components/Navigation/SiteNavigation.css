@@ -35,7 +35,6 @@
     border-radius: 8px;
     background: var(--app-overlay);
     color: var(--app-text);
-    box-shadow: 0 10px 32px var(--app-shadow);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     margin: max(0.75rem, env(safe-area-inset-top)) 1rem 0.75rem;
@@ -152,7 +151,6 @@
 .site-header__settings-button:focus-visible {
     outline: 2px solid var(--brand-primary);
     outline-offset: 3px;
-    box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand-primary) 20%, transparent);
 }
 
 /* Explore: a quieter second tier where it fits, a disclosure where it does not. */
@@ -240,7 +238,6 @@
     border: 1px solid var(--app-border);
     border-radius: 8px;
     background: var(--app-surface);
-    box-shadow: 0 10px 32px var(--app-shadow);
 }
 
 .site-header__panel[hidden] {

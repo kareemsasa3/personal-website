@@ -37,7 +37,6 @@
     font-weight: 700;
     color: var(--terminal-primary, #4CAF50);
     margin: 0 0 1rem 0;
-    text-shadow: 0 0 10px var(--terminal-primary, #4CAF50);
 }
 
 .simulations-subtitle {

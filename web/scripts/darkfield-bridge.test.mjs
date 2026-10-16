@@ -10,15 +10,15 @@ const cssFiles = async () => (await readdir(resolve(web, "src"), { recursive: tr
 // Every legacy variable still read in src/ or index.html (rg, 2026-10-11).
 const LEGACY = [
   "app-bg", "app-bg-secondary", "app-surface", "app-surface-elevated", "app-overlay",
-  "app-text", "app-text-secondary", "app-text-muted", "app-border", "app-shadow",
+  "app-text", "app-text-secondary", "app-text-muted", "app-border",
   "brand-primary", "brand-primary-soft", "brand-primary-medium", "brand-primary-dark",
   "primary-color", "primary-color-light", "primary-color-medium", "primary-color-dark", "accent-color",
   "background-color", "background-color-secondary", "background-color-tertiary",
   "card-background", "panel-bg-color", "text-color", "text-color-secondary", "text-secondary",
-  "text-color-muted", "text-muted-color", "border-color", "shadow-color",
+  "text-color-muted", "text-muted-color", "border-color",
 ];
 // Variables whose legacy literal values are deliberately held (Phase 1 review): only these may sit in the fence.
-const HELD = ["accent-color", "app-shadow"];
+const HELD = ["accent-color"];
 // Aliases that resolve to grounds (signal-deep), so they must never colour text.
 const GROUND_ALIASES = "brand-primary-soft|primary-color-light|brand-primary-dark|primary-color-dark";
 const FENCE = /\/\* legacy:start \*\/([\s\S]*?)\/\* legacy:end \*\//g;

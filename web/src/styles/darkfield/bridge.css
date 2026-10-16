@@ -45,20 +45,13 @@
   --text-color-muted: var(--app-text-muted);
   --text-muted-color: var(--app-text-muted);
   --border-color: var(--app-border);
-  --shadow-color: var(--app-shadow);
 }
 
 /* Held legacy values, carried over unchanged from index.css and ThemeContext.tsx at a16c70f.
-   accent: read by Snake's native visuals and by two buttons with a recorded 1.40:1 deficiency (Phase 3).
-   app-shadow: read by Annals' native panel; shadow removal is Phase 2. */
+   accent: read by Snake's native visuals and by two buttons with a recorded 1.40:1 deficiency (Phase 3). */
 /* legacy:start */
 :root,
 [data-theme="dark"] {
   --accent-color: #FFD700;
-  --app-shadow: rgba(0, 0, 0, 0.3);
-}
-
-[data-theme="light"] {
-  --app-shadow: rgba(0, 0, 0, 0.08);
 }
 /* legacy:end */

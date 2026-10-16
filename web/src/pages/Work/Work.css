@@ -28,7 +28,6 @@
     position: relative;
     font-family: var(--font-family-mono);
     white-space: nowrap;
-    text-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
 }
 
 .work-title::after {
@@ -90,7 +89,6 @@
     border: 3px solid var(--card-background);
     border-radius: 50%;
     z-index: 1;
-    box-shadow: 0 0 10px var(--primary-color), 0 2px 8px var(--shadow-color);
     margin-top: 2rem;
     position: relative;
     transition: all 0.3s ease;
@@ -98,36 +96,30 @@
 
 .timeline-node:hover {
     transform: scale(1.2);
-    box-shadow: 0 0 15px var(--primary-color), 0 4px 12px var(--shadow-color);
 }
 
 /* Style nodes based on experience type */
 .timeline-node.consulting {
     background-color: #4ecdc4;
-    box-shadow: 0 0 10px #4ecdc4;
 }
 
 .timeline-node.full-time {
     background-color: var(--primary-color);
-    box-shadow: 0 0 10px var(--primary-color);
 }
 
 .timeline-node.freelance {
     background-color: #ff6b6b;
-    box-shadow: 0 0 10px #ff6b6b;
     border-radius: 4px;
     transform: rotate(45deg);
 }
 
 .timeline-node.ai-ml {
     background-color: #a855f7;
-    box-shadow: 0 0 10px #a855f7;
     border-radius: 50%;
 }
 
 .timeline-node.tutoring {
     background-color: #10b981;
-    box-shadow: 0 0 10px #10b981;
     border-radius: 50%;
 }
 
@@ -138,7 +130,6 @@
     background: linear-gradient(to bottom, var(--primary-color), transparent);
     margin-top: 1rem;
     position: relative;
-    box-shadow: 0 0 5px var(--primary-color);
 }
 
 .timeline-line::after {
@@ -151,7 +142,6 @@
     height: 6px;
     background-color: var(--primary-color);
     border-radius: 50%;
-    box-shadow: 0 0 5px var(--primary-color), 0 2px 4px var(--shadow-color);
 }
 
 /* The content card */

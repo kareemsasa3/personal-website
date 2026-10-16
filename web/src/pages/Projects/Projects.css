@@ -70,7 +70,6 @@ primary comprehension layer.
     font-size: clamp(2.25rem, 5vw, 3.75rem);
     font-weight: 700;
     line-height: 1.15;
-    text-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
     overflow-wrap: anywhere;
 }
 
@@ -113,7 +112,7 @@ primary comprehension layer.
     border-radius: 10px;
     font-weight: 700;
     text-decoration: none;
-    transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+    transition: transform 0.25s ease, border-color 0.25s ease, background 0.25s ease;
 }
 
 .projects-cta:hover {
@@ -123,7 +122,6 @@ primary comprehension layer.
 .projects-cta-primary {
     background: var(--primary-color-dark);
     color: #fff;
-    box-shadow: 0 8px 24px rgba(175, 42, 42, 0.28);
 }
 
 .roster-section {
@@ -141,7 +139,6 @@ primary comprehension layer.
     color: var(--text-color);
     font-size: clamp(1.8rem, 3vw, 2.5rem);
     font-weight: 700;
-    text-shadow: 0 0 18px rgba(0, 255, 0, 0.2);
 }
 
 .projects-section-subtitle {
@@ -198,13 +195,12 @@ primary comprehension layer.
     border-radius: 12px;
     overflow: hidden;
     background: var(--card-background);
-    box-shadow: 0 2px 8px var(--shadow-color);
     color: inherit;
     font-family: inherit;
     font-size: inherit;
     text-align: center;
     outline: none;
-    transition: transform 0.3s ease, border-color 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
+    transition: transform 0.3s ease, border-color 0.3s ease, background 0.3s ease;
     cursor: pointer;
 }
 
@@ -222,7 +218,6 @@ primary comprehension layer.
 .stat-card:hover {
     background: color-mix(in srgb, var(--primary-color-light) 70%, transparent);
     border-color: var(--terminal-primary, #4CAF50);
-    box-shadow: 0 8px 25px var(--shadow-color), 0 0 16px rgba(0, 255, 0, 0.2);
     transform: translateY(-2px);
 }
 
@@ -231,14 +226,12 @@ primary comprehension layer.
 }
 
 .stat-card:active {
-    box-shadow: 0 0 15px rgba(0, 255, 0, 0.2);
     transform: translateY(0);
 }
 
 .stat-card[aria-pressed="true"] {
     background: color-mix(in srgb, var(--primary-color-light) 75%, transparent);
     border-color: var(--terminal-primary, #4CAF50);
-    box-shadow: 0 0 18px rgba(0, 255, 0, 0.28), 0 8px 25px var(--shadow-color);
     transform: translateY(-1px);
 }
 
@@ -250,7 +243,6 @@ primary comprehension layer.
     color: var(--terminal-primary, #4CAF50);
     font-size: 1.2rem;
     font-weight: bold;
-    text-shadow: 0 0 10px var(--terminal-primary, #4CAF50);
 }
 
 .stat-number {
@@ -260,7 +252,6 @@ primary comprehension layer.
     font-size: 2.5rem;
     font-weight: 700;
     line-height: 1;
-    text-shadow: 0 0 10px var(--terminal-primary, #4CAF50);
 }
 
 .stat-label {
@@ -279,7 +270,6 @@ primary comprehension layer.
     background: var(--card-background);
     border: 2px solid color-mix(in srgb, var(--terminal-primary, #4CAF50) 60%, transparent);
     border-radius: 12px;
-    box-shadow: 0 2px 8px var(--shadow-color);
     text-align: center;
 }
 
@@ -318,7 +308,6 @@ primary comprehension layer.
     background: var(--card-background);
     border: 2px solid var(--terminal-primary, #4CAF50);
     border-radius: 12px;
-    box-shadow: 0 0 22px rgba(0, 255, 0, 0.22), 0 8px 25px var(--shadow-color);
     overflow: hidden;
     transition: background 0.3s ease, border-color 0.3s ease;
     cursor: default;
@@ -348,16 +337,14 @@ primary comprehension layer.
     background: var(--card-background);
     border: 1px solid color-mix(in srgb, var(--terminal-primary, #4CAF50) 70%, transparent);
     border-radius: 8px;
-    box-shadow: 0 2px 4px var(--shadow-color);
     color: var(--text-color);
     font-size: 0.9rem;
-    transition: transform 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
+    transition: transform 0.3s ease, background 0.3s ease;
     cursor: pointer;
 }
 
 .close-tech-stack:hover {
     background: var(--primary-color-light);
-    box-shadow: 0 0 10px rgba(0, 255, 0, 0.24), 0 4px 12px var(--shadow-color);
     transform: translateY(-1px);
 }
 
@@ -394,7 +381,6 @@ primary comprehension layer.
     background: var(--card-background);
     border: 1px solid var(--border-color);
     border-radius: 10px;
-    box-shadow: 0 2px 4px var(--shadow-color);
     transition: all 0.3s ease;
 }
 
@@ -543,4 +529,4 @@ primary comprehension layer.
 .projects-section-heading { margin-bottom: 1rem; }
 .projects-controls { padding: .75rem; gap: .75rem; margin-bottom: 1rem; }
 .stat-card:focus-visible { outline: 2px solid var(--brand-primary); outline-offset: 3px; }
-.tech-item, .tech-item:hover { cursor: default; transform: none; box-shadow: none; }
+.tech-item, .tech-item:hover { cursor: default; transform: none; }

@@ -19,10 +19,6 @@
     background: linear-gradient(135deg, var(--app-surface) 0%, var(--app-bg-secondary) 100%);
     border: 1px solid var(--brand-primary);
     border-radius: 12px;
-    box-shadow:
-        0 20px 40px rgba(0, 0, 0, 0.18),
-        0 0 0 1px color-mix(in srgb, var(--brand-primary) 20%, transparent),
-        inset 0 1px 0 rgba(255, 255, 255, 0.1);
     max-width: 500px;
     width: 100%;
     max-height: calc(100dvh - 40px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
@@ -56,7 +52,6 @@
     font-size: 1.25rem;
     font-weight: 600;
     color: var(--brand-primary);
-    text-shadow: 0 0 10px color-mix(in srgb, var(--brand-primary) 30%, transparent);
 }
 
 .modal-close {
@@ -163,7 +158,6 @@
 
 .modal-button-info:hover {
     background: linear-gradient(135deg, #00ff55 0%, #00dd44 100%);
-    box-shadow: 0 0 15px rgba(0, 255, 65, 0.4);
 }
 
 .modal-button-warning {
@@ -174,7 +168,6 @@
 
 .modal-button-warning:hover {
     background: linear-gradient(135deg, #ffbb00 0%, #ff9900 100%);
-    box-shadow: 0 0 15px rgba(255, 170, 0, 0.4);
 }
 
 .modal-button-danger {
@@ -185,13 +178,11 @@
 
 .modal-button-danger:hover {
     background: linear-gradient(135deg, #ff5555 0%, #dd4444 100%);
-    box-shadow: 0 0 15px rgba(255, 68, 68, 0.4);
 }
 
 /* Modal type variations */
 .modal-warning .modal-title {
     color: #ffaa00;
-    text-shadow: 0 0 10px rgba(255, 170, 0, 0.3);
 }
 
 .modal-warning {
@@ -209,7 +200,6 @@
 
 .modal-danger .modal-title {
     color: #ff4444;
-    text-shadow: 0 0 10px rgba(255, 68, 68, 0.3);
 }
 
 .modal-danger {

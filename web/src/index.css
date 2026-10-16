@@ -259,7 +259,7 @@ template {
   --transition-fast: 0.1s ease-in-out;
   --transition-normal: 0.3s ease;
   --transition-slow: 0.5s ease-out;
-  --interaction-transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  --interaction-transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 
   /* Z-index layers */
   --z-index-background: -1;

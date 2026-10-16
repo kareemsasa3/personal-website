@@ -125,7 +125,6 @@ with globally bundled card/badge styles.
     height: 0.5rem;
     border-radius: 999px;
     background: var(--roster-status-color, var(--text-secondary));
-    box-shadow: 0 0 8px color-mix(in srgb, var(--roster-status-color, transparent) 55%, transparent);
 }
 
 .project-roster__status--live {
@@ -156,7 +155,6 @@ with globally bundled card/badge styles.
     font-size: 1.45rem;
     font-weight: 700;
     line-height: 1.2;
-    text-shadow: 0 0 10px color-mix(in srgb, var(--roster-accent) 55%, transparent);
     overflow-wrap: anywhere;
 }
 
@@ -194,19 +192,13 @@ with globally bundled card/badge styles.
     text-decoration: none;
     white-space: nowrap;
     cursor: pointer;
-    transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
+    transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
 }
 
 .project-roster__toggle {
     border: 1px solid var(--roster-accent);
     background: var(--roster-accent);
     color: var(--terminal-background, #1a1a1a);
-    box-shadow: 0 0 12px color-mix(in srgb, var(--roster-accent) 35%, transparent);
-}
-
-.project-roster__toggle:hover,
-.project-roster__toggle[aria-expanded="true"] {
-    box-shadow: 0 0 18px color-mix(in srgb, var(--roster-accent) 55%, transparent);
 }
 
 .project-roster__toggle-icon {

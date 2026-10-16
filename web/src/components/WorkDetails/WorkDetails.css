@@ -12,7 +12,6 @@
     transform: translateY(-2px);
     border-color: var(--primary-color);
     background: rgba(0, 255, 0, 0.02);
-    box-shadow: 0 4px 20px rgba(0, 255, 0, 0.1);
 }
 
 .work-header {
@@ -33,14 +32,12 @@
     border-radius: 8px;
     text-align: center;
     font-family: var(--font-family-mono);
-    box-shadow: 0 0 10px rgba(76, 175, 80, 0.2);
     transition: all 0.3s ease;
 }
 
 .work-dates:hover {
     background: var(--primary-color);
     color: var(--card-background);
-    box-shadow: 0 0 15px rgba(76, 175, 80, 0.4);
     transform: translateY(-1px);
 }
 
@@ -160,7 +157,6 @@
     border: 1px solid var(--primary-color);
     font-family: var(--font-family-mono);
     transition: all 0.2s ease;
-    box-shadow: 0 0 5px rgba(76, 175, 80, 0.1);
 }
 
 .tech-tag:hover {

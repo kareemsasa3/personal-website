@@ -24,7 +24,6 @@
   font-size: clamp(2rem, 6vw, 3.5rem);
   font-weight: 700;
   line-height: 1.2;
-  text-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
 }
 
 .hero-subtitle {
@@ -33,7 +32,6 @@
   font-size: clamp(1.1rem, 3.5vw, 1.5rem);
   font-weight: 600;
   letter-spacing: 0.01em;
-  text-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
   overflow-wrap: anywhere;
   /* Even out line lengths so a single word doesn't sit alone on the last line */
   text-wrap: balance;
@@ -96,7 +94,6 @@
   border: 1px solid color-mix(in srgb, var(--border-color) 78%, transparent);
   border-radius: 8px;
   background: color-mix(in srgb, var(--background-color) 82%, transparent);
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.18);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
@@ -133,20 +130,7 @@
   line-height: 1.45;
 }
 
-/* Light theme: tonal depth instead of neon glow and a heavy drop shadow.
-   The strip sits at content level and its cells one step above it. */
-[data-theme="light"] .hero-title {
-  text-shadow: 0 0 20px color-mix(in srgb, var(--primary-color) 14%, transparent);
-}
-
-[data-theme="light"] .hero-subtitle {
-  text-shadow: 0 0 15px color-mix(in srgb, var(--primary-color) 18%, transparent);
-}
-
-[data-theme="light"] .hero-proof-strip {
-  box-shadow: 0 12px 36px var(--shadow-color);
-}
-
+/* Light theme: the strip sits at content level and its cells one step above it. */
 [data-theme="light"] .hero-proof-item {
   background: var(--app-surface);
 }

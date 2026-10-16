@@ -133,3 +133,10 @@ test("T3 loader: a row scan; no circular spinner, glow or glass", async () => {
   assert.match(tsx, /className="page-loader__scan"/);
   assert.doesNotMatch(tsx, />\s*01\s*</, "binary-digit motif");
 });
+
+const isFocusRing = (v) => /^var\(--focus-ring\)(\s*!important)?$/.test(v);
+test("T4 emission: no text-shadow; box-shadow only the focus ring", async () => {
+  const bad = (await governedDecls()).filter((d) =>
+    (d.prop === "text-shadow" && d.value !== "none") || (d.prop === "box-shadow" && d.value !== "none" && !isFocusRing(d.value)));
+  assert.deepEqual(bad.map(where), []);
+});

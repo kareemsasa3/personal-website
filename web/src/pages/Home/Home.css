@@ -112,7 +112,6 @@ TABLE OF CONTENTS
 
 .btn-primary:hover {
   background: var(--primary-color-dark);
-  box-shadow: 0 8px 20px rgba(175, 42, 42, 0.4), 0 0 30px rgba(0, 255, 0, 0.3);
   transform: translateY(-2px) scale(1.05);
 }
 
@@ -126,7 +125,6 @@ TABLE OF CONTENTS
   background-color: var(--border-color);
   border-color: var(--border-color);
   color: var(--text-color);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
   transform: translateY(-2px) scale(1.05);
 }
 
@@ -139,7 +137,6 @@ TABLE OF CONTENTS
 .btn-outline:hover {
   background: var(--primary-color);
   color: var(--background-color);
-  box-shadow: 0 8px 20px rgba(175, 42, 42, 0.4);
   transform: translateY(-2px) scale(1.05);
 }
 
@@ -148,7 +145,6 @@ TABLE OF CONTENTS
 .contact-strip-link:focus-visible {
   outline: 2px solid var(--primary-color);
   outline-offset: 4px;
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary-color) 22%, transparent);
 }
 
 /* ========================================
@@ -162,7 +158,6 @@ TABLE OF CONTENTS
   font-size: 2.5rem;
   font-weight: 700;
   text-align: center;
-  text-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
 }
 
 .section-title::after {

@@ -9,6 +9,11 @@
 /* The page wrapper stays transparent so the site backdrop shows through;
    the ledger carries its own parchment surface and stays legible on the
    dark and light site themes alike. */
+
+/* Native parchment (D6 ruling): keeps its own shadow, held at the legacy values the bridge carried. */
+.annals-page { --annals-sheet-shadow: rgba(0, 0, 0, 0.3); }
+[data-theme="light"] .annals-page { --annals-sheet-shadow: rgba(0, 0, 0, 0.08); }
+
 .annals-sheet {
   background: radial-gradient(
     circle at 20% 10%,
@@ -17,7 +22,7 @@
   );
   border: 1px solid rgba(68, 64, 60, 0.35);
   border-radius: var(--border-radius-md, 8px);
-  box-shadow: 0 8px 24px var(--shadow-color, rgba(0, 0, 0, 0.3));
+  box-shadow: 0 8px 24px var(--annals-sheet-shadow);
 }
 
 .annals-page * {
@@ -151,7 +156,7 @@
 .annals-page .hover\:text-stone-50:hover { color: #fafaf9; }
 
 .annals-page .ring-1 {
-  box-shadow: 0 0 0 1px var(--annals-ring-color, currentColor);
+  outline: var(--stroke-hair) solid var(--annals-ring-color, currentColor);
 }
 .annals-page .ring-yellow-400 { --annals-ring-color: #facc15; }
 .annals-page .ring-yellow-500 { --annals-ring-color: #eab308; }

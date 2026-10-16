@@ -62,7 +62,6 @@
   line-height: 1;
   text-decoration: none;
   text-transform: uppercase;
-  box-shadow: 0 0 10px rgba(76, 175, 80, 0.14);
 }
 
 .rhythm-lab-back-link:hover,
@@ -76,7 +75,6 @@
   color: var(--terminal-primary, #4caf50);
   font-size: clamp(1.6rem, 3vw, 2.6rem);
   line-height: 1;
-  text-shadow: 0 0 14px rgba(76, 175, 80, 0.5);
 }
 
 .rhythm-lab audio {
@@ -116,7 +114,6 @@
 
 .rhythm-lab-audio-picker:focus-within {
   border-color: rgba(76, 175, 80, 0.8);
-  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.18);
 }
 
 .rhythm-lab-audio-picker span {
@@ -829,7 +826,6 @@
   color: var(--terminal-primary, #4caf50);
   text-align: center;
   font-weight: 700;
-  box-shadow: 0 0 10px rgba(76, 175, 80, 0.16);
 }
 
 .rhythm-lab-active-session {
@@ -1200,7 +1196,6 @@
 .rhythm-lab-status-readout > span {
   font-size: clamp(1.35rem, 4vw, 2.5rem);
   font-weight: 800;
-  text-shadow: 0 0 18px rgba(255, 255, 255, 0.22);
 }
 
 .rhythm-lab-status small {
@@ -1327,7 +1322,6 @@
   background: rgba(0, 0, 0, 0.78);
   box-sizing: border-box;
   text-align: center;
-  box-shadow: 0 0 24px rgba(76, 175, 80, 0.18);
 }
 
 .rhythm-lab-overlay-panel p,
@@ -1396,7 +1390,6 @@
   font-size: clamp(1.1rem, 3.6vw, 1.6rem);
   font-weight: 700;
   line-height: 1.25;
-  text-shadow: 0 0 12px rgba(0, 0, 0, 0.9);
   overflow-wrap: anywhere;
 }
 
@@ -1404,7 +1397,6 @@
   margin: 0.25rem 0 0;
   color: rgba(255, 255, 255, 0.78);
   font-size: 0.85rem;
-  text-shadow: 0 0 10px rgba(0, 0, 0, 0.9);
   overflow-wrap: anywhere;
 }
 
@@ -1427,7 +1419,6 @@
   cursor: pointer;
   font-weight: 900;
   text-transform: uppercase;
-  box-shadow: 0 0 18px rgba(76, 175, 80, 0.35);
 }
 
 .rhythm-lab-primary-action:hover {
@@ -1538,7 +1529,6 @@
   color: var(--terminal-primary, #4caf50);
   font-size: clamp(1.5rem, 4vw, 2.3rem);
   line-height: 1;
-  text-shadow: 0 0 14px rgba(76, 175, 80, 0.38);
 }
 
 .rhythm-lab-summary-best {
@@ -1713,6 +1703,11 @@
 
   .rhythm-lab-audio-picker {
     justify-content: space-between;
+  }
+
+  /* The file input is clipped here, so the picker carries the focus ring for it. */
+  .rhythm-lab-audio-picker:has(:focus-visible) {
+    box-shadow: var(--focus-ring);
   }
 
   .rhythm-lab-audio-input {
@@ -2004,7 +1999,6 @@
   background: rgba(0, 0, 0, 0.88);
   box-sizing: border-box;
   text-align: center;
-  box-shadow: 0 0 24px rgba(255, 183, 77, 0.18);
 }
 
 .rhythm-lab-modal-kicker {
@@ -2058,7 +2052,6 @@
   font-family: inherit;
   font-weight: 900;
   text-transform: uppercase;
-  box-shadow: 0 0 14px rgba(211, 47, 47, 0.3);
 }
 
 .rhythm-lab-danger-button:hover {
@@ -2103,7 +2096,7 @@
 
 .rhythm-lab-header { width: min(86vw, 760px); flex-wrap: wrap; padding: .75rem; border: 1px solid rgba(76,175,80,.3); border-radius: .65rem; background: rgba(0,0,0,.65); }
 .rhythm-lab-hud { max-width: none; width: 100%; justify-content: flex-start; border-top: 1px solid rgba(76,175,80,.25); padding-top: .6rem; }
-.rhythm-lab-hud span { flex: 1 1 auto; box-shadow: none; }
+.rhythm-lab-hud span { flex: 1 1 auto; }
 .rhythm-lab-audio-panel { max-width: 100%; }
 .rhythm-lab-stage { align-items: flex-start; }
 .rhythm-lab-note { box-shadow: 0 0 8px rgba(255,215,0,.4), inset 0 0 6px rgba(255,255,255,.25); }
