@@ -152,3 +152,15 @@ test("T5 glass: no backdrop or blur filter; former glass panels are opaque", asy
   }
   assert.deepEqual(bad.map(where), []);
 });
+
+const STATE = /:(hover|active|focus|focus-visible|focus-within)\b/;
+const STATIC = [".interactive-card", ".tech-tag", ".highlight-tag", ".work-details-container", ".work-dates",
+  ".timeline-node", ".timeline-item", ".tech-item", ".coming-soon", ".case-study-link.disabled"];
+test("T6 hover: controls neither move nor shine; static content ignores the pointer", async () => {
+  const decls = await governedDecls();
+  const moves = decls.filter((d) => STATE.test(innermost(d.selector)) && /^(transform|translate|scale|rotate|filter)$/.test(d.prop) && d.value !== "none");
+  const sheen = decls.filter((d) => /:(hover|focus)[^,]*::?(before|after)/.test(innermost(d.selector)) && /^(left|right|inset|transform|background-position)$/.test(d.prop));
+  const still = decls.filter((d) => innermost(d.selector).split(",").some((part) => STATIC.some((s) =>
+    part.includes(`${s}:hover`) && !(s === ".interactive-card" && /(^|\s)a\.interactive-card:hover/.test(part.trim())))));
+  assert.deepEqual([...moves, ...sheen, ...still].map(where), []);
+});

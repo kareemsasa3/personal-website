@@ -92,7 +92,6 @@
 .nav-dot:hover .dot-tooltip {
     opacity: 1;
     visibility: visible;
-    transform: translateX(5px);
 }
 
 /* Responsive adjustments */

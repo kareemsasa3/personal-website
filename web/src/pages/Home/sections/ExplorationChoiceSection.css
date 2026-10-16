@@ -39,7 +39,6 @@
     linear-gradient(90deg, transparent 49%, rgba(0, 0, 0, 0.24) 49.5%, rgba(255, 255, 255, 0.22) 51%, transparent 52%),
     linear-gradient(90deg, transparent 50%, rgba(0, 0, 0, 0.16) 50%),
     linear-gradient(180deg, var(--pill-light), var(--pill-color) 35%, var(--pill-dark));
-  transition: transform 180ms ease, filter 180ms ease;
 }
 
 .exploration-pill-capsule::before {
@@ -56,24 +55,6 @@
 .exploration-pill:focus-visible {
   outline: 2px solid var(--text-color);
   outline-offset: 4px;
-}
-
-.exploration-pill:focus-visible .exploration-pill-capsule {
-  filter: brightness(1.15);
-}
-
-@media (hover: hover) {
-  .exploration-pill:hover .exploration-pill-capsule {
-    transform: translateY(-3px);
-    filter: brightness(1.15);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .exploration-pill .exploration-pill-capsule {
-    transition: none;
-    transform: none;
-  }
 }
 
 @media (forced-colors: active) {

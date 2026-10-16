@@ -1182,6 +1182,26 @@ if (MODE === "check") {
       });
     }
   }
+  // Phase 2 Task 6 (§13 Hover): static content does not respond to the pointer.
+  const STATIC_HOVER = { "/case-studies/aether": ["article.interactive-card", ".tech-tag"], "/experience": [".work-details-container", ".work-dates", ".tech-tag"] };
+  for (const theme of THEMES) {
+    for (const [route, selectors] of Object.entries(STATIC_HOVER)) {
+      await withPage({ theme, route }, async (page) => {
+        for (const selector of selectors) {
+          const el = page.locator(selector).first();
+          if (!(await el.count())) { invariant(false, `${theme} ${route}: ${selector} not rendered`); continue; }
+          await el.scrollIntoViewIfNeeded();
+          const look = () => el.evaluate((e) => { const c = getComputedStyle(e); return [c.backgroundColor, c.borderColor, c.color, c.transform, c.boxShadow].join("|"); });
+          await page.mouse.move(0, 0);
+          await frames(page);
+          const rest = await look();
+          await el.hover();
+          await frames(page);
+          invariant((await look()) === rest, `${theme} ${route}: static ${selector} responds to hover`);
+        }
+      });
+    }
+  }
 }
 
 await browser.close();

@@ -94,10 +94,6 @@
     transition: all 0.3s ease;
 }
 
-.timeline-node:hover {
-    transform: scale(1.2);
-}
-
 /* Style nodes based on experience type */
 .timeline-node.consulting {
     background-color: #4ecdc4;

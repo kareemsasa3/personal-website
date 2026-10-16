@@ -131,15 +131,6 @@
     opacity: 1;
 }
 
-.timeline-item:hover .timeline-icon-wrapper {
-    transform: scale(1.1);
-    border-color: var(--primary-color);
-}
-
-.timeline-item:hover .timeline-content {
-    border-color: var(--primary-color);
-}
-
 /* --- REFINEMENT: Perfect Timeline Arrow --- */
 /* The fill of the arrow */
 .timeline-content::before {

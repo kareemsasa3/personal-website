@@ -106,17 +106,11 @@
   text-transform: uppercase;
   letter-spacing: 1px;
   cursor: pointer;
-  transition: transform 0.15s;
-}
-
-.play-again-button:hover {
-  transform: scale(1.05);
 }
 
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   .food { animation: none; }
-  .play-again-button { transition: none; }
 }
 
 /* Mobile touch controls */

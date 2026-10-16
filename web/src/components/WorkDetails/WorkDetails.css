@@ -8,12 +8,6 @@
     margin-bottom: 2rem;
 }
 
-.work-details-container:hover {
-    transform: translateY(-2px);
-    border-color: var(--primary-color);
-    background: rgba(0, 255, 0, 0.02);
-}
-
 .work-header {
     display: grid;
     grid-template-columns: 200px 1fr;
@@ -33,12 +27,6 @@
     text-align: center;
     font-family: var(--font-family-mono);
     transition: all 0.3s ease;
-}
-
-.work-dates:hover {
-    background: var(--primary-color);
-    color: var(--card-background);
-    transform: translateY(-1px);
 }
 
 .work-company-info {
@@ -159,12 +147,6 @@
     transition: all 0.2s ease;
 }
 
-.tech-tag:hover {
-    background: var(--primary-color);
-    color: var(--background-color);
-    transform: translateY(-1px);
-}
-
 .highlight-tag {
     background: var(--card-background);
     color: var(--text-color);
@@ -175,11 +157,6 @@
     border: 1px solid var(--border-color);
     font-family: var(--font-family-mono);
     transition: all 0.2s ease;
-}
-
-.highlight-tag:hover {
-    border-color: var(--primary-color);
-    color: var(--primary-color);
 }
 
 /* Responsive Design */

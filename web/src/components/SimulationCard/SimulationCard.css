@@ -7,8 +7,7 @@
     width: 100%;
     max-width: 400px;
     box-sizing: border-box;
-    transition: transform var(--transition-normal),
-        border-color var(--transition-normal),
+    transition: border-color var(--transition-normal),
         background var(--transition-normal);
     text-decoration: none;
     color: inherit;
@@ -17,39 +16,17 @@
     overflow: hidden;
     transform: translateZ(0);
     backface-visibility: hidden;
-    will-change: transform, box-shadow;
 }
 
-.simulation-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(0, 255, 0, 0.1), transparent);
-    transition: left 0.5s ease;
-}
-
-.simulation-card:hover {
-    transform: translateY(-5px) scale(1.02);
+a.simulation-card:hover {
     border-color: var(--terminal-primary, #4CAF50);
     background: transparent;
 }
 
-.simulation-card:hover::before {
-    left: 100%;
-}
-
-.simulation-card:focus {
-    transform: translateY(-5px) scale(1.02);
+a.simulation-card:focus {
     border-color: var(--terminal-primary, #4CAF50);
     background: transparent;
     outline: none;
-}
-
-.simulation-card:focus::before {
-    left: 100%;
 }
 
 .simulation-card-content {
@@ -401,7 +378,6 @@
     border-radius: 25px;
     font-weight: bold;
     font-size: 1.1rem;
-    transition: transform var(--transition-normal);
     border: none;
     cursor: pointer;
     font-family: var(--font-family-mono);
@@ -420,35 +396,17 @@
     z-index: -1;
 }
 
-.simulation-card:hover .launch-button::before {
+a.simulation-card:hover .launch-button::before {
     opacity: 1;
 }
 
-.simulation-card:hover .launch-button {
-    transform: scale(1.05);
-}
-
-.simulation-card:focus .launch-button::before {
+a.simulation-card:focus .launch-button::before {
     opacity: 1;
-}
-
-.simulation-card:focus .launch-button {
-    transform: scale(1.05);
 }
 
 .coming-soon {
     opacity: 0.7;
     cursor: not-allowed;
-}
-
-.coming-soon:hover {
-    transform: none;
-    border-color: var(--border-color);
-    background: var(--card-background);
-}
-
-.coming-soon:hover::before {
-    left: -100%;
 }
 
 .placeholder {
@@ -643,21 +601,9 @@
         transition: none;
         animation: none;
     }
-
-    .simulation-card:hover,
-    .simulation-card:focus {
-        transform: none;
-    }
-
-    .simulation-card:hover .launch-button,
-    .simulation-card:focus .launch-button {
-        transform: none;
-    }
 }
 
 .simulation-card:focus-visible { outline: 2px solid var(--brand-primary); outline-offset: 4px; }
-.simulation-card.coming-soon:hover { transform: none; background: var(--card-background); }
 @media (prefers-reduced-motion: reduce) {
- .simulation-card, .simulation-card::before, .simulation-preview * { animation: none !important; transition: none !important; }
- .simulation-card:hover, .simulation-card:focus { transform: none; }
+ .simulation-card, .simulation-preview * { animation: none !important; transition: none !important; }
 }

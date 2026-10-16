@@ -8,34 +8,15 @@
   border: 1px solid var(--border-color);
   border-radius: 12px;
   transition: all 0.3s ease;
-  /* Performance optimizations for animations */
-  transform: translateZ(0);
-  will-change: transform, box-shadow;
 }
 
 .interactive-card > * {
   min-width: 0;
 }
 
-.interactive-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(0, 255, 0, 0.1), transparent);
-  transition: left 0.5s ease;
-}
-
-.interactive-card:hover {
+a.interactive-card:hover {
   background: rgba(0, 255, 0, 0.05);
   border-color: var(--primary-color);
-  transform: translateY(-4px) scale(1.02);
-}
-
-.interactive-card:hover::before {
-  left: 100%;
 }
 
 .status-badge {
@@ -93,7 +74,7 @@
   overflow-wrap: normal;
   white-space: normal;
   word-break: normal;
-  transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 @media (max-width: 480px) {
@@ -102,21 +83,9 @@
   }
 }
 
-.tech-tag:hover {
-  /* Darker on hover keeps white text readable (7.87:1) */
-  background: #1b5e20;
-  color: white;
-  transform: translateY(-2px);
-}
-
 @media (prefers-reduced-motion: reduce) {
   .interactive-card,
   .tech-tag {
     transition: none;
-  }
-
-  .interactive-card:hover,
-  .tech-tag:hover {
-    transform: none;
   }
 }

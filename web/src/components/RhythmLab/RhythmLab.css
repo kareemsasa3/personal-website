@@ -1420,10 +1420,6 @@
   text-transform: uppercase;
 }
 
-.rhythm-lab-primary-action:hover {
-  transform: translateY(-1px);
-}
-
 .rhythm-lab-secondary-action {
   display: inline-flex;
   align-items: center;
@@ -2055,7 +2051,6 @@
 .rhythm-lab-danger-button:hover {
   background: #e53935;
   border-color: #e53935;
-  transform: translateY(-1px);
 }
 
 .rhythm-lab-danger-button:focus-visible {

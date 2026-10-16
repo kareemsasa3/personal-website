@@ -173,10 +173,6 @@
   outline: none;
 }
 
-.terminal-sidecar:hover {
-  transform: translateY(-50%) scale(1.1);
-}
-
 .sidecar-icon {
   font-size: 24px;
   color: var(--terminal-text-primary);

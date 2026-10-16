@@ -178,10 +178,9 @@
   overflow-wrap: normal;
 }
 
-.case-study-link:hover {
+a.case-study-link:hover {
   border-color: var(--primary-color);
   background: rgba(0, 255, 0, 0.05);
-  transform: translateY(-2px);
 }
 
 .case-study-link.disabled {
@@ -312,9 +311,6 @@
 .case-study-flow li + li::before { content: "→ "; color: var(--brand-primary); }
 .case-study-flow figcaption, .case-study-flow p { color: var(--app-text-secondary); font-size: .85rem; }
 .case-study-link.disabled { cursor: default; border-style: dashed; background: transparent; }
-.case-study-link.disabled:hover { transform: none; border-color: var(--app-border); }
-
-.case-study-link.disabled:hover { color: var(--app-text-secondary); background: transparent; }
 
 /* Span the hero card so the loop fills the width beside the left-aligned copy and dense terminal text stays legible */
 .case-study-hero-media { margin-top: 1.5rem; }

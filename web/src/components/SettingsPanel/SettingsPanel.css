@@ -74,7 +74,6 @@
 .settings-close:hover {
     background: color-mix(in srgb, var(--app-surface) 92%, transparent);
     border-color: var(--brand-primary);
-    transform: scale(1.05);
 }
 
 /* Settings Content */
