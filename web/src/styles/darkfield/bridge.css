@@ -1,11 +1,7 @@
 /* web/src/styles/darkfield/bridge.css
    Darkfield bridge. The colour and font aliases are retired: governed CSS reads the tokens in
-   tokens.css directly. What remains is one derived ground (--app-overlay, retired by the overlay
-   task) and one held legacy value inside the legacy fence, which a later phase removes with its
-   last readers. */
-:root {
-  --app-overlay: color-mix(in srgb, var(--field) 88%, transparent);
-}
+   tokens.css directly. What remains is one held legacy value inside the legacy fence, which a later
+   phase removes with its last readers. */
 
 /* Held legacy values, carried over unchanged from index.css and ThemeContext.tsx at a16c70f.
    accent: read by Snake's HUD and native visuals, the simulation card's food preview, the 404 heading and the

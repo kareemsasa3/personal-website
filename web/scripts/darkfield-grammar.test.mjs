@@ -52,9 +52,16 @@ test("ownership: every reachable governed stylesheet belongs to exactly one phas
   assert.deepEqual(PHASE5.filter((f) => !css.includes(f)), [], "PHASE5 names a file the walk does not reach");
 });
 
-test("T2 bridge: only --app-overlay and the --accent-color hold remain", async () => {
+test("T2 bridge: only the --accent-color hold remains", async () => {
   const defined = declarations(await read("styles/darkfield/bridge.css")).filter((d) => d.prop.startsWith("--")).map((d) => d.prop.slice(2));
-  assert.deepEqual([...new Set(defined)].sort(), ["accent-color", "app-overlay"]);
+  assert.deepEqual([...new Set(defined)].sort(), ["accent-color"]);
+});
+
+test("scrim: grammar.css derives --df-scrim from --field and --opacity-dim only", async () => {
+  const [d] = declarations(await read("styles/darkfield/grammar.css")).filter((x) => x.prop === "--df-scrim");
+  assert.ok(d, "--df-scrim is not defined");
+  assert.deepEqual([...new Set([...d.value.matchAll(/var\(--([a-z0-9-]+)\)/g)].map((m) => m[1]))].sort(), ["field", "opacity-dim"]);
+  assert.doesNotMatch(d.value, /#[0-9a-f]{3,8}\b|\b(rgba?|hsla?)\(/i);
 });
 
 const LITERAL = /#[0-9a-f]{3,8}\b|\b(rgba?|hsla?|hwb|lab|lch|oklch|oklab)\(|\b(white|black|red|green|blue|gray|grey|silver|gold|yellow)\b/i;

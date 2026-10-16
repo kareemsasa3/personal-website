@@ -11,7 +11,7 @@
     justify-content: center;
     align-items: center;
 
-    background: var(--app-overlay);
+    background: var(--df-scrim);
     animation: page-loader-in var(--dur-base) var(--ease-settle);
 }
 

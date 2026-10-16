@@ -127,7 +127,7 @@
     max(0.75rem, env(safe-area-inset-right))
     max(0.75rem, env(safe-area-inset-bottom))
     max(0.75rem, env(safe-area-inset-left));
-  background: var(--app-overlay);
+  background: var(--df-scrim);
   overscroll-behavior: contain;
   animation: media-inspector-in var(--dur-base) var(--ease-settle);
 }

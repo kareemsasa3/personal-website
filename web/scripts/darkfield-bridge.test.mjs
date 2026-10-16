@@ -8,7 +8,7 @@ const web = resolve(import.meta.dirname, "..");
 const read = (path) => readFile(resolve(web, path), "utf8");
 const cssFiles = async () => (await readdir(resolve(web, "src"), { recursive: true })).filter((f) => f.endsWith(".css"));
 import { reachable, DEAD } from "./darkfield-css-scope.mjs";
-// Colour and font aliases retired into tokens (Phase 3 Task 2). --app-overlay stays mapped until Task 4.
+// Colour and font aliases retired into tokens (Phase 3 Task 2).
 const RETIRED = [
   "font-family-primary", "font-family-mono",
   "app-bg", "app-bg-secondary", "app-surface", "app-surface-elevated",
@@ -17,9 +17,8 @@ const RETIRED = [
   "primary-color", "primary-color-light", "primary-color-medium", "primary-color-dark",
   "background-color", "background-color-secondary", "background-color-tertiary",
   "card-background", "panel-bg-color", "text-color", "text-color-secondary", "text-secondary",
-  "text-color-muted", "text-muted-color", "border-color",
+  "text-color-muted", "text-muted-color", "border-color", "app-overlay",
 ];
-const STILL_MAPPED = ["app-overlay"];
 // Variables whose legacy literal values are deliberately held (Phase 1 review): only these may sit in the fence.
 const HELD = ["accent-color"];
 const FENCE = /\/\* legacy:start \*\/([\s\S]*?)\/\* legacy:end \*\//g;
@@ -45,7 +44,6 @@ test("retired aliases are defined nowhere and read nowhere", async () => {
       assert.doesNotMatch(text, new RegExp(`var\\(--${name}[,)]|--${name}\\s*:`), `${file} still uses --${name}`);
     }
   }
-  for (const name of STILL_MAPPED) assert.match(bridge, new RegExp(`--${name}:`), `bridge.css does not map --${name}`);
   assert.match(await read("src/pages/RhythmLab/RhythmLab.css"), /--text-color:\s*#ffffff/);
 });
 

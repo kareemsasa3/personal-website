@@ -2,6 +2,12 @@
    Shared Darkfield grammar for the site interface (§13 control model, §05 context labels, §06 prose
    measure, §09 chamfer). Values come only from tokens.css; type styles are the generated .df-* classes. */
 
+/* §08: what lies behind an overlay shows at opacity-dim (P3-1). The scrim is the field at the
+   complementary alpha. */
+:root {
+  --df-scrim: color-mix(in srgb, var(--field) calc((1 - var(--opacity-dim)) * 100%), transparent);
+}
+
 /* Idle (§13). --df-ground is the ground the control shows at rest; a container on a surface sets
    --df-ground-up to the surface one step above its own (§13 Hover). */
 .df-control {
