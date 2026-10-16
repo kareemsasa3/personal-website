@@ -27,11 +27,11 @@ html {
 */
 body {
   margin: 0;
-  font-family: var(--font-family-primary);
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: var(--app-bg);
-  color: var(--app-text);
+  background-color: var(--field);
+  color: var(--fg);
   transition: background-color 0.4s ease, color 0.4s ease, filter 0.2s ease;
   /* Ensure minimum height to prevent layout shifts */
   min-height: 100vh;
@@ -86,7 +86,7 @@ hr {
 }
 
 pre {
-  font-family: var(--font-family-mono);
+  font-family: var(--font-mono);
   font-size: 1em;
 }
 
@@ -107,7 +107,7 @@ strong {
 code,
 kbd,
 samp {
-  font-family: var(--font-family-mono);
+  font-family: var(--font-mono);
   font-size: 1em;
 }
 
@@ -293,7 +293,7 @@ template {
 }
 
 code {
-  font-family: var(--font-family-mono);
+  font-family: var(--font-mono);
 }
 
 /* Apply transitions only to interactive elements for better performance */
@@ -363,7 +363,7 @@ html.theme-switching *::after {
 
 /* Start-aligned headers: shrink the box to its text */
 .prose-surface--start { width: fit-content; }
-.prose-surface--reading { background: var(--app-bg); border-radius: 8px; }
+.prose-surface--reading { background: var(--field); border-radius: 8px; }
 html { scroll-padding-top: calc(var(--site-header-measured-offset, 0px) + 16px); scroll-padding-bottom: var(--site-dock-safe-space, 0px); }
 :target { scroll-margin-top: 1rem; }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }

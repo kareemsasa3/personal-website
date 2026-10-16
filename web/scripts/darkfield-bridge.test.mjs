@@ -7,20 +7,21 @@ import { resolve } from "node:path";
 const web = resolve(import.meta.dirname, "..");
 const read = (path) => readFile(resolve(web, path), "utf8");
 const cssFiles = async () => (await readdir(resolve(web, "src"), { recursive: true })).filter((f) => f.endsWith(".css"));
-// Every legacy variable still read in src/ or index.html (rg, 2026-10-11).
-const LEGACY = [
-  "app-bg", "app-bg-secondary", "app-surface", "app-surface-elevated", "app-overlay",
+import { reachable, DEAD } from "./darkfield-css-scope.mjs";
+// Colour and font aliases retired into tokens (Phase 3 Task 2). --app-overlay stays mapped until Task 4.
+const RETIRED = [
+  "font-family-primary", "font-family-mono",
+  "app-bg", "app-bg-secondary", "app-surface", "app-surface-elevated",
   "app-text", "app-text-secondary", "app-text-muted", "app-border",
   "brand-primary", "brand-primary-soft", "brand-primary-medium", "brand-primary-dark",
-  "primary-color", "primary-color-light", "primary-color-medium", "primary-color-dark", "accent-color",
+  "primary-color", "primary-color-light", "primary-color-medium", "primary-color-dark",
   "background-color", "background-color-secondary", "background-color-tertiary",
   "card-background", "panel-bg-color", "text-color", "text-color-secondary", "text-secondary",
   "text-color-muted", "text-muted-color", "border-color",
 ];
+const STILL_MAPPED = ["app-overlay"];
 // Variables whose legacy literal values are deliberately held (Phase 1 review): only these may sit in the fence.
 const HELD = ["accent-color"];
-// Aliases that resolve to grounds (signal-deep), so they must never colour text.
-const GROUND_ALIASES = "brand-primary-soft|primary-color-light|brand-primary-dark|primary-color-dark";
 const FENCE = /\/\* legacy:start \*\/([\s\S]*?)\/\* legacy:end \*\//g;
 
 test("theme switching only selects a theme; it never writes token values", async () => {
@@ -29,13 +30,23 @@ test("theme switching only selects a theme; it never writes token values", async
   }
 });
 
-test("legacy variables are defined only by the bridge", async () => {
-  const indexCss = await read("src/index.css");
+// Rhythm Lab's page-local --text-color (definition and its reader) is not the bridge alias; Phase 5 retires both.
+const LOCAL_TEXT_COLOR = ["pages/RhythmLab/RhythmLab.css", "components/RhythmLab/RhythmLab.css"];
+test("retired aliases are defined nowhere and read nowhere", async () => {
   const bridge = await read("src/styles/darkfield/bridge.css");
-  for (const name of LEGACY) {
-    assert.doesNotMatch(indexCss, new RegExp(`^\\s*--${name}\\s*:`, "m"), `index.css still defines --${name}`);
-    assert.match(bridge, new RegExp(`--${name}:`), `bridge.css does not map --${name}`);
+  const files = [...(await reachable()).filter((f) => /\.(css|tsx?)$/.test(f) && !DEAD.includes(f)), "../index.html"];
+  for (const name of RETIRED) {
+    assert.doesNotMatch(bridge, new RegExp(`--${name}\\s*:`), `bridge.css still defines --${name}`);
   }
+  for (const file of files) {
+    let text = await read(file.startsWith("..") ? file.slice(3) : `src/${file}`);
+    if (LOCAL_TEXT_COLOR.includes(file)) text = text.replace(/--text-color\b/g, "--local-text-color");
+    for (const name of RETIRED) {
+      assert.doesNotMatch(text, new RegExp(`var\\(--${name}[,)]|--${name}\\s*:`), `${file} still uses --${name}`);
+    }
+  }
+  for (const name of STILL_MAPPED) assert.match(bridge, new RegExp(`--${name}:`), `bridge.css does not map --${name}`);
+  assert.match(await read("src/pages/RhythmLab/RhythmLab.css"), /--text-color:\s*#ffffff/);
 });
 
 test("literal colours appear only inside the legacy fence, and only for held variables", async () => {
@@ -48,11 +59,35 @@ test("literal colours appear only inside the legacy fence, and only for held var
   }
 });
 
-test("no text colour reads an alias that resolves to a ground", async () => {
-  for (const file of await cssFiles()) {
-    const css = await read(`src/${file}`);
-    assert.doesNotMatch(css, new RegExp(`(?<![-\\w])color:\\s*var\\(--(${GROUND_ALIASES})\\b`), file);
+// Grounds, seams and deep hues are never text colours. Exceptions: file + innermost selector, each removed by the named task.
+const ALLOW = [
+  ["pages/Work/Work.css", ".work-contact-link.primary"],
+  ["pages/Home/Home.css", ".btn-outline:hover"],
+  ["components/ProjectMedia/ProjectMedia.css", '[data-theme="light"] .project-media__bar .project-media__control'],
+];
+test("no text colour reads a ground token", async () => {
+  const ground = /(?<![-\w])color:\s*var\(--(field|field-deep|surface-[123]|rule|signal-deep|signal-trace|[a-z]+-deep)\b/;
+  for (const file of (await reachable()).filter((f) => f.endsWith(".css"))) {
+    if (DEAD.includes(file) || file === "styles/darkfield/tokens.css") continue;
+    for (const rule of (await read(`src/${file}`)).matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+      if (!ground.test(rule[2])) continue;
+      const selector = rule[1].trim().split(/\s*\n\s*/).pop().trim();
+      assert.ok(ALLOW.some(([f, s]) => f === file && selector.endsWith(s)), `${file} ${selector}`);
+    }
   }
+});
+
+test("boot-shell fallbacks equal the Dark token values", async () => {
+  const tokens = await read("src/styles/darkfield/tokens.css");
+  const dark = /:root,\s*\[data-theme="dark"\]\s*\{([\s\S]*?)\n\}/.exec(tokens)[1];
+  let seen = 0;
+  for (const [, name, hex] of (await read("index.html")).matchAll(/var\(--([a-z0-9-]+),\s*(#[0-9a-fA-F]{3,8})\)/g)) {
+    const value = new RegExp(`--${name}:\\s*(#[0-9a-fA-F]{3,8});`).exec(dark);
+    assert.ok(value, `--${name} is not a Dark token`);
+    assert.equal(hex.toLowerCase(), value[1].toLowerCase(), `index.html fallback for --${name}`);
+    seen += 1;
+  }
+  assert.ok(seen >= 6, "index.html boot shell reads no tokens");
 });
 
 // Held for D6 (native-visual or preview typography) and Annals (creative): file → selector.
@@ -78,6 +113,6 @@ test("site CSS names fonts only through the Darkfield families, except recorded 
   }
   assert.doesNotMatch(await read("index.html"), /font-family:[^;]*-apple-system/, "index.html route shell");
   const bridge = await read("src/styles/darkfield/bridge.css");
-  assert.match(bridge, /--font-family-primary: var\(--font-sans\);/);
-  assert.match(bridge, /--font-family-mono: var\(--font-mono\);/);
+  assert.doesNotMatch(bridge, /--font-family-primary/);
+  assert.doesNotMatch(bridge, /--font-family-mono/);
 });

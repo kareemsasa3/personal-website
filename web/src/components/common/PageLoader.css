@@ -26,7 +26,7 @@
     align-items: center;
     gap: 1.5rem;
     /* Increased gap for better spacing */
-    font-family: var(--font-family-mono);
+    font-family: var(--font-mono);
     /* Use mono font for theme */
 }
 
@@ -57,7 +57,7 @@
 }
 
 .loading-text {
-    color: var(--text-color);
+    color: var(--fg);
     font-size: 1rem;
     letter-spacing: 1px;
     text-transform: uppercase;

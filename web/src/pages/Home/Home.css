@@ -37,7 +37,7 @@ TABLE OF CONTENTS
   width: 100%;
   max-width: 1400px;
   margin: 0 auto;
-  font-family: var(--font-family-mono);
+  font-family: var(--font-mono);
   scroll-behavior: smooth;
   /* Container queries enable responsive components within this container */
   container-type: inline-size;
@@ -88,41 +88,41 @@ TABLE OF CONTENTS
 .btn-primary {
   /* Transparent border matches the 2px-bordered secondary/outline buttons so paired buttons share a height */
   border: 2px solid transparent;
-  background: var(--primary-color-dark);
-  color: var(--text-color);
+  background: var(--signal-deep);
+  color: var(--fg);
 }
 
 .btn-primary:hover {
-  background: var(--primary-color-dark);
+  background: var(--signal-deep);
 }
 
 .btn-secondary {
   background: transparent;
   border: 2px solid var(--edge);
-  color: var(--text-color);
+  color: var(--fg);
 }
 
 .btn-secondary:hover {
-  background-color: var(--border-color);
-  border-color: var(--border-color);
-  color: var(--text-color);
+  background-color: var(--rule);
+  border-color: var(--rule);
+  color: var(--fg);
 }
 
 .btn-outline {
   background: transparent;
-  border: 2px solid var(--primary-color);
-  color: var(--primary-color);
+  border: 2px solid var(--signal-dim);
+  color: var(--signal-dim);
 }
 
 .btn-outline:hover {
-  background: var(--primary-color);
-  color: var(--background-color);
+  background: var(--signal-dim);
+  color: var(--field);
 }
 
 .btn:focus-visible,
 .featured-project-link:focus-visible,
 .contact-strip-link:focus-visible {
-  outline: 2px solid var(--primary-color);
+  outline: 2px solid var(--signal-dim);
   outline-offset: 4px;
 }
 
@@ -133,7 +133,7 @@ TABLE OF CONTENTS
 .section-title {
   position: relative;
   margin-bottom: 2rem;
-  color: var(--text-color);
+  color: var(--fg);
   font-size: 2.5rem;
   font-weight: 700;
   text-align: center;
@@ -146,7 +146,7 @@ TABLE OF CONTENTS
   left: 50%;
   width: 80px;
   height: 3px;
-  background: linear-gradient(90deg, var(--primary-color), #000000);
+  background: linear-gradient(90deg, var(--signal-dim), #000000);
   border-radius: 2px;
   transform: translateX(-50%);
 }
@@ -189,11 +189,11 @@ TABLE OF CONTENTS
   }
 
   .btn-secondary {
-    border: 2px solid var(--primary-color);
+    border: 2px solid var(--signal-dim);
   }
 
   .skill-item {
-    border: 2px solid var(--primary-color);
+    border: 2px solid var(--signal-dim);
   }
 }
 

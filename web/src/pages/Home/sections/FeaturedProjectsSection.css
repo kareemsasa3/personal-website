@@ -36,7 +36,7 @@
 
 .project-title {
   margin: 0;
-  color: var(--text-color);
+  color: var(--fg);
   font-size: 1.5rem;
   font-weight: 700;
 }
@@ -49,7 +49,7 @@
 
 .project-description {
   margin: 0 0 1rem 0;
-  color: var(--text-secondary);
+  color: var(--fg-muted);
   line-height: 1.6;
 }
 
@@ -64,7 +64,7 @@
 }
 
 .featured-project-link-text {
-  color: var(--primary-color);
+  color: var(--signal-dim);
   font-weight: 700;
 }
 

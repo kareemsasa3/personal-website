@@ -3,7 +3,7 @@
   max-width: 1280px;
   margin: 0 auto;
   min-width: 0;
-  font-family: var(--font-family-mono);
+  font-family: var(--font-mono);
 }
 
 .procedural-animations-container > * + * {
@@ -16,14 +16,14 @@
 
 .procedural-animations-eyebrow {
   margin: 0;
-  color: var(--brand-primary);
+  color: var(--signal-dim);
   text-transform: uppercase;
   letter-spacing: 0.12em;
   font-size: 0.75rem;
 }
 
 .procedural-animations-header p {
-  color: var(--app-text-secondary);
+  color: var(--fg-muted);
   max-width: 68ch;
   line-height: 1.6;
 }
@@ -63,14 +63,14 @@
 
 .procedural-animations-card__description {
   margin: 0;
-  color: var(--app-text-muted);
+  color: var(--fg-muted);
   font-size: 0.88rem;
   line-height: 1.55;
 }
 
 .procedural-animations-card__link {
   margin-top: auto;
-  color: var(--brand-primary);
+  color: var(--signal-dim);
   font-size: 0.85rem;
   font-weight: 650;
 }

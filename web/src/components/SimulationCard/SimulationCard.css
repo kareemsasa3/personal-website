@@ -1,7 +1,7 @@
 /* SimulationCard - Terminal Matrix Theme */
 .simulation-card {
-    background: var(--card-background);
-    border: 2px solid var(--border-color);
+    background: var(--surface-1);
+    border: 2px solid var(--rule);
     border-radius: var(--border-radius-lg);
     padding: var(--spacing-lg);
     width: 100%;
@@ -41,7 +41,7 @@ a.simulation-card:focus {
     margin-bottom: var(--spacing-sm);
     text-align: center;
     font-weight: 700;
-    font-family: var(--font-family-mono);
+    font-family: var(--font-mono);
 }
 
 .simulation-card-badge {
@@ -55,7 +55,7 @@ a.simulation-card:focus {
     border-radius: 999px;
     color: var(--terminal-primary, #4CAF50);
     background: rgba(0, 255, 0, 0.08);
-    font-family: var(--font-family-mono);
+    font-family: var(--font-mono);
     font-size: 0.75rem;
     font-weight: 700;
     line-height: 1.2;
@@ -82,7 +82,7 @@ a.simulation-card:focus {
     align-items: center;
     height: 150px;
     margin-bottom: var(--spacing-lg);
-    background: var(--background-color-tertiary);
+    background: var(--surface-2);
     border-radius: var(--border-radius-md);
     border: 1px solid var(--terminal-primary, #4CAF50);
     position: relative;
@@ -372,15 +372,15 @@ a.simulation-card:focus {
     position: relative;
     z-index: 1;
     overflow: hidden;
-    background: var(--primary-color-dark);
-    color: var(--text-color);
+    background: var(--signal-deep);
+    color: var(--fg);
     padding: 12px 24px;
     border-radius: 25px;
     font-weight: bold;
     font-size: 1.1rem;
     border: none;
     cursor: pointer;
-    font-family: var(--font-family-mono);
+    font-family: var(--font-mono);
 }
 
 .launch-button::before {
@@ -390,7 +390,7 @@ a.simulation-card:focus {
     left: -100%;
     right: 0;
     bottom: 0;
-    background: var(--primary-color-dark);
+    background: var(--signal-deep);
     opacity: 0;
     transition: opacity var(--transition-normal);
     z-index: -1;
@@ -603,7 +603,7 @@ a.simulation-card:focus .launch-button::before {
     }
 }
 
-.simulation-card:focus-visible { outline: 2px solid var(--brand-primary); outline-offset: 4px; }
+.simulation-card:focus-visible { outline: 2px solid var(--signal-dim); outline-offset: 4px; }
 @media (prefers-reduced-motion: reduce) {
  .simulation-card, .simulation-preview * { animation: none !important; transition: none !important; }
 }

@@ -8,8 +8,8 @@
   --traffic-chart-line: #6da7ec;
   max-width: 1400px;
   margin: 0 auto;
-  color: var(--app-text);
-  font-family: var(--font-family-mono, monospace);
+  color: var(--fg);
+  font-family: var(--font-mono);
   line-height: 1.55;
 }
 html[data-theme="light"] .traffic-container {
@@ -24,14 +24,14 @@ html[data-theme="light"] .traffic-container {
   margin-bottom: 1.5rem;
 }
 .traffic-header a {
-  color: var(--brand-primary);
+  color: var(--signal-dim);
 }
 /* Light: green falls below 4.5:1 on the background's grid lines behind the header. */
 [data-theme="light"] .traffic-header a {
   color: var(--fg-muted);
 }
 .traffic-header h1 {
-  color: var(--brand-primary);
+  color: var(--signal-dim);
   font-size: clamp(1.7rem, 4vw, 2.8rem);
   line-height: 1.15;
   margin: 0.4rem 0 0.75rem;
@@ -43,12 +43,12 @@ html[data-theme="light"] .traffic-container {
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--app-text-secondary);
+  color: var(--fg-muted);
   padding-top: 1rem;
 }
 .traffic-panel {
-  background: var(--app-surface);
-  border: 1px solid var(--app-border);
+  background: var(--surface-1);
+  border: 1px solid var(--rule);
   border-radius: 8px;
   padding: 1rem;
   min-width: 0;
@@ -56,7 +56,7 @@ html[data-theme="light"] .traffic-container {
 .traffic-container h2 {
   font-size: 1rem;
   margin: 0 0 0.8rem;
-  color: var(--brand-primary);
+  color: var(--signal-dim);
 }
 .traffic-container label {
   display: flex;
@@ -68,10 +68,10 @@ html[data-theme="light"] .traffic-container {
 .traffic-container :is(button, select) {
   font: inherit;
   font-size: 0.8rem;
-  color: var(--app-text);
+  color: var(--fg);
   border: 1px solid var(--edge);
   border-radius: 4px;
-  background: var(--app-bg);
+  background: var(--field);
   min-height: 44px;
   padding: 0.5rem 0.65rem;
   max-width: 100%;
@@ -83,16 +83,16 @@ html[data-theme="light"] .traffic-container {
   cursor: pointer;
 }
 .traffic-container button:hover:not(:disabled) {
-  border-color: var(--brand-primary);
-  background: var(--app-surface-elevated);
+  border-color: var(--signal-dim);
+  background: var(--surface-2);
 }
 .traffic-container button:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }
 .traffic-container .traffic-primary {
-  border-color: var(--brand-primary);
-  color: var(--brand-primary);
+  border-color: var(--signal-dim);
+  color: var(--signal-dim);
   font-weight: 700;
   min-width: 85px;
 }
@@ -116,7 +116,7 @@ html[data-theme="light"] .traffic-container {
 }
 .traffic-sliders {
   align-items: start;
-  border-top: 1px solid var(--app-border);
+  border-top: 1px solid var(--rule);
   padding-top: 1rem;
 }
 .traffic-slider > span {
@@ -125,7 +125,7 @@ html[data-theme="light"] .traffic-container {
   gap: 0.5rem;
 }
 .traffic-slider output {
-  color: var(--brand-primary);
+  color: var(--signal-dim);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
@@ -133,10 +133,10 @@ html[data-theme="light"] .traffic-container {
   width: 100%;
   min-height: 44px;
   margin: 0;
-  accent-color: var(--brand-primary);
+  accent-color: var(--signal-dim);
 }
 .traffic-slider small {
-  color: var(--app-text-secondary);
+  color: var(--fg-muted);
   font-size: 0.7rem;
 }
 .traffic-actions {
@@ -162,10 +162,10 @@ html[data-theme="light"] .traffic-container {
   padding: 0.7rem 1rem;
   font-size: 0.75rem;
   font-variant-numeric: tabular-nums;
-  border-bottom: 1px solid var(--app-border);
+  border-bottom: 1px solid var(--rule);
 }
 .traffic-status > span:first-child {
-  color: var(--brand-primary);
+  color: var(--signal-dim);
 }
 .traffic-canvas,
 .traffic-spacetime {
@@ -181,7 +181,7 @@ html[data-theme="light"] .traffic-container {
 }
 .traffic-field-footer {
   padding: 0.75rem 1rem 1rem;
-  border-top: 1px solid var(--app-border);
+  border-top: 1px solid var(--rule);
 }
 .traffic-field-footer .traffic-note {
   margin: 0.6rem 0 0;
@@ -201,13 +201,13 @@ html[data-theme="light"] .traffic-container {
   gap: 0.4rem;
 }
 .traffic-legend-range {
-  color: var(--app-text-secondary);
+  color: var(--fg-muted);
 }
 .traffic-swatch {
   width: 18px;
   height: 8px;
   border-radius: 2px;
-  outline: 1px solid var(--app-border);
+  outline: 1px solid var(--rule);
 }
 .traffic-swatch-0 { background: var(--traffic-speed-0); }
 .traffic-swatch-1 { background: var(--traffic-speed-1); }
@@ -216,7 +216,7 @@ html[data-theme="light"] .traffic-container {
 .traffic-swatch-4 { background: var(--traffic-speed-4); }
 .traffic-note {
   font-size: 0.75rem;
-  color: var(--app-text-secondary);
+  color: var(--fg-muted);
   margin: 0.75rem 0;
 }
 .traffic-readout {
@@ -234,10 +234,10 @@ html[data-theme="light"] .traffic-container {
   justify-content: space-between;
   gap: 0.75rem;
   padding: 0.5rem 0;
-  border-bottom: 1px solid var(--app-border);
+  border-bottom: 1px solid var(--rule);
 }
 .traffic-metrics dt {
-  color: var(--app-text-secondary);
+  color: var(--fg-muted);
 }
 .traffic-metrics dd {
   margin: 0;
@@ -281,12 +281,12 @@ html[data-theme="light"] .traffic-container {
   font-size: 11px;
 }
 .traffic-chart-grid {
-  stroke: var(--app-border);
+  stroke: var(--rule);
   stroke-width: 1;
 }
 .traffic-chart-tick,
 .traffic-chart-label {
-  fill: var(--app-text-secondary);
+  fill: var(--fg-muted);
 }
 .traffic-chart-line {
   fill: none;
@@ -295,17 +295,17 @@ html[data-theme="light"] .traffic-container {
   stroke-linejoin: round;
 }
 .traffic-chart-demand {
-  stroke: var(--app-text-secondary);
+  stroke: var(--fg-muted);
   stroke-width: 1;
   stroke-dasharray: 5 4;
 }
 .traffic-chart-cross {
-  stroke: var(--app-text-secondary);
+  stroke: var(--fg-muted);
   stroke-width: 1;
 }
 .traffic-chart-dot {
   fill: var(--traffic-chart-line);
-  stroke: var(--app-surface);
+  stroke: var(--surface-1);
   stroke-width: 2;
 }
 .traffic-chart-tooltip {
@@ -318,12 +318,12 @@ html[data-theme="light"] .traffic-container {
   font-size: 0.72rem;
   white-space: nowrap;
   pointer-events: none;
-  background: var(--app-surface-elevated, var(--app-surface));
-  border: 1px solid var(--app-border);
+  background: var(--surface-2);
+  border: 1px solid var(--rule);
   border-radius: 4px;
 }
 .traffic-chart-tooltip span {
-  color: var(--app-text-secondary);
+  color: var(--fg-muted);
 }
 .traffic-table {
   margin-top: 0.6rem;
@@ -331,7 +331,7 @@ html[data-theme="light"] .traffic-container {
 }
 .traffic-table summary {
   cursor: pointer;
-  color: var(--app-text-secondary);
+  color: var(--fg-muted);
   min-height: 44px;
   display: flex;
   align-items: center;
@@ -344,7 +344,7 @@ html[data-theme="light"] .traffic-container {
 .traffic-table :is(th, td) {
   text-align: right;
   padding: 0.25rem 0.4rem;
-  border-bottom: 1px solid var(--app-border);
+  border-bottom: 1px solid var(--rule);
 }
 .traffic-table :is(th, td):first-child {
   text-align: left;
@@ -353,7 +353,7 @@ html[data-theme="light"] .traffic-container {
   caption-side: top;
   text-align: left;
   padding-bottom: 0.35rem;
-  color: var(--app-text-secondary);
+  color: var(--fg-muted);
 }
 .traffic-slow-table :is(th, td) {
   text-align: left;
@@ -374,7 +374,7 @@ html[data-theme="light"] .traffic-container {
   color: var(--fg);
 }
 .traffic-warning {
-  border-color: var(--brand-primary);
+  border-color: var(--signal-dim);
   font-size: 0.85rem;
   margin-top: 1rem;
 }

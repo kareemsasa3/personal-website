@@ -2,7 +2,7 @@
 .project-media {
   margin: 0;
   overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--border-color) 80%, transparent);
+  border: 1px solid color-mix(in srgb, var(--rule) 80%, transparent);
   border-radius: 8px;
   /* Matches the recording background so letterboxing is invisible */
   background: #181818;
@@ -15,9 +15,9 @@
   gap: 1rem;
   min-height: 1.9rem;
   padding: 0.3rem 0.75rem;
-  border-bottom: 1px solid color-mix(in srgb, var(--border-color) 60%, transparent);
-  color: var(--text-secondary);
-  font-family: var(--font-family-mono);
+  border-bottom: 1px solid color-mix(in srgb, var(--rule) 60%, transparent);
+  color: var(--fg-muted);
+  font-family: var(--font-mono);
   font-size: 0.75rem;
   letter-spacing: 0.04em;
 }
@@ -25,7 +25,7 @@
 .project-media__label::before {
   content: "▍";
   margin-right: 0.4rem;
-  color: var(--primary-color);
+  color: var(--signal-dim);
 }
 
 .project-media__control {
@@ -34,19 +34,19 @@
   border: 1px solid color-mix(in srgb, var(--edge) 80%, transparent);
   border-radius: 4px;
   background: transparent;
-  color: var(--text-secondary);
+  color: var(--fg-muted);
   font: inherit;
   cursor: pointer;
   transition: color 0.2s ease, border-color 0.2s ease;
 }
 
 .project-media__control:hover {
-  border-color: var(--primary-color);
-  color: var(--primary-color);
+  border-color: var(--signal-dim);
+  color: var(--signal-dim);
 }
 
 .project-media__control:focus-visible {
-  outline: 2px solid var(--primary-color);
+  outline: 2px solid var(--signal-dim);
   outline-offset: 2px;
 }
 
@@ -57,8 +57,8 @@
 }
 
 .project-media__control[aria-pressed="true"] {
-  border-color: var(--primary-color);
-  color: var(--primary-color);
+  border-color: var(--signal-dim);
+  color: var(--signal-dim);
 }
 
 /* Light: the bar stays #181818 (the recordings' letterbox), where no text token reaches 4.5:1.
@@ -73,8 +73,8 @@
   display: grid;
   gap: 0.35rem;
   padding: 0.6rem 0.75rem 0.75rem;
-  background: var(--app-surface);
-  color: var(--app-text);
+  background: var(--surface-1);
+  color: var(--fg);
   font-size: 0.85rem;
   line-height: 1.5;
 }
@@ -85,8 +85,8 @@
 
 .project-media__caption-term {
   margin-right: 0.35rem;
-  color: var(--primary-color);
-  font-family: var(--font-family-mono);
+  color: var(--signal-dim);
+  font-family: var(--font-mono);
   font-size: 0.72rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -97,16 +97,16 @@
   flex-wrap: wrap;
   gap: 0.5rem;
   padding: 0.6rem 0.75rem 0;
-  border-top: 1px solid color-mix(in srgb, var(--border-color) 60%, transparent);
-  background: var(--app-surface);
-  font-family: var(--font-family-mono);
+  border-top: 1px solid color-mix(in srgb, var(--rule) 60%, transparent);
+  background: var(--surface-1);
+  font-family: var(--font-mono);
   font-size: 0.75rem;
 }
 
 .project-media__actions .project-media__control {
   min-height: 2rem;
   padding: 0 0.65rem;
-  color: var(--app-text);
+  color: var(--fg);
 }
 
 @media (max-width: 480px) {
@@ -139,10 +139,10 @@
   width: min(100%, 1400px);
   height: 100%;
   overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--border-color) 80%, transparent);
+  border: 1px solid color-mix(in srgb, var(--rule) 80%, transparent);
   border-radius: 8px;
-  background: var(--app-surface);
-  color: var(--app-text);
+  background: var(--surface-1);
+  color: var(--fg);
 }
 
 .media-inspector__panel:focus:not(:focus-visible) {
@@ -156,8 +156,8 @@
   align-items: center;
   gap: 0.5rem 1rem;
   padding: 0.4rem 0.75rem;
-  border-bottom: 1px solid color-mix(in srgb, var(--border-color) 60%, transparent);
-  font-family: var(--font-family-mono);
+  border-bottom: 1px solid color-mix(in srgb, var(--rule) 60%, transparent);
+  font-family: var(--font-mono);
   font-size: 0.8rem;
 }
 
@@ -171,13 +171,13 @@
 .media-inspector__title::before {
   content: "▍";
   margin-right: 0.4rem;
-  color: var(--primary-color);
+  color: var(--signal-dim);
 }
 
 .media-inspector__header .project-media__control {
   min-height: 2rem;
   padding: 0 0.65rem;
-  color: var(--app-text);
+  color: var(--fg);
 }
 
 .media-inspector__views {
@@ -235,13 +235,13 @@
 }
 
 .media-inspector__still:focus-visible {
-  outline: 2px solid var(--primary-color);
+  outline: 2px solid var(--signal-dim);
   outline-offset: -2px;
 }
 
 .media-inspector__caption {
   grid-area: caption;
-  border-top: 1px solid color-mix(in srgb, var(--border-color) 60%, transparent);
+  border-top: 1px solid color-mix(in srgb, var(--rule) 60%, transparent);
 }
 
 /* Narrow screens: give the media the whole viewport. */
@@ -292,7 +292,7 @@
   }
 
   .media-inspector__stage {
-    border-right: 1px solid color-mix(in srgb, var(--border-color) 60%, transparent);
+    border-right: 1px solid color-mix(in srgb, var(--rule) 60%, transparent);
   }
 
   .media-inspector__caption {

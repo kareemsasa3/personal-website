@@ -19,7 +19,7 @@
     width: min(100%, var(--settings-sidebar-width, 360px));
     height: 100%;
     max-height: 100%;
-    background: var(--app-surface-elevated);
+    background: var(--surface-2);
     display: flex;
     flex-direction: column;
     transform: translateZ(0);
@@ -28,7 +28,7 @@
     -webkit-backface-visibility: hidden;
     overflow: hidden;
     pointer-events: auto;
-    border: 1px solid var(--app-border);
+    border: 1px solid var(--rule);
     border-radius: 18px;
 }
 
@@ -38,14 +38,14 @@
     justify-content: space-between;
     align-items: center;
     padding: 1rem;
-    border-bottom: 1px solid var(--app-border);
-    background: var(--app-surface-elevated);
+    border-bottom: 1px solid var(--rule);
+    background: var(--surface-2);
     flex-shrink: 0;
 }
 
 .settings-header h3 {
     margin: 0;
-    color: var(--text-color);
+    color: var(--fg);
     font-size: 1.2rem;
     font-weight: 600;
     display: flex;
@@ -59,9 +59,9 @@
 }
 
 .settings-close {
-    background: var(--app-surface-elevated);
-    border: 1px solid var(--app-border);
-    color: var(--text-color, #ffffff);
+    background: var(--surface-2);
+    border: 1px solid var(--rule);
+    color: var(--fg);
     font-size: 1.1rem;
     cursor: pointer;
     padding: 0.5rem;
@@ -72,8 +72,8 @@
 }
 
 .settings-close:hover {
-    background: color-mix(in srgb, var(--app-surface) 92%, transparent);
-    border-color: var(--brand-primary);
+    background: color-mix(in srgb, var(--surface-1) 92%, transparent);
+    border-color: var(--signal-dim);
 }
 
 /* Settings Content */
@@ -92,15 +92,15 @@
    Rows sit directly on the panel, so it is solid: page text behind a
    translucent surface competes with the controls. */
 .settings-panel {
-    background: var(--app-surface-elevated);
-    --settings-divider: color-mix(in srgb, var(--app-border) 55%, transparent);
+    background: var(--surface-2);
+    --settings-divider: color-mix(in srgb, var(--rule) 55%, transparent);
     --settings-danger: #ff6b6b;
 }
 
 [data-theme="light"] .settings-panel {
     /* Elevated surface: the light page canvas and content surfaces sit
        below it, so it reads as floating without heavier chrome. */
-    background: var(--app-surface-elevated);
+    background: var(--surface-2);
     --settings-danger: #b42318;
 }
 
@@ -120,8 +120,8 @@
 
 .settings-section-title {
     margin: 0 0 0.75rem;
-    color: var(--app-text-muted);
-    font-family: var(--font-family-mono);
+    color: var(--fg-muted);
+    font-family: var(--font-mono);
     font-size: 0.7rem;
     font-weight: 700;
     letter-spacing: 0.08em;
@@ -143,7 +143,7 @@
 }
 
 .setting-label {
-    color: var(--app-text);
+    color: var(--fg);
     font-size: 0.9rem;
     font-weight: 600;
     line-height: 1.3;
@@ -151,19 +151,19 @@
 
 .setting-static-value,
 .setting-value {
-    color: var(--app-text-secondary);
-    font-family: var(--font-family-mono);
+    color: var(--fg-muted);
+    font-family: var(--font-mono);
     font-size: 0.8rem;
     font-variant-numeric: tabular-nums;
 }
 
 .setting-value {
-    color: var(--brand-primary);
+    color: var(--signal-dim);
 }
 
 .setting-note {
     margin: 0;
-    color: var(--app-text-secondary);
+    color: var(--fg-muted);
     font-size: 0.8rem;
     line-height: 1.45;
 }
@@ -173,7 +173,7 @@
 }
 
 .settings-panel :is(button, a):focus-visible {
-    outline: 2px solid var(--brand-primary);
+    outline: 2px solid var(--signal-dim);
     outline-offset: 2px;
 }
 
@@ -184,7 +184,7 @@
     padding: 3px;
     border: 1px solid color-mix(in srgb, var(--edge) 75%, transparent);
     border-radius: 8px;
-    background: color-mix(in srgb, var(--app-bg) 60%, transparent);
+    background: color-mix(in srgb, var(--field) 60%, transparent);
 }
 
 .settings-segmented__button {
@@ -194,9 +194,9 @@
     border: 0;
     border-radius: 6px;
     background: transparent;
-    color: var(--app-text-secondary);
+    color: var(--fg-muted);
     cursor: pointer;
-    font-family: var(--font-family-mono);
+    font-family: var(--font-mono);
     font-size: 0.72rem;
     font-weight: 700;
     line-height: 1;
@@ -204,12 +204,12 @@
 }
 
 .settings-segmented__button:hover {
-    color: var(--app-text);
+    color: var(--fg);
 }
 
 .settings-segmented__button[aria-pressed="true"] {
-    background: color-mix(in srgb, var(--brand-primary) 16%, transparent);
-    color: var(--brand-primary);
+    background: color-mix(in srgb, var(--signal-dim) 16%, transparent);
+    color: var(--signal-dim);
 }
 
 /* Switch (background animation) */
@@ -222,9 +222,9 @@
     border: 0;
     border-radius: 6px;
     background: transparent;
-    color: var(--app-text-secondary);
+    color: var(--fg-muted);
     cursor: pointer;
-    font-family: var(--font-family-mono);
+    font-family: var(--font-mono);
     font-size: 0.72rem;
     font-weight: 700;
     text-transform: uppercase;
@@ -235,7 +235,7 @@
     width: 2.25rem;
     height: 1.25rem;
     border-radius: 999px;
-    background: color-mix(in srgb, var(--app-text-muted) 45%, transparent);
+    background: color-mix(in srgb, var(--fg-muted) 45%, transparent);
     transition: background-color 0.2s ease;
 }
 
@@ -251,11 +251,11 @@
 }
 
 .setting-switch[aria-checked="true"] {
-    color: var(--brand-primary);
+    color: var(--signal-dim);
 }
 
 .setting-switch[aria-checked="true"] .setting-switch__track {
-    background: var(--brand-primary);
+    background: var(--signal-dim);
 }
 
 .setting-switch[aria-checked="true"] .setting-switch__thumb {
@@ -272,8 +272,8 @@
 }
 
 .setting-range {
-    --range-accent: var(--brand-primary);
-    --range-track: color-mix(in srgb, var(--app-text-muted) 35%, transparent);
+    --range-accent: var(--signal-dim);
+    --range-track: color-mix(in srgb, var(--fg-muted) 35%, transparent);
     display: block;
     width: 100%;
     height: 1.25rem;
@@ -310,7 +310,7 @@
     width: 16px;
     height: 16px;
     margin-top: -6px;
-    border: 2px solid var(--app-surface);
+    border: 2px solid var(--surface-1);
     border-radius: 50%;
     background: var(--range-accent);
     -webkit-appearance: none;
@@ -320,13 +320,13 @@
 .setting-range::-moz-range-thumb {
     width: 12px;
     height: 12px;
-    border: 2px solid var(--app-surface);
+    border: 2px solid var(--surface-1);
     border-radius: 50%;
     background: var(--range-accent);
 }
 
 .setting-range:focus-visible {
-    outline: 2px solid var(--brand-primary);
+    outline: 2px solid var(--signal-dim);
     outline-offset: 3px;
     border-radius: 4px;
 }
@@ -337,11 +337,11 @@
 }
 
 .setting-range:disabled {
-    --range-accent: var(--app-text-muted);
+    --range-accent: var(--fg-muted);
 }
 
 .setting-slider:has(.setting-range:disabled) .setting-value {
-    color: var(--app-text-muted);
+    color: var(--fg-muted);
 }
 
 /* Dock tuning disclosure */
@@ -354,7 +354,7 @@
     padding: 0.35rem 0;
     border: 0;
     background: transparent;
-    color: var(--app-text-secondary);
+    color: var(--fg-muted);
     cursor: pointer;
     font: inherit;
     font-size: 0.85rem;
@@ -363,7 +363,7 @@
 }
 
 .settings-disclosure__toggle:hover {
-    color: var(--app-text);
+    color: var(--fg);
 }
 
 .settings-disclosure__icon {
@@ -400,24 +400,24 @@
     gap: 0.45rem;
     min-height: 2.25rem;
     padding: 0.45rem 0.75rem;
-    border: 1px solid color-mix(in srgb, var(--app-border) 80%, transparent);
+    border: 1px solid color-mix(in srgb, var(--rule) 80%, transparent);
     border-radius: 6px;
     background: transparent;
-    color: var(--app-text);
+    color: var(--fg);
     cursor: pointer;
-    font-family: var(--font-family-mono);
+    font-family: var(--font-mono);
     font-size: 0.78rem;
     font-weight: 600;
 }
 
 .settings-action svg {
-    color: var(--app-text-muted);
+    color: var(--fg-muted);
     font-size: 0.8em;
 }
 
 .settings-action:hover {
-    border-color: var(--brand-primary);
-    color: var(--brand-primary);
+    border-color: var(--signal-dim);
+    color: var(--signal-dim);
 }
 
 .settings-action--danger {
@@ -439,7 +439,7 @@
 /* About */
 .settings-about p {
     margin: 0;
-    color: var(--app-text-secondary);
+    color: var(--fg-muted);
     font-size: 0.85rem;
     line-height: 1.5;
 }
@@ -449,19 +449,19 @@
 }
 
 .settings-about .settings-about__name {
-    color: var(--app-text);
+    color: var(--fg);
     font-weight: 600;
 }
 
 .settings-about .settings-build {
     margin-top: 0.4rem;
-    color: var(--app-text-muted);
-    font-family: var(--font-family-mono);
+    color: var(--fg-muted);
+    font-family: var(--font-mono);
     font-size: 0.78rem;
 }
 
 .settings-build a {
-    color: var(--brand-primary);
+    color: var(--signal-dim);
     text-decoration: none;
 }
 
@@ -528,6 +528,6 @@
     background: rgba(255, 255, 255, 0.3);
 }
 
-.settings-header { position: sticky; top: 0; z-index: 1; background: var(--app-surface-elevated); }
+.settings-header { position: sticky; top: 0; z-index: 1; background: var(--surface-2); }
 
-.settings-close:focus-visible { outline: 2px solid var(--brand-primary); outline-offset: 2px; }
+.settings-close:focus-visible { outline: 2px solid var(--signal-dim); outline-offset: 2px; }

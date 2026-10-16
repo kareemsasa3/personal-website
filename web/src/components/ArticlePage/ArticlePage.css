@@ -14,11 +14,11 @@
 .article-meta {
   margin: 0;
   font-size: 0.78rem;
-  color: var(--app-text-muted);
+  color: var(--fg-muted);
 }
 
 .article-eyebrow {
-  color: var(--brand-primary);
+  color: var(--signal-dim);
   text-transform: uppercase;
   letter-spacing: 0.12em;
 }
@@ -26,7 +26,7 @@
 .article-series {
   margin: 0.15rem 0 0;
   font-size: 0.78rem;
-  color: var(--app-text-secondary);
+  color: var(--fg-muted);
 }
 
 .article-title {
@@ -38,7 +38,7 @@
 .article-subtitle {
   margin: 0 0 0.6rem;
   max-width: 68ch;
-  color: var(--app-text-secondary);
+  color: var(--fg-muted);
   font-size: 1rem;
   line-height: 1.5;
 }
@@ -51,7 +51,7 @@
 .article-body,
 .article-prose {
   min-width: 0;
-  color: var(--app-text);
+  color: var(--fg);
   font-size: 1rem;
   line-height: 1.75;
 }
@@ -70,7 +70,7 @@
 .article-body h3 {
   margin: 1.75rem 0 0.5rem;
   font-size: 1.1rem;
-  color: var(--app-text-secondary);
+  color: var(--fg-muted);
 }
 
 .article-body p,
@@ -81,13 +81,13 @@
 .article-body blockquote {
   margin: 1.5rem 0;
   padding: 0.25rem 0 0.25rem 1rem;
-  border-left: 3px solid var(--brand-primary);
-  color: var(--app-text-secondary);
+  border-left: 3px solid var(--signal-dim);
+  color: var(--fg-muted);
 }
 
 .article-body a,
 .article-prose a {
-  color: var(--brand-primary);
+  color: var(--signal-dim);
   overflow-wrap: anywhere;
 }
 
@@ -97,16 +97,16 @@
   max-width: 100%;
   overflow-x: auto;
   padding: 1rem;
-  border: 1px solid var(--app-border);
+  border: 1px solid var(--rule);
   border-radius: 6px;
-  background: var(--app-bg-secondary);
+  background: var(--surface-1);
   font-size: 0.82rem;
   line-height: 1.5;
 }
 
 .article-body code,
 .article-prose code {
-  font-family: var(--font-family-mono);
+  font-family: var(--font-mono);
   font-size: 0.88em;
 }
 
@@ -115,7 +115,7 @@
   max-width: 100%;
   overflow-x: auto;
   margin: 1.25rem 0;
-  border: 1px solid var(--app-border);
+  border: 1px solid var(--rule);
   border-radius: 6px;
 }
 
@@ -129,13 +129,13 @@
 .article-table th,
 .article-table td {
   padding: 0.55rem 0.7rem;
-  border-bottom: 1px solid var(--app-border);
+  border-bottom: 1px solid var(--rule);
   text-align: left;
   vertical-align: top;
 }
 
 .article-table th {
-  color: var(--brand-primary);
+  color: var(--signal-dim);
   white-space: nowrap;
 }
 
@@ -143,15 +143,15 @@
 .article-toc {
   margin-bottom: 1.5rem;
   padding: 0.75rem 1rem;
-  border: 1px solid var(--app-border);
+  border: 1px solid var(--rule);
   border-radius: 6px;
-  background: var(--app-bg-secondary);
+  background: var(--surface-1);
   font-size: 0.85rem;
 }
 
 .article-toc summary {
   cursor: pointer;
-  color: var(--brand-primary);
+  color: var(--signal-dim);
   font-weight: 650;
 }
 
@@ -168,46 +168,46 @@
 }
 
 .article-toc a {
-  color: var(--app-text-secondary);
+  color: var(--fg-muted);
   text-decoration: none;
 }
 
 .article-toc a:hover,
 .article-toc a:focus-visible {
-  color: var(--brand-primary);
+  color: var(--signal-dim);
   text-decoration: underline;
 }
 
 /* Provenance: a visually distinct region after the conclusion. */
 .article-provenance {
   padding-top: 1.5rem;
-  border-top: 2px solid var(--app-border);
+  border-top: 2px solid var(--rule);
 }
 
 .article-provenance > h2 {
   margin: 0 0 0.4rem;
-  color: var(--brand-primary);
+  color: var(--signal-dim);
   font-size: 1.15rem;
 }
 
 .article-provenance-note {
   max-width: 68ch;
   margin: 0 0 1.25rem;
-  color: var(--app-text-muted);
+  color: var(--fg-muted);
   font-size: 0.85rem;
 }
 
 .article-provenance-section {
   margin-bottom: 1rem;
   padding: 0.85rem 1rem;
-  border: 1px solid var(--app-border);
+  border: 1px solid var(--rule);
   border-radius: 6px;
 }
 
 .article-provenance-section > h3,
 .article-provenance-section > summary {
   margin: 0;
-  color: var(--app-text);
+  color: var(--fg);
   font-size: 0.95rem;
   font-weight: 650;
 }
@@ -228,7 +228,7 @@
   justify-content: space-between;
   gap: 1rem;
   padding-top: 1.25rem;
-  border-top: 1px solid var(--app-border);
+  border-top: 1px solid var(--rule);
 }
 
 .article-series-link {
@@ -236,7 +236,7 @@
   flex-direction: column;
   gap: 0.2rem;
   max-width: 48%;
-  color: var(--brand-primary);
+  color: var(--signal-dim);
   text-decoration: none;
 }
 
@@ -249,18 +249,18 @@
   font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: var(--app-text-muted);
+  color: var(--fg-muted);
 }
 
 .article-footer {
   padding-top: 1.25rem;
-  border-top: 1px solid var(--app-border);
+  border-top: 1px solid var(--rule);
 }
 
 .article-footer h2 {
   margin: 0 0 0.75rem;
   font-size: 1rem;
-  color: var(--app-text-secondary);
+  color: var(--fg-muted);
 }
 
 .article-footer ul {
@@ -272,13 +272,13 @@
 }
 
 .article-footer a {
-  color: var(--brand-primary);
+  color: var(--signal-dim);
   text-decoration: none;
 }
 
 .article-footer-kind {
   display: block;
-  color: var(--app-text-muted);
+  color: var(--fg-muted);
   font-size: 0.78rem;
 }
 
@@ -327,6 +327,6 @@
 }
 
 .article-body h2 { scroll-margin-top: 1rem; }
-.article-toc a[aria-current="location"] { color: var(--brand-primary); font-weight: 700; text-decoration: underline; }
-.article-series a { color: var(--brand-primary); }
+.article-toc a[aria-current="location"] { color: var(--signal-dim); font-weight: 700; text-decoration: underline; }
+.article-series a { color: var(--signal-dim); }
 @media (min-width: 1200px) { .article-toc { top: calc(var(--site-header-measured-offset, 0px) + 1rem); max-height: calc(100dvh - var(--site-header-measured-offset, 0px) - var(--site-dock-safe-space, 0px) - 2rem); overflow-y: auto; } }

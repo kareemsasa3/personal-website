@@ -23,7 +23,7 @@
 
 .contact-strip-title {
   margin: 0;
-  color: var(--text-color);
+  color: var(--fg);
   font-size: 1rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -32,7 +32,7 @@
 
 .contact-strip-description {
   margin: 0;
-  color: var(--text-secondary);
+  color: var(--fg-muted);
   font-size: 0.9rem;
   line-height: 1.6;
 }
@@ -48,18 +48,18 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  color: var(--text-color);
+  color: var(--fg);
   text-decoration: none;
   font-weight: 600;
   padding: 0.4rem 0.75rem;
   border-radius: 999px;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--rule);
   transition: border-color 0.3s ease, color 0.3s ease, background-color 0.3s ease;
 }
 
 .contact-strip-link:hover {
-  color: var(--primary-color);
-  border-color: var(--primary-color);
+  color: var(--signal-dim);
+  border-color: var(--signal-dim);
   background: rgba(0, 255, 0, 0.05);
 }
 

@@ -15,8 +15,8 @@
 .modal-content {
     display: flex;
     flex-direction: column;
-    background: linear-gradient(135deg, var(--app-surface) 0%, var(--app-bg-secondary) 100%);
-    border: 1px solid var(--brand-primary);
+    background: linear-gradient(135deg, var(--surface-1) 0%, var(--surface-1) 100%);
+    border: 1px solid var(--signal-dim);
     border-radius: 12px;
     max-width: 500px;
     width: 100%;
@@ -32,7 +32,7 @@
     left: 0;
     right: 0;
     height: 1px;
-    background: linear-gradient(90deg, transparent, var(--brand-primary), transparent);
+    background: linear-gradient(90deg, transparent, var(--signal-dim), transparent);
     opacity: 0.6;
 }
 
@@ -42,15 +42,15 @@
     align-items: center;
     justify-content: space-between;
     padding: 20px 24px 16px;
-    border-bottom: 1px solid color-mix(in srgb, var(--brand-primary) 20%, transparent);
-    background: color-mix(in srgb, var(--app-surface) 92%, transparent);
+    border-bottom: 1px solid color-mix(in srgb, var(--signal-dim) 20%, transparent);
+    background: color-mix(in srgb, var(--surface-1) 92%, transparent);
 }
 
 .modal-title {
     margin: 0;
     font-size: 1.25rem;
     font-weight: 600;
-    color: var(--brand-primary);
+    color: var(--signal-dim);
 }
 
 .modal-close {
@@ -68,14 +68,14 @@
 }
 
 .modal-close:hover {
-    color: var(--brand-primary);
-    background: color-mix(in srgb, var(--brand-primary) 10%, transparent);
+    color: var(--signal-dim);
+    background: color-mix(in srgb, var(--signal-dim) 10%, transparent);
 }
 
 .modal-body {
     min-height: 0;
     padding: 20px 24px;
-    color: var(--app-text);
+    color: var(--fg);
     line-height: 1.6;
     max-height: 60vh;
     overflow-y: auto;
@@ -105,8 +105,8 @@
     gap: 12px;
     justify-content: flex-end;
     padding: 16px 24px 20px;
-    border-top: 1px solid color-mix(in srgb, var(--brand-primary) 20%, transparent);
-    background: color-mix(in srgb, var(--app-bg) 80%, transparent);
+    border-top: 1px solid color-mix(in srgb, var(--signal-dim) 20%, transparent);
+    background: color-mix(in srgb, var(--field) 80%, transparent);
 }
 
 .modal-button {
@@ -123,8 +123,8 @@
 }
 
 .modal-button-secondary {
-    background: color-mix(in srgb, var(--app-surface) 80%, transparent);
-    color: var(--app-text);
+    background: color-mix(in srgb, var(--surface-1) 80%, transparent);
+    color: var(--fg);
     border: 1px solid var(--edge);
 }
 

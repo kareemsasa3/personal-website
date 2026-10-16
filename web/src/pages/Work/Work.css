@@ -3,7 +3,7 @@
 .work-page {
     /* Center a 1160px column with padding rather than max-width: .page-content clips overflow-x, and a narrow box would cut the header scrim into hard edges */
     padding: 40px max(20px, calc((100% - 1160px) / 2));
-    color: var(--text-color);
+    color: var(--fg);
     background: transparent;
     min-height: 100vh;
     min-height: 100svh;
@@ -22,11 +22,11 @@
 .work-title {
     font-size: 2.5rem;
     font-weight: 700;
-    color: var(--text-color);
+    color: var(--fg);
     margin: 0;
     padding-left: 1rem;
     position: relative;
-    font-family: var(--font-family-mono);
+    font-family: var(--font-mono);
     white-space: nowrap;
 }
 
@@ -38,15 +38,15 @@
     transform: translateX(-50%);
     width: 80px;
     height: 3px;
-    background: linear-gradient(90deg, var(--primary-color), #000000);
+    background: linear-gradient(90deg, var(--signal-dim), #000000);
     border-radius: 2px;
 }
 
 .work-subtitle {
     max-width: 620px;
     margin: 1.5rem auto 0;
-    color: var(--text-secondary);
-    font-family: var(--font-family-mono);
+    color: var(--fg-muted);
+    font-family: var(--font-mono);
     font-size: 1rem;
     line-height: 1.7;
 }
@@ -72,8 +72,8 @@
 .timeline-node {
     width: 16px;
     height: 16px;
-    background-color: var(--primary-color);
-    border: 3px solid var(--card-background);
+    background-color: var(--signal-dim);
+    border: 3px solid var(--surface-1);
     border-radius: 50%;
     z-index: 1;
     margin-top: 2rem;
@@ -87,7 +87,7 @@
 }
 
 .timeline-node.full-time {
-    background-color: var(--primary-color);
+    background-color: var(--signal-dim);
 }
 
 .timeline-node.freelance {
@@ -110,7 +110,7 @@
 .timeline-line {
     width: 2px;
     height: 100%;
-    background: linear-gradient(to bottom, var(--primary-color), transparent);
+    background: linear-gradient(to bottom, var(--signal-dim), transparent);
     margin-top: 1rem;
     position: relative;
 }
@@ -123,7 +123,7 @@
     transform: translateX(-50%);
     width: 6px;
     height: 6px;
-    background-color: var(--primary-color);
+    background-color: var(--signal-dim);
     border-radius: 50%;
 }
 
@@ -140,7 +140,7 @@
     top: 0;
     bottom: 0;
     width: 2px;
-    background: linear-gradient(to bottom, transparent, var(--primary-color), transparent);
+    background: linear-gradient(to bottom, transparent, var(--signal-dim), transparent);
     opacity: 0.3;
 }
 
@@ -152,15 +152,15 @@
     margin: 2rem auto 0;
     padding: 1.5rem;
     max-width: 960px;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--rule);
     border-radius: 12px;
-    background: var(--background-color);
-    font-family: var(--font-family-mono);
+    background: var(--field);
+    font-family: var(--font-mono);
 }
 
 .work-contact-eyebrow {
     margin: 0 0 0.5rem;
-    color: var(--primary-color);
+    color: var(--signal-dim);
     font-size: 0.8rem;
     font-weight: 700;
     letter-spacing: 0.08em;
@@ -169,13 +169,13 @@
 
 .work-contact-cta h2 {
     margin: 0;
-    color: var(--text-color);
+    color: var(--fg);
     font-size: 1.35rem;
 }
 
 .work-contact-cta p:last-child {
     margin: 0.75rem 0 0;
-    color: var(--text-secondary);
+    color: var(--fg-muted);
     line-height: 1.6;
 }
 
@@ -192,30 +192,30 @@
     justify-content: center;
     min-height: 2.5rem;
     padding: 0.55rem 0.9rem;
-    color: var(--text-color);
+    color: var(--fg);
     text-decoration: none;
     font-weight: 700;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--rule);
     border-radius: 999px;
     transition: border-color 0.3s ease, color 0.3s ease, background-color 0.3s ease;
 }
 
 .work-contact-link:hover,
 .work-contact-link:focus-visible {
-    color: var(--primary-color);
-    border-color: var(--primary-color);
+    color: var(--signal-dim);
+    border-color: var(--signal-dim);
     background: rgba(0, 255, 0, 0.05);
 }
 
 .work-contact-link.primary {
-    color: var(--background-color);
-    border-color: var(--primary-color);
-    background: var(--primary-color);
+    color: var(--field);
+    border-color: var(--signal-dim);
+    background: var(--signal-dim);
 }
 
 .work-contact-link.primary:hover,
 .work-contact-link.primary:focus-visible {
-    color: var(--primary-color);
+    color: var(--signal-dim);
     background: transparent;
 }
 

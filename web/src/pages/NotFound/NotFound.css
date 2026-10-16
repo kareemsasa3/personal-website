@@ -4,7 +4,7 @@
     align-items: center;
     min-height: 100vh;
     text-align: center;
-    color: var(--text-color);
+    color: var(--fg);
 }
 
 .not-found-content {
@@ -27,13 +27,13 @@
 .not-found h2 {
     font-size: 2rem;
     margin: 1rem 0;
-    color: var(--text-color);
+    color: var(--fg);
 }
 
 .not-found p {
     font-size: 1.1rem;
     margin: 1rem 0 2rem 0;
-    color: var(--text-secondary);
+    color: var(--fg-muted);
 }
 
 .home-link {

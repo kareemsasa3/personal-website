@@ -40,8 +40,8 @@
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background-color: var(--panel-bg-color);
-    border: 3px solid var(--border-color);
+    background-color: var(--surface-1);
+    border: 3px solid var(--rule);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -79,9 +79,9 @@
 .timeline-content {
     position: relative;
     padding: 30px;
-    background-color: var(--panel-bg-color);
+    background-color: var(--surface-1);
     border-radius: 8px;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--rule);
     transition: all 0.3s ease;
     min-height: 200px;
 }
@@ -122,7 +122,7 @@
     align-items: center;
     gap: 8px;
     font-size: 0.9rem;
-    color: var(--primary-color);
+    color: var(--signal-dim);
     opacity: 0.7;
     transition: opacity 0.3s ease;
 }
@@ -158,28 +158,28 @@
 
 .timeline-item.left .timeline-content::before {
     right: -20px;
-    border-left-color: var(--panel-bg-color);
+    border-left-color: var(--surface-1);
 }
 
 .timeline-item.left .timeline-content::after {
     right: -22px;
-    border-left-color: var(--border-color);
+    border-left-color: var(--rule);
 }
 
 .timeline-item.right .timeline-content::before {
     left: -20px;
-    border-right-color: var(--panel-bg-color);
+    border-right-color: var(--surface-1);
 }
 
 .timeline-item.right .timeline-content::after {
     left: -22px;
-    border-right-color: var(--border-color);
+    border-right-color: var(--rule);
 }
 
 .timeline-date {
     font-size: 0.9rem;
     font-weight: 600;
-    color: var(--primary-color);
+    color: var(--signal-dim);
     margin-bottom: 8px;
     display: block;
 }
@@ -187,13 +187,13 @@
 .timeline-item-title {
     font-size: 1.25rem;
     margin: 0 0 10px 0;
-    color: var(--text-color);
+    color: var(--fg);
 }
 
 .timeline-item-description {
     font-size: 1rem;
     line-height: 1.5;
-    color: var(--text-muted-color);
+    color: var(--fg-muted);
     margin: 0;
 }
 
@@ -220,19 +220,19 @@
     .timeline-item.left .timeline-content::after,
     .timeline-item.right .timeline-content::after {
         left: -22px;
-        border-right-color: var(--border-color);
+        border-right-color: var(--rule);
         border-left-color: transparent;
     }
 
     .timeline-item.left .timeline-content::before,
     .timeline-item.right .timeline-content::before {
         left: -20px;
-        border-right-color: var(--panel-bg-color);
+        border-right-color: var(--surface-1);
         border-left-color: transparent;
     }
 }
 .timeline-flip-container { position: relative; cursor: default; }
-.timeline-item-description { color: var(--app-text-secondary); opacity: 1; }
-.timeline-flip-toggle { position: relative; margin-top: .5rem; padding: .35rem .6rem; background: var(--app-surface); color: var(--brand-primary); border: 1px solid var(--edge); border-radius: 4px; cursor: pointer; }
-.timeline-flip-toggle:focus-visible { outline: 2px solid var(--brand-primary); outline-offset: 3px; }
+.timeline-item-description { color: var(--fg-muted); opacity: 1; }
+.timeline-flip-toggle { position: relative; margin-top: .5rem; padding: .35rem .6rem; background: var(--surface-1); color: var(--signal-dim); border: 1px solid var(--edge); border-radius: 4px; cursor: pointer; }
+.timeline-flip-toggle:focus-visible { outline: 2px solid var(--signal-dim); outline-offset: 3px; }
 @media (prefers-reduced-motion: reduce) { .timeline-content, .timeline-icon-wrapper { transition: none; } }

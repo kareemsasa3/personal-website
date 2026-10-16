@@ -4,17 +4,17 @@
     justify-content: center;
     min-height: 100vh;
     padding: 2rem;
-    background: var(--background-color);
-    color: var(--text-color);
+    background: var(--field);
+    color: var(--fg);
 }
 
 .error-content {
     max-width: 600px;
     text-align: center;
-    background: var(--card-background);
+    background: var(--surface-1);
     padding: 3rem 2rem;
     border-radius: 12px;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--rule);
 }
 
 .error-content h1 {
@@ -28,7 +28,7 @@
     font-size: 1.1rem;
     line-height: 1.6;
     margin-bottom: 2rem;
-    color: var(--text-secondary);
+    color: var(--fg-muted);
 }
 
 .error-actions {
@@ -61,7 +61,7 @@
 
 .error-button.secondary {
     background: transparent;
-    color: var(--text-color);
+    color: var(--fg);
     border: 2px solid var(--edge);
 }
 
@@ -80,10 +80,10 @@
 
 .error-details summary {
     padding: 1rem;
-    background: var(--card-background);
+    background: var(--surface-1);
     cursor: pointer;
     font-weight: 600;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--rule);
 }
 
 .error-details summary:hover {
@@ -93,8 +93,8 @@
 .error-stack {
     padding: 1rem;
     background: var(--background-secondary);
-    color: var(--text-secondary);
-    font-family: var(--font-family-mono);
+    color: var(--fg-muted);
+    font-family: var(--font-mono);
     font-size: 0.875rem;
     line-height: 1.4;
     white-space: pre-wrap;
@@ -105,7 +105,7 @@
 
 /* App-level error styling */
 .app-error .error-content {
-    background: linear-gradient(135deg, var(--card-background) 0%, var(--background-secondary) 100%);
+    background: linear-gradient(135deg, var(--surface-1) 0%, var(--background-secondary) 100%);
     border: 2px solid var(--accent-color);
 }
 
@@ -127,7 +127,7 @@
     background: rgba(255, 107, 107, 0.1);
     border-left: 3px solid #ff6b6b;
     color: #ff6b6b;
-    font-family: var(--font-family-mono);
+    font-family: var(--font-mono);
     font-size: 0.875rem;
     margin-bottom: 1rem;
 }

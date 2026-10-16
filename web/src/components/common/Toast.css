@@ -4,8 +4,8 @@
     align-items: flex-start;
     gap: 12px;
     padding: 16px 20px;
-    background: linear-gradient(135deg, var(--app-surface) 0%, var(--app-bg-secondary) 100%);
-    border: 1px solid var(--brand-primary);
+    background: linear-gradient(135deg, var(--surface-1) 0%, var(--surface-1) 100%);
+    border: 1px solid var(--signal-dim);
     border-radius: 8px;
     min-width: 300px;
     max-width: 400px;
@@ -20,7 +20,7 @@
     left: 0;
     right: 0;
     height: 1px;
-    background: linear-gradient(90deg, transparent, var(--brand-primary), transparent);
+    background: linear-gradient(90deg, transparent, var(--signal-dim), transparent);
     opacity: 0.6;
 }
 
@@ -44,14 +44,14 @@
     margin: 0 0 4px 0;
     font-size: 0.95rem;
     font-weight: 600;
-    color: var(--app-text);
+    color: var(--fg);
     line-height: 1.3;
 }
 
 .toast-message {
     margin: 0;
     font-size: 0.85rem;
-    color: var(--app-text-muted);
+    color: var(--fg-muted);
     line-height: 1.4;
 }
 
@@ -72,8 +72,8 @@
 }
 
 .toast-close:hover {
-    color: var(--brand-primary);
-    background: color-mix(in srgb, var(--brand-primary) 10%, transparent);
+    color: var(--signal-dim);
+    background: color-mix(in srgb, var(--signal-dim) 10%, transparent);
 }
 
 .toast-progress {

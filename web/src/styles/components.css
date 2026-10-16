@@ -4,8 +4,8 @@
   position: relative;
   overflow: hidden;
   padding: 1.5rem;
-  background: var(--background-color);
-  border: 1px solid var(--border-color);
+  background: var(--field);
+  border: 1px solid var(--rule);
   border-radius: 12px;
   transition: all 0.3s ease;
 }
@@ -16,7 +16,7 @@
 
 a.interactive-card:hover {
   background: rgba(0, 255, 0, 0.05);
-  border-color: var(--primary-color);
+  border-color: var(--signal-dim);
 }
 
 .status-badge {
@@ -65,7 +65,7 @@ a.interactive-card:hover {
   /* Solid dark-green pill with light text: 4.86:1 contrast in both themes.
      The old pale-green fill with green text was 1.38:1 and needed per-page patches. */
   background: #2e7d32;
-  border: 1px solid var(--primary-color);
+  border: 1px solid var(--signal-dim);
   border-radius: 15px;
   color: #f8f9fa;
   font-size: 0.8rem;

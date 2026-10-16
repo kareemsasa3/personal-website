@@ -1,10 +1,10 @@
 .work-details-container {
-    background: var(--background-color);
-    border: 1px solid var(--border-color);
+    background: var(--field);
+    border: 1px solid var(--rule);
     border-radius: 12px;
     padding: 2rem;
     transition: all 0.3s ease;
-    font-family: var(--font-family-mono);
+    font-family: var(--font-mono);
     margin-bottom: 2rem;
 }
 
@@ -17,15 +17,15 @@
 }
 
 .work-dates {
-    color: var(--primary-color);
+    color: var(--signal-dim);
     font-weight: 600;
     font-size: 1rem;
     padding: 0.5rem 1rem;
-    background: var(--card-background);
-    border: 1px solid var(--primary-color);
+    background: var(--surface-1);
+    border: 1px solid var(--signal-dim);
     border-radius: 8px;
     text-align: center;
-    font-family: var(--font-family-mono);
+    font-family: var(--font-mono);
     transition: all 0.3s ease;
 }
 
@@ -38,22 +38,22 @@
 .work-company {
     font-size: 1.8rem;
     font-weight: 700;
-    color: var(--text-color);
+    color: var(--fg);
     margin: 0;
-    font-family: var(--font-family-mono);
+    font-family: var(--font-mono);
 }
 
 .work-role {
     font-size: 1.2rem;
-    color: var(--primary-color);
+    color: var(--signal-dim);
     font-weight: 600;
-    font-family: var(--font-family-mono);
+    font-family: var(--font-mono);
 }
 
 .work-location {
     font-size: 0.9rem;
-    color: var(--text-secondary);
-    font-family: var(--font-family-mono);
+    color: var(--fg-muted);
+    font-family: var(--font-mono);
 }
 
 .work-content {
@@ -71,10 +71,10 @@
 .section-title {
     font-size: 1.1rem;
     font-weight: 600;
-    color: var(--text-color);
+    color: var(--fg);
     margin: 0 0 1rem 0;
-    font-family: var(--font-family-mono);
-    border-bottom: 1px solid var(--border-color);
+    font-family: var(--font-mono);
+    border-bottom: 1px solid var(--rule);
     padding-bottom: 0.5rem;
 }
 
@@ -90,16 +90,16 @@
 
 .achievement-item,
 .project-item {
-    color: var(--text-secondary);
+    color: var(--fg-muted);
     line-height: 1.6;
-    font-family: var(--font-family-mono);
+    font-family: var(--font-mono);
     position: relative;
     padding-left: 1.5rem;
 }
 
 .achievement-item::before {
     content: "▸";
-    color: var(--primary-color);
+    color: var(--signal-dim);
     position: absolute;
     left: 0;
     font-weight: bold;
@@ -107,7 +107,7 @@
 
 .project-item::before {
     content: "▸";
-    color: var(--primary-color);
+    color: var(--signal-dim);
     position: absolute;
     left: 0;
     font-weight: bold;
@@ -115,7 +115,7 @@
 
 .work-tech-stack,
 .work-highlights {
-    border-top: 1px solid var(--border-color);
+    border-top: 1px solid var(--rule);
     padding-top: 1.5rem;
 }
 
@@ -123,9 +123,9 @@
 .highlights-title {
     font-size: 1rem;
     font-weight: 600;
-    color: var(--text-color);
+    color: var(--fg);
     margin: 0 0 1rem 0;
-    font-family: var(--font-family-mono);
+    font-family: var(--font-mono);
 }
 
 .tech-tags,
@@ -136,26 +136,26 @@
 }
 
 .tech-tag {
-    background: var(--card-background);
-    color: var(--primary-color);
+    background: var(--surface-1);
+    color: var(--signal-dim);
     padding: 0.25rem 0.75rem;
     border-radius: 15px;
     font-size: 0.8rem;
     font-weight: 500;
-    border: 1px solid var(--primary-color);
-    font-family: var(--font-family-mono);
+    border: 1px solid var(--signal-dim);
+    font-family: var(--font-mono);
     transition: all 0.2s ease;
 }
 
 .highlight-tag {
-    background: var(--card-background);
-    color: var(--text-color);
+    background: var(--surface-1);
+    color: var(--fg);
     padding: 0.25rem 0.75rem;
     border-radius: 15px;
     font-size: 0.8rem;
     font-weight: 500;
-    border: 1px solid var(--border-color);
-    font-family: var(--font-family-mono);
+    border: 1px solid var(--rule);
+    font-family: var(--font-mono);
     transition: all 0.2s ease;
 }
 

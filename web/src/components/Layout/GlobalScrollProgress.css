@@ -5,7 +5,7 @@
     left: 0;
     right: 0;
     height: 3px;
-    background: linear-gradient(90deg, var(--primary-color), #4CAF50);
+    background: linear-gradient(90deg, var(--signal-dim), #4CAF50);
     transform-origin: 0%;
     z-index: 9999;
 }

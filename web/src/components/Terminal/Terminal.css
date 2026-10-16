@@ -36,7 +36,7 @@
   height: 100vh;
   background: transparent;
   color: var(--terminal-text-primary);
-  font-family: var(--font-family-mono);
+  font-family: var(--font-mono);
   overflow: hidden;
   display: flex;
   align-items: center;

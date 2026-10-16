@@ -13,7 +13,7 @@ with globally bundled card/badge styles.
 
 .project-roster {
     --roster-accent: var(--terminal-primary, #4CAF50);
-    --roster-rule: var(--border-color);
+    --roster-rule: var(--rule);
     --roster-status-live: #51cf66;
     --roster-status-development: #ffd43b;
     --roster-status-demo-ready: #74c0fc;
@@ -26,8 +26,8 @@ with globally bundled card/badge styles.
     padding: 0;
     list-style: none;
     border-bottom: 1px solid var(--roster-rule);
-    font-family: var(--font-family-mono);
-    color: var(--text-color);
+    font-family: var(--font-mono);
+    color: var(--fg);
 }
 
 .project-roster__sr-only {
@@ -50,7 +50,7 @@ with globally bundled card/badge styles.
 
 .project-roster__item[data-expanded="true"] {
     margin-block: 0.5rem;
-    background: color-mix(in srgb, var(--app-surface) 45%, transparent);
+    background: color-mix(in srgb, var(--surface-1) 45%, transparent);
     border-radius: 10px;
     border-top-color: transparent;
 }
@@ -79,7 +79,7 @@ with globally bundled card/badge styles.
     align-items: center;
     gap: 0.4rem 0.9rem;
     margin: 0 0 0.55rem;
-    color: var(--text-secondary);
+    color: var(--fg-muted);
     font-size: 0.78rem;
     font-weight: 600;
     letter-spacing: 0.06em;
@@ -102,7 +102,7 @@ with globally bundled card/badge styles.
     height: 3px;
     margin-left: 0.9rem;
     border-radius: 999px;
-    background: var(--text-secondary);
+    background: var(--fg-muted);
     opacity: 0.6;
 }
 
@@ -115,7 +115,7 @@ with globally bundled card/badge styles.
     text-transform: none;
     letter-spacing: 0.02em;
     font-weight: 600;
-    color: var(--text-color);
+    color: var(--fg);
     white-space: normal;
 }
 
@@ -124,7 +124,7 @@ with globally bundled card/badge styles.
     width: 0.5rem;
     height: 0.5rem;
     border-radius: 999px;
-    background: var(--roster-status-color, var(--text-secondary));
+    background: var(--roster-status-color, var(--fg-muted));
 }
 
 .project-roster__status--live {
@@ -162,7 +162,7 @@ with globally bundled card/badge styles.
     grid-area: deck;
     max-width: 62ch;
     margin: 0.55rem 0 0;
-    color: var(--text-secondary);
+    color: var(--fg-muted);
     font-size: 1rem;
     line-height: 1.55;
 }
@@ -211,9 +211,9 @@ with globally bundled card/badge styles.
 }
 
 .project-roster__action {
-    border: 1px solid var(--border-color);
-    background: color-mix(in srgb, var(--app-surface) 80%, transparent);
-    color: var(--text-color);
+    border: 1px solid var(--rule);
+    background: color-mix(in srgb, var(--surface-1) 80%, transparent);
+    color: var(--fg);
 }
 
 .project-roster__action:hover {
@@ -260,7 +260,7 @@ with globally bundled card/badge styles.
 .project-roster__description {
     max-width: 72ch;
     margin: 0;
-    color: var(--text-color);
+    color: var(--fg);
     font-size: 1rem;
     line-height: 1.65;
 }
@@ -305,7 +305,7 @@ with globally bundled card/badge styles.
     border: 1px solid color-mix(in srgb, var(--roster-accent) 55%, transparent);
     border-radius: 4px;
     background: color-mix(in srgb, var(--roster-accent) 10%, transparent);
-    color: var(--text-color);
+    color: var(--fg);
     font-size: 0.8rem;
     font-weight: 500;
     line-height: 1.25;
@@ -320,7 +320,7 @@ with globally bundled card/badge styles.
 .project-roster__point {
     position: relative;
     padding-left: 1rem;
-    color: var(--text-color);
+    color: var(--fg);
     font-size: 0.9rem;
     line-height: 1.5;
 }

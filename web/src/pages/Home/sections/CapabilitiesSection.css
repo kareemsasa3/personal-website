@@ -33,7 +33,7 @@
   margin: 2rem auto 0 auto;
   padding: 0;
   list-style: none;
-  border-top: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
+  border-top: 1px solid color-mix(in srgb, var(--rule) 70%, transparent);
 }
 
 .capability-row {
@@ -42,12 +42,12 @@
   column-gap: 1.5rem;
   align-items: baseline;
   padding: 1.5rem 0;
-  border-bottom: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--rule) 70%, transparent);
   text-align: left;
 }
 
 .capability-index {
-  color: var(--primary-color);
+  color: var(--signal-dim);
   font-size: 0.85rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -56,7 +56,7 @@
 
 .capability-row h3 {
   margin: 0;
-  color: var(--text-color);
+  color: var(--fg);
   font-size: 1.15rem;
   font-weight: 600;
   line-height: 1.35;
@@ -65,7 +65,7 @@
 .capability-row p {
   max-width: 60ch;
   margin: 0;
-  color: var(--text-secondary);
+  color: var(--fg-muted);
   line-height: 1.6;
 }
 

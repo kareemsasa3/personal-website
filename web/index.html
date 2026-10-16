@@ -90,8 +90,8 @@
         min-height: 100vh;
         margin: 0;
         padding: 2.5rem 1rem 4rem;
-        color: var(--app-text, #d0ddd4);
-        background: var(--app-bg, #070b08);
+        color: var(--fg, #d0ddd4);
+        background: var(--field, #070b08);
         font-family: var(--font-sans, "Archivo", "Helvetica Neue", Helvetica, Arial, sans-serif);
         line-height: 1.6;
         overflow-wrap: anywhere;
@@ -136,7 +136,7 @@
       }
 
       .route-fallback a {
-        color: var(--brand-primary, #4caf50);
+        color: var(--signal-dim, #59b26f);
         text-decoration: underline;
         text-underline-offset: 0.15em;
       }
@@ -146,14 +146,14 @@
       .route-fallback__meta {
         margin-block: 0 0.5rem;
         font-size: 0.8rem;
-        color: var(--app-text-muted, #a6b6aa);
+        color: var(--fg-muted, #a6b6aa);
       }
 
       .route-fallback__eyebrow {
         letter-spacing: 0.1em;
         text-transform: uppercase;
         font-weight: 600;
-        color: var(--brand-primary, #4caf50);
+        color: var(--signal-dim, #59b26f);
       }
 
       .route-fallback__title {
@@ -178,9 +178,9 @@
 
       .route-fallback__card {
         padding: 1rem 1.1rem;
-        border: 1px solid var(--app-border, #27312a);
+        border: 1px solid var(--rule, #27312a);
         border-radius: 12px;
-        background: var(--app-surface, #0d130f);
+        background: var(--surface-1, #0d130f);
       }
 
       .route-fallback__card > :last-child {
@@ -196,7 +196,7 @@
       .route-fallback__pill {
         display: inline-block;
         padding: 0.1rem 0.55rem;
-        border: 1px solid var(--app-border, #27312a);
+        border: 1px solid var(--rule, #27312a);
         border-radius: 999px;
         font-size: 0.75rem;
       }
@@ -216,7 +216,7 @@
       .route-fallback__series-nav {
         margin-top: 1.5rem;
         padding: 1rem 1.1rem;
-        border: 1px solid var(--app-border, #27312a);
+        border: 1px solid var(--rule, #27312a);
         border-radius: 12px;
       }
 
@@ -236,7 +236,7 @@
         overflow-x: auto;
         padding: 0.75rem 1rem;
         border-radius: 8px;
-        background: var(--app-surface, #0d130f);
+        background: var(--surface-1, #0d130f);
       }
 
       .route-fallback table {
@@ -249,7 +249,7 @@
       .route-fallback th,
       .route-fallback td {
         padding: 0.4rem 0.6rem;
-        border: 1px solid var(--app-border, #27312a);
+        border: 1px solid var(--rule, #27312a);
         text-align: left;
         vertical-align: top;
       }

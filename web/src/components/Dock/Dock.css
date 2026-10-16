@@ -3,11 +3,11 @@
     /* Default size variable */
 
     /* Terminal-inspired theme variables */
-    --dock-primary: var(--brand-primary);
-    --dock-background: var(--app-bg);
-    --dock-border: var(--brand-primary);
-    --dock-text: var(--app-text);
-    --dock-text-muted: var(--app-text-muted);
+    --dock-primary: var(--signal-dim);
+    --dock-background: var(--field);
+    --dock-border: var(--signal-dim);
+    --dock-text: var(--fg);
+    --dock-text-muted: var(--fg-muted);
 }
 
 .dock-container {
@@ -35,7 +35,7 @@
     /* Higher than settings overlay (9999) and panel (10000) */
 
     /* Terminal-inspired styling */
-    font-family: var(--font-family-mono);
+    font-family: var(--font-mono);
 
     /* Ensure dock stays within viewport bounds */
     transform-origin: bottom center;
@@ -55,8 +55,8 @@
     bottom: calc(100% + 10px);
     left: 50%;
     translate: -50% 0;
-    background: var(--background-color);
-    color: var(--text-color);
+    background: var(--field);
+    color: var(--fg);
     padding: 0.5rem 0.75rem;
     border-radius: 6px;
     font-size: 0.875rem;
@@ -65,8 +65,8 @@
     z-index: 10002;
     /* Higher than dock container */
     pointer-events: none;
-    border: 1px solid var(--border-color);
-    font-family: var(--font-family-mono);
+    border: 1px solid var(--rule);
+    font-family: var(--font-mono);
 }
 
 .dock-tooltip::after {
@@ -76,7 +76,7 @@
     left: 50%;
     transform: translateX(-50%);
     border: 5px solid transparent;
-    border-top-color: var(--background-color);
+    border-top-color: var(--field);
 }
 
 /* Ensure tooltip doesn't interfere with dock interactions */
@@ -207,7 +207,7 @@
     align-self: stretch;
     width: 1px;
     margin: 6px 0;
-    background: color-mix(in srgb, var(--app-border) 80%, transparent);
+    background: color-mix(in srgb, var(--rule) 80%, transparent);
 }
 
 .dock-explore__toggle {
@@ -254,9 +254,9 @@
     margin: 0;
     padding: 0.4rem;
     list-style: none;
-    border: 1px solid var(--app-border);
+    border: 1px solid var(--rule);
     border-radius: 8px;
-    background: var(--app-surface);
+    background: var(--surface-1);
 }
 
 .dock-explore__panel[hidden] {
@@ -283,21 +283,21 @@
     padding: 0 0.75rem;
     border-radius: 6px;
     color: var(--dock-text);
-    font-family: var(--font-family-mono);
+    font-family: var(--font-mono);
     font-size: 0.85rem;
     text-decoration: none;
 }
 
 .dock-explore__link:hover,
 .dock-explore__link.active {
-    background: color-mix(in srgb, var(--brand-primary-soft) 14%, transparent);
+    background: color-mix(in srgb, var(--signal-deep) 14%, transparent);
     color: var(--dock-primary);
 }
 
 .dock-nav-link:focus-visible,
 .dock-explore__toggle:focus-visible,
 .dock-explore__link:focus-visible {
-    outline: 2px solid var(--brand-primary);
+    outline: 2px solid var(--signal-dim);
     outline-offset: 3px;
 }
 

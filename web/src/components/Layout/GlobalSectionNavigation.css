@@ -25,7 +25,7 @@
     bottom: 16px;
     left: 16px;
     width: 1px;
-    background: var(--border-color);
+    background: var(--rule);
     opacity: 0.2;
 }
 
@@ -51,7 +51,7 @@
     height: 12px;
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.3);
-    border: 2px solid var(--border-color);
+    border: 2px solid var(--rule);
     transition: all 0.3s ease;
 }
 
@@ -60,8 +60,8 @@
 }
 
 .nav-dot:hover::before {
-    background: var(--primary-color);
-    border-color: var(--primary-color);
+    background: var(--signal-dim);
+    border-color: var(--signal-dim);
 }
 
 .nav-dot.active {
@@ -69,15 +69,15 @@
 }
 
 .nav-dot.active::before {
-    background: var(--primary-color);
-    border-color: var(--primary-color);
+    background: var(--signal-dim);
+    border-color: var(--signal-dim);
 }
 
 .dot-tooltip {
     position: absolute;
     left: 34px;
-    background: var(--background-color);
-    color: var(--text-color);
+    background: var(--field);
+    color: var(--fg);
     padding: 0.5rem 1rem;
     border-radius: 8px;
     font-size: 0.8rem;
@@ -85,7 +85,7 @@
     opacity: 0;
     visibility: hidden;
     transition: all 0.3s ease;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--rule);
     pointer-events: none;
 }
 
@@ -108,4 +108,4 @@
 }
 
 .nav-dot:focus-visible .dot-tooltip { opacity: 1; visibility: visible; }
-.nav-dot:focus-visible { outline: 2px solid var(--brand-primary); outline-offset: 4px; }
+.nav-dot:focus-visible { outline: 2px solid var(--signal-dim); outline-offset: 4px; }

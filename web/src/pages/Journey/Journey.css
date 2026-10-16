@@ -24,7 +24,7 @@ TABLE OF CONTENTS
 .journey-page {
     /* Center an 860px column with padding rather than max-width: .page-content clips overflow-x, and a narrow box would cut the header scrim into hard edges */
     padding: 40px max(20px, calc((100% - 860px) / 2));
-    color: var(--text-color);
+    color: var(--fg);
 }
 
 .journey-header {
@@ -35,18 +35,18 @@ TABLE OF CONTENTS
 
 .journey-title {
     margin-bottom: 10px;
-    font-family: var(--font-family-mono);
+    font-family: var(--font-mono);
     font-size: 2.5rem;
     font-weight: 700;
     letter-spacing: 2px;
     text-transform: uppercase;
-    color: var(--primary-color);
+    color: var(--signal-dim);
 }
 
 .journey-subtitle {
     max-width: 600px;
     margin: 0;
-    font-family: var(--font-family-mono);
+    font-family: var(--font-mono);
     font-size: 1.1rem;
     font-weight: 400;
     line-height: 1.6;
@@ -74,7 +74,7 @@ TABLE OF CONTENTS
     bottom: 0;
     left: 50%;
     width: 3px;
-    background: var(--border-color);
+    background: var(--rule);
     border-radius: 3px;
     transform: translateX(-50%);
 }
@@ -108,12 +108,12 @@ TABLE OF CONTENTS
     padding: 12px 25px;
 
     /* Appearance */
-    background-color: var(--panel-bg-color);
-    border: 2px solid var(--primary-color);
+    background-color: var(--surface-1);
+    border: 2px solid var(--signal-dim);
     border-radius: 20px;
 
     /* Typography */
-    color: var(--primary-color);
+    color: var(--signal-dim);
     font-size: 1.1rem;
     font-weight: 600;
     text-align: center;

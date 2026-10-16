@@ -53,7 +53,7 @@
 }
 
 .exploration-pill:focus-visible {
-  outline: 2px solid var(--text-color);
+  outline: 2px solid var(--fg);
   outline-offset: 4px;
 }
 

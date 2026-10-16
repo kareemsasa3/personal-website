@@ -1,22 +1,22 @@
 .orbital-container {
   max-width: 1400px;
   margin: 0 auto;
-  color: var(--app-text);
-  font-family: var(--font-family-mono, monospace);
+  color: var(--fg);
+  font-family: var(--font-mono);
   line-height: 1.55;
 }
 .orbital-header {
   margin-bottom: 1.5rem;
 }
 .orbital-header a {
-  color: var(--brand-primary);
+  color: var(--signal-dim);
 }
 /* Light: green falls below 4.5:1 on the background's grid lines behind the header. */
 [data-theme="light"] .orbital-header a {
   color: var(--fg-muted);
 }
 .orbital-header h1 {
-  color: var(--brand-primary);
+  color: var(--signal-dim);
   font-size: clamp(1.7rem, 4vw, 2.8rem);
   line-height: 1.15;
   margin: 0.4rem 0 0.75rem;
@@ -28,12 +28,12 @@
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--app-text-secondary);
+  color: var(--fg-muted);
   padding-top: 1rem;
 }
 .orbital-panel {
-  background: var(--app-surface);
-  border: 1px solid var(--app-border);
+  background: var(--surface-1);
+  border: 1px solid var(--rule);
   border-radius: 8px;
   padding: 1rem;
   min-width: 0;
@@ -41,7 +41,7 @@
 .orbital-container h2 {
   font-size: 1rem;
   margin: 0 0 0.8rem;
-  color: var(--brand-primary);
+  color: var(--signal-dim);
 }
 .orbital-container label {
   display: flex;
@@ -53,10 +53,10 @@
 .orbital-container :is(button, select, input) {
   font: inherit;
   font-size: 0.8rem;
-  color: var(--app-text);
+  color: var(--fg);
   border: 1px solid var(--edge);
   border-radius: 4px;
-  background: var(--app-bg);
+  background: var(--field);
   min-height: 44px;
   padding: 0.5rem 0.65rem;
   max-width: 100%;
@@ -68,16 +68,16 @@
   cursor: pointer;
 }
 .orbital-container button:hover:not(:disabled) {
-  border-color: var(--brand-primary);
-  background: var(--app-surface-elevated);
+  border-color: var(--signal-dim);
+  background: var(--surface-2);
 }
 .orbital-container button:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }
 .orbital-container .orbital-primary {
-  border-color: var(--brand-primary);
-  color: var(--brand-primary);
+  border-color: var(--signal-dim);
+  color: var(--signal-dim);
   font-weight: 700;
   min-width: 85px;
 }
@@ -101,7 +101,7 @@
   width: 20px;
   height: 20px;
   min-height: 20px;
-  accent-color: var(--brand-primary);
+  accent-color: var(--signal-dim);
 }
 .orbital-actions {
   display: flex;
@@ -126,10 +126,10 @@
   padding: 0.7rem 1rem;
   font-size: 0.75rem;
   font-variant-numeric: tabular-nums;
-  border-bottom: 1px solid var(--app-border);
+  border-bottom: 1px solid var(--rule);
 }
 .orbital-status > span:first-child {
-  color: var(--brand-primary);
+  color: var(--signal-dim);
 }
 .orbital-canvas {
   display: block;
@@ -143,14 +143,14 @@
   flex-direction: column;
   gap: 0.8rem;
   padding: 1rem;
-  border-top: 1px solid var(--app-border);
+  border-top: 1px solid var(--rule);
 }
 .orbital-camera > label {
   max-width: 260px;
 }
 .orbital-note {
   font-size: 0.75rem;
-  color: var(--app-text-secondary);
+  color: var(--fg-muted);
   margin: 0.75rem 0;
 }
 .orbital-camera .orbital-note {
@@ -163,10 +163,10 @@
 }
 .orbital-readout > div {
   padding: 0.65rem 0;
-  border-bottom: 1px solid var(--app-border);
+  border-bottom: 1px solid var(--rule);
 }
 .orbital-readout dt {
-  color: var(--app-text-secondary);
+  color: var(--fg-muted);
 }
 .orbital-readout dd {
   margin: 0.2rem 0 0;
@@ -192,7 +192,7 @@
   margin: 0.75rem 0 0;
 }
 .orbital-warning {
-  border-color: var(--brand-primary);
+  border-color: var(--signal-dim);
   font-size: 0.85rem;
 }
 @media (max-width: 900px) {

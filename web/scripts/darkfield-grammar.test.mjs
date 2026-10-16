@@ -51,3 +51,8 @@ test("ownership: every reachable governed stylesheet belongs to exactly one phas
   assert.deepEqual(PHASE3.filter((f) => f !== "styles/darkfield/grammar.css" && !css.includes(f)), [], "PHASE3 names a file the walk does not reach");
   assert.deepEqual(PHASE5.filter((f) => !css.includes(f)), [], "PHASE5 names a file the walk does not reach");
 });
+
+test("T2 bridge: only --app-overlay and the --accent-color hold remain", async () => {
+  const defined = declarations(await read("styles/darkfield/bridge.css")).filter((d) => d.prop.startsWith("--")).map((d) => d.prop.slice(2));
+  assert.deepEqual([...new Set(defined)].sort(), ["accent-color", "app-overlay"]);
+});

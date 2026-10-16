@@ -6,7 +6,7 @@
     padding: 2rem;
     background: #1a1a1a;
     color: #ffffff;
-    font-family: var(--font-family-mono);
+    font-family: var(--font-mono);
 }
 
 .error-message {

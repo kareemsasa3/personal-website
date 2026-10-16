@@ -2,10 +2,10 @@
 /* The Simulations page's accent, scoped to the page: on :root it outlived the page after client-side
    navigation and recoloured the games' native visuals. */
 .simulations-container { --terminal-primary: #4CAF50; }
-[data-theme="light"] .simulations-container { --terminal-primary: var(--brand-primary); }
+[data-theme="light"] .simulations-container { --terminal-primary: var(--signal-dim); }
 
 :root {
-    --terminal-font: var(--font-family-mono);
+    --terminal-font: var(--font-mono);
 }
 
 /* Light theme overrides for Simulations page */
