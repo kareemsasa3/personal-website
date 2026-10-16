@@ -26,7 +26,6 @@
     margin: 0;
     padding-left: 1rem;
     position: relative;
-    font-family: var(--font-mono);
     white-space: nowrap;
 }
 
@@ -46,7 +45,6 @@
     max-width: 620px;
     margin: 1.5rem auto 0;
     color: var(--fg-muted);
-    font-family: var(--font-mono);
     font-size: 1rem;
     line-height: 1.7;
 }
@@ -155,7 +153,6 @@
     border: 1px solid var(--rule);
     border-radius: 12px;
     background: var(--field);
-    font-family: var(--font-mono);
 }
 
 .work-contact-eyebrow {

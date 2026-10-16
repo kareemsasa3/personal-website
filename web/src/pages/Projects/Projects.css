@@ -15,10 +15,6 @@ primary comprehension layer.
 [data-theme="light"] .projects-container,
 [data-theme="light"] .tech-stack-modal { --terminal-primary: var(--signal-dim); }
 
-:root {
-    --terminal-font: var(--font-mono);
-}
-
 [data-theme="light"] {
     --terminal-text-light: #2c2c2c;
     --terminal-text-muted: #6a6a6a;
@@ -42,7 +38,6 @@ primary comprehension layer.
     width: 100%;
     max-width: 1400px;
     margin: 0 auto;
-    font-family: var(--terminal-font);
     min-width: 0;
 }
 
@@ -62,7 +57,6 @@ primary comprehension layer.
     position: relative;
     margin: 0;
     color: var(--fg);
-    font-family: var(--terminal-font);
     font-size: clamp(2.25rem, 5vw, 3.75rem);
     font-weight: 700;
     line-height: 1.15;

@@ -54,7 +54,7 @@ const DockIcon: React.FC<DockIconProps> = ({
       <AnimatePresence>
         {(isHovered || isFocusVisible) && (
           <motion.div
-            className="dock-tooltip"
+            className="dock-tooltip df-label"
             aria-hidden="true"
             initial={{ opacity: 0 }}
             animate={{

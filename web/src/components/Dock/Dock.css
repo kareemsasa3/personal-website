@@ -34,9 +34,6 @@
     z-index: 10001;
     /* Higher than settings overlay (9999) and panel (10000) */
 
-    /* Terminal-inspired styling */
-    font-family: var(--font-mono);
-
     /* Ensure dock stays within viewport bounds */
     transform-origin: bottom center;
 
@@ -60,13 +57,11 @@
     padding: 0.5rem 0.75rem;
     border-radius: 6px;
     font-size: 0.875rem;
-    font-weight: 500;
     white-space: nowrap;
     z-index: 10002;
     /* Higher than dock container */
     pointer-events: none;
     border: 1px solid var(--rule);
-    font-family: var(--font-mono);
 }
 
 .dock-tooltip::after {
@@ -283,7 +278,6 @@
     padding: 0 0.75rem;
     border-radius: 6px;
     color: var(--dock-text);
-    font-family: var(--font-mono);
     font-size: 0.85rem;
     text-decoration: none;
 }

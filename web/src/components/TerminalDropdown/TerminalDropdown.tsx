@@ -130,7 +130,7 @@ const TerminalDropdown: React.FC<TerminalDropdownProps> = ({
   return (
     <div className={`terminal-dropdown ${className}`} ref={dropdownRef}>
       {label && (
-        <label className="terminal-dropdown-label">
+        <label className="terminal-dropdown-label df-label">
           {showPrompt && <span className="terminal-prompt">$</span>} {label}
         </label>
       )}
@@ -138,7 +138,7 @@ const TerminalDropdown: React.FC<TerminalDropdownProps> = ({
         <button
           type="button"
           role="combobox"
-          className={`terminal-dropdown-trigger ${isOpen ? "open" : ""} ${
+          className={`terminal-dropdown-trigger df-label ${isOpen ? "open" : ""} ${
             disabled ? "disabled" : ""
           }`}
           onClick={handleToggle}
@@ -175,7 +175,7 @@ const TerminalDropdown: React.FC<TerminalDropdownProps> = ({
                   aria-selected={getOptionValue(option) === value}
                   tabIndex={-1}
                   type="button"
-                  className={`terminal-dropdown-option ${
+                  className={`terminal-dropdown-option df-label ${
                     index === highlightedIndex ? "highlighted" : ""
                   } ${getOptionValue(option) === value ? "selected" : ""}`}
                   onClick={() => handleOptionClick(option)}

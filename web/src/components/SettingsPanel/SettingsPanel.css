@@ -121,12 +121,8 @@
 .settings-section-title {
     margin: 0 0 0.75rem;
     color: var(--fg-muted);
-    font-family: var(--font-mono);
     font-size: 0.7rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
     line-height: 1;
-    text-transform: uppercase;
 }
 
 .settings-section > * + *:not(.settings-section-title) {
@@ -196,11 +192,8 @@
     background: transparent;
     color: var(--fg-muted);
     cursor: pointer;
-    font-family: var(--font-mono);
     font-size: 0.72rem;
-    font-weight: 700;
     line-height: 1;
-    text-transform: uppercase;
 }
 
 .settings-segmented__button:hover {
@@ -224,10 +217,7 @@
     background: transparent;
     color: var(--fg-muted);
     cursor: pointer;
-    font-family: var(--font-mono);
     font-size: 0.72rem;
-    font-weight: 700;
-    text-transform: uppercase;
 }
 
 .setting-switch__track {
@@ -405,9 +395,7 @@
     background: transparent;
     color: var(--fg);
     cursor: pointer;
-    font-family: var(--font-mono);
     font-size: 0.78rem;
-    font-weight: 600;
 }
 
 .settings-action svg {

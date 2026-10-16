@@ -73,7 +73,7 @@ export const HeroSection = ({
         >
           {heroProofContent.map((item) => (
             <div className="hero-proof-item" key={item.label}>
-              <span className="hero-proof-label">{item.label}</span>
+              <span className="hero-proof-label df-label">{item.label}</span>
               <strong className="hero-proof-value">{item.value}</strong>
               <span className="hero-proof-detail">{item.detail}</span>
             </div>

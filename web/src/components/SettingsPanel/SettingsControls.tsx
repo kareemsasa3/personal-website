@@ -17,7 +17,7 @@ export const SettingsSection = ({
     className={`settings-section ${className}`.trim()}
     aria-labelledby={`${id}-heading`}
   >
-    <h4 id={`${id}-heading`} className="settings-section-title">
+    <h4 id={`${id}-heading`} className="settings-section-title df-label">
       {title}
     </h4>
     {children}
@@ -58,7 +58,7 @@ export const SegmentedControl = <T extends string>({
       <button
         key={option.value}
         type="button"
-        className="settings-segmented__button"
+        className="settings-segmented__button df-label"
         aria-pressed={option.value === value}
         onClick={() => onChange(option.value)}
       >
@@ -86,7 +86,7 @@ export const SettingSwitch = ({
   <button
     type="button"
     role="switch"
-    className="setting-switch"
+    className="setting-switch df-label"
     aria-checked={checked}
     aria-labelledby={labelledBy}
     aria-describedby={describedBy}

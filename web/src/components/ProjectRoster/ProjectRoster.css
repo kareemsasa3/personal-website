@@ -21,7 +21,6 @@ with globally bundled card/badge styles.
     padding: 0;
     list-style: none;
     border-bottom: 1px solid var(--roster-rule);
-    font-family: var(--font-mono);
     color: var(--fg);
 }
 
@@ -76,9 +75,6 @@ with globally bundled card/badge styles.
     margin: 0 0 0.55rem;
     color: var(--fg-muted);
     font-size: 0.78rem;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
 }
 
 .project-roster__meta-item {
@@ -242,9 +238,6 @@ with globally bundled card/badge styles.
     margin: 0 0 0.7rem;
     color: var(--roster-accent);
     font-size: 0.85rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
 }
 
 .project-roster__tags,

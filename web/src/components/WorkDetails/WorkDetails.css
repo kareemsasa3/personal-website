@@ -4,7 +4,6 @@
     border-radius: 12px;
     padding: 2rem;
     transition: all 0.3s ease;
-    font-family: var(--font-mono);
     margin-bottom: 2rem;
 }
 
@@ -18,7 +17,7 @@
 
 .work-dates {
     color: var(--signal-dim);
-    font-weight: 600;
+    font-weight: 400;
     font-size: 1rem;
     padding: 0.5rem 1rem;
     background: var(--surface-1);
@@ -37,23 +36,20 @@
 
 .work-company {
     font-size: 1.8rem;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--fg);
     margin: 0;
-    font-family: var(--font-mono);
 }
 
 .work-role {
     font-size: 1.2rem;
     color: var(--signal-dim);
     font-weight: 600;
-    font-family: var(--font-mono);
 }
 
 .work-location {
     font-size: 0.9rem;
     color: var(--fg-muted);
-    font-family: var(--font-mono);
 }
 
 .work-content {
@@ -70,10 +66,8 @@
 
 .section-title {
     font-size: 1.1rem;
-    font-weight: 600;
     color: var(--fg);
     margin: 0 0 1rem 0;
-    font-family: var(--font-mono);
     border-bottom: 1px solid var(--rule);
     padding-bottom: 0.5rem;
 }
@@ -92,7 +86,6 @@
 .project-item {
     color: var(--fg-muted);
     line-height: 1.6;
-    font-family: var(--font-mono);
     position: relative;
     padding-left: 1.5rem;
 }
@@ -122,10 +115,8 @@
 .tech-stack-title,
 .highlights-title {
     font-size: 1rem;
-    font-weight: 600;
     color: var(--fg);
     margin: 0 0 1rem 0;
-    font-family: var(--font-mono);
 }
 
 .tech-tags,

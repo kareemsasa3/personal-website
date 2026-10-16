@@ -22,6 +22,7 @@ interface HeaderLinkListProps {
   hidden?: boolean;
   labelledBy?: string;
   onNavigate?: () => void;
+  linkClassName?: string;
 }
 
 const HeaderLinkList = ({
@@ -32,6 +33,7 @@ const HeaderLinkList = ({
   hidden,
   labelledBy,
   onNavigate,
+  linkClassName = "",
 }: HeaderLinkListProps) => (
   <ul
     id={id}
@@ -46,7 +48,7 @@ const HeaderLinkList = ({
         <li key={item.path}>
           <Link
             to={item.path}
-            className={`site-header__link ${isActive ? "active" : ""}`}
+            className={`site-header__link ${linkClassName} ${isActive ? "active" : ""}`.replace(/\s+/g, " ")}
             aria-current={isActive ? "page" : undefined}
             onClick={onNavigate}
           >
@@ -109,7 +111,7 @@ const HeaderNavigation = forwardRef<HTMLElement>(function HeaderNavigation(
       aria-labelledby={EXPLORE_LABEL_ID}
       {...explore.containerProps}
     >
-      <span id={EXPLORE_LABEL_ID} className="site-header__explore-label">
+      <span id={EXPLORE_LABEL_ID} className="site-header__explore-label df-label">
         Explore
       </span>
       {isExploreDisclosed && (
@@ -130,6 +132,7 @@ const HeaderNavigation = forwardRef<HTMLElement>(function HeaderNavigation(
         className={isExploreDisclosed ? "site-header__panel" : ""}
         hidden={isExploreDisclosed && !explore.isOpen}
         onNavigate={explore.close}
+        linkClassName="df-label"
       />
     </nav>
   );
@@ -151,7 +154,7 @@ const HeaderNavigation = forwardRef<HTMLElement>(function HeaderNavigation(
         hidden={!menu.isOpen}
       >
         <HeaderLinkList items={coreNavItems} pathname={pathname} onNavigate={menu.close} />
-        <span id={EXPLORE_LABEL_ID} className="site-header__panel-heading">
+        <span id={EXPLORE_LABEL_ID} className="site-header__panel-heading df-label">
           Explore
         </span>
         <HeaderLinkList

@@ -107,12 +107,8 @@
 }
 
 .hero-proof-label {
-  color: var(--signal-dim);
+  color: var(--fg-muted);
   font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  line-height: 1.2;
-  text-transform: uppercase;
 }
 
 .hero-proof-value {

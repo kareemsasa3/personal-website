@@ -354,7 +354,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                   <div className="settings-actions">
                     <button
                       type="button"
-                      className="settings-action"
+                      className="settings-action df-label"
                       onClick={handleExportSettings}
                       aria-label="Export settings"
                     >
@@ -363,7 +363,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                     </button>
                     <button
                       type="button"
-                      className="settings-action"
+                      className="settings-action df-label"
                       onClick={handleImportSettings}
                       aria-label="Import settings"
                     >
@@ -372,7 +372,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                     </button>
                     <button
                       type="button"
-                      className="settings-action settings-action--danger"
+                      className="settings-action settings-action--danger df-label"
                       onClick={handleResetToDefaults}
                       aria-label="Reset all settings to defaults"
                     >

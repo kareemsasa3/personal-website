@@ -43,7 +43,7 @@ const DockExploreStack = ({ items, pathname, baseSize }: DockExploreStackProps) 
             <li key={item.path}>
               <Link
                 to={item.path}
-                className={`dock-explore__link ${isActive ? "active" : ""}`}
+                className={`dock-explore__link df-label ${isActive ? "active" : ""}`}
                 aria-current={isActive ? "page" : undefined}
                 onClick={stack.close}
               >

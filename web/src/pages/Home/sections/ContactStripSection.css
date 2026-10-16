@@ -25,9 +25,7 @@
   margin: 0;
   color: var(--fg);
   font-size: 1rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-weight: 600;
 }
 
 .contact-strip-description {

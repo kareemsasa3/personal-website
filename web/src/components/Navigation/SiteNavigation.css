@@ -162,10 +162,7 @@
     padding-left: 0.75rem;
     border-left: 1px solid color-mix(in srgb, var(--rule) 80%, transparent);
     color: var(--fg-muted);
-    font-family: var(--font-mono);
     font-size: 0.72rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
     white-space: nowrap;
 }
 
@@ -174,7 +171,6 @@
 }
 
 .site-header[data-layout="wide"] .site-header__explore .site-header__link {
-    font-family: var(--font-mono);
     font-size: 0.82rem;
     font-weight: 500;
 }
@@ -367,10 +363,7 @@
     padding: 0.6rem 0.7rem 0.2rem;
     border-top: 1px solid color-mix(in srgb, var(--rule) 80%, transparent);
     color: var(--fg-muted);
-    font-family: var(--font-mono);
     font-size: 0.72rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
 }
 
 /* Narrow mid band: drop the brand name and tighten labels before the row crowds. */

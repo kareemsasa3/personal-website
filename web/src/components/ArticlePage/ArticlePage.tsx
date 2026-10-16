@@ -131,7 +131,7 @@ const ArticlePage = ({ article }: ArticlePageProps) => {
                 to={`/writing/${article.series.previous.slug}`}
                 className="article-series-link"
               >
-                <span className="article-series-link-label">Previous</span>
+                <span className="article-series-link-label df-label">Previous</span>
                 <span>{article.series.previous.title}</span>
               </Link>
             ) : null}
@@ -140,7 +140,7 @@ const ArticlePage = ({ article }: ArticlePageProps) => {
                 to={`/writing/${article.series.next.slug}`}
                 className="article-series-link article-series-link--next"
               >
-                <span className="article-series-link-label">Next</span>
+                <span className="article-series-link-label df-label">Next</span>
                 <span>{article.series.next.title}</span>
               </Link>
             ) : null}

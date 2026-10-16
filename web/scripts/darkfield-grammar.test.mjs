@@ -114,3 +114,41 @@ test("T6 eyebrows speak in the Instrument voice (§06 Interface label); Rhythm L
   }
   assert.deepEqual(bad, []);
 });
+
+// Machine voice (§06): the only Phase 3 selectors that may set the mono family. Exact innermost selectors.
+const MACHINE = [".work-dates", ".setting-static-value, .setting-value", ".settings-about .settings-build",
+  ".article-body code, .article-prose code", "pre", "code, kbd, samp", "code", ".df-control::before", ".df-context--live::before"];
+test("T7 voices: Phase 3 sets mono only on Machine text; Narrator inherits; uppercase is the Instrument classes' alone", async () => {
+  const decls = await phase3Decls();
+  const family = decls.filter((d) => d.prop === "font-family" && !/^(inherit)$/.test(d.value) && !(d.value === "var(--font-sans)" && innermost(d.selector) === "body") && !(d.value === "var(--font-mono)" && MACHINE.includes(innermost(d.selector))));
+  assert.deepEqual(family.map(where), []);
+  assert.deepEqual(decls.filter((d) => /--terminal-font/.test(d.value) || d.prop === "--terminal-font").map(where), []);
+  assert.deepEqual(decls.filter((d) => d.prop === "text-transform" && d.value !== "none").map(where), []);
+  // Text is never dimmed with opacity (§09 Opacity and colour): the supporting line reads fg-muted.
+  const sub = decls.filter((d) => /^\.journey-subtitle$/.test(innermost(d.selector)));
+  assert.ok(sub.length > 0 && sub.every((d) => d.prop !== "opacity" && (d.prop !== "color" || d.value === "var(--fg-muted)")), sub.map(where).join("\n"));
+  // Instrument names carry the type class in markup (the class sets family, case and tracking).
+  const LABELLED = [["components/WorkDetails/WorkDetails.tsx", /section-title|highlights-title|tech-stack-title/],
+    ["components/SettingsPanel/SettingsControls.tsx", /settings-section-title|settings-segmented__button|setting-switch"/],
+    ["components/SettingsPanel/SettingsPanel.tsx", /(^|\s)settings-action(\s|$)/], ["components/Navigation/HeaderNavigation.tsx", /site-header__explore-label|site-header__panel-heading/],
+    ["components/Dock/DockIcon.tsx", /dock-tooltip/], ["components/Dock/DockExploreStack.tsx", /dock-explore__link/],
+    ["components/TerminalDropdown/TerminalDropdown.tsx", /(^|\s)terminal-dropdown-(label|trigger|option)(\s|$)/]];
+  for (const [f, names] of LABELLED) {
+    const code = await read(f);
+    const found = [...code.matchAll(/className=(?:"([^"]*)"|\{`([^`]*)`\})/g)].map((m) => m[1] ?? m[2]).filter((c) => names.test(c));
+    assert.ok(found.length > 0, f);
+    for (const c of found) assert.match(c, /(^|\s)df-label(\s|$)/, `${f}: ${c}`);
+  }
+  for (const [f, cls] of [["components/WorkDetails/WorkDetails.tsx", "work-dates"], ["components/SettingsPanel/BuildIdentifier.tsx", "settings-build"]]) {
+    assert.match(await read(f), new RegExp(`className="${cls}[^"]*df-annotation`), f);
+  }
+});
+
+test("T7 cascade guard: a header paragraph rule excludes its eyebrow so the label keeps its line height and colour", async () => {
+  for (const [file, eyebrow] of [["components/CaseStudyPage/CaseStudyPage.css", "case-study-eyebrow"], ["pages/Writing/Writing.css", "writing-eyebrow"],
+    ["pages/ProceduralAnimations/ProceduralAnimations.css", "procedural-animations-eyebrow"]]) {
+    const rules = declarations(await read(file)).filter((d) => /-header p(?![\w-])/.test(innermost(d.selector)) && /^(color|line-height|font-size|font-family|font-weight)$/.test(d.prop));
+    assert.ok(rules.length > 0, `${file}: no header paragraph rule found; the guard no longer tests anything`);
+    for (const d of rules) assert.ok(innermost(d.selector).includes(`:not(.${eyebrow})`), where({ file, ...d }));
+  }
+});

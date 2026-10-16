@@ -1332,6 +1332,51 @@ if (MODE === "check") {
       });
     }
   }
+
+  // Phase 3 Task 7 (§06): Narrator text is Archivo; uppercase text is Archivo Narrow.
+  const P3_ROUTES = ["/", "/projects", "/case-studies", "/case-studies/aether", "/writing", "/writing/what-should-still-be-hard", "/experience", "/journey"];
+  // Not Phase 3's on these routes: creative regions, project media chrome (Phase 5), the header mark (Phase 4).
+  const P3_SKIP = "[data-df-region], .project-media, .media-inspector, .site-header__brand";
+  for (const route of P3_ROUTES) {
+    await withPage({ theme: THEMES[0], route }, async (page) => {
+      const bad = await page.evaluate((skip) => {
+        const out = [];
+        const family = (el) => getComputedStyle(el).fontFamily.split(",")[0].replace(/["']/g, "").trim();
+        const own = (el) => [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim());
+        const voiced = (el) => el.closest(`${skip}, pre, code, kbd, samp, [class*="df-label"], .df-data, .df-annotation, .df-code`);
+        for (const el of document.querySelectorAll("main h1, main h2, main h3, main p, main li")) {
+          if (!el.getClientRects().length || !own(el) || voiced(el)) continue;
+          if (family(el) !== "Archivo") out.push(`${el.tagName}.${el.className} ${family(el)}`);
+        }
+        for (const el of document.querySelectorAll("body *")) {
+          if (!el.getClientRects().length || !own(el) || el.closest(skip)) continue;
+          if (getComputedStyle(el).textTransform === "uppercase" && family(el) !== "Archivo Narrow") out.push(`uppercase ${el.tagName}.${el.className} ${family(el)}`);
+        }
+        return out;
+      }, P3_SKIP);
+      invariant(bad.length === 0, `${route}: voice ${JSON.stringify(bad.slice(0, 8))}`);
+    });
+  }
+  // Guard for the eyebrow cascade (T6): a page header's paragraph rule must not override the label's
+  // line height or colour. Each eyebrow is compared with a probe label.
+  for (const route of ["/case-studies", "/writing", "/procedural-animations"]) {
+    await withPage({ theme: THEMES[0], route }, async (page) => {
+      const seen = await page.evaluate(() => {
+        const eyebrow = document.querySelector('main [class*="eyebrow"].df-label');
+        if (!eyebrow) return null;
+        const probe = document.createElement("span");
+        probe.className = "df-label";
+        probe.style.color = "var(--fg-muted)";
+        eyebrow.parentElement.appendChild(probe);
+        const read = (el) => { const c = getComputedStyle(el); return { lh: c.lineHeight, color: c.color, family: c.fontFamily }; };
+        const out = { eyebrow: read(eyebrow), probe: read(probe) };
+        probe.remove();
+        return out;
+      });
+      invariant(seen !== null, `${route}: no eyebrow with df-label is rendered`);
+      invariant(JSON.stringify(seen.eyebrow) === JSON.stringify(seen.probe), `${route}: eyebrow ${JSON.stringify(seen.eyebrow)} differs from the label ${JSON.stringify(seen.probe)}`);
+    });
+  }
 }
 
 await browser.close();

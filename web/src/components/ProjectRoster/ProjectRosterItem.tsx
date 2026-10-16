@@ -35,7 +35,7 @@ const ProjectRosterDetail = ({
           className="project-roster__detail-section"
           aria-labelledby={stackId}
         >
-          <h4 id={stackId} className="project-roster__detail-heading">
+          <h4 id={stackId} className="project-roster__detail-heading df-label">
             Tech stack
           </h4>
           <ul className="project-roster__tags" role="list">
@@ -51,7 +51,7 @@ const ProjectRosterDetail = ({
           className="project-roster__detail-section"
           aria-labelledby={highlightsId}
         >
-          <h4 id={highlightsId} className="project-roster__detail-heading">
+          <h4 id={highlightsId} className="project-roster__detail-heading df-label">
             Highlights
           </h4>
           <ul className="project-roster__points" role="list">
@@ -67,7 +67,7 @@ const ProjectRosterDetail = ({
           className="project-roster__detail-section"
           aria-labelledby={featuresId}
         >
-          <h4 id={featuresId} className="project-roster__detail-heading">
+          <h4 id={featuresId} className="project-roster__detail-heading df-label">
             Features
           </h4>
           <ul className="project-roster__points" role="list">
@@ -127,8 +127,8 @@ const ProjectRosterItem = ({ project }: ProjectRosterItemProps) => {
             />
           )}
           <p className="project-roster__meta">
-            <span className="project-roster__meta-item">{project.category}</span>
-            <span className="project-roster__meta-item">{project.date}</span>
+            <span className="project-roster__meta-item df-label-sm">{project.category}</span>
+            <span className="project-roster__meta-item df-data">{project.date}</span>
             <span
               className={`project-roster__meta-item project-roster__status project-roster__status--${statusModifier(
                 project.status

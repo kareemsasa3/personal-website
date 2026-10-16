@@ -4,7 +4,7 @@ const BuildIdentifier = () => {
   const { text, href, accessibleName } = getBuildLabel();
 
   return (
-    <p className="settings-build">
+    <p className="settings-build df-annotation">
       {href ? (
         <a
           href={href}
