@@ -10,8 +10,6 @@ import {
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import {
   DOCK_SIZE_CONFIG,
-  DOCK_STIFFNESS_CONFIG,
-  MAGNIFICATION_CONFIG,
   BACKGROUND_MOTION_SPEED_CONFIG,
 } from "./settingsConstants";
 import {
@@ -40,10 +38,6 @@ import "./SettingsPanel.css";
 interface SettingsPanelProps {
   onDockSizeChange: (size: number) => void;
   currentDockSize: number;
-  onDockStiffnessChange: (stiffness: number) => void;
-  currentDockStiffness: number;
-  onMagnificationChange: (magnification: number) => void;
-  currentMagnification: number;
   isAnimationPaused: boolean;
   onAnimationToggle: (paused: boolean) => void;
   isOpen: boolean;
@@ -63,16 +57,12 @@ const NAV_MODE_OPTIONS: readonly { value: NavigationMode; label: string }[] = [
 ];
 
 // Mirrors Dock.tsx: at this width and below the dock fixes its icon size and
-// turns magnification off, so the tuning sliders have no effect.
+// ignores the size setting, so the slider has no effect.
 const DOCK_COMPACT_MAX_WIDTH = 768;
 
 const SettingsPanel: React.FC<SettingsPanelProps> = ({
   onDockSizeChange,
   currentDockSize,
-  onDockStiffnessChange,
-  currentDockStiffness,
-  onMagnificationChange,
-  currentMagnification,
   isAnimationPaused,
   onAnimationToggle,
   isOpen,
@@ -91,14 +81,9 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
 
   // Keep controls honest about what the dock and background actually do.
   const isDockTuningInert = windowWidth <= DOCK_COMPACT_MAX_WIDTH;
-  // Reduced motion also turns magnification off, and the responsiveness
-  // spring only animates magnification.
-  const isMagnificationInert = isDockTuningInert || reducedMotion;
   const dockTuningNote = isDockTuningInert
     ? "Dock tuning applies on wider screens."
-    : reducedMotion
-      ? "Magnification and responsiveness are off while your system prefers reduced motion."
-      : undefined;
+    : undefined;
   const motionSpeed =
     typeof backgroundMotionSpeed === "number" ? backgroundMotionSpeed : 1;
 
@@ -141,8 +126,6 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
 
       // Reset all settings to defaults using the provided handlers
       onDockSizeChange(DEFAULT_SETTINGS.dockSize);
-      onDockStiffnessChange(DEFAULT_SETTINGS.dockStiffness);
-      onMagnificationChange(DEFAULT_SETTINGS.magnification);
       onAnimationToggle(DEFAULT_SETTINGS.isAnimationPaused);
       onBackgroundMotionSpeedChange?.(
         DEFAULT_SETTINGS.backgroundMotionSpeed ?? 1
@@ -201,8 +184,6 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
           try {
             const settings = parseSettingsImport(JSON.parse(e.target?.result as string));
             if (settings.dockSize !== undefined) onDockSizeChange(settings.dockSize);
-            if (settings.dockStiffness !== undefined) onDockStiffnessChange(settings.dockStiffness);
-            if (settings.magnification !== undefined) onMagnificationChange(settings.magnification);
             if (settings.theme !== undefined) setTheme(settings.theme);
             if (settings.navMode !== undefined) setNavMode(settings.navMode);
             if (settings.isAnimationPaused !== undefined) onAnimationToggle(settings.isAnimationPaused);
@@ -331,26 +312,6 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                           disabled={isDockTuningInert}
                           describedBy={isDockTuningInert ? "dock-tuning-note" : undefined}
                           onChange={onDockSizeChange}
-                        />
-                        <SettingSlider
-                          id="dock-stiffness"
-                          label="Responsiveness"
-                          {...DOCK_STIFFNESS_CONFIG}
-                          value={currentDockStiffness}
-                          displayValue={String(currentDockStiffness)}
-                          disabled={isMagnificationInert}
-                          describedBy={isMagnificationInert ? "dock-tuning-note" : undefined}
-                          onChange={onDockStiffnessChange}
-                        />
-                        <SettingSlider
-                          id="magnification"
-                          label="Magnification"
-                          {...MAGNIFICATION_CONFIG}
-                          value={currentMagnification}
-                          displayValue={`${currentMagnification}%`}
-                          disabled={isMagnificationInert}
-                          describedBy={isMagnificationInert ? "dock-tuning-note" : undefined}
-                          onChange={onMagnificationChange}
                         />
                       </div>
                     </div>

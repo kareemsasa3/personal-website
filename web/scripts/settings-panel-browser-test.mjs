@@ -144,29 +144,21 @@ for (const [width, height, inert] of [[500, 834, true], [768, 1024, true], [820,
     assert.equal(await toggle.getAttribute("aria-expanded"), "true");
     await tuning.waitFor();
     const size = page.getByRole("slider", { name: "Size" });
-    const responsiveness = page.getByRole("slider", { name: "Responsiveness" });
-    const magnification = page.getByRole("slider", { name: "Magnification" });
+    // Dock magnification and its spring tuning were retired; their sliders must not return.
+    for (const name of ["Responsiveness", "Magnification"]) assert.equal(await page.getByRole("slider", { name }).count(), 0, `${name} slider is gone`);
     const note = page.locator("#dock-tuning-note");
     if (inert) {
-      for (const slider of [size, responsiveness, magnification]) {
-        assert.ok(await slider.isDisabled(), "Dock tuning is disabled where the dock ignores it");
-        assert.equal(await slider.getAttribute("aria-describedby"), "dock-tuning-note");
-      }
+      assert.ok(await size.isDisabled(), "Dock tuning is disabled where the dock ignores it");
+      assert.equal(await size.getAttribute("aria-describedby"), "dock-tuning-note");
       assert.equal((await note.textContent()).trim(), "Dock tuning applies on wider screens.");
     } else {
       assert.equal(await note.count(), 0);
-      for (const slider of [size, responsiveness, magnification]) assert.ok(!(await slider.isDisabled()));
+      assert.ok(!(await size.isDisabled()));
       const before = await page.locator(".dock-icon").first().evaluate((el) => el.getBoundingClientRect().width);
       await size.focus();
       for (let i = 0; i < 10; i++) await page.keyboard.press("ArrowRight");
       assert.equal(await size.getAttribute("aria-valuetext"), "50 px");
       await page.waitForFunction((w) => document.querySelector(".dock-icon").getBoundingClientRect().width > w, before);
-      await responsiveness.focus();
-      await page.keyboard.press("ArrowRight");
-      assert.equal(await responsiveness.getAttribute("aria-valuetext"), "450");
-      await magnification.focus();
-      await page.keyboard.press("ArrowRight");
-      assert.equal(await magnification.getAttribute("aria-valuetext"), "50%");
       // Collapse and reopen: values persist.
       await toggle.click();
       assert.ok(await tuning.isHidden());
@@ -197,9 +189,8 @@ for (const [width, height] of [[1440, 900], [375, 667]]) {
     if (width > 768) {
       await button("Dock tuning").click();
       assert.ok(!(await page.getByRole("slider", { name: "Size" }).isDisabled()), "Size still applies under reduced motion");
-      assert.ok(await page.getByRole("slider", { name: "Magnification" }).isDisabled());
-      assert.ok(await page.getByRole("slider", { name: "Responsiveness" }).isDisabled());
-      assert.ok((await page.locator("#dock-tuning-note").textContent()).includes("reduced motion"));
+      for (const name of ["Magnification", "Responsiveness"]) assert.equal(await page.getByRole("slider", { name }).count(), 0, `${name} slider is gone`);
+      assert.equal(await page.locator("#dock-tuning-note").count(), 0);
     }
     await shot(`${width}x${height}-reduced-motion`);
     console.log(`PASS reduced motion ${width}x${height}: overridden controls disabled and explained`);
@@ -214,7 +205,7 @@ await withPage({ width: 1440, height: 900 }, async (page) => {
   const [download] = await Promise.all([page.waitForEvent("download"), button("Export settings").click()]);
   const exported = JSON.parse(await readFile(await download.path(), "utf8"));
   assert.equal(exported.version, 1);
-  for (const key of ["dockSize", "dockStiffness", "magnification", "isAnimationPaused", "navMode", "theme", "backgroundMotionSpeed"]) assert.ok(key in exported, `Export includes ${key}`);
+  for (const key of ["dockSize", "isAnimationPaused", "navMode", "theme", "backgroundMotionSpeed"]) assert.ok(key in exported, `Export includes ${key}`);
   await page.getByText("Settings Exported").waitFor();
 
   const [chooser] = await Promise.all([page.waitForEvent("filechooser"), button("Import settings").click()]);

@@ -45,13 +45,7 @@ function DockContent(
   ref: ForwardedRef<HTMLDivElement>
 ) {
   const location = useLocation();
-  const {
-    // State
-    dockSize,
-    dockStiffness,
-    magnification,
-    mouseX,
-  } = dockControls;
+  const { dockSize } = dockControls;
 
   const { isSettingsOpen, toggleSettings } = useSettings();
   const { width: windowWidth } = useWindowSize();
@@ -59,7 +53,6 @@ function DockContent(
   const isGameRoute = isSimulationDetailRoute(location.pathname);
 
   // Mobile-specific presentation adjustments
-  const effectiveMagnification = isMobile || reduceNavModeTransition ? 0 : magnification;
   const effectiveDockSize = isMobile ? Math.min(dockSize, 36) : dockSize;
 
   const renderIcon = (item: SiteNavItem) => (
@@ -69,9 +62,6 @@ function DockContent(
       label={item.label}
       icon={item.icon}
       isActive={isNavItemActive(item, location.pathname)}
-      mouseX={mouseX}
-      stiffness={dockStiffness}
-      magnification={effectiveMagnification}
       baseSize={effectiveDockSize} // Pass down the base size
     />
   );
@@ -83,8 +73,6 @@ function DockContent(
       className="dock-container"
       role="toolbar"
       aria-label="Application Dock"
-      onMouseMove={(e) => mouseX.set(e.clientX)}
-      onMouseLeave={() => mouseX.set(null)}
       initial="initial"
       animate="animate"
       exit="exit"

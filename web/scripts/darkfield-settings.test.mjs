@@ -14,3 +14,7 @@ test("mono is an importable theme", () => {
 test("unknown themes are still rejected", () => {
   assert.throws(() => parseSettingsImport({ version: 1, theme: "neon" }), /Invalid theme/);
 });
+
+test("exports that carry retired dock tuning still import, and the keys are ignored", () => {
+  assert.deepEqual(parseSettingsImport({ version: 1, dockSize: 50, dockStiffness: 900, magnification: 5 }), { dockSize: 50 });
+});

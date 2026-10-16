@@ -164,3 +164,10 @@ test("T6 hover: controls neither move nor shine; static content ignores the poin
     part.includes(`${s}:hover`) && !(s === ".interactive-card" && /(^|\s)a\.interactive-card:hover/.test(part.trim())))));
   assert.deepEqual([...moves, ...sheen, ...still].map(where), []);
 });
+
+test("T7 dock: fixed-size icons, no magnification or responsiveness", async () => {
+  for (const f of ["components/Dock/DockIcon.tsx", "components/Dock/Dock.tsx", "components/Dock/useDock.ts", "components/SettingsPanel/SettingsPanel.tsx", "components/Navigation/SiteNavigation.tsx"]) {
+    // The settings panel's own slide spring goes in Task 9, so this pattern names only dock tuning.
+    assert.doesNotMatch(await read(f), /[Mm]agnification|dockStiffness|DockStiffness|DOCK_STIFFNESS|Responsiveness|useSpring/, f);
+  }
+});
