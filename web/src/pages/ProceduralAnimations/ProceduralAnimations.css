@@ -16,13 +16,10 @@
 
 .procedural-animations-eyebrow {
   margin: 0;
-  color: var(--signal-dim);
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  font-size: 0.75rem;
+  color: var(--fg-muted);
 }
 
-.procedural-animations-header p {
+.procedural-animations-header p:not(.procedural-animations-eyebrow) {
   color: var(--fg-muted);
   max-width: 68ch;
   line-height: 1.6;

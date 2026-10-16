@@ -97,3 +97,20 @@ test("T5 D7: statuses and tags are context labels without hue; • only on Live"
     assert.match(code, /df-label-sm[^"`]*df-context|df-context[^"`]*df-label-sm/, f);
   }
 });
+
+test("T6 eyebrows speak in the Instrument voice (§06 Interface label); Rhythm Lab is the named Phase 5 exclusion", async () => {
+  for (const f of (await governed(".tsx")).filter((x) => !/RhythmLab/.test(x))) {
+    for (const [, cls] of (await read(f)).matchAll(/className=(?:"([^"]*)"|\{`([^`]*)`\})/g).map((m) => [m[0], m[1] ?? m[2]])) {
+      if (/eyebrow/.test(cls) && !/rhythm-lab-eyebrow/.test(cls)) assert.match(cls, /(^|\s)df-label(\s|$)/, `${f}: ${cls}`);
+    }
+  }
+  const bad = [];
+  for (const file of (await governed(".css")).filter((f) => !/RhythmLab/.test(f))) {
+    for (const d of declarations(await read(file))) {
+      if (!/eyebrow/.test(innermost(d.selector).replace(/:not\([^)]*\)/g, ""))) continue;
+      if (/^(font-family|font-size|font-weight|letter-spacing|text-transform|line-height|text-shadow)$/.test(d.prop) ||
+          d.prop === "color" && d.value !== "var(--fg-muted)") bad.push(where({ file, ...d }));
+    }
+  }
+  assert.deepEqual(bad, []);
+});

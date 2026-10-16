@@ -40,9 +40,6 @@ html[data-theme="light"] .traffic-container {
   margin: 0.5rem 0;
 }
 .traffic-eyebrow {
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
   color: var(--fg-muted);
   padding-top: 1rem;
 }
@@ -405,8 +402,5 @@ html[data-theme="light"] .traffic-container {
   }
   .traffic-field-footer {
     padding: 0.75rem;
-  }
-  .traffic-eyebrow {
-    letter-spacing: 0;
   }
 }

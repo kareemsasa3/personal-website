@@ -937,10 +937,16 @@ if (MODE === "check") {
       const modal = await page.locator(".tech-stack-modal").evaluate((el) => {
         const scope = document.querySelector(".projects-container");
         const value = (node) => getComputedStyle(node).getPropertyValue("--terminal-primary").trim();
+        // The page's own reading of the scoped value (the eyebrow no longer reads it: Instrument label, T6).
+        const probe = document.createElement("span");
+        probe.style.color = "var(--terminal-primary)";
+        scope.appendChild(probe);
+        const pageColor = getComputedStyle(probe).color;
+        probe.remove();
         return {
           portaled: !scope.contains(el), modal: value(el), page: value(scope),
           name: getComputedStyle(el.querySelector(".tech-name")).color,
-          eyebrow: getComputedStyle(scope.querySelector(".projects-eyebrow")).color,
+          eyebrow: pageColor,
         };
       });
       invariant(modal.portaled, `${theme}: the tech-stack modal is not portaled; this check no longer tests the portal`);

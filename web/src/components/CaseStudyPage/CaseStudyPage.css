@@ -31,11 +31,7 @@
 
 .case-study-eyebrow {
   margin: 0 0 0.75rem;
-  color: var(--signal-dim);
-  font-size: 0.85rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  color: var(--fg-muted);
 }
 
 .case-study-title {
@@ -79,7 +75,7 @@
 .case-study-section p,
 .case-study-list li,
 .case-study-card p,
-.case-studies-header p {
+.case-studies-header p:not(.case-study-eyebrow) {
   color: var(--fg);
   line-height: 1.8;
   overflow-wrap: anywhere;

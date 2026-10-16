@@ -10,7 +10,6 @@
 }
 
 .article-breadcrumbs,
-.article-eyebrow,
 .article-meta {
   margin: 0;
   font-size: 0.78rem;
@@ -18,9 +17,8 @@
 }
 
 .article-eyebrow {
-  color: var(--signal-dim);
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
+  margin: 0;
+  color: var(--fg-muted);
 }
 
 .article-series {

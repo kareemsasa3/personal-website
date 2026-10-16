@@ -25,9 +25,6 @@
   margin: 0.5rem 0;
 }
 .orbital-eyebrow {
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
   color: var(--fg-muted);
   padding-top: 1rem;
 }
@@ -219,8 +216,5 @@
   }
   .orbital-camera {
     padding: 0.75rem;
-  }
-  .orbital-eyebrow {
-    letter-spacing: 0;
   }
 }

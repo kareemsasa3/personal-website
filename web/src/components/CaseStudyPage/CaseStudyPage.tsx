@@ -57,7 +57,7 @@ const CaseStudyPage = ({ caseStudy }: CaseStudyPageProps) => {
             <span>{caseStudy.title}</span>
           </div>
           <header className="case-study-hero-copy">
-            <p className="case-study-eyebrow">
+            <p className="case-study-eyebrow df-label">
               {caseStudy.kind === "experiment" ? "Experiment Case Study" : "Engineering Case Study"}
             </p>
             <h1 className="case-study-title">

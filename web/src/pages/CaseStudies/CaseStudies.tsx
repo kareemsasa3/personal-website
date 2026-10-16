@@ -53,7 +53,7 @@ const CaseStudies = () => {
     <div className="page-content case-studies-page">
       <div className="case-study-container">
         <header id="case-studies-overview" className="case-studies-header prose-surface prose-surface--start">
-          <p className="case-study-eyebrow">System Case Studies</p>
+          <p className="case-study-eyebrow df-label">System Case Studies</p>
           <h1>
             Case Studies
           </h1>

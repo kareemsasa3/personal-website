@@ -35,7 +35,7 @@ export default function TrafficSimulator() {
       <div className="traffic-container">
         <header className="traffic-header prose-surface">
           <Link to="/simulations">← Simulations</Link>
-          <p className="traffic-eyebrow">Local rules / queues / emergent congestion</p>
+          <p className="traffic-eyebrow df-label">Local rules / queues / emergent congestion</p>
           <h1>Traffic Simulator</h1>
           <p>
             Every driver follows the same few rules about gaps and speed. Retime

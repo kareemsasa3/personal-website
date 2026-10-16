@@ -55,11 +55,7 @@ primary comprehension layer.
 
 .projects-eyebrow {
     margin: 0 0 0.9rem;
-    color: var(--terminal-primary, #4CAF50);
-    font-size: 0.9rem;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
+    color: var(--fg-muted);
 }
 
 .projects-title {

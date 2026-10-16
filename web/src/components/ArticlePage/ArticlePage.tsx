@@ -69,7 +69,7 @@ const ArticlePage = ({ article }: ArticlePageProps) => {
         </p>
 
         <header className="article-header prose-surface prose-surface--reading">
-          <p className="article-eyebrow">{KIND_LABELS[article.kind]}</p>
+          <p className="article-eyebrow df-label">{KIND_LABELS[article.kind]}</p>
           {article.series ? (
             <p className="article-series">
               {formatSeriesPosition(article.series)} in <a href="#in-this-series">{article.series.name}</a>

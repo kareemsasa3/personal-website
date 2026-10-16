@@ -59,7 +59,7 @@ export default function OrbitalSimulator() {
       <div className="orbital-container">
         <header className="orbital-header prose-surface">
           <Link to="/simulations">← Simulations</Link>
-          <p className="orbital-eyebrow">
+          <p className="orbital-eyebrow df-label">
             Gravity / initial conditions / emergence
           </p>
           <h1>Orbital Simulator</h1>

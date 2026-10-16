@@ -12,7 +12,7 @@ const Writing = () => {
     <div className="page-content writing-page">
       <div className="writing-container">
         <header id="writing-overview" className="writing-header prose-surface prose-surface--start">
-          <p className="writing-eyebrow">Long-form</p>
+          <p className="writing-eyebrow df-label">Long-form</p>
           <h1>
             Writing
           </h1>
@@ -30,7 +30,7 @@ const Writing = () => {
               to={`/writing/${article.slug}`}
               className="writing-card interactive-card"
             >
-              <p className="writing-card-eyebrow">{KIND_LABELS[article.kind]}</p>
+              <p className="writing-card-eyebrow df-label">{KIND_LABELS[article.kind]}</p>
               {article.series ? (
                 <p className="writing-card-series">
                   {article.series.name} · {formatSeriesPosition(article.series)}

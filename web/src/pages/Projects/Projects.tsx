@@ -19,7 +19,7 @@ const Projects = () => {
     <div className="page-content">
       <div className="projects-container">
         <header className="projects-hero prose-surface">
-          <p className="projects-eyebrow">Project Roster</p>
+          <p className="projects-eyebrow df-label">Project Roster</p>
           <h1 className="projects-title">Projects</h1>
           <p className="projects-subtitle">
             A complete roster of the systems and tools I build and maintain.

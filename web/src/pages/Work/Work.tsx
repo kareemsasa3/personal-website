@@ -76,7 +76,7 @@ const Work = () => {
       </div>
       <section className="work-contact-cta" aria-labelledby="work-contact-title">
         <div>
-          <p className="work-contact-eyebrow">Next Step</p>
+          <p className="work-contact-eyebrow df-label">Next Step</p>
           <h2 id="work-contact-title">{professionalContactContent.title}</h2>
           <p>{professionalContactContent.description}</p>
         </div>

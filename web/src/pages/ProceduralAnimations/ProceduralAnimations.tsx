@@ -10,7 +10,7 @@ const ProceduralAnimations = () => {
           id="procedural-animations-overview"
           className="procedural-animations-header prose-surface prose-surface--start"
         >
-          <p className="procedural-animations-eyebrow">Computational Motion</p>
+          <p className="procedural-animations-eyebrow df-label">Computational Motion</p>
           <h1>
             Procedural Animations
           </h1>
