@@ -3,19 +3,11 @@ import "./ExplorationChoiceSection.css";
 
 export const ExplorationChoiceSection = () => (
   <nav className="exploration-choice" aria-label="Keep exploring">
-    <Link
-      to="/writing"
-      className="exploration-pill exploration-pill--red"
-      aria-label="Read the writing" title="Read the writing"
-    >
-      <span className="exploration-pill-capsule" aria-hidden="true" />
+    <Link to="/writing" className="exploration-pill df-control df-label">
+      Read the writing
     </Link>
-    <Link
-      to="/simulations"
-      className="exploration-pill exploration-pill--blue"
-      aria-label="Explore simulations" title="Explore simulations"
-    >
-      <span className="exploration-pill-capsule" aria-hidden="true" />
+    <Link to="/simulations" className="exploration-pill df-control df-label">
+      Explore simulations
     </Link>
   </nav>
 );

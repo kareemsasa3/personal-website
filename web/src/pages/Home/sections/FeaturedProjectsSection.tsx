@@ -48,7 +48,7 @@ export const FeaturedProjectsSection = forwardRef(
             <article key={caseStudy.slug}>
               <Link
                 to={`/case-studies/${caseStudy.slug}`}
-                className="featured-project-card interactive-card featured-project-link"
+                className="featured-project-card featured-project-link df-control df-control--card"
                 aria-label={`Read the ${caseStudy.title} case study`}
               >
                 <div className="project-header">
@@ -86,7 +86,7 @@ export const FeaturedProjectsSection = forwardRef(
           className="featured-projects-cta"
         >
           <button
-            className="btn btn-outline"
+            className="btn btn-outline df-control df-label"
             onClick={onNavigateToCaseStudies}
             disabled={isNavigatingToCaseStudies}
             aria-label="Read flagship system case studies"
@@ -94,7 +94,7 @@ export const FeaturedProjectsSection = forwardRef(
             {isNavigatingToCaseStudies ? "Loading..." : "Read Case Studies →"}
           </button>
           <button
-            className="btn btn-secondary"
+            className="btn btn-secondary df-control df-label"
             onClick={onNavigateToProjects}
             disabled={isNavigatingToProjects}
             aria-label="Browse the full project archive"

@@ -44,7 +44,7 @@ export const HeroSection = ({
           aria-label="Primary actions"
         >
           <button
-            className="btn btn-primary"
+            className="btn btn-primary df-control df-label"
             onClick={onNavigateToCaseStudies}
             disabled={isNavigatingToCaseStudies}
             aria-label="Read flagship system case studies"
@@ -52,7 +52,7 @@ export const HeroSection = ({
             {isNavigatingToCaseStudies ? "Loading..." : heroContent.cta}
           </button>
           <button
-            className="btn btn-secondary"
+            className="btn btn-secondary df-control df-label"
             onClick={onNavigateToWork}
             disabled={isNavigatingToWork}
             aria-label="View my professional work experience"
@@ -60,7 +60,7 @@ export const HeroSection = ({
             {isNavigatingToWork ? "Loading..." : "View Experience"}
           </button>
           <button
-            className="hero-text-link"
+            className="hero-text-link df-control df-control--light df-label"
             onClick={onNavigateToContact}
             aria-label="Jump to contact links"
           >

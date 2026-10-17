@@ -45,7 +45,7 @@ export const ContactStripSection = forwardRef(
                     ? undefined
                     : "noopener noreferrer"
                 }
-                className="contact-strip-link"
+                className="contact-strip-link df-control df-label"
               >
                 <span aria-hidden="true"><FontAwesomeIcon icon={link.icon} /></span>
                 <span>{link.name}</span>

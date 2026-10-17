@@ -1211,6 +1211,7 @@ if (MODE === "check") {
   // Phase 3 (§13): every listed control is a df-control and renders Idle, Hover, Pressed and its hold.
   // Tasks 9–13 and 15 add entries; prepare(page) brings controls on screen (Settings open, dock mode). Token colours are read from the page.
   const P3_CONTROLS = [
+    { route: "/", selectors: [".btn", ".hero-text-link", "a.featured-project-link", ".contact-strip-link", ".exploration-pill"] },
     { route: "/darkfield-404-probe", selectors: [".home-link"] },
     // The error-boundary actions: the Journey route chunk fails to load after a client-side navigation, so its lazy
     // import rejects and the Layout error boundary renders in place of the route.
@@ -1325,10 +1326,27 @@ if (MODE === "check") {
             invariant(!(await pressed(el)), `${theme} ${route}: ${selector} inverse not released after the re-press`);
             // The marker geometry again at a phone width, where layouts stretch and centre controls.
             await page.setViewportSize({ width: 375, height: 812 });
+            // Target size at a phone width: every non-card control is at least three cells tall.
+            const small = await page.evaluate((sel) => { const cell = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--cell-h"));
+              return [...document.querySelectorAll(sel)].filter((e) => e.matches(".df-control:not(.df-control--card)") && e.getClientRects().length)
+                .map((e) => [e.className, e.getBoundingClientRect().height, 3 * cell]).filter((x) => x[1] < x[2] - 0.5); }, selector);
+            invariant(small.length === 0, `${theme} ${route} 375px: ${selector} below 3 cells tall ${JSON.stringify(small)}`);
             await hoverGeometry(page, el, `${theme} ${route} 375px: ${selector}`);
             await page.setViewportSize({ width: VIEW_W, height: VIEW_H });
           }
         }
+        // Label alignment at a phone width equals the base alignment: centred where the parent centred it, start otherwise.
+        const alignOf = () => page.evaluate((sels) => [...document.querySelectorAll(sels.join(","))].filter((e) => e.matches(".df-control:not(.df-control--card)") && e.getClientRects().length).map((e) => {
+          const r = document.createRange(); r.selectNodeContents(e); const l = r.getBoundingClientRect(); const b = e.getBoundingClientRect(); const c = getComputedStyle(e);
+          const left = l.left - (b.left + parseFloat(c.borderLeftWidth) + parseFloat(c.paddingLeft));
+          const right = b.right - parseFloat(c.borderRightWidth) - parseFloat(c.paddingRight) - l.right;
+          return [e.className, Math.abs(left - right) <= 1 ? "centred" : "start"]; }), selectors);
+        const wide = await alignOf();
+        await page.setViewportSize({ width: 375, height: 812 }); await frames(page);
+        const narrow = await alignOf();
+        await page.setViewportSize({ width: VIEW_W, height: VIEW_H });
+        invariant(JSON.stringify(wide) === JSON.stringify(narrow), `${theme} ${route}: label alignment differs at 375px ${JSON.stringify(wide)} vs ${JSON.stringify(narrow)}`);
+        if (route === "/darkfield-404-probe") invariant(wide.length > 0 && wide.every(([, a]) => a === "centred"), `${theme} ${route}: 404 and error actions are not centred ${JSON.stringify(wide)}`);
       });
     }
   }

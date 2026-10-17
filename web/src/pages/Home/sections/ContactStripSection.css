@@ -43,28 +43,13 @@
   gap: 1rem;
 }
 
+/* Boundary, colour and states come from .df-control; the marker is an in-flow cell, so the link is not a flex row. */
 .contact-strip-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: var(--fg);
-  text-decoration: none;
-  font-weight: 600;
-  padding: 0.4rem 0.75rem;
-  border-radius: 999px;
-  border: 1px solid var(--rule);
-  transition: border-color 0.3s ease, color 0.3s ease, background-color 0.3s ease;
+  display: inline-block;
 }
 
-.contact-strip-link:hover {
-  color: var(--signal-dim);
-  border-color: var(--signal-dim);
-  background: rgba(0, 255, 0, 0.05);
-}
-
-/* Light: the hover label is fg; green falls below 4.5:1 where the background shows through the hover tint. */
-[data-theme="light"] .contact-strip-link:hover {
-  color: var(--fg);
+.contact-strip-link > :first-child {
+  margin-inline-end: var(--space-2);
 }
 
 @media (max-width: 768px) {

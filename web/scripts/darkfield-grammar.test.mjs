@@ -180,3 +180,25 @@ test("T8 measure: no Phase 3 max-width or grid track holds a literal ch value; p
   const rules = declarations(await read("styles/darkfield/grammar.css")).filter((d) => /^\.df-prose/.test(innermost(d.selector)));
   assert.ok(rules.some((d) => d.prop === "max-width" && d.value.trim() === "var(--measure-body)"));
 });
+
+test("T9 Home: every action is a df-control with the model's modifier; component rules hold no state look; pills show their label", async () => {
+  const dir = "pages/Home/sections/";
+  const want = [
+    [dir + "HeroSection.tsx", "btn", /\bdf-control\b(?!--)/], [dir + "HeroSection.tsx", "hero-text-link", /\bdf-control--light\b/],
+    [dir + "FeaturedProjectsSection.tsx", "btn", /\bdf-control\b(?!--)/], [dir + "FeaturedProjectsSection.tsx", "featured-project-link", /\bdf-control--card\b/],
+    [dir + "ContactStripSection.tsx", "contact-strip-link", /\bdf-control\b(?!--)/], [dir + "ExplorationChoiceSection.tsx", "exploration-pill", /\bdf-control\b(?!--)/],
+  ];
+  for (const [f, cls, modifier] of want) {
+    const found = [...(await read(f)).matchAll(/className="([^"]*)"/g)].map((m) => m[1]).filter((c) => c.split(/\s+/).includes(cls));
+    assert.ok(found.length > 0, `${f}: ${cls} not rendered`);
+    for (const c of found) { assert.match(c, /\bdf-control\b/, `${f}: ${c}`); assert.match(c, modifier, `${f}: ${c}`); }
+  }
+  const pills = await read(dir + "ExplorationChoiceSection.tsx");
+  assert.doesNotMatch(pills, /aria-label="(Read|Explore)|title=|capsule|--(red|blue)/, "pills show their text; no duplicate name, no capsule");
+  assert.match(pills, />\s*Read the writing\s*</); assert.match(pills, />\s*Explore simulations\s*</);
+  const listed = /(^|[\s>.])(btn|btn-primary|btn-secondary|btn-outline|hero-text-link|featured-project-link|contact-strip-link|exploration-pill)([\s:.[>+~]|$)/;
+  const bad = (await phase3Decls()).filter((d) => d.file.startsWith("pages/Home/") && listed.test(innermost(d.selector)) &&
+    /^(color|background|background-color|background-image|border|border-color|border-radius|box-shadow|transition|transform|text-decoration|will-change|--pill-.*)$/.test(d.prop));
+  assert.deepEqual(bad.map(where), []);
+  assert.doesNotMatch(await read(dir + "ExplorationChoiceSection.css"), /--pill-|capsule|#[0-9a-f]{3,8}\b|rgba?\(/i);
+});
