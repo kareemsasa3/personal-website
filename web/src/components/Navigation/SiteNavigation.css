@@ -99,7 +99,7 @@
 .site-header__list {
     display: flex;
     align-items: center;
-    gap: 0.15rem;
+    gap: var(--space-1);
     min-width: 0;
     margin: 0;
     padding: 0;
@@ -111,42 +111,16 @@
     flex: 0 0 auto;
 }
 
+/* Boundary, colour and states come from .df-control (a light control; Selected by aria-current). The marker
+   is an in-flow cell before the label, so the link is a block with its label centred, not a flex row. */
 .site-header__link {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    display: block;
     width: 100%;
-    min-height: 2.4rem;
-    box-sizing: border-box;
-    padding: 0.65rem 0.7rem;
-    border: 1px solid transparent;
-    border-radius: 6px;
-    color: var(--fg-muted);
-    text-decoration: none;
-    font-size: 0.9rem;
-    font-weight: 650;
-    line-height: 1;
+    text-align: center;
     white-space: nowrap;
 }
 
-.site-header__link:hover,
-.site-header__link.active {
-    background: color-mix(in srgb, var(--signal-deep) 14%, transparent);
-    border-color: color-mix(in srgb, var(--signal-dim) 58%, transparent);
-    color: var(--signal-dim);
-}
-
-/* Light: the hover and current-page label is fg; green falls below 4.5:1 when dark content scrolls
-   behind the translucent header. The tint and border keep the brand colour. */
-[data-theme="light"] .site-header__link:hover,
-[data-theme="light"] .site-header__link.active {
-    color: var(--fg);
-}
-
-.site-header__brand:focus-visible,
-.site-header__link:focus-visible,
-.site-header__disclosure-toggle:focus-visible,
-.site-header__settings-button:focus-visible {
+.site-header__brand:focus-visible {
     outline: 2px solid var(--signal-dim);
     outline-offset: 3px;
 }
@@ -170,53 +144,17 @@
     display: none;
 }
 
-.site-header[data-layout="wide"] .site-header__explore .site-header__link {
-    font-size: 0.82rem;
-    font-weight: 500;
-}
-
+/* A latch (§13): the lamp shows whether its panel is open (aria-expanded). Boundary, colour and states come
+   from .df-control. */
 .site-header__disclosure-toggle {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.45rem;
-    min-height: 2.4rem;
-    padding: 0.55rem 0.7rem;
-    border: 1px solid color-mix(in srgb, var(--edge) 80%, transparent);
-    border-radius: 6px;
-    background: rgba(0, 0, 0, 0.2);
-    color: var(--fg-muted);
-    font: inherit;
-    font-size: 0.9rem;
-    font-weight: 650;
-    line-height: 1;
     white-space: nowrap;
-    cursor: pointer;
-}
-
-.site-header__disclosure-toggle:hover,
-.site-header__disclosure-toggle.active,
-.site-header__disclosure-toggle[aria-expanded="true"] {
-    border-color: color-mix(in srgb, var(--signal-dim) 58%, transparent);
-    color: var(--signal-dim);
-}
-
-/* Light: the label is fg in every state; fg-muted and green fall below 4.5:1 on the toggle's dark tint
-   when dark content scrolls behind the translucent header. */
-[data-theme="light"] .site-header__disclosure-toggle,
-[data-theme="light"] .site-header__disclosure-toggle:hover,
-[data-theme="light"] .site-header__disclosure-toggle.active,
-[data-theme="light"] .site-header__disclosure-toggle[aria-expanded="true"] {
-    color: var(--fg);
 }
 
 .site-header__caret {
     font-size: 0.7rem;
 }
 
-.site-header__disclosure-toggle[aria-expanded="true"] .site-header__caret {
-    transform: rotate(180deg);
-}
-
+/* An overlay (§08 Layers and overlays): surface-2 bounded in edge; its links hover one step up. */
 .site-header__panel {
     position: absolute;
     top: calc(100% + 0.5rem);
@@ -225,13 +163,13 @@
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    gap: 0.2rem;
+    gap: var(--space-1);
     min-width: 12rem;
     box-sizing: border-box;
-    padding: 0.4rem;
-    border: 1px solid var(--rule);
-    border-radius: 8px;
-    background: var(--surface-1);
+    padding: var(--space-1);
+    border: var(--stroke-hair) solid var(--edge);
+    background: var(--surface-2);
+    --df-ground-up: var(--surface-3);
 }
 
 .site-header__panel[hidden] {
@@ -239,8 +177,7 @@
 }
 
 .site-header__panel .site-header__link {
-    justify-content: flex-start;
-    min-height: 2.75rem;
+    text-align: start;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -262,22 +199,13 @@
     gap: 0.5rem;
 }
 
-.site-header__settings-button {
-    display: grid;
-    place-items: center;
-    width: 2.4rem;
-    aspect-ratio: 1;
-    border: 1px solid color-mix(in srgb, var(--edge) 80%, transparent);
-    border-radius: 6px;
-    background: rgba(0, 0, 0, 0.2);
-    color: var(--fg);
-    cursor: pointer;
-}
 
-.site-header__settings-button:hover,
-.site-header__settings-button.active {
-    border-color: var(--signal-dim);
-    color: var(--signal-dim);
+/* Target size (§13): the settings latch holds an icon, not a line of text, so the control model's block padding
+   alone leaves it short of three cells on small or coarse-pointer screens. */
+@media (max-width: 768px), (pointer: coarse) {
+    .site-header__settings-button {
+        min-block-size: calc(3 * var(--cell-h));
+    }
 }
 
 /* Phone: brand, Explore and Settings on the first row; the four core links below. */
@@ -296,16 +224,22 @@
 
 .site-header[data-layout="phone"] .site-header__core .site-header__list {
     flex: 1 1 auto;
-    gap: 0.2rem;
+    gap: var(--space-0\.5);
 }
 
 .site-header[data-layout="phone"] .site-header__core .site-header__list > li {
     flex: 1 1 auto;
 }
 
+/* Phone row (delegated ruling, P3 Task 11): the four core links share one row on phones, so they take the small
+   label (df-label-sm, in markup), a space-1 inline padding and no › marker cell; touch has no hover. Brackets,
+   Selected, Pressed, focus and the target height stay the model's. Wider layouts keep the full model. */
 .site-header[data-layout="phone"] .site-header__core .site-header__link {
-    padding: 0.5rem 0.35rem;
-    font-size: 0.8rem;
+    padding-inline: var(--space-1);
+}
+
+.site-header[data-layout="phone"] .site-header__core .site-header__link::before {
+    content: none;
 }
 
 /* Menu: fallback when the labeled core row no longer fits (e.g. enlarged text).
@@ -328,14 +262,6 @@
     margin-left: auto;
     flex-wrap: nowrap;
     position: static;
-}
-
-/* Trim the Menu toggle's own padding/gap (not the brand or settings marks) —
-   still needed at 320-375px for the Menu+Settings group to fit the header's
-   content box on its own row. */
-.site-header[data-layout="menu"] .site-header__menu .site-header__disclosure-toggle {
-    gap: 0.25rem;
-    padding: 0.5rem 0.15rem;
 }
 
 .site-header__menu {
@@ -375,12 +301,6 @@
     .site-header__brand-name {
         display: none;
     }
-
-    .site-header[data-layout="mid"] .site-header__link,
-    .site-header[data-layout="mid"] .site-header__disclosure-toggle {
-        padding: 0.55rem 0.5rem;
-        font-size: 0.86rem;
-    }
 }
 
 @media (max-width: 768px) {
@@ -416,12 +336,9 @@
         width: 2.15rem;
     }
 
-    .site-header[data-layout="phone"] .site-header__core .site-header__list {
-        gap: 0.1rem;
-    }
-
-    .site-header[data-layout="phone"] .site-header__core .site-header__link {
-        padding: 0.5rem 0.15rem;
-        font-size: 0.7rem;
+    /* The width above is the brand mark's (held for Phase 4). The settings latch keeps sizing to its lamp
+       and icon, which a fixed width would clip. */
+    .site-header__settings-button {
+        width: auto;
     }
 }

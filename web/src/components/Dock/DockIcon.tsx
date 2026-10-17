@@ -32,18 +32,19 @@ const DockIcon: React.FC<DockIconProps> = ({
         to={path}
         aria-label={label}
         aria-current={isActive ? "page" : undefined}
-        className={`dock-nav-link ${isActive ? "active" : ""}`}
+        className="dock-nav-link df-control"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         onFocus={(event) => setIsFocusVisible(event.currentTarget.matches(":focus-visible"))}
         onBlur={() => setIsFocusVisible(false)}
       >
+        {/* The icon box is the dock size less the control's one-cell padding; the glyph fits inside it. */}
         <div
           className="dock-icon"
           style={{
-            width: baseSize,
-            height: baseSize,
-            fontSize: baseSize * 0.6,
+            width: `calc(${baseSize}px - 2 * var(--space-2))`,
+            height: `calc(${baseSize}px - 2 * var(--space-2))`,
+            fontSize: `calc((${baseSize}px - 2 * var(--space-2)) * 0.75)`,
           }}
         >
           <FontAwesomeIcon icon={icon} />

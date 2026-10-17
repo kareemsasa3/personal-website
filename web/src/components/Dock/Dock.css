@@ -1,15 +1,3 @@
-:root {
-    --dock-icon-size: 40px;
-    /* Default size variable */
-
-    /* Terminal-inspired theme variables */
-    --dock-primary: var(--signal-dim);
-    --dock-background: var(--field);
-    --dock-border: var(--signal-dim);
-    --dock-text: var(--fg);
-    --dock-text-muted: var(--fg-muted);
-}
-
 .dock-container {
     position: fixed;
     bottom: 20px;
@@ -26,7 +14,7 @@
     padding: 8px 12px;
     /* Width determined by flexbox content for optimal performance */
 
-    background: var(--dock-background);
+    background: var(--field);
     border-radius: 16px;
 
     will-change: transform;
@@ -36,164 +24,70 @@
 
     /* Ensure dock stays within viewport bounds */
     transform-origin: bottom center;
-
-    /* Allow icons to overflow for magnification effect */
-    overflow: visible;
-
-    /* Prevent container from growing when icons magnify */
-    min-height: calc(var(--dock-icon-size) + 16px);
-    /* Base icon size + padding */
-    max-height: calc(var(--dock-icon-size) + 16px);
 }
 
-/* Dock Tooltip Styles */
+/* The link's name, shown while it is hovered or focused: an Instrument label on surface-2 in an edge boundary. */
 .dock-tooltip {
     position: absolute;
     bottom: calc(100% + 10px);
     left: 50%;
     translate: -50% 0;
-    background: var(--field);
+    background: var(--surface-2);
     color: var(--fg-muted);
-    padding: 0.5rem 0.75rem;
-    border-radius: 6px;
-    font-size: 0.875rem;
+    padding: var(--space-1) var(--space-2);
     white-space: nowrap;
     z-index: 10002;
     /* Higher than dock container */
     pointer-events: none;
-    border: 1px solid var(--rule);
+    border: var(--stroke-hair) solid var(--edge);
 }
 
-.dock-tooltip::after {
-    content: '';
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    border: 5px solid transparent;
-    border-top-color: var(--field);
-}
-
-/* Ensure tooltip doesn't interfere with dock interactions */
 .dock-icon-container {
     position: relative;
-    /* Allow individual icons to overflow their containers */
-    overflow: visible;
     /* Center the icon within its container */
     display: flex;
     justify-content: center;
     align-items: center;
-    /* Set a fixed height to prevent container growth */
-    height: var(--dock-icon-size);
+}
+
+/* The dock's controls (§13): boundary, colour and states come from .df-control. Links are Selected by
+   aria-current; Explore and Settings are latches. Each holds one square icon box (sized inline from the dock
+   size), so the padding is one cell on every side and the in-flow marker fills the leading cell. */
+.dock-nav-link,
+.dock-explore__toggle,
+.dock-settings-button {
+    display: flex;
+    align-items: center;
+    padding-inline: var(--space-2);
 }
 
 .dock-nav-link {
-    display: block;
-    color: var(--dock-text);
-    transition: color 0.2s ease-in-out;
-    text-decoration: none;
     pointer-events: auto;
-    /* Allow the link to overflow for magnification */
-    overflow: visible;
 }
 
-.dock-nav-link.active {
-    color: var(--dock-primary);
+/* In the flex row the marker is an item: stretch it and centre its glyph on the icon. */
+.dock-nav-link::before {
+    align-self: stretch;
+    height: auto;
+    display: flex;
+    align-items: center;
 }
 
 .dock-icon {
     display: flex;
     justify-content: center;
     align-items: center;
-    /* Font size handled by Framer Motion */
-    background-color: rgba(0, 0, 0, 0.2);
-    border: 1px solid transparent;
-    border-radius: 6px;
-    cursor: pointer;
-    will-change: width, height;
-    /* Performance optimization */
-    /* REMOVE the simple transition property, as framer-motion now handles it */
     user-select: none;
-    transition: border-color 0.2s ease-in-out;
-    /* Let Framer Motion handle width and height */
-    /* Ensure icons can overflow their containers for magnification */
-    position: relative;
-    z-index: 1;
 }
 
-.dock-icon:hover,
-.dock-icon.hovered {
-    background-color: rgba(0, 0, 0, 0.3);
-    border-color: var(--dock-primary);
-}
-
-/* Add a little dot under the active icon like the real dock */
-.dock-nav-link.active::after {
-    content: '';
-    position: absolute;
-    bottom: -8px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 4px;
-    height: 4px;
-    border-radius: 50%;
-    background-color: var(--dock-primary);
-}
-
-/* Dock Settings Button */
-.dock-settings-button {
-    background: none;
-    border: none;
-    color: var(--dock-text);
-    cursor: pointer;
-    padding: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-    /* Allow settings button to overflow for consistency */
-    overflow: visible;
-    /* Set a fixed height to prevent container growth */
-    height: var(--dock-icon-size);
-}
-
-.dock-settings-button .dock-icon {
-    width: var(--dock-icon-size);
-    /* Use the variable */
-    height: var(--dock-icon-size);
-    /* Use the variable */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: calc(var(--dock-icon-size) * 0.6);
-    background-color: rgba(0, 0, 0, 0.2);
-    border: 1px solid transparent;
-    border-radius: 6px;
-    transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
-    /* Ensure settings icon can overflow for consistency */
-    position: relative;
-    z-index: 1;
-}
-
-.dock-settings-button:hover .dock-icon {
-    background-color: rgba(0, 0, 0, 0.3);
-    border-color: var(--dock-primary);
-}
-
-.dock-settings-button.active .dock-icon {
-    color: var(--dock-primary);
-    border-color: var(--dock-primary);
-}
-
-.dock-active-indicator {
-    position: absolute;
-    bottom: -8px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 4px;
-    height: 4px;
-    border-radius: 50%;
-    background-color: var(--dock-primary);
+/* Target size (§13): each dock control holds an icon box, not a line of text, so the control model's block padding
+   alone leaves it short of three cells on small or coarse-pointer screens. */
+@media (max-width: 768px), (pointer: coarse) {
+    .dock-nav-link,
+    .dock-explore__toggle,
+    .dock-settings-button {
+        min-block-size: calc(3 * var(--cell-h));
+    }
 }
 
 /* Separates Home and the core pages from the exploration routes. */
@@ -205,32 +99,7 @@
     background: color-mix(in srgb, var(--rule) 80%, transparent);
 }
 
-.dock-explore__toggle {
-    display: flex;
-    padding: 0;
-    border: none;
-    background: none;
-    color: var(--dock-text);
-    cursor: pointer;
-}
-
-.dock-explore__toggle.active,
-.dock-explore__toggle[aria-expanded="true"] {
-    color: var(--dock-primary);
-}
-
-.dock-explore__toggle.active::after {
-    content: '';
-    position: absolute;
-    bottom: -8px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 4px;
-    height: 4px;
-    border-radius: 50%;
-    background-color: var(--dock-primary);
-}
-
+/* An overlay (§08 Layers and overlays): surface-2 bounded in edge; its links hover one step up. */
 .dock-explore__panel {
     position: absolute;
     bottom: calc(100% + 12px);
@@ -240,18 +109,18 @@
     z-index: 10002;
     display: flex;
     flex-direction: column;
-    gap: 0.2rem;
+    gap: var(--space-1);
     /* px, not rem: this must not grow with enlarged text, or it can outgrow
        the room available between the stack toggle and the viewport edge. */
     min-width: 176px;
     max-width: calc(100vw - 1rem);
     box-sizing: border-box;
     margin: 0;
-    padding: 0.4rem;
+    padding: var(--space-1);
     list-style: none;
-    border: 1px solid var(--rule);
-    border-radius: 8px;
-    background: var(--surface-1);
+    border: var(--stroke-hair) solid var(--edge);
+    background: var(--surface-2);
+    --df-ground-up: var(--surface-3);
 }
 
 .dock-explore__panel[hidden] {
@@ -270,29 +139,15 @@
     to { opacity: 1; }
 }
 
+/* A plain control holding an icon and a label. The marker is an in-flow cell before the icon, so the link is a
+   block, not a flex row; the icon keeps a cell of space before the label. */
 .dock-explore__link {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    min-height: 2.75rem;
-    padding: 0 0.75rem;
-    border-radius: 6px;
-    color: var(--dock-text);
-    font-size: 0.85rem;
-    text-decoration: none;
+    display: block;
+    white-space: nowrap;
 }
 
-.dock-explore__link:hover,
-.dock-explore__link.active {
-    background: color-mix(in srgb, var(--signal-deep) 14%, transparent);
-    color: var(--dock-primary);
-}
-
-.dock-nav-link:focus-visible,
-.dock-explore__toggle:focus-visible,
-.dock-explore__link:focus-visible {
-    outline: 2px solid var(--signal-dim);
-    outline-offset: 3px;
+.dock-explore__link svg {
+    margin-inline-end: var(--space-2);
 }
 
 /* Responsive adjustments */
@@ -301,16 +156,7 @@
         bottom: max(10px, env(safe-area-inset-bottom));
         gap: 6px;
         padding: 4px 6px;
-        /* Maintain fixed height on mobile */
-        min-height: calc(var(--dock-icon-size) + 12px);
-        max-height: calc(var(--dock-icon-size) + 12px);
     }
-
-    /* Reduce backdrop intensity for readability */
-    .dock-container {
-        background: var(--dock-background);
-    }
-
 }
 
 /* Hide tooltips on touch devices, but keep them for pointer/keyboard users */
@@ -319,14 +165,3 @@
         display: none;
     }
 }
-
-/* Handle dock positioning when settings are open on smaller screens */
-/* Note: Transform is now handled entirely by Framer Motion via shiftAmount state */
-/* CSS transform overrides have been removed to prevent conflicts with JavaScript animations */
-/* 
- * Final refinements implemented:
- * - useWindowSize hook for declarative window size tracking
- * - Removed redundant onHoverEnd event (onMouseLeave is sufficient)
- * - Optimized width calculation using flexbox instead of fit-content
- * - Cleaner dependency management in useEffect
- */

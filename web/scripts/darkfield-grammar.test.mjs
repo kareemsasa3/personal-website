@@ -141,7 +141,8 @@ test("T7 voices: Phase 3 sets mono only on Machine text; Narrator inherits; uppe
     assert.ok(found.length > 0, f);
     for (const c of found) assert.match(c, /(^|\s)df-label(\s|$)/, `${f}: ${c}`);
   }
-  assert.match(await read("components/Navigation/HeaderNavigation.tsx"), /linkClassName="df-label"/, "wide Explore links");
+  // Every header link carries the label class (T11), the wide Explore links among them.
+  assert.match(await read("components/Navigation/HeaderNavigation.tsx"), /className=\{`site-header__link [^`]*\bdf-label\b/, "header links");
   // §06 colour by role: display and headings fg, supporting text and region names fg-muted, annotation fg-faint.
   const colour = (sel) => decls.filter((d) => d.prop === "color" && innermost(d.selector) === sel && !(sel === ".section-title" && d.file === "pages/Home/Home.css")).map((d) => d.value);
   for (const [sel, want] of [[".journey-title", "var(--fg)"], [".work-role", "var(--fg-muted)"], [".work-dates", "var(--fg-faint)"],
@@ -263,4 +264,69 @@ test("T10 Projects: filters, dropdown, roster actions and the dialog follow the 
   const chamfer = declarations(await read("styles/darkfield/grammar.css")).filter((d) => /^\.df-cut-md/.test(innermost(d.selector)));
   assert.ok(chamfer.some((d) => d.prop === "clip-path" && /var\(--cut-md\)/.test(d.value)));
   assert.ok(chamfer.some((d) => d.prop === "background-color" && d.value === "var(--edge)"));
+});
+
+test("T11 header and dock: navigation follows the control model; the dock's dots and colour variables are gone", async () => {
+  const classes = async (f) => [...(await read(f)).matchAll(/className=(?:"([^"]*)"|\{`([^`]*)`\})/g)].map((m) => m[1] ?? m[2]);
+  const has = (c, cls) => c.split(/\s+/).includes(cls);
+  const header = "components/Navigation/HeaderNavigation.tsx";
+  // [file, class, modifier, carries df-label]: icon-only controls have no visible label.
+  const want = [
+    [header, "site-header__link", /\bdf-control--light\b/, true], [header, "site-header__disclosure-toggle", /\bdf-control--latch\b/, true],
+    [header, "site-header__settings-button", /\bdf-control--latch\b/, false],
+    ["components/Dock/DockIcon.tsx", "dock-nav-link", /\bdf-control\b(?!--)/, false],
+    ["components/Dock/DockExploreStack.tsx", "dock-explore__toggle", /\bdf-control--latch\b/, false],
+    ["components/Dock/DockExploreStack.tsx", "dock-explore__link", /\bdf-control\b(?!--)/, true],
+    ["components/Dock/DockSettingsButton.tsx", "dock-settings-button", /\bdf-control--latch\b/, false],
+  ];
+  for (const [f, cls, modifier, label] of want) {
+    const found = (await classes(f)).filter((c) => has(c, cls));
+    assert.ok(found.length > 0, `${f}: ${cls} not rendered`);
+    for (const c of found) {
+      assert.match(c, /\bdf-control\b/, `${f}: ${c}`); assert.match(c, modifier, `${f}: ${c}`);
+      assert.equal(/(?<![\w-])df-label(?![\w-])/.test(c), label, `${f}: ${c}`);
+    }
+  }
+  // State is ARIA: links are Selected by aria-current, latches by aria-expanded or aria-pressed. Only the header link keeps
+  // its .active class (the foundation test's contrast pair names it).
+  const code = Object.fromEntries(await Promise.all(want.map(([f]) => f).map(async (f) => [f, await read(f)])));
+  assert.match(code["components/Dock/DockSettingsButton.tsx"], /aria-pressed=\{isOpen\}/);
+  assert.match(code[header], /aria-pressed=\{isSettingsOpen\}/);
+  for (const f of ["components/Dock/DockIcon.tsx", "components/Dock/DockExploreStack.tsx"]) assert.match(code[f], /aria-current=\{isActive \? "page" : undefined\}/, f);
+  for (const [f, c] of Object.entries(code)) {
+    assert.doesNotMatch(c, /dock-active-indicator/, f);
+    assert.deepEqual((await classes(f)).filter((x) => /\bactive\b/.test(x) && !has(x, "site-header__link")), [], f);
+  }
+  // Component rules hold no state look for the listed controls or the dock's icon box.
+  const listed = /\.(site-header__link|site-header__disclosure-toggle|site-header__settings-button|dock-nav-link|dock-explore__toggle|dock-explore__link|dock-settings-button|dock-icon)(?![\w-])/;
+  const decls = (await phase3Decls()).filter((d) => /^components\/(Navigation|Dock)\//.test(d.file));
+  const bad = decls.filter((d) => listed.test(innermost(d.selector)) &&
+    /^(color|background|background-color|background-image|border(-[a-z-]+)?|outline(-[a-z-]+)?|box-shadow|transition|transform|will-change|font-(size|weight|family)|font|line-height|letter-spacing|opacity|min-height)$/.test(d.prop));
+  assert.deepEqual(bad.map(where), []);
+  // Padding is the model's, except the dock's icon controls (one cell inline, so the marker still fills the leading cell)
+  // and the header's phone row (delegated ruling: space-1 inline, no marker cell, small label in markup).
+  const DOCK_ICONS = ".dock-nav-link, .dock-explore__toggle, .dock-settings-button";
+  const PHONE_ROW = '.site-header[data-layout="phone"] .site-header__core .site-header__link';
+  assert.deepEqual(decls.filter((d) => listed.test(innermost(d.selector)) && /^padding/.test(d.prop) &&
+    !(innermost(d.selector) === DOCK_ICONS && d.prop === "padding-inline" && d.value === "var(--space-2)") &&
+    !(innermost(d.selector) === PHONE_ROW && d.prop === "padding-inline" && d.value === "var(--space-1)")).map(where), []);
+  assert.deepEqual(decls.filter((d) => /::before/.test(innermost(d.selector)) && /site-header__link/.test(innermost(d.selector))).map((d) => [innermost(d.selector), d.prop, d.value]),
+    [[`${PHONE_ROW}::before`, "content", "none"]], "only the phone row drops the marker");
+  assert.match(code[header], /compact \? "df-label-sm" : "df-label"/);
+  assert.match(code[header], /<HeaderLinkList items=\{coreNavItems\} pathname=\{pathname\} compact=\{layout === "phone"\} \/>/);
+  assert.deepEqual(decls.filter((d) => listed.test(innermost(d.selector)) && /:(hover|active|focus|focus-visible)|\.(active|hovered)\b|\[aria-|::after/.test(innermost(d.selector))).map(where), []);
+  // Overlays (§08): the Explore and Menu panels and the dock tooltip are surface-2 in an edge boundary; panels hover to surface-3.
+  const value = (file, sel, prop) => decls.filter((d) => d.file === file && innermost(d.selector) === sel && d.prop === prop).map((d) => d.value);
+  for (const [file, sel] of [["components/Navigation/SiteNavigation.css", ".site-header__panel"], ["components/Dock/Dock.css", ".dock-explore__panel"], ["components/Dock/Dock.css", ".dock-tooltip"]]) {
+    assert.deepEqual(value(file, sel, "background"), ["var(--surface-2)"], sel);
+    assert.deepEqual(value(file, sel, "border"), ["var(--stroke-hair) solid var(--edge)"], sel);
+    assert.deepEqual(value(file, sel, "border-radius"), [], sel);
+    if (sel !== ".dock-tooltip") assert.deepEqual(value(file, sel, "--df-ground-up"), ["var(--surface-3)"], sel);
+  }
+  // Made dead here: the dock's colour variables, its dots and the magnification leftovers.
+  const dock = await read("components/Dock/Dock.css");
+  assert.doesNotMatch(dock, /--dock-(?!icon-size)[a-z-]+|dock-active-indicator|magnif|will-change:\s*width/i);
+  // The 375px brand-mark rule is held unchanged (Phase 4); the settings latch overrides only its own width after it.
+  const nav = await read("components/Navigation/SiteNavigation.css");
+  assert.match(nav, /\.site-header__brand-mark,\s*\.site-header__settings-button\s*\{\s*width:\s*2\.15rem;\s*\}/);
 });

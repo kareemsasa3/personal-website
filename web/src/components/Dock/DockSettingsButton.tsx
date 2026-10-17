@@ -5,33 +5,31 @@ import "./Dock.css";
 interface DockSettingsButtonProps {
   isOpen: boolean;
   onClick: () => void;
-  baseSize: number; // Add baseSize prop
+  baseSize: number;
 }
 
 const DockSettingsButton = ({
   isOpen,
   onClick,
-  baseSize, // Use the prop
+  baseSize,
 }: DockSettingsButtonProps) => {
   return (
     <button
-      className={`dock-settings-button ${isOpen ? "active" : ""}`}
+      className="dock-settings-button df-control df-control--latch"
       onClick={onClick}
       aria-label="Open settings"
+      aria-pressed={isOpen}
     >
-      {/* Apply size directly */}
       <div
         className="dock-icon"
         style={{
-          width: baseSize,
-          height: baseSize,
-          fontSize: baseSize * 0.6,
+          width: `calc(${baseSize}px - 2 * var(--space-2))`,
+          height: `calc(${baseSize}px - 2 * var(--space-2))`,
+          fontSize: `calc((${baseSize}px - 2 * var(--space-2)) * 0.75)`,
         }}
       >
         <FontAwesomeIcon icon={faCog} />
       </div>
-      {/* Selected snaps in: the active marker is a plain element, shown while open. */}
-      {isOpen && <div className="dock-active-indicator" />}
     </button>
   );
 };

@@ -22,7 +22,8 @@ interface HeaderLinkListProps {
   hidden?: boolean;
   labelledBy?: string;
   onNavigate?: () => void;
-  linkClassName?: string;
+  /** The phone layout's core row: the small Instrument label, so the four links fit one row. */
+  compact?: boolean;
 }
 
 const HeaderLinkList = ({
@@ -33,7 +34,7 @@ const HeaderLinkList = ({
   hidden,
   labelledBy,
   onNavigate,
-  linkClassName = "",
+  compact = false,
 }: HeaderLinkListProps) => (
   <ul
     id={id}
@@ -48,7 +49,7 @@ const HeaderLinkList = ({
         <li key={item.path}>
           <Link
             to={item.path}
-            className={`site-header__link ${linkClassName} ${isActive ? "active" : ""}`.replace(/\s+/g, " ")}
+            className={`site-header__link df-control df-control--light ${compact ? "df-label-sm" : "df-label"}${isActive ? " active" : ""}`}
             aria-current={isActive ? "page" : undefined}
             onClick={onNavigate}
           >
@@ -99,7 +100,7 @@ const HeaderNavigation = forwardRef<HTMLElement>(function HeaderNavigation(
 
   const coreNav = (
     <nav key="core" className="site-header__nav site-header__core" aria-label="Primary navigation">
-      <HeaderLinkList items={coreNavItems} pathname={pathname} />
+      <HeaderLinkList items={coreNavItems} pathname={pathname} compact={layout === "phone"} />
     </nav>
   );
 
@@ -117,7 +118,7 @@ const HeaderNavigation = forwardRef<HTMLElement>(function HeaderNavigation(
       {isExploreDisclosed && (
         <button
           {...explore.buttonProps}
-          className={`site-header__disclosure-toggle ${activeExploreItem ? "active" : ""}`}
+          className="site-header__disclosure-toggle df-control df-control--latch df-label"
         >
           {activeExploreItem && layout !== "phone"
             ? `Explore: ${activeExploreItem.label}`
@@ -132,7 +133,6 @@ const HeaderNavigation = forwardRef<HTMLElement>(function HeaderNavigation(
         className={isExploreDisclosed ? "site-header__panel" : ""}
         hidden={isExploreDisclosed && !explore.isOpen}
         onNavigate={explore.close}
-        linkClassName="df-label"
       />
     </nav>
   );
@@ -144,7 +144,10 @@ const HeaderNavigation = forwardRef<HTMLElement>(function HeaderNavigation(
       aria-label="Primary navigation"
       {...menu.containerProps}
     >
-      <button {...menu.buttonProps} className="site-header__disclosure-toggle">
+      <button
+        {...menu.buttonProps}
+        className="site-header__disclosure-toggle df-control df-control--latch df-label"
+      >
         Menu
         <FontAwesomeIcon className="site-header__caret" icon={faChevronDown} />
       </button>
@@ -171,7 +174,7 @@ const HeaderNavigation = forwardRef<HTMLElement>(function HeaderNavigation(
     <div key="actions" className="site-header__actions">
       <button
         type="button"
-        className={`site-header__settings-button ${isSettingsOpen ? "active" : ""}`}
+        className="site-header__settings-button df-control df-control--latch"
         onClick={toggleSettings}
         aria-label="Open settings"
         aria-pressed={isSettingsOpen}

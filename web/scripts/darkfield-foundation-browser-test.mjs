@@ -1208,6 +1208,12 @@ if (MODE === "check") {
       });
     }
   }
+  // Dock navigation (Settings → Navigation Style → Dock), as a returning visitor's stored choice.
+  const dockMode = async (page) => {
+    await page.evaluate(() => localStorage.setItem("web-nav-mode", "dock"));
+    await page.reload({ waitUntil: "networkidle" });
+    await page.locator(".dock-container").waitFor();
+  };
   // Phase 3 (§13): every listed control is a df-control and renders Idle, Hover, Pressed and its hold.
   // Tasks 9–13 and 15 add entries; prepare(page) brings controls on screen (Settings open, dock mode). Token colours are read from the page.
   const P3_CONTROLS = [
@@ -1216,6 +1222,13 @@ if (MODE === "check") {
     // The coverage dialog's Close, with the dialog open (a press released over the backdrop must not close it).
     { route: "/projects", selectors: [".close-tech-stack"], prepare: (page) => page.getByTitle("View technical coverage").click() },
     { route: "/darkfield-404-probe", selectors: [".home-link"] },
+    // Task 11: the header at its wide and mid widths, and the dock. The header steps between layouts with the width
+    // (wide, mid, phone, menu), so the controls on screen change: relayout compares label alignment only for the controls
+    // shown at both widths. The dock exists only from 430px, so its narrow check runs at 500px, where it is the phone dock.
+    { route: "/", selectors: [".site-header__link", ".site-header__settings-button"], relayout: true },
+    { route: "/", width: 768, selectors: [".site-header__disclosure-toggle"], relayout: true },
+    { route: "/projects", prepare: dockMode, selectors: [".dock-nav-link", ".dock-settings-button"], narrow: 500, relayout: true },
+    { route: "/projects", prepare: dockMode, width: 500, selectors: [".dock-explore__toggle"], narrow: 500, relayout: true },
     // The error-boundary actions: the Journey route chunk fails to load after a client-side navigation, so its lazy
     // import rejects and the Layout error boundary renders in place of the route.
     { route: "/darkfield-404-probe", selectors: [".error-button"], prepare: async (page) => {
@@ -1264,9 +1277,14 @@ if (MODE === "check") {
     invariant(Math.abs(hover.marker - hover.left) <= 0.5, `${where}: hover marker ends at ${hover.marker}, label starts at ${hover.left}`);
   };
   for (const theme of THEMES) {
-    for (const { route, prepare, selectors } of P3_CONTROLS) {
+    for (const { route, prepare, selectors, width = VIEW_W, narrow = 375, relayout = false } of P3_CONTROLS) {
       await withPage({ theme, route }, async (page) => {
+        if (width !== VIEW_W) { await page.setViewportSize({ width, height: VIEW_H }); await frames(page); }
         if (prepare) await prepare(page);
+        let narrowChecked = 0;
+        // A resize re-lays the header and dock after the site's debounced window-size update (the header can change layout,
+        // which moves the page below it); wait it out before measuring.
+        const resized = async () => { await frames(page); await page.waitForTimeout(250); await frames(page); };
         const t = {}; for (const n of ["--edge", "--fg-muted", "--fg", "--signal", "--on-signal"]) t[n] = await tokenRgb(page, n);
         const instant = await page.evaluate(() => parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--dur-instant")));
         for (const selector of selectors) {
@@ -1291,7 +1309,7 @@ if (MODE === "check") {
               invariant(hover.fg === t["--fg"], `${theme} ${route}: ${selector} hover label ${hover.fg}`);
               if (!rest.light) invariant(hover.b === t["--fg-muted"], `${theme} ${route}: ${selector} hover boundary ${hover.b}`);
             }
-            await hoverGeometry(page, el, `${theme} ${route} ${VIEW_W}px: ${selector}`);
+            await hoverGeometry(page, el, `${theme} ${route} ${width}px: ${selector}`);
             await page.mouse.move(0, 0); await el.hover(); await frames(page);
             // Released off the control: no activation (§13 Activation). A click, or the reload a click causes, fails.
             const origin = await page.evaluate(() => performance.timeOrigin);
@@ -1328,28 +1346,43 @@ if (MODE === "check") {
             await page.waitForTimeout(instant * 2);
             invariant(!(await pressed(el)), `${theme} ${route}: ${selector} inverse not released after the re-press`);
             // The marker geometry again at a phone width, where layouts stretch and centre controls.
-            await page.setViewportSize({ width: 375, height: 812 });
+            await page.setViewportSize({ width: narrow, height: 812 }); await resized();
             // Target size at a phone width: every non-card control is at least three cells tall.
             const small = await page.evaluate((sel) => { const cell = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--cell-h"));
               return [...document.querySelectorAll(sel)].filter((e) => e.matches(".df-control:not(.df-control--card)") && e.getClientRects().length)
                 .map((e) => [e.className, e.getBoundingClientRect().height, 3 * cell]).filter((x) => x[1] < x[2] - 0.5); }, selector);
-            invariant(small.length === 0, `${theme} ${route} 375px: ${selector} below 3 cells tall ${JSON.stringify(small)}`);
-            await hoverGeometry(page, el, `${theme} ${route} 375px: ${selector}`);
-            await page.setViewportSize({ width: VIEW_W, height: VIEW_H });
+            invariant(small.length === 0, `${theme} ${route} ${narrow}px: ${selector} below 3 cells tall ${JSON.stringify(small)}`);
+            // With relayout the base width's control may be re-rendered or hidden at the phone width (a header layout
+            // change): the first one shown there is checked instead.
+            const there = relayout ? page.locator(selector).locator("visible=true").first() : el;
+            if (!relayout || (await there.count())) { await hoverGeometry(page, there, `${theme} ${route} ${narrow}px: ${selector}`); narrowChecked += 1; }
+            await page.setViewportSize({ width, height: VIEW_H }); await resized();
           }
         }
         // Label alignment at a phone width equals the base alignment: centred where the parent centred it, start otherwise.
-        const alignOf = () => page.evaluate((sels) => [...document.querySelectorAll(sels.join(","))].filter((e) => e.matches(".df-control:not(.df-control--card)") && e.getClientRects().length).map((e) => {
+        invariant(narrowChecked > 0, `${theme} ${route}: no control was checked at ${narrow}px`);
+        // Each control is tagged at the base width; with relayout, where a layout change re-renders the controls, each is
+        // known by its class and name instead, and only controls shown at both widths are compared.
+        const alignOf = (tag) => page.evaluate(([sels, tag, relayout]) => [...document.querySelectorAll(sels.join(","))].filter((e) => e.matches(".df-control:not(.df-control--card)") && e.getClientRects().length).flatMap((e, i) => {
+          if (relayout) e.setAttribute("data-df-align", `${e.className}|${e.getAttribute("aria-label") ?? e.textContent.trim()}`);
+          else if (tag) e.setAttribute("data-df-align", String(i));
           const r = document.createRange(); r.selectNodeContents(e); const l = r.getBoundingClientRect(); const b = e.getBoundingClientRect(); const c = getComputedStyle(e);
           const left = l.left - (b.left + parseFloat(c.borderLeftWidth) + parseFloat(c.paddingLeft));
           const right = b.right - parseFloat(c.borderRightWidth) - parseFloat(c.paddingRight) - l.right;
-          return [e.className, Math.abs(left - right) <= 1 ? "centred" : "start"]; }), selectors);
-        const wide = await alignOf();
-        await page.setViewportSize({ width: 375, height: 812 }); await frames(page);
-        const narrow = await alignOf();
-        await page.setViewportSize({ width: VIEW_W, height: VIEW_H });
-        invariant(JSON.stringify(wide) === JSON.stringify(narrow), `${theme} ${route}: label alignment differs at 375px ${JSON.stringify(wide)} vs ${JSON.stringify(narrow)}`);
-        if (route === "/darkfield-404-probe") invariant(wide.length > 0 && wide.every(([, a]) => a === "centred"), `${theme} ${route}: 404 and error actions are not centred ${JSON.stringify(wide)}`);
+          return [[e.getAttribute("data-df-align") ?? "new", e.className, Math.abs(left - right) <= 1 ? "centred" : "start"]]; }), [selectors, tag, relayout]);
+        let wide = await alignOf(true);
+        await page.setViewportSize({ width: narrow, height: 812 }); await resized();
+        let phone = await alignOf(false);
+        await page.setViewportSize({ width, height: VIEW_H }); await resized();
+        await page.evaluate(() => document.querySelectorAll("[data-df-align]").forEach((e) => e.removeAttribute("data-df-align")));
+        if (relayout) {
+          wide = wide.filter(([i]) => phone.some(([j]) => j === i));
+          const order = (list) => list.sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
+          wide = order(wide); phone = order(phone.filter(([j]) => wide.some(([i]) => i === j)));
+          invariant(wide.length > 0, `${theme} ${route}: no control is shown at both ${width}px and ${narrow}px`);
+        }
+        invariant(JSON.stringify(wide) === JSON.stringify(phone), `${theme} ${route}: label alignment differs at ${narrow}px ${JSON.stringify(wide)} vs ${JSON.stringify(phone)}`);
+        if (route === "/darkfield-404-probe") invariant(wide.length > 0 && wide.every(([, , a]) => a === "centred"), `${theme} ${route}: 404 and error actions are not centred ${JSON.stringify(wide)}`);
       });
     }
   }
@@ -1396,6 +1429,140 @@ if (MODE === "check") {
         return { clip: c.clipPath, bg: c.backgroundColor, border: c.borderTopColor, radius: c.borderTopLeftRadius, cut: b.backgroundColor, chamfered: document.querySelectorAll(".df-cut-md").length }; });
       invariant(/polygon/.test(dialog.clip) && dialog.cut === t["--edge"] && dialog.border === t["--edge"] && dialog.radius === "0px" && dialog.chamfered === 1,
         `${theme} /projects: coverage dialog ${JSON.stringify(dialog)}`);
+    });
+  }
+
+  // Phase 3 Task 11 (§13, §08): navigation states. The current page's link is Selected (band, signal boundary or brackets,
+  // node); latches light their lamp while their panel or Settings is open; the Explore panel and the dock tooltip are
+  // overlays on surface-2 in edge, and panel links hover to surface-3. The disclosure still opens and closes from the
+  // keyboard and returns focus to its toggle.
+  for (const theme of THEMES) {
+    const tokens = async (page) => { const t = {}; for (const n of ["--edge", "--fg-muted", "--fg", "--signal", "--signal-deep", "--surface-2", "--surface-3"]) t[n] = await tokenRgb(page, n); return t; };
+    const lamp = (el) => el.evaluate((e) => { const a = getComputedStyle(e, "::after"); return { bg: a.backgroundColor, b: a.borderTopColor, w: a.width, h: a.height, fg: getComputedStyle(e).color }; });
+    const selected = async (page, t, el, where, { marker = true } = {}) => {
+      const look_ = await look(el);
+      const node = await el.evaluate((e) => { const a = getComputedStyle(e, "::after"); return [a.backgroundColor, a.position, a.width === a.height]; });
+      invariant(look_.sel && look_.bg === t["--signal-deep"] && look_.fg === t["--signal"] && (look_.light || look_.b === t["--signal"]) &&
+        node[0] === t["--signal"] && node[1] === "absolute" && node[2], `${theme} ${where}: Selected ${JSON.stringify(look_)} node ${node}`);
+      await el.hover(); await frames(page);
+      const over = await look(el);
+      invariant(over.marker.startsWith('"›"') === marker && over.bg === t["--signal-deep"], `${theme} ${where}: hover over Selected ${JSON.stringify(over)}`);
+      await page.mouse.move(0, 0); await frames(page);
+    };
+    const latch = async (page, t, el, where, open) => {
+      const off = await lamp(el);
+      invariant(off.b === t["--edge"] && off.bg === "rgba(0, 0, 0, 0)", `${theme} ${where}: lamp off ${JSON.stringify(off)}`);
+      await open(); await page.mouse.move(0, 0);
+      // The press inverse holds for dur-instant after contact; the lamp is read once it has released.
+      await page.waitForTimeout(2 * (await page.evaluate(() => parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--dur-instant")))));
+      const on = await lamp(el);
+      invariant(on.bg === t["--signal"] && on.b === t["--signal"] && on.fg === t["--fg"], `${theme} ${where}: lamp on ${JSON.stringify(on)}`);
+    };
+    const overlay = async (page, t, panel, link, where) => {
+      const p = await panel.evaluate((e) => { const c = getComputedStyle(e); return [c.backgroundColor, c.borderTopColor, c.borderTopLeftRadius]; });
+      invariant(p[0] === t["--surface-2"] && p[1] === t["--edge"] && p[2] === "0px", `${theme} ${where}: panel ${p}`);
+      invariant(await link.evaluate((e) => e.matches(".df-control")), `${theme} ${where}: panel link is not a df-control`);
+      await link.hover(); await frames(page);
+      const over = await look(link);
+      invariant(over.sel || (over.bg === t["--surface-3"] && over.fg === t["--fg"] && over.marker.startsWith('"›"')), `${theme} ${where}: panel link hover ${JSON.stringify(over)}`);
+      await hoverGeometry(page, link, `${theme} ${where}: panel link`);
+    };
+    // Header, wide: the Projects link is Selected on /projects; Settings is a latch.
+    await withPage({ theme, route: "/projects" }, async (page) => {
+      const t = await tokens(page);
+      await selected(page, t, page.locator('.site-header__link[aria-current="page"]').first(), "/projects header");
+      const settings = page.locator(".site-header__settings-button");
+      await latch(page, t, settings, "/projects header settings", () => settings.click());
+      invariant(await settings.getAttribute("aria-pressed") === "true", `${theme} /projects: header settings not pressed while open`);
+    });
+    // Header, mid (768px): the Explore disclosure from the keyboard; its panel is an overlay.
+    await withPage({ theme, route: "/" }, async (page) => {
+      // Loaded at this width: a resize re-runs the header's layout steps, and a layout change closes an open panel.
+      await page.setViewportSize({ width: 768, height: VIEW_H }); await page.reload({ waitUntil: "networkidle" });
+      const t = await tokens(page);
+      const toggle = page.locator(".site-header__explore .site-header__disclosure-toggle");
+      await latch(page, t, toggle, "/ header explore", async () => { await toggle.focus(); await page.keyboard.press("Enter"); });
+      invariant(await toggle.getAttribute("aria-expanded") === "true", `${theme} /: Explore did not open from the keyboard`);
+      await overlay(page, t, page.locator(".site-header__explore .site-header__panel"), page.locator(".site-header__explore .site-header__panel .site-header__link").first(), "/ 768px Explore");
+      await toggle.focus(); await page.keyboard.press("Escape"); await frames(page);
+      invariant(await toggle.getAttribute("aria-expanded") === "false" && await toggle.evaluate((e) => document.activeElement === e),
+        `${theme} /: Escape did not close Explore and return focus to its toggle`);
+    });
+    // Header, phone row (delegated ruling): at 375px and 390px the four core links stay on screen, not in the Menu panel,
+    // in the small label with no › cell; they keep the target size, the hover ground step and the Selected signature.
+    for (const width of [375, 390]) {
+      await withPage({ theme, route: "/projects" }, async (page) => {
+        // Loaded at this width: a resize re-runs the header's layout steps, and a layout change closes an open panel.
+        await page.setViewportSize({ width, height: 812 }); await page.reload({ waitUntil: "networkidle" });
+        const t = await tokens(page);
+        const row = page.locator(".site-header__core .site-header__link");
+        const shown = await row.evaluateAll((all) => all.filter((e) => e.checkVisibility() && !e.closest(".site-header__panel")).map((e) => e.textContent));
+        invariant(JSON.stringify(shown) === JSON.stringify(["Projects", "Case Studies", "Writing", "Experience"]), `${theme} /projects ${width}px: core links on screen ${JSON.stringify(shown)}`);
+        const cell = await page.evaluate(() => parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--cell-h")));
+        const short = await page.locator(".site-header a.df-control, .site-header button.df-control").evaluateAll((all, c) => all.filter((e) => e.checkVisibility())
+          .map((e) => [e.className, e.getBoundingClientRect().height]).filter(([, h]) => h < 3 * c - 0.5), cell);
+        invariant(short.length === 0, `${theme} /projects ${width}px: header controls below 3 cells tall ${JSON.stringify(short)}`);
+        invariant(await row.first().evaluate((e) => e.matches(".df-label-sm")), `${theme} /projects ${width}px: the phone row is not in the small label`);
+        await selected(page, t, row.first(), `/projects ${width}px phone row`, { marker: false });
+        const other = row.nth(1);
+        const rest = await look(other);
+        await other.hover(); await frames(page);
+        const over = await look(other);
+        invariant(over.bg !== rest.bg && over.fg === t["--fg"] && !over.marker.startsWith('"›"'), `${theme} /projects ${width}px: phone row hover ${JSON.stringify(over)}`);
+        await hoverGeometry(page, other, `${theme} /projects ${width}px: phone row`);
+        await page.mouse.move(0, 0);
+      });
+    }
+    // Header, Menu (320px, where the phone row no longer fits): the core links sit in the Menu panel, an overlay.
+    await withPage({ theme, route: "/projects" }, async (page) => {
+      await page.setViewportSize({ width: 320, height: 812 }); await page.reload({ waitUntil: "networkidle" });
+      const t = await tokens(page);
+      const toggle = page.locator(".site-header__menu .site-header__disclosure-toggle");
+      const cell = await page.evaluate(() => parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--cell-h")));
+      for (const control of [toggle, page.locator(".site-header__settings-button")]) {
+        const h = await control.evaluate((e) => e.getBoundingClientRect().height);
+        invariant(h >= 3 * cell - 0.5, `${theme} /projects 320px: ${await control.evaluate((e) => e.className)} is ${h}px tall`);
+      }
+      await hoverGeometry(page, toggle, `${theme} /projects 320px: Menu`);
+      await page.mouse.move(0, 0);
+      await latch(page, t, toggle, "/projects 320px header menu", async () => { await toggle.focus(); await page.keyboard.press("Enter"); });
+      const links = page.locator(".site-header__menu-panel .site-header__link");
+      await selected(page, t, page.locator('.site-header__menu-panel .site-header__link[aria-current="page"]'), "/projects 320px menu");
+      await overlay(page, t, page.locator(".site-header__menu-panel"), links.nth(1), "/projects 320px Menu");
+      const short = await links.evaluateAll((all) => { const cell = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--cell-h"));
+        return all.map((e) => [e.textContent, e.getBoundingClientRect().height]).filter(([, h]) => h < 3 * cell - 0.5); });
+      invariant(short.length === 0, `${theme} /projects 320px: Menu links below 3 cells tall ${JSON.stringify(short)}`);
+      await toggle.focus(); await page.keyboard.press("Escape"); await frames(page);
+      invariant(await toggle.getAttribute("aria-expanded") === "false", `${theme} /projects 320px: Escape did not close Menu`);
+    });
+    // Dock, desktop: the Projects icon is Selected; its name shows as a label on surface-2 in edge; Settings is a latch.
+    await withPage({ theme, route: "/projects" }, async (page) => {
+      await dockMode(page);
+      const t = await tokens(page);
+      const current = page.locator('.dock-nav-link[aria-current="page"]');
+      invariant(await current.count() === 1, `${theme} /projects dock: ${await current.count()} current links`);
+      await selected(page, t, current, "/projects dock");
+      const home = page.locator(".dock-nav-link").first();
+      await home.hover(); await frames(page);
+      const tip = page.locator(".dock-tooltip");
+      await tip.waitFor();
+      const tl = await tip.evaluate((e) => { const c = getComputedStyle(e); return [e.matches(".df-label"), c.backgroundColor, c.borderTopColor, c.color, c.borderTopLeftRadius]; });
+      invariant(tl[0] && tl[1] === t["--surface-2"] && tl[2] === t["--edge"] && tl[3] === t["--fg-muted"] && tl[4] === "0px", `${theme} /projects dock tooltip ${tl}`);
+      await page.mouse.move(0, 0);
+      const settings = page.locator(".dock-settings-button");
+      await latch(page, t, settings, "/projects dock settings", () => settings.click());
+      invariant(await settings.getAttribute("aria-pressed") === "true", `${theme} /projects: dock settings not pressed while open`);
+    });
+    // Dock, phone (500px): the Explore stack is a latch whose panel is an overlay.
+    await withPage({ theme, route: "/projects" }, async (page) => {
+      await page.setViewportSize({ width: 500, height: VIEW_H });
+      await dockMode(page);
+      const t = await tokens(page);
+      const toggle = page.locator(".dock-explore__toggle");
+      await latch(page, t, toggle, "/projects dock explore", async () => { await toggle.focus(); await page.keyboard.press("Enter"); });
+      await overlay(page, t, page.locator(".dock-explore__panel"), page.locator(".dock-explore__link").first(), "/projects 500px dock Explore");
+      await toggle.focus(); await page.keyboard.press("Escape"); await frames(page);
+      invariant(await toggle.getAttribute("aria-expanded") === "false", `${theme} /projects dock: Escape did not close Explore`);
     });
   }
 
