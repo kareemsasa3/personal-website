@@ -202,3 +202,65 @@ test("T9 Home: every action is a df-control with the model's modifier; component
   assert.deepEqual(bad.map(where), []);
   assert.doesNotMatch(await read(dir + "ExplorationChoiceSection.css"), /--pill-|capsule|#[0-9a-f]{3,8}\b|rgba?\(/i);
 });
+
+test("T10 Projects: filters, dropdown, roster actions and the dialog follow the control model; one chamfered dialog", async () => {
+  const classes = async (f) => [...(await read(f)).matchAll(/className=(?:"([^"]*)"|\{`([^`]*)`\})/g)].map((m) => m[1] ?? m[2]);
+  const has = (c, cls) => c.split(/\s+/).includes(cls);
+  const want = [
+    ["pages/Projects/Projects.tsx", "stat-card", /\bdf-control\b/], ["pages/Projects/Projects.tsx", "close-tech-stack", /\bdf-control\b(?!--)/],
+    ["components/TerminalDropdown/TerminalDropdown.tsx", "terminal-dropdown-trigger", /\bdf-control\b(?!--)/],
+    ["components/TerminalDropdown/TerminalDropdown.tsx", "terminal-dropdown-option", /\bdf-control\b(?!--)/],
+    ["components/ProjectRoster/ProjectRosterItem.tsx", "project-roster__toggle", /\bdf-control--latch\b/],
+    ["components/ProjectRoster/ProjectRosterItem.tsx", "project-roster__action", /\bdf-control\b(?!--)/],
+  ];
+  for (const [f, cls, modifier] of want) {
+    const found = (await classes(f)).filter((c) => has(c, cls));
+    assert.ok(found.length > 0, `${f}: ${cls} not rendered`);
+    for (const c of found) {
+      assert.match(c, /\bdf-control\b/, `${f}: ${c}`); assert.match(c, modifier, `${f}: ${c}`);
+      // A stat card holds a value and a label; the label span carries the label voice, the count is the value.
+      if (cls !== "stat-card") assert.match(c, /(^|\s)df-label(\s|$)/, `${f}: ${c}`);
+    }
+  }
+  const projectClasses = await classes("pages/Projects/Projects.tsx");
+  assert.deepEqual(projectClasses.filter((c) => has(c, "stat-label")), Array(3).fill("stat-label df-label"));
+  assert.deepEqual(projectClasses.filter((c) => has(c, "stat-number")), Array(3).fill("stat-number df-control__value"));
+  // The two filters are Selected by aria-pressed; the coverage card is the one latch.
+  const cards = (await classes("pages/Projects/Projects.tsx")).filter((c) => has(c, "stat-card"));
+  assert.deepEqual(cards.map((c) => has(c, "df-control--latch")), [false, false, true]);
+  // P3-2: exactly one element carries the chamfer, and it is the dialog panel.
+  const projects = await read("pages/Projects/Projects.tsx");
+  assert.deepEqual([...projects.matchAll(/className="([^"]*\bdf-cut-md\b[^"]*)"/g)].map((m) => m[1]), ["tech-stack-content df-cut-md"]);
+  assert.equal((projects.match(/df-cut-md/g) ?? []).length, 1);
+  // §13 Disabled keeps focus: the dropdown never sets the disabled attribute.
+  const dropdown = await read("components/TerminalDropdown/TerminalDropdown.tsx");
+  assert.doesNotMatch(dropdown, /(?<![\w-])disabled=\{/); assert.match(dropdown, /aria-disabled=\{disabled \|\| undefined\}/);
+  assert.match(dropdown, /data-df-active=\{index === highlightedIndex \|\| undefined\}/);
+  // Component rules hold no state look for the listed controls.
+  const listed = /\.(stat-card|terminal-dropdown-trigger|terminal-dropdown-option|project-roster__toggle|project-roster__action(--primary)?|close-tech-stack)(?![\w-])/;
+  const decls = await phase3Decls();
+  const bad = decls.filter((d) => listed.test(innermost(d.selector)) &&
+    /^(color|background|background-color|background-image|border(-[a-z-]+)?|outline(-[a-z-]+)?|box-shadow|transition|transform|padding(-[a-z-]+)?|min-height|font-(size|weight|family)|letter-spacing|opacity)$/.test(d.prop));
+  assert.deepEqual(bad.map(where), []);
+  assert.deepEqual(decls.filter((d) => listed.test(innermost(d.selector)) && /:(hover|active|focus|focus-visible)|\.(open|disabled|highlighted|selected)\b|\[aria-/.test(innermost(d.selector))).map(where), []);
+  // The dialog: scrim from tokens, surface-2 bounded in edge, controls hover to surface-3.
+  const value = (sel, prop) => decls.filter((d) => d.file === "pages/Projects/Projects.css" && innermost(d.selector) === sel && d.prop === prop).map((d) => d.value);
+  assert.deepEqual(value(".tech-stack-modal", "background"), ["var(--df-scrim)"]);
+  assert.deepEqual(value(".tech-stack-content", "background"), ["var(--surface-2)"]);
+  assert.deepEqual(value(".tech-stack-content", "border"), ["var(--stroke-hair) solid var(--edge)"]);
+  assert.deepEqual(value(".tech-stack-content", "--df-ground-up"), ["var(--surface-3)"]);
+  assert.deepEqual(value(".tech-stack-content", "border-radius"), []);
+  // Roster: tags are context labels; no green accent, status modifiers or second reveal remain.
+  const item = await read("components/ProjectRoster/ProjectRosterItem.tsx");
+  assert.match(item, /className="project-roster__tag df-label-sm df-context"/);
+  assert.doesNotMatch(item, /statusModifier|project-roster__status--/);
+  const roster = await read("components/ProjectRoster/ProjectRoster.css");
+  assert.doesNotMatch(roster, /--roster-accent|@keyframes|animation\s*:/);
+  assert.deepEqual(decls.filter((d) => /\.project-roster__tag(?![\w-])/.test(innermost(d.selector)) &&
+    /^(color|background|background-color|border(-[a-z-]+)?|border-radius|padding|font-(size|weight)|line-height)$/.test(d.prop)).map(where), []);
+  assert.ok(item.indexOf("project-roster__action--primary") < item.indexOf("project-roster__toggle"), "D8: Case study first in its row");
+  // The chamfer rule exists in the grammar with token values only.
+  const chamfer = declarations(await read("styles/darkfield/grammar.css")).filter((d) => /^\.df-cut-md/.test(innermost(d.selector)));
+  assert.ok(chamfer.some((d) => d.prop === "clip-path" && /var\(--cut-md\)/.test(d.value)));
+  assert.ok(chamfer.some((d) => d.prop === "background-color" && d.value === "var(--edge)"));
+});

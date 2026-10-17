@@ -138,11 +138,10 @@ const TerminalDropdown: React.FC<TerminalDropdownProps> = ({
         <button
           type="button"
           role="combobox"
-          className={`terminal-dropdown-trigger df-label ${isOpen ? "open" : ""} ${
-            disabled ? "disabled" : ""
-          }`}
+          className="terminal-dropdown-trigger df-control df-label"
           onClick={handleToggle}
-          disabled={disabled}
+          // §13 Disabled keeps focus so the control can still be read; handleToggle ignores activation.
+          aria-disabled={disabled || undefined}
           ref={triggerRef}
           aria-label={`${label ?? "Select"}: ${displayValue}`}
           aria-controls={isOpen ? menuId : undefined}
@@ -175,9 +174,8 @@ const TerminalDropdown: React.FC<TerminalDropdownProps> = ({
                   aria-selected={getOptionValue(option) === value}
                   tabIndex={-1}
                   type="button"
-                  className={`terminal-dropdown-option df-label ${
-                    index === highlightedIndex ? "highlighted" : ""
-                  } ${getOptionValue(option) === value ? "selected" : ""}`}
+                  className="terminal-dropdown-option df-control df-label"
+                  data-df-active={index === highlightedIndex || undefined}
                   onClick={() => handleOptionClick(option)}
                   onMouseEnter={() => setHighlightedIndex(index)}
                 >

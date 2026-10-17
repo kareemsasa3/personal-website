@@ -8,7 +8,7 @@
 
 .terminal-dropdown-label {
     font-size: 0.875rem;
-    color: var(--terminal-primary, #4CAF50);
+    color: var(--fg-muted);
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -19,40 +19,20 @@
     min-width: 120px;
 }
 
+/* Boundary, colour and states come from .df-control. The value and the arrow sit at either end of a flex row; there
+   the in-flow marker spans the row and centres its glyph. */
 .terminal-dropdown-trigger {
     width: 100%;
-    padding: 0.5rem 1rem;
-    border-radius: 12px;
-    background: transparent;
-    color: var(--terminal-primary, #4CAF50);
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    min-height: 38px;
 }
 
-.terminal-dropdown-trigger:hover:not(.disabled) {
-    border-color: var(--terminal-primary, #4CAF50);
-    background: rgba(0, 255, 0, 0.1);
-}
-
-.terminal-dropdown-trigger:focus {
-    border-color: var(--terminal-primary, #4CAF50);
-    background: rgba(0, 255, 0, 0.1);
-}
-
-.terminal-dropdown-trigger.open {
-    border-color: var(--terminal-primary, #4CAF50);
-    background: rgba(0, 255, 0, 0.15);
-}
-
-.terminal-dropdown-trigger.disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    background: var(--terminal-background, #1a1a1a);
+.terminal-dropdown-trigger::before {
+    align-self: stretch;
+    height: auto;
+    display: flex;
+    align-items: center;
 }
 
 .terminal-dropdown-value {
@@ -63,14 +43,8 @@
 }
 
 .terminal-dropdown-arrow {
-    color: var(--terminal-primary, #4CAF50);
     font-size: 0.8rem;
-    transition: transform 0.3s ease;
     margin-left: 0.5rem;
-}
-
-.terminal-dropdown-trigger.open .terminal-dropdown-arrow {
-    transform: rotate(180deg);
 }
 
 .terminal-dropdown-menu {
@@ -78,10 +52,11 @@
     top: 100%;
     left: 0;
     right: 0;
-    background: var(--terminal-background, #1a1a1a);
-    border: 1px solid var(--terminal-primary, #4CAF50);
+    /* An overlay (§08 Layers and overlays): surface-2 bounded in edge; its options hover one step up. */
+    background: var(--surface-2);
+    border: var(--stroke-hair) solid var(--edge);
     border-top: none;
-    border-radius: 0 0 4px 4px;
+    --df-ground-up: var(--surface-3);
     z-index: 1000;
     max-height: 300px;
     overflow: hidden;
@@ -103,7 +78,11 @@
     font-weight: bold;
 }
 
+/* Each option is a bounded control: a cell of space keeps neighbouring boundaries from doubling into one heavy line. */
 .terminal-dropdown-options {
+    display: grid;
+    gap: var(--space-1);
+    padding: var(--space-1);
     max-height: 200px;
     overflow-y: auto;
 }
@@ -121,50 +100,20 @@
     border-radius: 3px;
 }
 
+/* Boundary, colour and states come from .df-control: Selected by aria-selected, the keyboard cursor by data-df-active.
+   The marker is an in-flow cell, so the option is not a flex row. */
 .terminal-dropdown-option {
+    display: block;
     width: 100%;
-    padding: 0.75rem 1rem;
-    background: transparent;
-    border: none;
-    color: var(--terminal-text-light, #ffffff);
-    font-size: 0.9rem;
-    text-align: left;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-}
-
-.terminal-dropdown-option:hover {
-    background: rgba(0, 255, 0, 0.1);
-    color: var(--terminal-primary, #4CAF50);
-}
-
-.terminal-dropdown-option.highlighted {
-    background: rgba(0, 255, 0, 0.15);
-    color: var(--terminal-primary, #4CAF50);
-}
-
-.terminal-dropdown-option.selected {
-    background: rgba(0, 255, 0, 0.2);
-    color: var(--terminal-primary, #4CAF50);
-    font-weight: bold;
-}
-
-.terminal-dropdown-option.selected .terminal-option-prefix {
-    color: var(--terminal-primary, #4CAF50);
+    text-align: start;
 }
 
 .terminal-option-prefix {
-    color: var(--terminal-text-muted, #666);
-    font-size: 0.8rem;
+    display: inline-block;
     min-width: 1rem;
+    margin-inline-end: var(--space-3);
+    font-size: 0.8rem;
     text-align: center;
-}
-
-.terminal-option-text {
-    flex: 1;
 }
 
 .terminal-dropdown-footer {
@@ -178,16 +127,6 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
-    .terminal-dropdown-trigger {
-        min-height: 44px;
-        font-size: 1rem;
-    }
-
-    .terminal-dropdown-option {
-        padding: 1rem;
-        font-size: 1rem;
-    }
-
     .terminal-dropdown-menu {
         max-height: 250px;
     }
@@ -200,14 +139,6 @@
 @media (max-width: 480px) {
     .terminal-dropdown-label {
         font-size: 0.8rem;
-    }
-
-    .terminal-dropdown-trigger {
-        padding: 0.75rem 1rem;
-    }
-
-    .terminal-dropdown-option {
-        padding: 1.25rem 1rem;
     }
 }
 .terminal-dropdown-menu { right: auto; width: max-content; min-width: 100%; max-width: calc(100vw - 2rem); }

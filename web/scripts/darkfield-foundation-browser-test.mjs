@@ -1212,6 +1212,9 @@ if (MODE === "check") {
   // Tasks 9–13 and 15 add entries; prepare(page) brings controls on screen (Settings open, dock mode). Token colours are read from the page.
   const P3_CONTROLS = [
     { route: "/", selectors: [".btn", ".hero-text-link", "a.featured-project-link", ".contact-strip-link", ".exploration-pill"] },
+    { route: "/projects", selectors: [".stat-card", ".terminal-dropdown-trigger", ".project-roster__toggle", ".project-roster__action"] },
+    // The coverage dialog's Close, with the dialog open (a press released over the backdrop must not close it).
+    { route: "/projects", selectors: [".close-tech-stack"], prepare: (page) => page.getByTitle("View technical coverage").click() },
     { route: "/darkfield-404-probe", selectors: [".home-link"] },
     // The error-boundary actions: the Journey route chunk fails to load after a client-side navigation, so its lazy
     // import rejects and the Layout error boundary renders in place of the route.
@@ -1349,6 +1352,51 @@ if (MODE === "check") {
         if (route === "/darkfield-404-probe") invariant(wide.length > 0 && wide.every(([, a]) => a === "centred"), `${theme} ${route}: 404 and error actions are not centred ${JSON.stringify(wide)}`);
       });
     }
+  }
+
+  // Phase 3 Task 10 (§13): the dropdown's options. Selecting one closes the menu, so they are checked here rather than in
+  // P3_CONTROLS: every option is a df-control; the chosen one is Selected; the keyboard cursor (aria-activedescendant)
+  // and the pointer both show the Hover signature; contact shows the inverse; the coverage dialog wears the chamfer.
+  for (const theme of THEMES) {
+    await withPage({ theme, route: "/projects" }, async (page) => {
+      const t = {}; for (const n of ["--edge", "--fg-muted", "--fg", "--signal", "--signal-deep", "--on-signal", "--surface-3"]) t[n] = await tokenRgb(page, n);
+      const trigger = page.locator(".terminal-dropdown-trigger").first();
+      await trigger.focus(); await page.keyboard.press("Enter");
+      const options = page.locator(".terminal-dropdown-option");
+      await options.first().waitFor();
+      const n = await options.count();
+      invariant(n > 1, `${theme} /projects: dropdown shows ${n} options`);
+      for (let i = 0; i < n; i++) invariant(await options.nth(i).evaluate((e) => e.matches(".df-control")), `${theme} /projects: option ${i} is not a df-control`);
+      await page.mouse.move(0, 0); await frames(page);
+      const sel = await options.first().evaluate((e) => e.getAttribute("aria-selected"));
+      invariant(sel === "true", `${theme} /projects: the current option is not aria-selected (${sel})`);
+      const selected = await look(options.first());
+      const node = await options.first().evaluate((e) => getComputedStyle(e, "::after").backgroundColor);
+      invariant(selected.bg === t["--signal-deep"] && selected.b === t["--signal"] && selected.fg === t["--signal"] && node === t["--signal"],
+        `${theme} /projects: selected option ${JSON.stringify(selected)} node ${node}`);
+      const other = options.nth(1);
+      const rest = await look(other);
+      invariant(rest.fg === t["--fg-muted"] && rest.b === t["--edge"] && !rest.marker.startsWith('"›"'), `${theme} /projects: idle option ${JSON.stringify(rest)}`);
+      // Keyboard cursor: ArrowDown twice rests on the second option; the pointer is away.
+      await page.keyboard.press("ArrowDown"); await page.keyboard.press("ArrowDown"); await frames(page);
+      const cursor = await look(other);
+      invariant(await other.evaluate((e) => e.hasAttribute("data-df-active")), `${theme} /projects: keyboard cursor not on option 1`);
+      invariant(cursor.marker.startsWith('"›"') && cursor.bg === t["--surface-3"] && cursor.fg === t["--fg"] && cursor.b === t["--fg-muted"],
+        `${theme} /projects: keyboard cursor option ${JSON.stringify(cursor)}`);
+      const first = await look(options.first());
+      invariant(!first.marker.startsWith('"›"'), `${theme} /projects: the cursor left option 0 but it keeps the marker`);
+      await hoverGeometry(page, other, `${theme} /projects ${VIEW_W}px: .terminal-dropdown-option`);
+      await other.hover(); await page.mouse.down(); await frames(page);
+      const down = await look(other);
+      invariant(down.bg === t["--signal"] && down.fg === t["--on-signal"], `${theme} /projects: option pressed ${down.bg} ${down.fg}`);
+      await page.mouse.move(0, 0); await page.mouse.up(); await page.keyboard.press("Escape");
+      // P3-2: the coverage dialog is the one chamfered panel, on surface-2 inside an edge boundary.
+      await page.getByTitle("View technical coverage").click();
+      const dialog = await page.locator(".tech-stack-content").evaluate((e) => { const c = getComputedStyle(e); const b = getComputedStyle(e, "::before");
+        return { clip: c.clipPath, bg: c.backgroundColor, border: c.borderTopColor, radius: c.borderTopLeftRadius, cut: b.backgroundColor, chamfered: document.querySelectorAll(".df-cut-md").length }; });
+      invariant(/polygon/.test(dialog.clip) && dialog.cut === t["--edge"] && dialog.border === t["--edge"] && dialog.radius === "0px" && dialog.chamfered === 1,
+        `${theme} /projects: coverage dialog ${JSON.stringify(dialog)}`);
+    });
   }
 
   // Phase 3 Task 7 (§06): Narrator text is Archivo; uppercase text is Archivo Narrow.

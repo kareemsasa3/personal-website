@@ -1,5 +1,5 @@
 import FocusTrap from "focus-trap-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { countLabel, pluralize } from "../../utils/countLabel";
 import "./Projects.css";
 import ProjectRoster from "../../components/ProjectRoster";
@@ -13,6 +13,9 @@ const Projects = () => {
   const { state, data, stats, handlers, projectsFoundMessage, SORT_OPTIONS } =
     useProjects();
   const [isTechStackVisible, setIsTechStackVisible] = useState(false);
+  // The backdrop closes the dialog only for a press that began on it: a press on Close released over the
+  // backdrop is a drag off the control, which cancels (§13 Activation).
+  const pressOnBackdrop = useRef(false);
   const projects = data.filteredAndSortedProjects;
 
   return (
@@ -91,31 +94,37 @@ const Projects = () => {
 
           <div className="projects-stats">
             <button
-              className="stat-card"
+              className="stat-card df-control"
               onClick={handlers.handleShowAllProjects}
               aria-pressed={state.category === "All" && state.status === "All"}
               title="Show all projects"
             >
-              <span className="stat-number">{projects.length}</span>
-              <span className="stat-label">{pluralize(projects.length, "Project")} listed</span>
+              <span className="stat-card__body">
+                <span className="stat-number df-control__value">{projects.length}</span>
+                <span className="stat-label df-label">{pluralize(projects.length, "Project")} listed</span>
+              </span>
             </button>
             <button
-              className="stat-card"
+              className="stat-card df-control"
               onClick={handlers.handleShowLiveProjects}
               aria-pressed={state.status === "Live"}
               title="Show live projects"
             >
-              <span className="stat-number">{stats.liveProjectCount}</span>
-              <span className="stat-label">Live {pluralize(stats.liveProjectCount, "project")}</span>
+              <span className="stat-card__body">
+                <span className="stat-number df-control__value">{stats.liveProjectCount}</span>
+                <span className="stat-label df-label">Live {pluralize(stats.liveProjectCount, "project")}</span>
+              </span>
             </button>
             <button
-              className="stat-card"
+              className="stat-card df-control df-control--latch"
               onClick={() => setIsTechStackVisible(true)}
               aria-pressed={isTechStackVisible}
               title="View technical coverage"
             >
-              <span className="stat-number">{data.allTechnologies.length}</span>
-              <span className="stat-label">Technical coverage ↗</span>
+              <span className="stat-card__body">
+                <span className="stat-number df-control__value">{data.allTechnologies.length}</span>
+                <span className="stat-label df-label">Technical coverage ↗</span>
+              </span>
             </button>
           </div>
 
@@ -130,10 +139,15 @@ const Projects = () => {
                       setIsTechStackVisible(false);
                     }
                   }}
-                  onClick={() => setIsTechStackVisible(false)}
+                  onPointerDown={(event) => {
+                    pressOnBackdrop.current = event.target === event.currentTarget;
+                  }}
+                  onClick={(event) => {
+                    if (event.target === event.currentTarget && pressOnBackdrop.current) setIsTechStackVisible(false);
+                  }}
                 >
                   <div
-                    className="tech-stack-content"
+                    className="tech-stack-content df-cut-md"
                     onClick={(e) => e.stopPropagation()}
                     role="dialog"
                     aria-modal="true"
@@ -142,7 +156,7 @@ const Projects = () => {
                     <div className="tech-stack-header">
                       <h3 id="tech-stack-title">Technical Coverage</h3>
                       <button
-                        className="close-tech-stack"
+                        className="close-tech-stack df-control df-label"
                         onClick={() => setIsTechStackVisible(false)}
                         aria-label="Close technology list"
                       >

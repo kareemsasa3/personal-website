@@ -12,7 +12,6 @@ with globally bundled card/badge styles.
 */
 
 .project-roster {
-    --roster-accent: var(--terminal-primary, #4CAF50);
     --roster-rule: var(--rule);
 
     width: 100%;
@@ -84,32 +83,20 @@ with globally bundled card/badge styles.
     min-width: 0;
 }
 
-/* Separator belongs to the preceding item so a wrapped line can never start with one. */
-.project-roster__meta-item:not(:last-child)::after {
-    content: '';
-    display: inline-block;
-    flex: 0 0 auto;
-    width: 3px;
-    height: 3px;
-    margin-left: 0.9rem;
-    border-radius: 999px;
-    background: var(--fg-muted);
-    opacity: 0.6;
-}
-
+/* Fields are separated by the row's column gap alone (§06 metadata grammar), so a drawn separator never sits beside
+   the Live marker. */
 .project-roster__meta-item:first-child {
-    color: var(--roster-accent);
+    color: var(--fg-muted);
 }
 
 .project-roster__status {
-    gap: 0.45rem;
     white-space: normal;
 }
 
 .project-roster__title {
     grid-area: title;
     margin: 0;
-    color: var(--roster-accent);
+    color: var(--fg);
     font-size: 1.45rem;
     font-weight: 700;
     line-height: 1.2;
@@ -134,29 +121,11 @@ with globally bundled card/badge styles.
     min-width: 0;
 }
 
+/* Boundary, colour and states come from .df-control: the toggle is a latch (aria-expanded), the actions plain idle
+   controls, Case study first in the row (D8). */
 .project-roster__toggle,
 .project-roster__action {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.45rem;
-    min-height: 2.5rem;
-    padding: 0.5rem 1rem;
-    border-radius: 999px;
-    font-family: inherit;
-    font-size: 0.82rem;
-    font-weight: 700;
-    letter-spacing: 0.03em;
-    text-decoration: none;
     white-space: nowrap;
-    cursor: pointer;
-    transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
-}
-
-.project-roster__toggle {
-    border: 1px solid var(--roster-accent);
-    background: var(--roster-accent);
-    color: var(--terminal-background, #1a1a1a);
 }
 
 .project-roster__toggle-icon {
@@ -168,51 +137,12 @@ with globally bundled card/badge styles.
     line-height: 1;
 }
 
-.project-roster__action {
-    border: 1px solid var(--rule);
-    background: color-mix(in srgb, var(--surface-1) 80%, transparent);
-    color: var(--fg);
-}
-
-.project-roster__action:hover {
-    border-color: var(--roster-accent);
-    color: var(--roster-accent);
-}
-
-.project-roster__action--primary {
-    border-color: color-mix(in srgb, var(--roster-accent) 58%, transparent);
-    background: color-mix(in srgb, var(--roster-accent) 16%, transparent);
-    color: var(--roster-accent);
-}
-
-/* Light: the accent on its own tint is below 4.5:1, so the label takes fg at rest and on hover. */
-[data-theme="light"] .project-roster__action--primary,
-[data-theme="light"] .project-roster__action--primary:hover {
-    color: var(--fg);
-}
-
-.project-roster__toggle:focus-visible,
-.project-roster__action:focus-visible {
-    outline: 2px solid var(--roster-accent);
-    outline-offset: 3px;
-}
-
 /* Detail panel -------------------------------------------------------- */
 
 .project-roster__detail {
     margin-top: 1.4rem;
     padding: 0.25rem 0 0.25rem 1.25rem;
-    border-left: 2px solid var(--roster-accent);
-}
-
-.project-roster__detail:not([hidden]) {
-    animation: project-roster-reveal var(--dur-base) var(--ease-settle);
-}
-
-/* §12: state transition (create) · project detail opened */
-@keyframes project-roster-reveal {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    border-left: 2px solid var(--rule);
 }
 
 .project-roster__description {
@@ -236,7 +166,7 @@ with globally bundled card/badge styles.
 
 .project-roster__detail-heading {
     margin: 0 0 0.7rem;
-    color: var(--roster-accent);
+    color: var(--fg-muted);
     font-size: 0.85rem;
 }
 
@@ -247,23 +177,16 @@ with globally bundled card/badge styles.
     list-style: none;
 }
 
+/* Tags are context labels (D7): voice and colour come from .df-label-sm and .df-context; the list gap keeps them apart. */
 .project-roster__tags {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.4rem;
+    gap: var(--space-3);
 }
 
 .project-roster__tag {
     display: inline-flex;
     max-width: 100%;
-    padding: 0.28rem 0.6rem;
-    border: 1px solid color-mix(in srgb, var(--roster-accent) 55%, transparent);
-    border-radius: 4px;
-    background: color-mix(in srgb, var(--roster-accent) 10%, transparent);
-    color: var(--fg);
-    font-size: 0.8rem;
-    font-weight: 500;
-    line-height: 1.25;
     overflow-wrap: anywhere;
 }
 
@@ -288,7 +211,7 @@ with globally bundled card/badge styles.
     width: 0.35rem;
     height: 0.35rem;
     border-radius: 999px;
-    background: var(--roster-accent);
+    background: var(--fg-muted);
 }
 
 .project-roster__detail-actions {
@@ -335,8 +258,6 @@ with globally bundled card/badge styles.
 
     .project-roster__toggle,
     .project-roster__action {
-        min-height: 44px;
-        padding: 0.6rem 1rem;
         white-space: normal;
     }
 
@@ -351,14 +272,8 @@ with globally bundled card/badge styles.
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .project-roster__item,
-    .project-roster__toggle,
-    .project-roster__action {
+    .project-roster__item {
         transition: none;
-    }
-
-    .project-roster__detail:not([hidden]) {
-        animation: none;
     }
 }
 

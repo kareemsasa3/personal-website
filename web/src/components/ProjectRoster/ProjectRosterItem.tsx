@@ -10,9 +10,6 @@ const STATUS_LABELS: Partial<Record<Project["status"], string>> = {
   Development: "In progress",
 };
 
-const statusModifier = (status: string) =>
-  status.toLowerCase().replace(/\s+/g, "-");
-
 interface ProjectRosterDetailProps {
   project: Project;
   detailId: string;
@@ -40,7 +37,7 @@ const ProjectRosterDetail = ({
           </h4>
           <ul className="project-roster__tags" role="list">
             {project.techStack.map((tech) => (
-              <li key={tech} className="project-roster__tag">
+              <li key={tech} className="project-roster__tag df-label-sm df-context">
                 {tech}
               </li>
             ))}
@@ -86,7 +83,7 @@ const ProjectRosterDetail = ({
             href={project.liveUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="project-roster__action"
+            className="project-roster__action df-control df-label"
           >
             Live demo
             <span className="project-roster__sr-only">
@@ -130,9 +127,7 @@ const ProjectRosterItem = ({ project }: ProjectRosterItemProps) => {
             <span className="project-roster__meta-item df-label-sm">{project.category}</span>
             <span className="project-roster__meta-item df-data">{project.date}</span>
             <span
-              className={`project-roster__meta-item project-roster__status project-roster__status--${statusModifier(
-                project.status
-              )} df-label-sm df-context${
+              className={`project-roster__meta-item project-roster__status df-label-sm df-context${
                 statusLabel.toLowerCase() === "live" ? " df-context--live" : ""
               }`}
             >
@@ -145,34 +140,38 @@ const ProjectRosterItem = ({ project }: ProjectRosterItemProps) => {
           <p className="project-roster__deck">{project.shortDescription}</p>
 
           <div className="project-roster__actions">
-            <button
-              type="button"
-              className="project-roster__toggle"
-              aria-expanded={isExpanded}
-              aria-controls={detailId}
-              onClick={() => setIsExpanded((value) => !value)}
-            >
-              {isExpanded ? "Hide details" : "Details"}
-              <span className="project-roster__sr-only">{` for ${project.title}`}</span>
-              <span className="project-roster__toggle-icon" aria-hidden="true">
-                {isExpanded ? "−" : "+"}
-              </span>
-            </button>
+            {/* D8: the primary action is an idle control placed first in the row. */}
             {caseStudy && (
               <Link
                 to={`/case-studies/${caseStudy.slug}`}
-                className="project-roster__action project-roster__action--primary"
+                className="project-roster__action project-roster__action--primary df-control df-label"
               >
                 Case study
                 <span className="project-roster__sr-only">{` for ${project.title}`}</span>
               </Link>
             )}
+            <button
+              type="button"
+              className="project-roster__toggle df-control df-control--latch df-label"
+              aria-expanded={isExpanded}
+              aria-controls={detailId}
+              onClick={() => setIsExpanded((value) => !value)}
+            >
+              {/* The label and its screen-reader suffix share one inline box, so the suffix never sits at the row's start. */}
+              <span className="project-roster__toggle-label">
+                {isExpanded ? "Hide details" : "Details"}
+                <span className="project-roster__sr-only">{` for ${project.title}`}</span>
+              </span>
+              <span className="project-roster__toggle-icon" aria-hidden="true">
+                {isExpanded ? "−" : "+"}
+              </span>
+            </button>
             {project.githubUrl && (
               <a
                 href={project.githubUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="project-roster__action"
+                className="project-roster__action df-control df-label"
               >
                 Code
                 <span className="project-roster__sr-only">
