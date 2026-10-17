@@ -1,8 +1,10 @@
 name: Visual Review
 
 # Advisory before/after screenshots for UI changes. Read-only: no secrets, no
-# deployment, no PR comments. Results are a job summary plus a downloadable
-# artifact; see web/scripts/visual-review.mjs for capture and route selection.
+# deployment, no PR writes. Results are a job summary plus an artifact, which
+# visual-review-publish.yml (a separate, trusted workflow_run) posts into the
+# PR; see web/scripts/visual-review.mjs for capture and route selection.
+# Capture failures are reported, not failed: the check stays advisory.
 
 on:
   pull_request:
@@ -55,6 +57,9 @@ jobs:
           node-version: 20
           cache: npm
           cache-dependency-path: web/package-lock.json
+
+      - name: Test the visual-review harness
+        run: node --test web/scripts/visual-review.test.mjs web/scripts/visual-review-publish.test.mjs
 
       - name: Resolve base and head revisions
         id: revisions
@@ -121,7 +126,7 @@ jobs:
         env:
           MODE: ${{ steps.revisions.outputs.mode }}
         run: |
-          node web/scripts/visual-review.mjs --plan-only --mode "$MODE" \
+          node web/scripts/visual-review.mjs --plan-only --mode "$MODE" --out "$RUNNER_TEMP/visual-review" \
             --changed-files "$RUNNER_TEMP/changed-files.txt" --routes "$INPUT_ROUTES" --theme "$INPUT_THEME"
 
       - name: Build head
@@ -169,7 +174,11 @@ jobs:
           done
 
       - name: Capture and compare
+        id: capture
         if: steps.plan.outputs.capture == 'true'
+        # Advisory: failed or uncompared pairs are reported in the summary,
+        # annotations, and the published PR comment, but do not fail the check.
+        continue-on-error: true
         env:
           MODE: ${{ steps.revisions.outputs.mode }}
           BASE_SHA: ${{ steps.revisions.outputs.base_sha }}
@@ -182,8 +191,14 @@ jobs:
             --base-sha "$BASE_SHA" --head-sha "$HEAD_SHA" \
             --playwright "$RUNNER_TEMP/playwright/node_modules/playwright/index.mjs"
 
+      - name: Flag an incomplete visual review
+        if: steps.capture.outcome == 'failure'
+        run: echo "::warning title=Visual review incomplete::Some pairs could not be captured or compared cleanly. See the job summary; this check is advisory."
+
+      # Always uploaded, so the publisher can replace a PR's earlier screenshots
+      # even when this run captured nothing.
       - name: Upload screenshots and report
-        if: ${{ !cancelled() && steps.plan.outputs.capture == 'true' }}
+        if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v7
         with:
           name: visual-review-${{ github.run_id }}-${{ github.run_attempt }}

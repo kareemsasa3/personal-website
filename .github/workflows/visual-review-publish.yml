@@ -1,0 +1,71 @@
+name: Visual Review Publish
+
+# Posts a Visual Review run's screenshots into its pull request as one comment
+# with inline before/after/diff images, edited in place on every run.
+#
+# Security boundary: workflow_run always runs this file and its script from the
+# default branch, and nothing here checks out, installs, or executes pull
+# request code. The downloaded artifact was produced by pull request code, so
+# web/scripts/visual-review-publish.mjs validates it as untrusted data. Images
+# are committed to the visual-review-assets branch and referenced by commit SHA.
+
+on:
+  workflow_run:
+    workflows: ["Visual Review"]
+    types: [completed]
+
+permissions:
+  actions: read
+  contents: write
+  pull-requests: write
+  statuses: write
+
+concurrency:
+  group: visual-review-publish-${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    # A cancelled capture was superseded by a newer push, whose run publishes.
+    if: github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.conclusion != 'cancelled'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out the publisher from the default branch
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+          sparse-checkout: web/scripts/visual-review-publish.mjs
+          sparse-checkout-cone-mode: false
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 20
+
+      - name: Download screenshots and report
+        id: download
+        # A run that failed before uploading has no artifact; the publisher then
+        # posts an explicit no-screenshots notice instead.
+        continue-on-error: true
+        uses: actions/download-artifact@v8
+        with:
+          name: visual-review-${{ github.event.workflow_run.id }}-${{ github.event.workflow_run.run_attempt }}
+          path: ${{ runner.temp }}/visual-review
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+
+      - name: Publish to the pull request
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
+          RUN_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          RUN_URL: ${{ github.event.workflow_run.html_url }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          HEAD_REPOSITORY: ${{ github.event.workflow_run.head_repository.full_name }}
+          PUBLISH_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          ARTIFACT_DIR: ${{ runner.temp }}/visual-review
+          ARTIFACT_DOWNLOADED: ${{ steps.download.outcome == 'success' }}
+        run: node web/scripts/visual-review-publish.mjs
