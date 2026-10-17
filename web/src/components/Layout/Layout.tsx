@@ -30,7 +30,7 @@ const FrozenOutlet = () => {
 const Layout = () => {
   const location = useLocation();
   const navigationType = useNavigationType();
-  const { mainContentAreaRef } = useLayoutContext();
+  const { mainContentAreaRef, sections } = useLayoutContext();
   const { navMode } = useNavigationMode();
   const pendingScrollReset = useRef(false);
   const reduce = useReducedMotion();
@@ -65,7 +65,8 @@ const Layout = () => {
       <AppBackground />
 
       {/* This is now the top-level container for all INTERACTIVE content */}
-      <div className={`layout-foreground nav-mode-${navMode}`}>
+      {/* has-section-rail: the page lists its sections, so the rail shows and the content clears it. */}
+      <div className={`layout-foreground nav-mode-${navMode}${sections.length > 0 ? " has-section-rail" : ""}`}>
         <GlobalScrollProgress />
         <SiteNavigation />
         <GlobalSectionNavigation />

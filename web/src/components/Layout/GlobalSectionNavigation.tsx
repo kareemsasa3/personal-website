@@ -132,15 +132,14 @@ const GlobalSectionNavigation = () => {
         {sections.map((section: PageSection) => (
           <li key={section.id}>
             <button
-              className={`nav-dot ${
-                activeSection === section.id ? "active" : ""
-              }`}
+              type="button"
+              className="nav-dot df-control"
               onClick={() => scrollToSection(section.id)}
               aria-label={`Go to ${section.label} section`}
               aria-current={activeSection === section.id ? "location" : undefined}
               title={section.label}
             >
-              <span className="dot-tooltip">{section.label}</span>
+              <span className="dot-tooltip df-label">{section.label}</span>
             </button>
           </li>
         ))}

@@ -32,12 +32,14 @@ const SAMPLER_SELECTORS = ["main p", "main li", "h1", "h2", "h3", "a", "button",
 // The last five cover the r8 contrast repairs: states and elements the route-load sampler does not
 // reach, and the 404 heading's large-text floor. min is 4.5 unless set (WCAG 3:1 for large text).
 // rendered: measure against the rendered pixels; the header's backdrop filter is not a colour stack.
+// prepare: the pair is not on screen at load (Settings is closed); it is measured on its route once prepare(page) has
+// brought it on screen, after the route pass (Phase 3 Task 12).
 const PAIRS = [
   { selector: ".btn-primary" }, { selector: ".btn-outline", hover: true },
   { selector: ".work-contact-link.primary" }, { selector: ".work-dates", hover: true },
   { selector: ".tech-tag", hover: true }, { selector: ".site-header__link.active" },
   { selector: ".modal-close", hover: true }, { selector: ".toast-close", hover: true },
-  { selector: '.settings-segmented__button[aria-pressed="true"]' },
+  { selector: '.settings-segmented__button[aria-pressed="true"]', route: "/", prepare: (page) => openSettings(page) },
   { selector: ".error-button.primary" }, { selector: ".home-link" },
   { selector: ".project-roster__action--primary", hover: true },
   { selector: ".project-media__bar .project-media__control", hover: true },
@@ -230,6 +232,14 @@ const withPage = async ({ theme, route = "/", javaScriptEnabled = true, forcedCo
 // the waits below return at once there.
 const frozen = new WeakSet();
 const frames = (page) => (frozen.has(page) ? null : page.evaluate(() => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)))));
+// Opens Settings from whichever opener the navigation mode shows and waits until the panel has faded in.
+const openSettings = async (page) => {
+  await page.locator(".site-header__settings-button:visible, .dock-settings-button:visible").first().click();
+  await page.locator(".settings-content").waitFor();
+  await page.waitForFunction(() => [".settings-sidebar", ".settings-content"].every((s) => getComputedStyle(document.querySelector(s)).opacity === "1"));
+  await page.mouse.move(0, 0);
+  await frames(page);
+};
 // Scrolls an element to the middle of the viewport, instantly (r10). Its scroll position then depends only on
 // the element, never on where the previous step left the page, so both builds capture it alike; the site's
 // smooth scrolling would otherwise animate the scroll. An element in a fixed or sticky container is always in
@@ -784,6 +794,7 @@ for (const theme of THEMES) {
       // Transitions off before any hover (r10): a hover measured mid-transition depends on timing.
       await page.addStyleTag({ content: "*, *::before, *::after { transition: none !important; }" });
       for (const pair of PAIRS) {
+        if (pair.prepare) continue;
         const target = page.locator(pair.selector).first();
         if (!(await target.count()) || !(await target.isVisible())) continue;
         uncovered.delete(pair.selector);
@@ -852,6 +863,18 @@ for (const theme of THEMES) {
           if (exit) await exit();
         }
       }
+    });
+  }
+  // Pairs a route load does not render, measured at rest once prepare(page) has brought them on screen.
+  for (const pair of PAIRS.filter((p) => p.prepare)) {
+    await withPage({ theme, route: pair.route }, async (page) => {
+      await pair.prepare(page);
+      await page.addStyleTag({ content: "*, *::before, *::after { transition: none !important; }" });
+      const target = page.locator(pair.selector).first();
+      if (!(await target.count()) || !(await target.isVisible())) return;
+      uncovered.delete(pair.selector);
+      const [result] = await contrastOf(page, pair.selector, { all: false, rendered: pair.rendered, enter: AT_REST });
+      if (result) record("pair", theme, pair.route, pair.selector, result, { limit: pair.min ?? 4.5 });
     });
   }
 }
@@ -1229,6 +1252,16 @@ if (MODE === "check") {
     { route: "/", width: 768, selectors: [".site-header__disclosure-toggle"], relayout: true },
     { route: "/projects", prepare: dockMode, selectors: [".dock-nav-link", ".dock-settings-button"], narrow: 500, relayout: true },
     { route: "/projects", prepare: dockMode, width: 500, selectors: [".dock-explore__toggle"], narrow: 500, relayout: true },
+    // Task 12: Settings, open. Without reduced motion, so the Background animation switch is operable (its Disabled
+    // state under reduced motion is checked below). At 375px Navigation Style is gone (no dock), so relayout compares the
+    // controls shown at both widths. The dock tuning disclosure exists only in dock mode, from 430px.
+    // Transitions are switched off once the panel is open, so each state is read at its end, not mid-way.
+    { route: "/", prepare: async (page) => { await openSettings(page); await page.addStyleTag({ content: "*, *::before, *::after { transition: none !important; }" }); },
+      reducedMotion: "no-preference", relayout: true,
+      selectors: [".settings-close", ".settings-action", ".settings-segmented__button", ".setting-switch"] },
+    { route: "/", prepare: async (page) => { await dockMode(page); await openSettings(page); }, selectors: [".settings-disclosure__toggle"], narrow: 500, relayout: true },
+    // The section rail is not rendered at phone widths (wideOnly: checked absent there instead).
+    { route: "/case-studies/aether", selectors: [".nav-dot"], wideOnly: true },
     // The error-boundary actions: the Journey route chunk fails to load after a client-side navigation, so its lazy
     // import rejects and the Layout error boundary renders in place of the route.
     { route: "/darkfield-404-probe", selectors: [".error-button"], prepare: async (page) => {
@@ -1243,6 +1276,7 @@ if (MODE === "check") {
     fg: c.color, r: c.borderTopLeftRadius, marker: getComputedStyle(e, "::before").content, card: e.matches(".df-control--card"),
     light: e.matches(".df-control--light"),
     sel: e.matches('[aria-current]:not([aria-current="false"]), [aria-selected="true"], [aria-pressed="true"]:not(.df-control--latch)'),
+    on: e.matches('.df-control--latch:is([aria-pressed="true"], [aria-checked="true"], [aria-expanded="true"])'),
     off: e.matches(':disabled, [aria-disabled="true"], .df-control--unavailable') }; });
   // Where the label starts, and where the ::before marker's box ends. A pseudo-element has no rect: an absolute marker
   // is located from its offsets; an in-flow marker ends where an empty probe placed right after it begins, less the
@@ -1277,8 +1311,8 @@ if (MODE === "check") {
     invariant(Math.abs(hover.marker - hover.left) <= 0.5, `${where}: hover marker ends at ${hover.marker}, label starts at ${hover.left}`);
   };
   for (const theme of THEMES) {
-    for (const { route, prepare, selectors, width = VIEW_W, narrow = 375, relayout = false } of P3_CONTROLS) {
-      await withPage({ theme, route }, async (page) => {
+    for (const { route, prepare, selectors, width = VIEW_W, narrow = 375, relayout = false, reducedMotion = "reduce", wideOnly = false } of P3_CONTROLS) {
+      await withPage({ theme, route, reducedMotion }, async (page) => {
         if (width !== VIEW_W) { await page.setViewportSize({ width, height: VIEW_H }); await frames(page); }
         if (prepare) await prepare(page);
         let narrowChecked = 0;
@@ -1299,7 +1333,8 @@ if (MODE === "check") {
             const rest = await look(el);
             invariant(rest.r === "0px", `${theme} ${route}: ${selector} radius ${rest.r}`);
             if (rest.off) continue;
-            if (!rest.sel && !rest.card) invariant(rest.fg === t["--fg-muted"], `${theme} ${route}: ${selector} idle label ${rest.fg}`);
+            // A latch that is on shows its label in fg with the lamp lit (§13 Latched); every other idle label is fg-muted.
+            if (!rest.sel && !rest.card) invariant(rest.fg === t[rest.on ? "--fg" : "--fg-muted"], `${theme} ${route}: ${selector} idle label ${rest.fg}`);
             if (!rest.sel && !rest.light) invariant(rest.b === t["--edge"], `${theme} ${route}: ${selector} idle boundary ${rest.b}`);
             await el.hover(); await frames(page);
             const hover = await look(el);
@@ -1345,6 +1380,7 @@ if (MODE === "check") {
             await el.evaluate((e) => e.dispatchEvent(new PointerEvent("pointerup", { bubbles: true })));
             await page.waitForTimeout(instant * 2);
             invariant(!(await pressed(el)), `${theme} ${route}: ${selector} inverse not released after the re-press`);
+            if (wideOnly) continue;
             // The marker geometry again at a phone width, where layouts stretch and centre controls.
             await page.setViewportSize({ width: narrow, height: 812 }); await resized();
             // Target size at a phone width: every non-card control is at least three cells tall.
@@ -1358,6 +1394,13 @@ if (MODE === "check") {
             if (!relayout || (await there.count())) { await hoverGeometry(page, there, `${theme} ${route} ${narrow}px: ${selector}`); narrowChecked += 1; }
             await page.setViewportSize({ width, height: VIEW_H }); await resized();
           }
+        }
+        if (wideOnly) {
+          // Not rendered at a phone width, so it holds no touch target there.
+          await page.setViewportSize({ width: narrow, height: 812 }); await resized();
+          const shown = await page.evaluate((sels) => [...document.querySelectorAll(sels.join(","))].filter((e) => e.getClientRects().length).length, selectors);
+          invariant(shown === 0, `${theme} ${route} ${narrow}px: ${shown} wide-only controls rendered`);
+          return;
         }
         // Label alignment at a phone width equals the base alignment: centred where the parent centred it, start otherwise.
         invariant(narrowChecked > 0, `${theme} ${route}: no control was checked at ${narrow}px`);
@@ -1564,6 +1607,230 @@ if (MODE === "check") {
       await toggle.focus(); await page.keyboard.press("Escape"); await frames(page);
       invariant(await toggle.getAttribute("aria-expanded") === "false", `${theme} /projects dock: Escape did not close Explore`);
     });
+  }
+
+  // Phase 3 Task 12 (§13, §09): Settings and the section rail. A segmented group's pressed option is Selected (band,
+  // signal boundary, node); the switch is a latch whose lamp shows On; sliders are direct manipulation (a filled square
+  // handle in signal on an edge hairline rail, no fill) and step from the keyboard; controls disabled under reduced motion
+  // stay focusable, show the Disabled signature and ignore activation; the dock tuning disclosure opens and closes from
+  // the keyboard. The rail's cells are square and the current one Selected; the rail is an L1 rule at full opacity; the
+  // cell's name shows as a label on surface-2 in edge.
+  for (const theme of THEMES) {
+    const tokens = async (page) => { const t = {}; for (const n of ["--edge", "--rule", "--fg-muted", "--fg", "--fg-faint", "--signal", "--signal-deep", "--surface-2"]) t[n] = await tokenRgb(page, n); return t; };
+    const settle = async (page) => page.waitForTimeout(2 * (await page.evaluate(() => parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--dur-instant")))));
+    const lamp = (el) => el.evaluate((e) => { const a = getComputedStyle(e, "::after"); return { bg: a.backgroundColor, b: a.borderTopColor }; });
+    const selected = async (el, t, where) => {
+      const l = await look(el);
+      const node = await el.evaluate((e) => { const a = getComputedStyle(e, "::after"); return [a.backgroundColor, a.position, a.width === a.height]; });
+      invariant(l.sel && l.bg === t["--signal-deep"] && l.fg === t["--signal"] && l.b === t["--signal"] && node[0] === t["--signal"] && node[1] === "absolute" && node[2],
+        `${theme} ${where}: Selected ${JSON.stringify(l)} node ${node}`);
+    };
+    // The slider as drawn: pixels of the input's own box, classified by token colour. The handle is the box of signal
+    // (or, disabled, fg-faint) pixels; the rail is the one row of edge pixels outside it; dashes are runs along that row.
+    const slider = async (page, range, t) => {
+      await range.evaluate((e) => e.blur()); await page.mouse.move(0, 0); await frames(page);
+      const png = (await range.screenshot()).toString("base64");
+      return page.evaluate(async ([b64, colours]) => {
+        const img = new Image(); img.src = `data:image/png;base64,${b64}`; await img.decode();
+        const c = document.createElement("canvas"); [c.width, c.height] = [img.width, img.height];
+        const g = c.getContext("2d"); g.drawImage(img, 0, 0);
+        const { data, width, height } = g.getImageData(0, 0, c.width, c.height);
+        const rgb = Object.fromEntries(Object.entries(colours).map(([k, v]) => [k, v.match(/\d+/g).map(Number)]));
+        const is = (i, k) => rgb[k].every((v, j) => Math.abs(data[i * 4 + j] - v) <= 3);
+        const box = (k) => { let [x0, y0, x1, y1, n] = [width, height, -1, -1, 0];
+          for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) if (is(y * width + x, k)) { n++; x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); }
+          return n ? { n, w: x1 - x0 + 1, h: y1 - y0 + 1, x0, x1, y0, y1 } : { n }; };
+        const handle = box("handle");
+        const rows = [];
+        for (let y = 0; y < height; y++) {
+          let [n, runs, prev] = [0, 0, false];
+          for (let x = 0; x < width; x++) {
+            if (handle.n && x >= handle.x0 - 1 && x <= handle.x1 + 1) { prev = false; continue; }
+            const on = is(y * width + x, "edge"); if (on) n++; if (on && !prev) runs++; prev = on;
+          }
+          if (n > width / 8) rows.push({ y, n, runs });
+        }
+        return { handle, rows, signal: box("signal").n ?? 0, width };
+      }, [png, { handle: t.handle, edge: t["--edge"], signal: t["--signal"] }]);
+    };
+    const cell = (page) => page.evaluate(() => parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--cell-h")));
+    // Operable (no reduced motion): Selected options, the switch latch, the slider from the keyboard and as drawn.
+    await withPage({ theme, route: "/", reducedMotion: "no-preference" }, async (page) => {
+      await openSettings(page);
+      const t = await tokens(page);
+      const chosen = page.locator('.settings-segmented__button[aria-pressed="true"]');
+      invariant(await chosen.count() >= 1, `${theme} settings: no pressed segmented option`);
+      for (let i = 0; i < (await chosen.count()); i++) await selected(chosen.nth(i), t, `settings ${await chosen.nth(i).textContent()}`);
+      await chosen.first().hover(); await frames(page);
+      const over = await look(chosen.first());
+      invariant(over.bg === t["--signal-deep"] && over.marker.startsWith('"›"'), `${theme} settings: hover over Selected ${JSON.stringify(over)}`);
+      await page.mouse.move(0, 0);
+      // The other theme option from the keyboard (Space), then back.
+      if (theme !== "mono") {
+        // Held by its label: a locator by aria-pressed would re-resolve to another option once this one is chosen.
+        const label = (await page.locator('.settings-segmented__button[aria-pressed="false"]').first().textContent()).trim();
+        const other = page.locator(`.settings-segmented__button:text-is("${label}")`);
+        const name = label.toLowerCase();
+        await other.focus(); await page.keyboard.press("Space"); await frames(page);
+        invariant(await page.evaluate(() => document.documentElement.dataset.theme) === name && await other.getAttribute("aria-pressed") === "true",
+          `${theme} settings: Space did not choose ${name}`);
+        await page.locator(`.settings-segmented__button:text-is("${theme === "dark" ? "Dark" : "Light"}")`).click(); await page.mouse.move(0, 0); await settle(page);
+      }
+      const sw = page.locator(".setting-switch");
+      invariant(await sw.getAttribute("aria-checked") === "true" && !(await sw.evaluate((e) => e.hasAttribute("disabled"))), `${theme} settings: switch not on`);
+      let l = await lamp(sw);
+      invariant(l.bg === t["--signal"] && l.b === t["--signal"] && (await sw.textContent()).trim() === "On", `${theme} settings: switch lamp on ${JSON.stringify(l)}`);
+      await sw.focus(); await page.keyboard.press("Space"); await settle(page);
+      l = await lamp(sw);
+      invariant(await sw.getAttribute("aria-checked") === "false" && l.bg === "rgba(0, 0, 0, 0)" && l.b === t["--edge"] && (await sw.textContent()).trim() === "Off",
+        `${theme} settings: switch off ${JSON.stringify(l)}`);
+      // Speed is Disabled while the animation is off: focusable, the value holds.
+      const speed = page.locator("#background-motion-speed");
+      invariant(await speed.getAttribute("aria-disabled") === "true" && !(await speed.evaluate((e) => e.hasAttribute("disabled"))), `${theme} settings: speed not aria-disabled while paused`);
+      await speed.focus(); await page.keyboard.press("ArrowRight");
+      invariant(await speed.evaluate((e) => document.activeElement === e) && await speed.getAttribute("aria-valuetext") === "1.0 times", `${theme} settings: disabled speed moved or lost focus`);
+      await sw.focus(); await page.keyboard.press("Space"); await settle(page);
+      invariant(await sw.getAttribute("aria-checked") === "true", `${theme} settings: switch did not turn back on`);
+      // Keyboard path (§13 Direct manipulation): arrows step, Home and End go to the limits.
+      await speed.focus();
+      for (const [key, want] of [["ArrowRight", "1.1 times"], ["End", "2.0 times"], ["ArrowLeft", "1.9 times"], ["Home", "0.5 times"]]) {
+        await page.keyboard.press(key);
+        invariant(await speed.getAttribute("aria-valuetext") === want, `${theme} settings: ${key} gave ${await speed.getAttribute("aria-valuetext")}, not ${want}`);
+      }
+      // Page Up and Page Down move by a larger step (WAI-ARIA Authoring Practices slider pattern), clamped at the limits.
+      for (const [key, want] of [["PageUp", "1.5 times"], ["PageUp", "2.0 times"], ["PageDown", "1.0 times"], ["PageDown", "0.5 times"]]) {
+        await page.keyboard.press(key);
+        invariant(await speed.getAttribute("aria-valuetext") === want, `${theme} settings: ${key} gave ${await speed.getAttribute("aria-valuetext")}, not ${want}`);
+      }
+      for (let i = 0; i < 5; i++) await page.keyboard.press("ArrowRight");
+      const h = await cell(page);
+      const drawn = await slider(page, speed, { ...t, handle: t["--signal"] });
+      invariant(drawn.handle.n && Math.abs(drawn.handle.w - h) <= 1 && Math.abs(drawn.handle.h - h) <= 1 && drawn.handle.n >= 0.8 * h * h,
+        `${theme} settings: slider handle ${JSON.stringify(drawn.handle)}`);
+      invariant(drawn.signal === drawn.handle.n, `${theme} settings: signal outside the handle (a fill?) ${drawn.signal} vs ${drawn.handle.n}`);
+      invariant(drawn.rows.length === 1 && drawn.rows[0].runs <= 2, `${theme} settings: slider rail ${JSON.stringify(drawn.rows)}`);
+      invariant(drawn.rows.length === 1 && drawn.rows[0].y >= drawn.handle.y0 && drawn.rows[0].y <= drawn.handle.y1, `${theme} settings: rail not through the handle ${JSON.stringify(drawn)}`);
+    });
+    // Disabled under reduced motion (§13 Disabled): focusable, dashed edge boundary, faint label, no hover or press response,
+    // activation ignored; the speed slider's rail is dashed and its handle and readout faint.
+    await withPage({ theme, route: "/" }, async (page) => {
+      await openSettings(page);
+      const t = await tokens(page);
+      const sw = page.locator(".setting-switch");
+      invariant(await sw.getAttribute("aria-disabled") === "true" && !(await sw.evaluate((e) => e.hasAttribute("disabled"))) && await sw.getAttribute("aria-checked") === "false",
+        `${theme} settings reduced: switch is not aria-disabled and off`);
+      const rest = await sw.evaluate((e) => { const c = getComputedStyle(e); return [c.borderTopStyle, c.borderTopColor, c.color, c.backgroundColor]; });
+      invariant(rest[0] === "dashed" && rest[1] === t["--edge"] && rest[2] === t["--fg-faint"], `${theme} settings reduced: switch ${rest}`);
+      await sw.hover(); await frames(page);
+      const over = await look(sw);
+      invariant(over.bg === rest[3] && !over.marker.startsWith('"›"'), `${theme} settings reduced: disabled switch responds to hover ${JSON.stringify(over)}`);
+      await page.mouse.down(); await frames(page);
+      invariant(!(await pressed(sw)) && (await look(sw)).bg === rest[3], `${theme} settings reduced: disabled switch shows a press`);
+      await page.mouse.up(); await settle(page);
+      await sw.focus();
+      invariant(await sw.evaluate((e) => document.activeElement === e), `${theme} settings reduced: disabled switch is not focusable`);
+      await page.keyboard.press("Space"); await page.keyboard.press("Enter"); await settle(page);
+      invariant(await sw.getAttribute("aria-checked") === "false", `${theme} settings reduced: disabled switch toggled`);
+      const speed = page.locator("#background-motion-speed");
+      await speed.focus(); await page.keyboard.press("End");
+      invariant(await speed.getAttribute("aria-disabled") === "true" && await speed.evaluate((e) => document.activeElement === e) && await speed.getAttribute("aria-valuetext") === "1.0 times",
+        `${theme} settings reduced: disabled speed moved or lost focus`);
+      const readout = await page.locator(".setting-slider:has(#background-motion-speed) .setting-value").evaluate((e) => getComputedStyle(e).color);
+      invariant(readout === t["--fg-faint"], `${theme} settings reduced: speed readout ${readout}`);
+      const drawn = await slider(page, speed, { ...t, handle: t["--fg-faint"] });
+      const h = await cell(page);
+      invariant(drawn.signal === 0 && drawn.handle.n && Math.abs(drawn.handle.w - h) <= 1 && Math.abs(drawn.handle.h - h) <= 1, `${theme} settings reduced: disabled handle ${JSON.stringify(drawn.handle)} signal ${drawn.signal}`);
+      invariant(drawn.rows.length === 1 && drawn.rows[0].runs >= drawn.width / (8 * h), `${theme} settings reduced: rail not dashed ${JSON.stringify(drawn.rows)}`);
+    });
+    // Dock mode: the dock tuning disclosure is a latch, opened and closed from the keyboard.
+    await withPage({ theme, route: "/" }, async (page) => {
+      await dockMode(page);
+      await openSettings(page);
+      const t = await tokens(page);
+      const toggle = page.locator(".settings-disclosure__toggle");
+      let l = await lamp(toggle);
+      invariant(await toggle.getAttribute("aria-expanded") === "false" && l.b === t["--edge"] && l.bg === "rgba(0, 0, 0, 0)", `${theme} settings: tuning lamp off ${JSON.stringify(l)}`);
+      await toggle.focus(); await page.keyboard.press("Enter"); await settle(page);
+      l = await lamp(toggle);
+      invariant(await toggle.getAttribute("aria-expanded") === "true" && await page.locator("#dock-tuning-panel").isVisible() && l.bg === t["--signal"],
+        `${theme} settings: Enter did not open dock tuning ${JSON.stringify(l)}`);
+      await page.keyboard.press("Space"); await settle(page);
+      invariant(await toggle.getAttribute("aria-expanded") === "false" && await page.locator("#dock-tuning-panel").isHidden(), `${theme} settings: Space did not close dock tuning`);
+    });
+    // The section rail.
+    await withPage({ theme, route: "/case-studies/aether" }, async (page) => {
+      const t = await tokens(page);
+      const dots = page.locator(".nav-dot");
+      const n = await dots.count();
+      invariant(n >= 2, `${theme} rail: ${n} cells`);
+      const cells = await dots.evaluateAll((all) => all.map((e) => { const r = e.getBoundingClientRect(); const c = getComputedStyle(e); return [r.width, r.height, c.borderTopLeftRadius, c.opacity]; }));
+      invariant(cells.every(([w, h, r, o]) => w === h && r === "0px" && o === "1"), `${theme} rail: cells ${JSON.stringify(cells)}`);
+      const current = page.locator('.nav-dot[aria-current="location"]');
+      invariant(await current.count() === 1, `${theme} rail: ${await current.count()} current cells`);
+      await selected(current, t, "rail current");
+      const rule = await page.locator(".nav-dots").evaluate((e) => { const b = getComputedStyle(e, "::before"); return [b.backgroundColor, b.opacity, b.width, getComputedStyle(document.documentElement).getPropertyValue("--stroke-hair").trim()]; });
+      invariant(rule[0] === t["--rule"] && rule[1] === "1" && rule[2] === rule[3], `${theme} rail: rule ${rule}`);
+      const second = dots.nth(1);
+      const tip = second.locator(".dot-tooltip");
+      invariant(!(await tip.isVisible()), `${theme} rail: tooltip shown at rest`);
+      const idle = await look(second);
+      invariant(!idle.sel && idle.b === t["--edge"] && idle.fg === t["--fg-muted"], `${theme} rail: idle cell ${JSON.stringify(idle)}`);
+      await second.hover(); await frames(page); await page.waitForTimeout(300);
+      const hovered = await look(second);
+      invariant(hovered.bg !== idle.bg && hovered.b === t["--fg-muted"] && hovered.marker.startsWith('"›"'), `${theme} rail: hovered cell ${JSON.stringify(hovered)}`);
+      const tl = await tip.evaluate((e) => { const c = getComputedStyle(e); return [e.matches(".df-label"), c.visibility, c.opacity, c.backgroundColor, c.borderTopColor, c.color, c.borderTopLeftRadius]; });
+      invariant(tl[0] && tl[1] === "visible" && tl[2] === "1" && tl[3] === t["--surface-2"] && tl[4] === t["--edge"] && tl[5] === t["--fg-muted"] && tl[6] === "0px", `${theme} rail: tooltip ${tl}`);
+      await page.mouse.move(0, 0);
+      // From the keyboard: Enter on another cell makes it the current one.
+      await second.focus(); await page.keyboard.press("Enter");
+      await page.waitForFunction(() => document.querySelectorAll(".nav-dot")[1].getAttribute("aria-current") === "location");
+    });
+  }
+
+  // Phase 3 Task 12 (§08): the section rail never covers page content. On every route that renders it, at widths where it
+  // shows, with a fine and a coarse pointer (the coarse cell is larger), no rail cell intersects visible text or media in main
+  // at any scroll position: the page is stepped through in half-viewport scrolls.
+  const RAIL_ROUTES = ["/case-studies/aether", "/case-studies/erebus", "/case-studies/arachne", "/case-studies/where-the-specification-lived", "/experience", "/journey"];
+  for (const coarse of [false, true]) for (const width of [820, 1024, 1280, 1440]) {
+    const context = await browser.newContext({ viewport: { width, height: VIEW_H }, reducedMotion: "reduce", hasTouch: coarse, isMobile: coarse });
+    await context.addInitScript((t) => localStorage.setItem("theme", t), THEMES[0]);
+    const page = await context.newPage();
+    page.on("pageerror", (error) => errors.push(`rail clearance ${width}px: ${error.message}`));
+    try {
+      for (const route of RAIL_ROUTES) {
+        await page.goto(`${base}${route}`, { waitUntil: "networkidle" });
+        await page.locator(".nav-dot").first().waitFor();
+        const hits = await page.evaluate(async (isCoarse) => {
+          if (matchMedia("(pointer: coarse)").matches !== isCoarse) return [`pointer: coarse is ${!isCoarse}`];
+          const pause = () => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
+          const seen = (el) => el.checkVisibility({ opacityProperty: true, visibilityProperty: true });
+          const meets = (a, b) => a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
+          // The visible main: the static route shell keeps a hidden one in the document.
+          const main = [...document.querySelectorAll("main")].find((m) => m.checkVisibility());
+          if (!main) return ["no visible main"];
+          const out = new Set();
+          for (let y = 0; ; y += innerHeight / 2) {
+            scrollTo({ top: y, behavior: "instant" }); await pause();
+            const cells = [...document.querySelectorAll(".nav-dot")].filter(seen).map((e) => e.getBoundingClientRect());
+            if (!cells.length) return ["no rail cell shown"];
+            const boxes = [];
+            const walker = document.createTreeWalker(main, NodeFilter.SHOW_TEXT);
+            for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+              if (!n.textContent.trim() || !seen(n.parentElement)) continue;
+              const r = document.createRange(); r.selectNodeContents(n);
+              for (const b of r.getClientRects()) boxes.push([n.textContent.trim().slice(0, 24), b]);
+            }
+            for (const m of main.querySelectorAll("img, video, canvas, svg, iframe")) if (seen(m)) boxes.push([m.tagName.toLowerCase(), m.getBoundingClientRect()]);
+            for (const [what, b] of boxes) if (b.width > 0 && b.height > 0 && cells.some((c) => meets(c, b))) out.add(`${what} @${Math.round(scrollY)}`);
+            if (y + innerHeight >= document.documentElement.scrollHeight) break;
+          }
+          return [...out];
+        }, coarse);
+        invariant(hits.length === 0, `${coarse ? "coarse" : "fine"} ${width}px ${route}: the rail covers ${hits.length} ${JSON.stringify(hits.slice(0, 6))}`);
+      }
+    } finally {
+      await context.close();
+    }
   }
 
   // Phase 3 Task 7 (§06): Narrator text is Archivo; uppercase text is Archivo Narrow.

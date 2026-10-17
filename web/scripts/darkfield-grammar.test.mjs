@@ -330,3 +330,98 @@ test("T11 header and dock: navigation follows the control model; the dock's dots
   const nav = await read("components/Navigation/SiteNavigation.css");
   assert.match(nav, /\.site-header__brand-mark,\s*\.site-header__settings-button\s*\{\s*width:\s*2\.15rem;\s*\}/);
 });
+
+test("T12 settings and section rail: controls follow the model; the switch has no track; the slider is direct manipulation; the rail is an L1 rule", async () => {
+  const classes = async (f) => [...(await read(f)).matchAll(/className=(?:"([^"]*)"|\{`([^`]*)`\})/g)].map((m) => m[1] ?? m[2]);
+  const has = (c, cls) => c.split(/\s+/).includes(cls);
+  const S = "components/SettingsPanel/";
+  const RAIL = "components/Layout/GlobalSectionNavigation";
+  // [file, class, modifier, carries df-label]: icon-only and unlabelled cells have no visible label of their own.
+  const want = [
+    [S + "SettingsPanel.tsx", "settings-close", /\bdf-control\b(?!--)/, false],
+    [S + "SettingsPanel.tsx", "settings-action", /\bdf-control\b(?!--)/, true],
+    [S + "SettingsPanel.tsx", "settings-disclosure__toggle", /\bdf-control--latch\b/, true],
+    [S + "SettingsControls.tsx", "settings-segmented__button", /\bdf-control\b(?!--)/, true],
+    [S + "SettingsControls.tsx", "setting-switch", /\bdf-control--latch\b/, true],
+    [S + "BuildIdentifier.tsx", "settings-build__link", /\bdf-control--light\b/, false],
+    [RAIL + ".tsx", "nav-dot", /\bdf-control\b(?!--)/, false],
+  ];
+  for (const [f, cls, modifier, label] of want) {
+    const found = (await classes(f)).filter((c) => has(c, cls));
+    assert.ok(found.length > 0, `${f}: ${cls} not rendered`);
+    for (const c of found) {
+      assert.match(c, /\bdf-control\b/, `${f}: ${c}`); assert.match(c, modifier, `${f}: ${c}`);
+      assert.equal(/(?<![\w-])df-label(?![\w-])/.test(c), label, `${f}: ${c}`);
+    }
+  }
+  // State is ARIA: Selected by aria-pressed (segmented) and aria-current (rail), latches by aria-checked and aria-expanded.
+  const controls = await read(S + "SettingsControls.tsx");
+  const rail = await read(RAIL + ".tsx");
+  assert.match(controls, /aria-pressed=\{option\.value === value\}/);
+  assert.match(rail, /aria-current=\{activeSection === section\.id \? "location" : undefined\}/);
+  assert.deepEqual((await classes(RAIL + ".tsx")).filter((c) => /\bactive\b/.test(c)), []);
+  assert.match(rail, /className="dot-tooltip df-label"/);
+  // §13 Disabled keeps focus: the switch and sliders set aria-disabled, never the disabled attribute, and their handlers
+  // ignore activation while disabled.
+  assert.doesNotMatch(controls, /(?<![\w-])disabled=\{/);
+  assert.equal((controls.match(/aria-disabled=\{disabled \|\| undefined\}/g) ?? []).length, 2);
+  assert.equal((controls.match(/if \(!disabled\) onChange\(/g) ?? []).length, 2);
+  // Made dead here: the switch track and thumb, the slider's progress fill, the Reset fault hue, the disclosure caret.
+  assert.doesNotMatch(controls, /setting-switch__(track|thumb)|--range-fill|CSSProperties/);
+  assert.doesNotMatch(await read(S + "SettingsPanel.tsx"), /faChevronRight|settings-disclosure__icon/);
+  const css = await read(S + "SettingsPanel.css");
+  assert.doesNotMatch(css, /--range-|setting-switch__(track|thumb)|--settings-danger|settings-disclosure__icon|rgba?\(|#[0-9a-f]{3,8}\b/i);
+  // Component rules hold no state look for the listed controls (the rule's subject compound names the class).
+  const listed = /\.(settings-close|settings-action(--danger)?|settings-segmented__button|setting-switch|settings-disclosure__toggle|settings-build__link|nav-dot)(?![\w-])[^\s>+~]*$/;
+  const decls = (await phase3Decls()).filter((d) => d.file.startsWith(S) || d.file.startsWith(RAIL));
+  // The rail cell's marker sits outside the cell, on the field, so it keeps fg rather than inherit the pressed label colour.
+  const MARKER = (d) => innermost(d.selector) === ".nav-dot::before" && d.prop === "color" && d.value === "var(--fg)";
+  const bad = decls.filter((d) => listed.test(innermost(d.selector)) && !MARKER(d) &&
+    /^(color|background|background-color|background-image|border(-[a-z-]+)?|outline(-[a-z-]+)?|box-shadow|transition|transform|padding(-[a-z-]+)?|min-height|font|font-(size|weight|family)|line-height|letter-spacing|opacity|cursor)$/.test(d.prop));
+  assert.deepEqual(bad.map(where), []);
+  assert.deepEqual(decls.filter((d) => listed.test(innermost(d.selector)) && /:(hover|active|focus|focus-visible|disabled)|\.(active)\b|\[aria-/.test(innermost(d.selector))).map(where), []);
+  // The panel's controls hover one step up from surface-2.
+  const value = (sel, prop) => decls.filter((d) => innermost(d.selector) === sel && d.prop === prop).map((d) => d.value);
+  assert.deepEqual(value(".settings-panel", "--df-ground-up"), ["var(--surface-3)"]);
+  // The segmented group holds no frame of its own.
+  assert.deepEqual(decls.filter((d) => innermost(d.selector) === ".settings-segmented" && /^(border|background|border-radius|padding)/.test(d.prop)).map(where), []);
+  // §13 Direct manipulation: a filled square handle in signal on an edge hairline rail; no progress fill.
+  const range = decls.filter((d) => /^\.setting-range/.test(innermost(d.selector)));
+  assert.deepEqual(range.filter((d) => /gradient|--range-/.test(d.value) || d.prop.startsWith("--range-")).map(where), []);
+  for (const thumb of [".setting-range::-webkit-slider-thumb", ".setting-range::-moz-range-thumb"]) {
+    assert.deepEqual(value(thumb, "background-color"), ["var(--signal)"], thumb);
+    assert.deepEqual(value(thumb, "border-radius"), ["var(--radius-0)"], thumb);
+    assert.deepEqual(value(thumb, "width"), value(thumb, "height"), thumb);
+  }
+  for (const track of [".setting-range::-webkit-slider-runnable-track", ".setting-range::-moz-range-track"]) {
+    assert.deepEqual(value(track, "border-block-start"), ["var(--stroke-hair) solid var(--edge)"], track);
+    assert.deepEqual(value(`.setting-range[aria-disabled="true"]${track.slice(".setting-range".length)}`, "border-block-start-style"), ["dashed"], track);
+  }
+  assert.deepEqual(value(".setting-range::-moz-range-progress", "background-color"), ["transparent"]);
+  // Scrollbar: tokens only.
+  assert.ok(decls.filter((d) => /scrollbar/.test(d.selector) && /^background/.test(d.prop)).every((d) => /^var\(--(rule|edge|fg-muted)\)$/.test(d.value)));
+  // Icon-only close: three cells tall on small or coarse-pointer screens.
+  assert.ok(decls.some((d) => innermost(d.selector) === ".settings-close" && /max-width: 768px\), \(pointer: coarse\)/.test(d.selector) &&
+    d.prop === "min-block-size" && d.value === "calc(3 * var(--cell-h))"));
+  // The rail (§09 L1): a rule at full opacity; cells square, three cells on a coarse pointer; no radius or opacity anywhere.
+  const railCss = declarations(await read(RAIL + ".css"));
+  const at = (sel, prop) => railCss.filter((d) => innermost(d.selector) === sel && d.prop === prop).map((d) => d.value);
+  assert.deepEqual(at(".nav-dots::before", "background-color"), ["var(--rule)"]);
+  assert.deepEqual(at(".nav-dots::before", "width"), ["var(--stroke-hair)"]);
+  assert.deepEqual(railCss.filter((d) => d.prop === "opacity" && !/dot-tooltip/.test(innermost(d.selector))).map((d) => d.selector), []);
+  assert.deepEqual(railCss.filter((d) => d.prop === "border-radius").map((d) => d.selector), []);
+  assert.deepEqual(at(".nav-dot", "width"), at(".nav-dot", "height"));
+  assert.ok(railCss.some((d) => /pointer: coarse/.test(d.selector) && innermost(d.selector) === ".layout-foreground" && d.prop === "--nav-cell" && d.value === "calc(3 * var(--cell-h))"));
+  // Wherever the rail shows (the complement of the phone breakpoint that hides it), a page that renders it reserves the
+  // rail's inline-start band, set once on the layout, from the rail's own offset and cell and a space token.
+  assert.ok(railCss.some((d) => /not all and \(max-width: 768px\)/.test(d.selector) && innermost(d.selector) === ".layout-foreground.has-section-rail .app-content" &&
+    d.prop === "padding-inline-start" && d.value === "calc(var(--global-section-nav-offset) + var(--nav-cell) + var(--space-4))"));
+  assert.ok(railCss.some((d) => /max-width: 768px/.test(d.selector) && !/not all/.test(d.selector) && innermost(d.selector) === ".global-section-navigation" && d.prop === "display" && d.value === "none"));
+  assert.match(await read("components/Layout/Layout.tsx"), /sections\.length > 0 \? " has-section-rail" : ""/);
+  // Page Up and Page Down move the sliders by a larger step (WAI-ARIA Authoring Practices slider pattern); arrows, Home and
+  // End are the input's own.
+  assert.match(controls, /onKeyDown=\{pageStep\}/);
+  // The tooltip is a label overlay (§08): surface-2 in an edge boundary.
+  assert.deepEqual(at(".dot-tooltip", "background"), ["var(--surface-2)"]);
+  assert.deepEqual(at(".dot-tooltip", "border"), ["var(--stroke-hair) solid var(--edge)"]);
+});

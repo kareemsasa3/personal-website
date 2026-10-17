@@ -5,7 +5,6 @@ import {
   faUndo,
   faDownload,
   faUpload,
-  faChevronRight,
 } from "@fortawesome/free-solid-svg-icons";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import {
@@ -229,7 +228,8 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                 <div className="settings-header">
                   <h3 id="settings-title">Settings</h3>
                   <button
-                    className="settings-close"
+                    type="button"
+                    className="settings-close df-control"
                     ref={closeButtonRef}
                     onClick={onClose}
                     aria-label="Close settings"
@@ -280,15 +280,12 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                       <button
                         type="button"
                         id="dock-tuning-toggle"
-                        className="settings-disclosure__toggle"
+                        className="settings-disclosure__toggle df-control df-control--latch df-label"
                         aria-expanded={isDockTuningOpen}
                         aria-controls="dock-tuning-panel"
                         onClick={() => setIsDockTuningOpen((open) => !open)}
                       >
-                        <FontAwesomeIcon
-                          icon={faChevronRight}
-                          className="settings-disclosure__icon"
-                        />
+                        {/* The latch lamp shows open or closed (§13 Latched). */}
                         Dock tuning
                       </button>
                       <div
@@ -354,7 +351,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                   <div className="settings-actions">
                     <button
                       type="button"
-                      className="settings-action df-label"
+                      className="settings-action df-control df-label"
                       onClick={handleExportSettings}
                       aria-label="Export settings"
                     >
@@ -363,7 +360,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                     </button>
                     <button
                       type="button"
-                      className="settings-action df-label"
+                      className="settings-action df-control df-label"
                       onClick={handleImportSettings}
                       aria-label="Import settings"
                     >
@@ -372,7 +369,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                     </button>
                     <button
                       type="button"
-                      className="settings-action settings-action--danger df-label"
+                      className="settings-action settings-action--danger df-control df-label"
                       onClick={handleResetToDefaults}
                       aria-label="Reset all settings to defaults"
                     >

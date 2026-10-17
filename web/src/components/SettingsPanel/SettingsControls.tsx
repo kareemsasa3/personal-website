@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from "react";
+import type { KeyboardEvent, ReactNode } from "react";
 
 interface SettingsSectionProps {
   id: string;
@@ -58,7 +58,7 @@ export const SegmentedControl = <T extends string>({
       <button
         key={option.value}
         type="button"
-        className="settings-segmented__button df-label"
+        className="settings-segmented__button df-control df-label"
         aria-pressed={option.value === value}
         onClick={() => onChange(option.value)}
       >
@@ -86,18 +86,18 @@ export const SettingSwitch = ({
   <button
     type="button"
     role="switch"
-    className="setting-switch df-label"
+    className="setting-switch df-control df-control--latch df-label"
     aria-checked={checked}
     aria-labelledby={labelledBy}
     aria-describedby={describedBy}
-    disabled={disabled}
-    onClick={() => onChange(!checked)}
+    // §13 Disabled: stays focusable so the reason (describedBy) can be read; the handler ignores it.
+    aria-disabled={disabled || undefined}
+    onClick={() => {
+      if (!disabled) onChange(!checked);
+    }}
   >
     <span className="setting-switch__state" aria-hidden="true">
       {checked ? "On" : "Off"}
-    </span>
-    <span className="setting-switch__track" aria-hidden="true">
-      <span className="setting-switch__thumb" />
     </span>
   </button>
 );
@@ -129,7 +129,17 @@ export const SettingSlider = ({
   disabled = false,
   onChange,
 }: SettingSliderProps) => {
-  const fill = `${((value - min) / (max - min)) * 100}%`;
+  // WAI-ARIA Authoring Practices slider pattern: Page Up and Page Down move by a larger step (here ten steps), clamped at the
+  // limits; arrows, Home and End are the input's own.
+  const pageStep = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key !== "PageUp" && event.key !== "PageDown") return;
+    event.preventDefault();
+    if (disabled) return;
+    const steps = Math.round((value - min) / step) + (event.key === "PageUp" ? 10 : -10);
+    const next = Math.min(max, Math.max(min, min + steps * step));
+    const decimals = (String(step).split(".")[1] ?? "").length;
+    onChange(Number(next.toFixed(decimals)));
+  };
 
   return (
     <div className="setting-slider">
@@ -149,11 +159,14 @@ export const SettingSlider = ({
         max={max}
         step={step}
         value={value}
-        disabled={disabled}
+        // §13 Disabled: stays focusable so the reason (describedBy) can be read; the value stays put.
+        aria-disabled={disabled || undefined}
         aria-valuetext={spokenValue}
         aria-describedby={describedBy}
-        style={{ "--range-fill": fill } as CSSProperties}
-        onChange={(event) => onChange(Number(event.target.value))}
+        onChange={(event) => {
+          if (!disabled) onChange(Number(event.target.value));
+        }}
+        onKeyDown={pageStep}
       />
     </div>
   );
