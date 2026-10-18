@@ -35,8 +35,8 @@
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  --df-card-pad-inline: 1rem;
   padding: 1rem 1rem 1.25rem;
-  color: inherit;
   text-decoration: none;
   min-width: 0;
 }
@@ -67,14 +67,9 @@
 
 .procedural-animations-card__link {
   margin-top: auto;
-  color: var(--signal-dim);
+  color: inherit;
   font-size: 0.85rem;
   font-weight: 650;
-}
-
-/* Light: on card hover the label is fg; green falls below 4.5:1 where the background shows through the hover tint. */
-[data-theme="light"] .procedural-animations-card:hover .procedural-animations-card__link {
-  color: var(--fg);
 }
 
 @media (max-width: 480px) {
@@ -83,6 +78,7 @@
   }
 
   .procedural-animations-card {
+    --df-card-pad-inline: 0.75rem;
     padding: 0.75rem 0.75rem 1rem;
   }
 }

@@ -28,7 +28,7 @@ const Writing = () => {
             <Link
               key={article.slug}
               to={`/writing/${article.slug}`}
-              className="writing-card interactive-card"
+              className="writing-card interactive-card df-control df-control--card"
             >
               <p className="writing-card-eyebrow df-label">{KIND_LABELS[article.kind]}</p>
               {article.series ? (

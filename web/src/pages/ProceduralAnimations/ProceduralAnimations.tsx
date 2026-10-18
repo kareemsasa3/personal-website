@@ -31,7 +31,7 @@ const ProceduralAnimations = () => {
             <Link
               key={piece.slug}
               to={`/procedural-animations/${piece.slug}`}
-              className="procedural-animations-card interactive-card"
+              className="procedural-animations-card interactive-card df-control df-control--card"
             >
               <img
                 className="procedural-animations-card__poster"

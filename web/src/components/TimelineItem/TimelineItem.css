@@ -19,11 +19,6 @@
 /* Flip container */
 .timeline-flip-container {
     perspective: 1000px;
-    cursor: pointer;
-}
-
-.timeline-flip-container.has-image:hover {
-    cursor: pointer;
 }
 
 .timeline-flip-card {
@@ -232,6 +227,5 @@
 }
 .timeline-flip-container { position: relative; cursor: default; }
 .timeline-item-description { color: var(--fg-muted); opacity: 1; }
-.timeline-flip-toggle { position: relative; margin-top: .5rem; padding: .35rem .6rem; background: var(--surface-1); color: var(--signal-dim); border: 1px solid var(--edge); border-radius: 4px; cursor: pointer; }
-.timeline-flip-toggle:focus-visible { outline: 2px solid var(--signal-dim); outline-offset: 3px; }
+.timeline-flip-toggle { margin-top: var(--space-2); }
 @media (prefers-reduced-motion: reduce) { .timeline-content, .timeline-icon-wrapper { transition: none; } }

@@ -9,7 +9,7 @@ const experimentStudies = caseStudyCards.filter((caseStudy) => caseStudy.kind ==
 const CaseStudyCardLink = ({ caseStudy }: { caseStudy: CaseStudyCard }) => (
   <Link
     to={`/case-studies/${caseStudy.slug}`}
-    className="case-study-card interactive-card"
+    className="case-study-card interactive-card df-control df-control--card"
   >
     {caseStudy.media && (
       <ProjectMedia

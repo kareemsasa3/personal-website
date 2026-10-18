@@ -1262,6 +1262,16 @@ if (MODE === "check") {
     { route: "/", prepare: async (page) => { await dockMode(page); await openSettings(page); }, selectors: [".settings-disclosure__toggle"], narrow: 500, relayout: true },
     // The section rail is not rendered at phone widths (wideOnly: checked absent there instead).
     { route: "/case-studies/aether", selectors: [".nav-dot"], wideOnly: true },
+    // Reading and record surfaces: linked cards, local navigation, disclosure controls and the deliberate Journey flip.
+    { route: "/case-studies", selectors: [".case-study-card"] },
+    { route: "/case-studies/aether", selectors: [".case-study-breadcrumbs a", ".case-study-link:not(.disabled)", ".case-study-artifact-link"] },
+    { route: "/case-studies/where-the-specification-lived", selectors: [".case-study-prompt summary"] },
+    { route: "/writing", selectors: [".writing-card"] },
+    { route: "/writing/the-machine-should-explain-itself", relayout: true,
+      selectors: [".article-breadcrumbs a", ".article-toc summary", ".article-toc a", ".article-provenance-section > summary", ".article-series-link"] },
+    { route: "/experience", selectors: [".work-contact-link"] },
+    { route: "/journey", selectors: [".timeline-flip-toggle"] },
+    { route: "/procedural-animations", selectors: [".procedural-animations-card"] },
     // The error-boundary actions: the Journey route chunk fails to load after a client-side navigation, so its lazy
     // import rejects and the Layout error boundary renders in place of the route.
     { route: "/darkfield-404-probe", selectors: [".error-button"], prepare: async (page) => {
@@ -1276,7 +1286,7 @@ if (MODE === "check") {
     fg: c.color, r: c.borderTopLeftRadius, marker: getComputedStyle(e, "::before").content, card: e.matches(".df-control--card"),
     light: e.matches(".df-control--light"),
     sel: e.matches('[aria-current]:not([aria-current="false"]), [aria-selected="true"], [aria-pressed="true"]:not(.df-control--latch)'),
-    on: e.matches('.df-control--latch:is([aria-pressed="true"], [aria-checked="true"], [aria-expanded="true"])'),
+    on: e.matches('.df-control--latch:is([aria-pressed="true"], [aria-checked="true"], [aria-expanded="true"]), details[open] > .df-control--latch'),
     off: e.matches(':disabled, [aria-disabled="true"], .df-control--unavailable') }; });
   // Where the label starts, and where the ::before marker's box ends. A pseudo-element has no rect: an absolute marker
   // is located from its offsets; an in-flow marker ends where an empty probe placed right after it begins, less the
@@ -1832,6 +1842,33 @@ if (MODE === "check") {
       await context.close();
     }
   }
+
+  for (const theme of THEMES) await withPage({ theme, route: "/case-studies/erebus" }, async (page) => {
+    const unavailable = page.locator(".case-study-link.disabled");
+    invariant((await unavailable.count()) > 0, `${theme} unavailable case-study link is absent`);
+    for (const el of await unavailable.all()) {
+      const state = await el.evaluate((e) => {
+        const css = getComputedStyle(e);
+        return { model: e.matches(".df-control--unavailable"), focusable: e.matches("a, button, input, [tabindex]"),
+          border: css.borderTopColor, label: css.color };
+      });
+      invariant(state.model && !state.focusable && state.border === "rgba(0, 0, 0, 0)",
+        `${theme} unavailable case-study link has control affordance ${JSON.stringify(state)}`);
+      invariant(state.label === await tokenRgb(page, "--fg-faint"), `${theme} unavailable case-study label ${state.label}`);
+    }
+  });
+
+  // A Journey image changes only when its toggle is activated; pointer inspection leaves the story in place.
+  for (const theme of THEMES) await withPage({ theme, route: "/journey" }, async (page) => {
+    const card = page.locator(".timeline-flip-container.has-image").first();
+    await card.waitFor();
+    const toggle = card.locator(".timeline-flip-toggle");
+    invariant((await toggle.getAttribute("aria-pressed")) === "false", `${theme} Journey starts flipped`);
+    await card.hover(); await frames(page);
+    invariant((await toggle.getAttribute("aria-pressed")) === "false", `${theme} Journey flips on hover`);
+    await toggle.focus(); await page.keyboard.press("Enter"); await frames(page);
+    invariant((await toggle.getAttribute("aria-pressed")) === "true", `${theme} Journey toggle does not flip with Enter`);
+  });
 
   // Phase 3 Task 7 (§06): Narrator text is Archivo; uppercase text is Archivo Narrow.
   const P3_ROUTES = ["/", "/projects", "/case-studies", "/case-studies/aether", "/writing", "/writing/what-should-still-be-hard", "/experience", "/journey"];

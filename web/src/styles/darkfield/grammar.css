@@ -134,7 +134,9 @@
   color: var(--on-signal);
   transition: none;
 }
-.df-control--card.df-control--card:is(:active, [data-df-pressed]) * { color: inherit; }
+/* Media inside a linked card keeps its own ground and text pairing while the card acknowledges the press. */
+.df-control--card.df-control--card:is(:active, [data-df-pressed]) :not(.project-media, .project-media *) { color: inherit; }
+.df-control--card.df-control--card:is(:active, [data-df-pressed]) .project-media { color: var(--fg); }
 
 /* Value (§13 Channels): a value inside a control reads fg at rest, takes the inverse with the label while pressed and
    the faint tier with it while disabled or unavailable. */

@@ -82,13 +82,13 @@ const Work = () => {
         </div>
         <div className="work-contact-actions">
           {emailLink && (
-            <a className="work-contact-link primary" href={emailLink.url}>
+            <a className="work-contact-link primary df-control df-label" href={emailLink.url}>
               {professionalContactContent.primaryActionLabel}
             </a>
           )}
           {linkedInLink && (
             <a
-              className="work-contact-link"
+              className="work-contact-link df-control df-label"
               href={linkedInLink.url}
               target="_blank"
               rel="noopener noreferrer"

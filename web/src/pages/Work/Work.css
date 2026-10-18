@@ -184,33 +184,6 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-height: 2.5rem;
-    padding: 0.55rem 0.9rem;
-    color: var(--fg);
-    text-decoration: none;
-    font-weight: 700;
-    border: 1px solid var(--rule);
-    border-radius: 999px;
-    transition: border-color 0.3s ease, color 0.3s ease, background-color 0.3s ease;
-}
-
-.work-contact-link:hover,
-.work-contact-link:focus-visible {
-    color: var(--signal-dim);
-    border-color: var(--signal-dim);
-    background: rgba(0, 255, 0, 0.05);
-}
-
-.work-contact-link.primary {
-    color: var(--field);
-    border-color: var(--signal-dim);
-    background: var(--signal-dim);
-}
-
-.work-contact-link.primary:hover,
-.work-contact-link.primary:focus-visible {
-    color: var(--signal-dim);
-    background: transparent;
 }
 
 /* Responsive adjustments */

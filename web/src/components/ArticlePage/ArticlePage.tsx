@@ -63,7 +63,7 @@ const ArticlePage = ({ article }: ArticlePageProps) => {
     <div className="page-content article-page">
       <div className="article-container">
         <p className="article-breadcrumbs">
-          <Link to="/writing">Writing</Link>
+          <Link className="df-control df-control--light df-label" to="/writing">Writing</Link>
           <span aria-hidden="true"> / </span>
           <span>{article.title}</span>
         </p>
@@ -71,7 +71,7 @@ const ArticlePage = ({ article }: ArticlePageProps) => {
         <header className="article-header prose-surface prose-surface--reading">
           <p className="article-eyebrow df-label">{KIND_LABELS[article.kind]}</p>
           {article.series ? (
-            <p className="article-series">
+            <p className="article-series df-prose">
               {formatSeriesPosition(article.series)} in <a href="#in-this-series">{article.series.name}</a>
             </p>
           ) : null}
@@ -96,7 +96,7 @@ const ArticlePage = ({ article }: ArticlePageProps) => {
               open={isSidebarWidth}
               key={String(isSidebarWidth)}
             >
-              <summary>Contents</summary>
+              <summary className="df-control df-control--latch df-label">Contents</summary>
               <nav aria-label="Article contents">
                 <ol
                   className={
@@ -107,7 +107,7 @@ const ArticlePage = ({ article }: ArticlePageProps) => {
                 >
                   {article.toc.map((entry) => (
                     <li key={entry.id}>
-                      <a href={`#${entry.id}`} aria-current={activeHeading === entry.id ? "location" : undefined}>{entry.label}</a>
+                      <a className="df-control df-control--light df-label" href={`#${entry.id}`} aria-current={activeHeading === entry.id ? "location" : undefined}>{entry.label}</a>
                     </li>
                   ))}
                 </ol>
@@ -129,19 +129,19 @@ const ArticlePage = ({ article }: ArticlePageProps) => {
             {article.series.previous ? (
               <Link
                 to={`/writing/${article.series.previous.slug}`}
-                className="article-series-link"
+                className="article-series-link df-control"
               >
                 <span className="article-series-link-label df-label">Previous</span>
-                <span>{article.series.previous.title}</span>
+                <span className="df-body">{article.series.previous.title}</span>
               </Link>
             ) : null}
             {article.series.next ? (
               <Link
                 to={`/writing/${article.series.next.slug}`}
-                className="article-series-link article-series-link--next"
+                className="article-series-link article-series-link--next df-control"
               >
                 <span className="article-series-link-label df-label">Next</span>
-                <span>{article.series.next.title}</span>
+                <span className="df-body">{article.series.next.title}</span>
               </Link>
             ) : null}
           </nav>
@@ -166,7 +166,7 @@ const ArticlePage = ({ article }: ArticlePageProps) => {
           </div>
 
           <details className="article-provenance-section">
-            <summary>Sources ({article.provenance.sourceCount})</summary>
+            <summary className="df-control df-control--latch df-label">Sources ({article.provenance.sourceCount})</summary>
             <div
               className="article-prose df-prose-links"
               dangerouslySetInnerHTML={{
@@ -176,7 +176,7 @@ const ArticlePage = ({ article }: ArticlePageProps) => {
           </details>
 
           <details className="article-provenance-section">
-            <summary>
+            <summary className="df-control df-control--latch df-label">
               Fact-check table ({article.provenance.factCheckRowCount})
             </summary>
             <div
@@ -188,7 +188,7 @@ const ArticlePage = ({ article }: ArticlePageProps) => {
           </details>
 
           <details className="article-provenance-section">
-            <summary>Editorial note: original synthesis</summary>
+            <summary className="df-control df-control--latch df-label">Editorial note: original synthesis</summary>
             <div
               className="article-prose df-prose"
               dangerouslySetInnerHTML={{

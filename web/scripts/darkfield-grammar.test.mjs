@@ -425,3 +425,44 @@ test("T12 settings and section rail: controls follow the model; the switch has n
   assert.deepEqual(at(".dot-tooltip", "background"), ["var(--surface-2)"]);
   assert.deepEqual(at(".dot-tooltip", "border"), ["var(--stroke-hair) solid var(--edge)"]);
 });
+
+test("T13 reading controls use the shared model and Journey turns only on activation", async () => {
+  const controls = [
+    ["pages/CaseStudies/CaseStudies.tsx", "case-study-card", "df-control--card"],
+    ["pages/Writing/Writing.tsx", "writing-card", "df-control--card"],
+    ["pages/ProceduralAnimations/ProceduralAnimations.tsx", "procedural-animations-card", "df-control--card"],
+    ["components/CaseStudyPage/CaseStudyPage.tsx", "case-study-link", "df-control"],
+    ["components/CaseStudyPage/CaseStudyPage.tsx", "case-study-artifact-link", "df-control"],
+    ["pages/Work/Work.tsx", "work-contact-link", "df-control"],
+    ["components/TimelineItem/TimelineItem.tsx", "timeline-flip-toggle", "df-control--latch"],
+    ["components/ArticlePage/ArticlePage.tsx", "article-series-link", "df-control"],
+  ];
+  for (const [file, cls, model] of controls) {
+    const code = await read(file);
+    const found = [...code.matchAll(/className="([^"]*)"/g)].map((m) => m[1]).filter((c) => c.split(/\s+/).includes(cls));
+    assert.ok(found.length > 0, `${file}: ${cls} absent`);
+    for (const c of found) assert.ok(c.split(/\s+/).includes(model), `${file}: ${c} lacks ${model}`);
+  }
+  const interactiveLinks = (await reachable(".tsx")).filter((file) => !/RhythmLab/.test(file));
+  for (const file of interactiveLinks) {
+    const code = await read(file);
+    for (const m of code.matchAll(/<(?:Link|a|motion\.a)\b[^>]*className="([^"]*\binteractive-card\b[^"]*)"/g)) {
+      assert.match(m[1], /\bdf-control--card\b/, `${file}: ${m[1]}`);
+    }
+  }
+  const journey = await read("components/TimelineItem/TimelineItem.tsx");
+  assert.doesNotMatch(journey, /onPointerEnter|onPointerLeave|handleMouseEnter|handleMouseLeave/);
+  assert.match(journey, /<button className="timeline-flip-toggle[^\"]*" aria-pressed=\{isFlipped\}/);
+  assert.match(await read("components/CaseStudyPage/CaseStudyPage.tsx"), /className="case-study-link disabled df-control df-control--unavailable/);
+  assert.match(await read("components/CaseStudyPage/CaseStudyBlocks.tsx"), /<summary className="df-control df-control--latch df-label">/);
+  for (const [file, names] of [
+    ["components/CaseStudyPage/CaseStudyPage.css", /\.(case-study-link|case-study-artifact-link|case-study-breadcrumbs a)(?![\w-])/],
+    ["components/ArticlePage/ArticlePage.css", /\.(article-series-link|article-toc a|article-toc summary)(?![\w-])/],
+    ["pages/Work/Work.css", /\.work-contact-link(?![\w-])/],
+    ["components/TimelineItem/TimelineItem.css", /\.timeline-flip-toggle(?![\w-])/],
+  ]) {
+    const bad = declarations(await read(file)).filter((d) => names.test(innermost(d.selector)) &&
+      /^(background|background-color|color|border|border-color|border-radius|box-shadow|transition|transform|outline|opacity)$/.test(d.prop));
+    assert.deepEqual(bad.map(where), [], file);
+  }
+});

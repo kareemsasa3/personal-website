@@ -20,12 +20,7 @@
 }
 
 .case-study-breadcrumbs a {
-  color: var(--signal-dim);
   text-decoration: none;
-}
-
-.case-study-breadcrumbs a:hover {
-  text-decoration: underline;
 }
 
 .case-study-eyebrow {
@@ -125,13 +120,6 @@
 .case-study-artifact-link {
   display: inline-flex;
   margin-top: 0.75rem;
-  color: var(--signal-dim);
-  font-weight: 700;
-  text-decoration: none;
-}
-
-.case-study-artifact-link:hover {
-  text-decoration: underline;
 }
 
 .case-study-links {
@@ -146,13 +134,16 @@
   justify-content: space-between;
   gap: 1rem;
   min-width: 0;
-  padding: 1rem 1.25rem;
-  border: 1px solid var(--rule);
-  border-radius: 12px;
-  background: color-mix(in srgb, var(--surface-1) 86%, transparent);
-  color: var(--fg);
-  text-decoration: none;
-  transition: border-color 0.3s ease, background 0.3s ease, transform 0.3s ease;
+}
+
+.case-study-link::before {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: var(--space-1);
+  display: flex;
+  align-items: center;
+  height: auto;
+  margin-inline-start: 0;
 }
 
 /* The label absorbs the squeeze; the action (View, Open, unavailable note) wraps only
@@ -164,16 +155,6 @@
 
 .case-study-link span:last-child {
   overflow-wrap: normal;
-}
-
-a.case-study-link:hover {
-  border-color: var(--signal-dim);
-  background: rgba(0, 255, 0, 0.05);
-}
-
-.case-study-link.disabled {
-  opacity: 0.72;
-  cursor: default;
 }
 
 .case-studies-page .case-study-container > * + * {
@@ -201,7 +182,6 @@ a.case-study-link:hover {
   gap: 1rem;
   height: 100%;
   text-decoration: none;
-  color: inherit;
 }
 
 /* Title and status badge share the first row; the description spans the full card width
@@ -249,13 +229,7 @@ a.case-study-link:hover {
 }
 
 .case-study-card-link {
-  color: var(--signal-dim);
-  font-weight: 700;
-}
-
-/* Light: on card hover the label is fg; green falls below 4.5:1 where the background shows through the hover tint. */
-[data-theme="light"] .case-study-card:hover .case-study-card-link {
-  color: var(--fg);
+  color: inherit;
 }
 
 @media (max-width: 768px) {
@@ -286,10 +260,18 @@ a.case-study-link:hover {
   }
 
   .case-study-link {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 0.35rem;
-    padding: 0.9rem 1rem;
+    display: block;
+  }
+
+  .case-study-link::before {
+    inset-block: auto;
+    inset-block-start: calc((3 * var(--cell-h) - 1lh) / 2);
+    height: 1lh;
+  }
+
+  .case-study-link span:last-child {
+    display: block;
+    margin-top: var(--space-1);
   }
 }
 
@@ -298,8 +280,6 @@ a.case-study-link:hover {
 .case-study-flow li { border: 1px solid var(--rule); padding: .65rem; }
 .case-study-flow li + li::before { content: "→ "; color: var(--signal-dim); }
 .case-study-flow figcaption, .case-study-flow p { color: var(--fg-muted); font-size: .85rem; }
-.case-study-link.disabled { cursor: default; border-style: dashed; background: transparent; }
-
 /* Span the hero card so the loop fills the width beside the left-aligned copy and dense terminal text stays legible */
 .case-study-hero-media { margin-top: 1.5rem; }
 
@@ -308,8 +288,8 @@ a.case-study-link:hover {
 .case-study-block > h3 { margin-bottom: 0.5rem; }
 
 .case-study-prompt { margin-top: 0.75rem; border: 1px solid var(--rule); border-radius: 8px; background: var(--surface-1); }
-.case-study-prompt summary { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.25rem 1rem; min-height: 44px; padding: 0.5rem 1rem; color: var(--fg); font-weight: 700; cursor: pointer; }
-.case-study-prompt__meta { color: var(--fg-muted); font-size: 0.8rem; font-weight: 400; }
+.case-study-prompt summary { display: flex; flex-wrap: wrap; align-items: center; row-gap: var(--space-1); }
+.case-study-prompt__meta { margin-inline-start: auto; color: inherit; }
 .case-study-prompt pre { margin: 0; padding: 0.75rem 1rem 1rem; border-top: 1px solid var(--rule); color: var(--fg); font-family: inherit; font-size: 0.85rem; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; }
 
 /* Stills never grow past their own size, so the figure shrinks to its row of stills and

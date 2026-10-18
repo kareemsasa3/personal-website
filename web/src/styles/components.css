@@ -3,7 +3,17 @@
 .interactive-card {
   position: relative;
   overflow: hidden;
+  --df-card-pad-inline: 1.5rem;
   padding: 1.5rem;
+}
+
+/* Keep each link card's spacing while the marker sits in its leading padding. */
+a.interactive-card::before {
+  inset-inline-start: calc(var(--df-card-pad-inline) - var(--cell-w));
+}
+
+/* Static cards keep their existing frame until the Phase 3 frame pass. */
+.interactive-card:not(a) {
   background: var(--field);
   border: 1px solid var(--rule);
   border-radius: 12px;
@@ -12,11 +22,6 @@
 
 .interactive-card > * {
   min-width: 0;
-}
-
-a.interactive-card:hover {
-  background: rgba(0, 255, 0, 0.05);
-  border-color: var(--signal-dim);
 }
 
 /* Lifecycle statuses and tags are context labels (D7): the voice and colour come from
@@ -46,12 +51,13 @@ a.interactive-card:hover {
 
 @media (max-width: 480px) {
   .interactive-card {
+    --df-card-pad-inline: 1rem;
     padding: 1rem;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .interactive-card {
+  .interactive-card:not(a) {
     transition: none;
   }
 }

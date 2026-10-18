@@ -25,18 +25,6 @@ const TimelineItem: React.FC<TimelineItemProps> = ({ data, isLeft }) => {
     front: { rotateY: 0, transition: reduceMotion ? INSTANT : motionToken("--dur-fast", "--ease-depart") },
   };
 
-  const handleMouseEnter = () => {
-    if (loadedImageUrl) {
-      setIsFlipped(true);
-    }
-  };
-
-  const handleMouseLeave = () => {
-    if (loadedImageUrl) {
-      setIsFlipped(false);
-    }
-  };
-
   // Resolve the preferred and fallback image URLs based on theme
   const preferredAndFallbackUrls = useMemo(() => {
     if (!image)
@@ -91,9 +79,6 @@ const TimelineItem: React.FC<TimelineItemProps> = ({ data, isLeft }) => {
         className={`timeline-flip-container ${
           loadedImageUrl ? "has-image" : ""
         }`}
-        onPointerEnter={(event) => { if (event.pointerType === "mouse") handleMouseEnter(); }}
-        onPointerLeave={(event) => { if (event.pointerType === "mouse") handleMouseLeave(); }}
-
       >
         <motion.div
           className="timeline-flip-card"
@@ -140,7 +125,7 @@ const TimelineItem: React.FC<TimelineItemProps> = ({ data, isLeft }) => {
             </motion.div>
           )}
         </motion.div>
-        {loadedImageUrl && <button className="timeline-flip-toggle" aria-pressed={isFlipped} aria-label={`${isFlipped ? "Show story" : "View image"}: ${title}`} onClick={() => setIsFlipped(v => !v)}>{isFlipped ? "Show story" : "View image"} ↻</button>}
+        {loadedImageUrl && <button className="timeline-flip-toggle df-control df-control--latch df-label" aria-pressed={isFlipped} aria-label={`${isFlipped ? "Show story" : "View image"}: ${title}`} onClick={() => setIsFlipped(v => !v)}>{isFlipped ? "Show story" : "View image"} ↻</button>}
       </div>
     </div>
   );

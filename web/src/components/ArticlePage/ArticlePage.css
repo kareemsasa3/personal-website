@@ -148,9 +148,7 @@
 }
 
 .article-toc summary {
-  cursor: pointer;
-  color: var(--signal-dim);
-  font-weight: 650;
+  display: flex;
 }
 
 .article-toc ol {
@@ -166,14 +164,7 @@
 }
 
 .article-toc a {
-  color: var(--fg-muted);
-  text-decoration: none;
-}
-
-.article-toc a:hover,
-.article-toc a:focus-visible {
-  color: var(--signal-dim);
-  text-decoration: underline;
+  display: block;
 }
 
 /* Provenance: a visually distinct region after the conclusion. */
@@ -202,16 +193,14 @@
   border-radius: 6px;
 }
 
-.article-provenance-section > h3,
-.article-provenance-section > summary {
+.article-provenance-section > h3 {
   margin: 0;
-  color: var(--fg);
   font-size: 0.95rem;
-  font-weight: 650;
 }
 
 .article-provenance-section > summary {
-  cursor: pointer;
+  margin: 0;
+  display: flex;
 }
 
 .article-provenance-section .article-prose {
@@ -230,22 +219,20 @@
 }
 
 .article-series-link {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
+  display: block;
   max-width: 48%;
-  color: var(--signal-dim);
-  text-decoration: none;
 }
 
 .article-series-link--next {
   margin-left: auto;
-  text-align: right;
 }
 
 .article-series-link-label {
-  font-size: 0.72rem;
-  color: var(--fg-muted);
+  color: inherit;
+}
+
+.article-series-link > span:last-child {
+  display: block;
 }
 
 .article-footer {
@@ -299,7 +286,6 @@
 
   .article-toc summary {
     list-style: none;
-    cursor: default;
   }
 
   .article-toc summary::-webkit-details-marker {
@@ -323,6 +309,4 @@
 }
 
 .article-body h2 { scroll-margin-top: 1rem; }
-.article-toc a[aria-current="location"] { color: var(--signal-dim); font-weight: 700; text-decoration: underline; }
-.article-series a { color: var(--signal-dim); }
 @media (min-width: 1200px) { .article-toc { top: calc(var(--site-header-measured-offset, 0px) + 1rem); max-height: calc(100dvh - var(--site-header-measured-offset, 0px) - var(--site-dock-safe-space, 0px) - 2rem); overflow-y: auto; } }

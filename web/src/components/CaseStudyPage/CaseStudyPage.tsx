@@ -52,7 +52,7 @@ const CaseStudyPage = ({ caseStudy }: CaseStudyPageProps) => {
       <div className="case-study-container">
         <section id="hero" className="case-study-hero interactive-card">
           <div className="case-study-breadcrumbs">
-            <Link to="/case-studies">Case Studies</Link>
+            <Link className="df-control df-control--light df-label" to="/case-studies">Case Studies</Link>
             <span>/</span>
             <span>{caseStudy.title}</span>
           </div>
@@ -193,7 +193,7 @@ const CaseStudyPage = ({ caseStudy }: CaseStudyPageProps) => {
                 )}
                 {artifact.href && (
                   <a
-                    className="case-study-artifact-link"
+                    className="case-study-artifact-link df-control df-label"
                     href={artifact.href}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -213,7 +213,7 @@ const CaseStudyPage = ({ caseStudy }: CaseStudyPageProps) => {
             {caseStudy.links.map((link) => {
               if (link.unavailable) {
                 return (
-                  <div key={link.label} className="case-study-link disabled">
+                  <div key={link.label} className="case-study-link disabled df-control df-control--unavailable df-label">
                     <span>{link.label}</span>
                     <span>{link.unavailableLabel ?? "Not public yet"}</span>
                   </div>
@@ -224,7 +224,7 @@ const CaseStudyPage = ({ caseStudy }: CaseStudyPageProps) => {
                 return (
                   <a
                     key={link.label}
-                    className="case-study-link"
+                    className="case-study-link df-control df-label"
                     href={link.href}
                     target="_blank"
                     rel="noreferrer"
@@ -236,7 +236,7 @@ const CaseStudyPage = ({ caseStudy }: CaseStudyPageProps) => {
               }
 
               return (
-                <Link key={link.label} className="case-study-link" to={link.href}>
+                <Link key={link.label} className="case-study-link df-control df-label" to={link.href}>
                   <span>{link.label}</span>
                   <span>View</span>
                 </Link>
