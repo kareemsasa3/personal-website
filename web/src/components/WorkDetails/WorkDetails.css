@@ -1,7 +1,7 @@
 .work-details-container {
     background: var(--field);
     border: 1px solid var(--rule);
-    border-radius: 12px;
+    border-radius: var(--radius-0);
     padding: 2rem;
     transition: all 0.3s ease;
     margin-bottom: 2rem;
@@ -20,7 +20,7 @@
     padding: 0.5rem 1rem;
     background: var(--surface-1);
     border: 1px solid var(--signal-dim);
-    border-radius: 8px;
+    border-radius: var(--radius-0);
     text-align: center;
     font-family: var(--font-mono);
     transition: all 0.3s ease;

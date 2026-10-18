@@ -34,7 +34,7 @@
     top: 20px;
     width: 40px;
     height: 40px;
-    border-radius: 50%;
+    border-radius: var(--radius-0);
     background-color: var(--surface-1);
     border: 3px solid var(--rule);
     display: flex;
@@ -75,7 +75,7 @@
     position: relative;
     padding: 30px;
     background-color: var(--surface-1);
-    border-radius: 8px;
+    border-radius: var(--radius-0);
     border: 1px solid var(--rule);
     transition: all 0.3s ease;
     min-height: 200px;

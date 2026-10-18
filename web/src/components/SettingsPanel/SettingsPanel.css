@@ -29,7 +29,7 @@
     overflow: hidden;
     pointer-events: auto;
     border: 1px solid var(--rule);
-    border-radius: 18px;
+    border-radius: var(--radius-0);
 }
 
 /* Settings Header */

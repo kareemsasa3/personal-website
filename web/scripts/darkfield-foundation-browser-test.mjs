@@ -1912,6 +1912,21 @@ if (MODE === "check") {
   const P3_ROUTES = ["/", "/projects", "/case-studies", "/case-studies/aether", "/writing", "/writing/what-should-still-be-hard", "/experience", "/journey"];
   // Not Phase 3's on these routes: creative regions, project media chrome (Phase 5), the header mark (Phase 4).
   const P3_SKIP = "[data-df-region], .project-media, .media-inspector, .site-header__brand";
+  // Phase 3 Task 16 (§03, §17): every visible governed corner is square. Native playfields, independent media and
+  // the held brand mark keep their own geometry until their assigned phase.
+  for (const theme of THEMES) for (const route of P3_ROUTES) {
+    await withPage({ theme, route }, async (page) => {
+      const bad = await page.evaluate((skip) => [...document.querySelectorAll("body *")]
+        .filter((e) => e.checkVisibility({ opacityProperty: true, visibilityProperty: true }) &&
+          !e.closest(`${skip}, img, video, canvas, iframe`))
+        .flatMap((e) => {
+          const c = getComputedStyle(e);
+          const radii = [c.borderTopLeftRadius, c.borderTopRightRadius, c.borderBottomLeftRadius, c.borderBottomRightRadius];
+          return radii.every((r) => r === "0px") ? [] : [`${e.tagName.toLowerCase()}.${e.className}: ${radii.join("/")}`];
+        }).slice(0, 24), P3_SKIP);
+      invariant(bad.length === 0, `${theme} ${route}: governed corners ${JSON.stringify(bad)}`);
+    });
+  }
   for (const route of P3_ROUTES) {
     await withPage({ theme: THEMES[0], route }, async (page) => {
       const bad = await page.evaluate((skip) => {

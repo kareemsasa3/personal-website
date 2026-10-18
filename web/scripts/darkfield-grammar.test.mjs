@@ -539,3 +539,12 @@ test("T14 type: Phase 3 text gets size, line, weight and tracking from generated
   const held = (await phase3Decls()).filter((d) => RESET_HOLD.has(`${d.file}|${innermost(d.selector)}|${d.prop}`));
   assert.deepEqual(held.map((d) => [`${d.file}|${innermost(d.selector)}|${d.prop}`, d.value]), [...RESET_HOLD]);
 });
+
+test("T16 every governed Phase 3 corner is square with no legacy radius alias", async () => {
+  const decls = await phase3Decls();
+  const corners = decls.filter((d) => /^border-radius$|^border-(?:top|bottom)-(?:left|right)-radius$/.test(d.prop));
+  assert.deepEqual(corners.filter((d) => d.value !== "0" && d.value !== "var(--radius-0)").map(where), []);
+  assert.deepEqual(decls.filter((d) => /var\(--(?:border-radius-|dock-border-radius)/.test(d.value)).map(where), []);
+  const timelineTransforms = decls.filter((d) => d.file === "pages/Work/Work.css" && /\.timeline-node\b/.test(d.selector) && d.prop === "transform");
+  assert.deepEqual(timelineTransforms.map(where), [], "Work timeline state points must remain axis-aligned squares");
+});

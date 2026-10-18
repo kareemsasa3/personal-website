@@ -88,7 +88,7 @@
   overflow-x: auto;
   padding: 1rem;
   border: 1px solid var(--rule);
-  border-radius: 6px;
+  border-radius: var(--radius-0);
   background: var(--surface-1);
   font-size: 0.82rem;
   line-height: 1.5;
@@ -106,7 +106,7 @@
   overflow-x: auto;
   margin: 1.25rem 0;
   border: 1px solid var(--rule);
-  border-radius: 6px;
+  border-radius: var(--radius-0);
 }
 
 .article-table table {
@@ -134,7 +134,7 @@
   margin-bottom: 1.5rem;
   padding: 0.75rem 1rem;
   border: 1px solid var(--rule);
-  border-radius: 6px;
+  border-radius: var(--radius-0);
   background: var(--surface-1);
 }
 
@@ -179,7 +179,7 @@
   margin-bottom: 1rem;
   padding: 0.85rem 1rem;
   border: 1px solid var(--rule);
-  border-radius: 6px;
+  border-radius: var(--radius-0);
 }
 
 .article-provenance-section > h3 {

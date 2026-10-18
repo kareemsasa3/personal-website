@@ -365,7 +365,7 @@ html.theme-switching *::after {
 
 /* Start-aligned headers: shrink the box to its text */
 .prose-surface--start { width: fit-content; }
-.prose-surface--reading { background: var(--field); border-radius: 8px; }
+.prose-surface--reading { background: var(--field); border-radius: var(--radius-0); }
 html { scroll-padding-top: calc(var(--site-header-measured-offset, 0px) + 16px); scroll-padding-bottom: var(--site-dock-safe-space, 0px); }
 :target { scroll-margin-top: 1rem; }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }

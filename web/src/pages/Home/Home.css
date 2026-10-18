@@ -91,7 +91,7 @@ TABLE OF CONTENTS
   width: 80px;
   height: 3px;
   background: linear-gradient(90deg, var(--signal-dim), #000000);
-  border-radius: 2px;
+  border-radius: var(--radius-0);
   transform: translateX(-50%);
 }
 

@@ -68,7 +68,7 @@ primary comprehension layer.
     width: 80px;
     height: 3px;
     background: linear-gradient(90deg, var(--signal-dim), #000000);
-    border-radius: 2px;
+    border-radius: var(--radius-0);
     transform: translateX(-50%);
 }
 
@@ -134,7 +134,7 @@ primary comprehension layer.
     margin-bottom: 2rem;
     padding: 1.5rem;
     border: 1px solid color-mix(in srgb, var(--rule) 80%, transparent);
-    border-radius: 14px;
+    border-radius: var(--radius-0);
     background: color-mix(in srgb, var(--surface-1) 90%, transparent);
     /* Its controls sit on a surface-1 ground: hover rises one step (§13 Hover). */
     --df-ground-up: var(--surface-2);
@@ -206,7 +206,7 @@ primary comprehension layer.
     padding: 4rem 2rem;
     background: var(--surface-1);
     border: 2px solid color-mix(in srgb, var(--terminal-primary, #4CAF50) 60%, transparent);
-    border-radius: 12px;
+    border-radius: var(--radius-0);
     text-align: center;
 }
 
@@ -282,7 +282,7 @@ primary comprehension layer.
 
 .tech-stack-grid::-webkit-scrollbar-thumb {
     background: var(--terminal-primary, #4CAF50);
-    border-radius: 4px;
+    border-radius: var(--radius-0);
 }
 
 .tech-item {
@@ -293,7 +293,7 @@ primary comprehension layer.
     padding: 0.75rem;
     background: var(--surface-1);
     border: 1px solid var(--rule);
-    border-radius: 10px;
+    border-radius: var(--radius-0);
     transition: all 0.3s ease;
 }
 

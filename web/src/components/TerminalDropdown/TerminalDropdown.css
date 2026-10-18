@@ -94,7 +94,7 @@
 
 .terminal-dropdown-options::-webkit-scrollbar-thumb {
     background: var(--terminal-primary, #4CAF50);
-    border-radius: 3px;
+    border-radius: var(--radius-0);
 }
 
 /* Boundary, colour and states come from .df-control: Selected by aria-selected, the keyboard cursor by data-df-active.

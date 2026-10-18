@@ -44,7 +44,7 @@ with globally bundled card/badge styles.
 .project-roster__item[data-expanded="true"] {
     margin-block: 0.5rem;
     background: color-mix(in srgb, var(--surface-1) 45%, transparent);
-    border-radius: 10px;
+    border-radius: var(--radius-0);
     border-top-color: transparent;
 }
 
@@ -198,7 +198,7 @@ with globally bundled card/badge styles.
     left: 0;
     width: 0.35rem;
     height: 0.35rem;
-    border-radius: 999px;
+    border-radius: var(--radius-0);
     background: var(--fg-muted);
 }
 

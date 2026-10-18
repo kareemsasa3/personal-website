@@ -16,7 +16,7 @@ a.interactive-card::before {
 .interactive-card:not(a) {
   background: var(--field);
   border: 1px solid var(--rule);
-  border-radius: 12px;
+  border-radius: var(--radius-0);
   transition: all 0.3s ease;
 }
 

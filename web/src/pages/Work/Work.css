@@ -14,7 +14,6 @@
     margin-bottom: 60px;
     padding: 2rem 0;
     background: transparent;
-    border-radius: 12px;
     border: none;
     margin: 0 0 3rem 0;
 }
@@ -36,7 +35,7 @@
     width: 80px;
     height: 3px;
     background: linear-gradient(90deg, var(--signal-dim), #000000);
-    border-radius: 2px;
+    border-radius: var(--radius-0);
 }
 
 .work-subtitle {
@@ -62,13 +61,13 @@
     align-items: center;
 }
 
-/* The "node" or "commit" circle on the timeline */
+/* The square state point on the timeline */
 .timeline-node {
     width: 16px;
     height: 16px;
     background-color: var(--signal-dim);
     border: 3px solid var(--surface-1);
-    border-radius: 50%;
+    border-radius: var(--radius-0);
     z-index: 1;
     margin-top: 2rem;
     position: relative;
@@ -86,18 +85,17 @@
 
 .timeline-node.freelance {
     background-color: #ff6b6b;
-    border-radius: 4px;
-    transform: rotate(45deg);
+    border-radius: var(--radius-0);
 }
 
 .timeline-node.ai-ml {
     background-color: #a855f7;
-    border-radius: 50%;
+    border-radius: var(--radius-0);
 }
 
 .timeline-node.tutoring {
     background-color: #10b981;
-    border-radius: 50%;
+    border-radius: var(--radius-0);
 }
 
 /* The vertical line connecting the nodes */
@@ -118,7 +116,7 @@
     width: 6px;
     height: 6px;
     background-color: var(--signal-dim);
-    border-radius: 50%;
+    border-radius: var(--radius-0);
 }
 
 /* The content card */
@@ -147,7 +145,7 @@
     padding: 1.5rem;
     max-width: 960px;
     border: 1px solid var(--rule);
-    border-radius: 12px;
+    border-radius: var(--radius-0);
     background: var(--field);
 }
 

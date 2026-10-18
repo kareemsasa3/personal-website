@@ -15,7 +15,7 @@
     /* Width determined by flexbox content for optimal performance */
 
     background: var(--field);
-    border-radius: 16px;
+    border-radius: var(--radius-0);
 
     will-change: transform;
     /* Performance optimization */
