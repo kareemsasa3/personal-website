@@ -78,6 +78,9 @@ const SpiderSolitaire = () => {
   } = useSpiderSolitaire();
 
   const [dragData, setDragData] = useState<DragData | null>(null);
+  const dealUnavailableReason = stock.length === 0
+    ? "No stock cards remain"
+    : "Fill every column first";
 
   const selectedMap = useMemo(() => {
     if (!selection) return null;
@@ -170,15 +173,18 @@ const SpiderSolitaire = () => {
           <span>Stock: {Math.floor(stock.length / 10)}</span>
         </div>
         <div className="spider-actions">
-          <button className="spider-button" onClick={newGame}>
+          <button className="spider-button df-control df-label" onClick={newGame}>
             New Game
           </button>
           <button
-            className="spider-button"
-            onClick={dealCards}
-            disabled={!canDeal}
+            className="spider-button df-control df-label"
+            onClick={() => { if (canDeal) dealCards(); }}
+            aria-disabled={!canDeal || undefined}
+            aria-label="Deal"
+            aria-describedby={!canDeal ? "spider-deal-reason" : undefined}
           >
             Deal
+            {!canDeal && <span id="spider-deal-reason" className="spider-button__reason df-annotation">{dealUnavailableReason}</span>}
           </button>
         </div>
       </div>

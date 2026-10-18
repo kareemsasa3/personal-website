@@ -467,6 +467,35 @@ test("T13 reading controls use the shared model and Journey turns only on activa
   }
 });
 
+test("T15 Spider and terminal side controls use the shared model on the Layout field", async () => {
+  for (const [file, cls] of [
+    ["components/SpiderSolitaire/SpiderSolitaire.tsx", "spider-button"],
+    ["components/Terminal/Terminal.tsx", "terminal-sidecar"],
+  ]) {
+    const classes = [...(await read(file)).matchAll(/className="([^"]*)"/g)]
+      .map((m) => m[1]).filter((c) => c.split(/\s+/).includes(cls));
+    assert.ok(classes.length > 0, `${file}: ${cls} absent`);
+    for (const c of classes) {
+      assert.match(c, /(^|\s)df-control(\s|$)/, `${file}: ${c}`);
+      assert.match(c, /(^|\s)df-label(\s|$)/, `${file}: ${c}`);
+    }
+  }
+  const files = ["components/SpiderSolitaire/SpiderSolitaire.css", "components/Terminal/Terminal.css"];
+  for (const file of files) {
+    const rules = declarations(await read(file)).filter((d) => /\.(spider-button|terminal-sidecar)(?![\w-])/.test(innermost(d.selector)));
+    const bad = rules.filter((d) => /^(background(?:-[\w-]+)?|color|border(?:-[\w-]+)?|border-radius|opacity|transition(?:-[\w-]+)?)$/.test(d.prop) ||
+      /:(hover|active|disabled)(?![\w-])/.test(innermost(d.selector)));
+    assert.deepEqual(bad.map(where), [], file);
+  }
+  const spider = await read("components/SpiderSolitaire/SpiderSolitaire.tsx");
+  assert.match(spider, /aria-disabled=\{!canDeal \|\| undefined\}/);
+  assert.doesNotMatch(spider, /disabled=\{!canDeal\}/);
+  assert.match(spider, /onClick=\{\(\) => \{ if \(canDeal\) dealCards\(\); \}\}/);
+  assert.match(spider, /aria-describedby=\{!canDeal \? "spider-deal-reason" : undefined\}/);
+  assert.match(spider, /!canDeal && <span id="spider-deal-reason" className="spider-button__reason df-annotation">\{dealUnavailableReason\}<\/span>/);
+  assert.match(await read("components/Terminal/Terminal.tsx"), /aria-label="Terminal minimized — reopen"/);
+});
+
 // Generated article HTML cannot carry type classes. Icon-only selectors size glyphs, not text.
 const GENERATED_TYPE = new Set([
   "components/ArticlePage/ArticlePage.css|.article-body h2",

@@ -281,10 +281,10 @@ const Terminal: React.FC<TerminalProps> = ({ isIntro }) => {
         {/* The sidecar for minimized state - NOW a BUTTON */}
         {isStateLoaded && windowManagement.showSidecar && (
           <button
-            className="terminal-sidecar"
+            className="terminal-sidecar df-control df-label"
             ref={sidecarRef}
             onClick={windowManagement.handleMinimize}
-            aria-label="Restore terminal window"
+            aria-label="Terminal minimized — reopen"
           >
             <span className="sidecar-icon" aria-hidden="true">
               &gt;_ Terminal minimized — reopen

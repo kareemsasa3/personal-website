@@ -137,8 +137,8 @@ try {
     await page.keyboard.press("Shift+Tab");
     await focused(button("Minimize terminal"));
     await page.keyboard.press("Enter");
-    await focused(button("Restore terminal window"));
-    await reachable(button("Restore terminal window"));
+    await focused(button("Terminal minimized — reopen"));
+    await reachable(button("Terminal minimized — reopen"));
     await page.keyboard.press("Enter");
     await focused(button("Minimize terminal"));
     await reachable(button("Minimize terminal"));

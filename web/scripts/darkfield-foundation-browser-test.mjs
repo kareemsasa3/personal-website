@@ -1272,6 +1272,10 @@ if (MODE === "check") {
     { route: "/experience", selectors: [".work-contact-link"] },
     { route: "/journey", selectors: [".timeline-flip-toggle"] },
     { route: "/procedural-animations", selectors: [".procedural-animations-card"] },
+    // Task 15: the two controls on Phase 5 surfaces rest directly on the Layout field.
+    { route: "/simulations/spider", selectors: [".spider-button"] },
+    { route: "/terminal", selectors: [".terminal-sidecar"],
+      prepare: (page) => page.getByRole("button", { name: "Minimize terminal" }).click() },
     // The error-boundary actions: the Journey route chunk fails to load after a client-side navigation, so its lazy
     // import rejects and the Layout error boundary renders in place of the route.
     { route: "/darkfield-404-probe", selectors: [".error-button"], prepare: async (page) => {
@@ -1438,6 +1442,40 @@ if (MODE === "check") {
         if (route === "/darkfield-404-probe") invariant(wide.length > 0 && wide.every(([, , a]) => a === "centred"), `${theme} ${route}: 404 and error actions are not centred ${JSON.stringify(wide)}`);
       });
     }
+  }
+
+  // Task 15 (§13 Disabled): Deal stays in keyboard order with a visible, associated reason. Once the five stock deals
+  // are exhausted, hover and activation do nothing. This state is not exercised by the generic first-control pass.
+  for (const theme of THEMES) {
+    await withPage({ theme, route: "/simulations/spider", reducedMotion: "reduce" }, async (page) => {
+      const deal = page.getByRole("button", { name: "Deal", exact: true });
+      for (let stock = 5; stock > 0; stock--) await deal.click();
+      await page.setViewportSize({ width: 375, height: 812 }); await frames(page);
+      await page.keyboard.press("Shift+Tab"); await page.keyboard.press("Tab");
+      const reason = page.locator("#spider-deal-reason");
+      invariant(await deal.evaluate((e) => e === document.activeElement && e.getAttribute("aria-disabled") === "true" &&
+        e.getAttribute("aria-describedby") === "spider-deal-reason"), `${theme} spider: disabled Deal is not focusable with its reason`);
+      invariant(await reason.isVisible() && (await reason.textContent())?.trim() === "No stock cards remain",
+        `${theme} spider: disabled Deal reason is not visible`);
+      const fits = await deal.evaluate((e) => { const b = e.getBoundingClientRect(); const r = e.querySelector("#spider-deal-reason")?.getBoundingClientRect();
+        return r && r.left >= b.left && r.right <= b.right && r.top >= b.top && r.bottom <= b.bottom &&
+          document.documentElement.scrollWidth <= innerWidth; });
+      invariant(fits, `${theme} spider 375px: disabled reason overflows its control or page`);
+      await page.mouse.move(0, 0); await frames(page);
+      const idle = await look(deal);
+      await deal.hover(); await frames(page);
+      const hovered = await look(deal);
+      invariant(hovered.bg === idle.bg && hovered.fg === idle.fg && hovered.b === idle.b && !hovered.marker.includes("›"),
+        `${theme} spider: disabled Deal responds to hover`);
+      const stats = await page.locator(".spider-stats").textContent();
+      await deal.click({ force: true });
+      invariant((await page.locator(".spider-stats").textContent()) === stats, `${theme} spider: disabled Deal activated`);
+    });
+    await withPage({ theme, route: "/terminal" }, async (page) => {
+      await page.getByRole("button", { name: "Minimize terminal" }).click();
+      invariant(await page.getByRole("button", { name: "Terminal minimized — reopen", exact: true }).count() === 1,
+        `${theme} terminal: sidecar accessible name does not include its visible label`);
+    });
   }
 
   // Phase 3 Task 10 (§13): the dropdown's options. Selecting one closes the menu, so they are checked here rather than in

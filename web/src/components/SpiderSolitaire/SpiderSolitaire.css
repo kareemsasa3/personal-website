@@ -36,25 +36,7 @@
   gap: 1.5rem;
 }
 
-.spider-button {
-  background: var(--surface-1);
-  color: var(--signal);
-  border: 1px solid var(--signal);
-  padding: 0.5rem 1rem;
-  border-radius: 0.4rem;
-  cursor: pointer;
-  font-weight: 600;
-  transition: background-color 0.15s ease;
-}
-
-.spider-button:hover:not(:disabled) {
-  background: var(--surface-2);
-}
-
-.spider-button:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
+.spider-button__reason { display: block; }
 
 .spider-win-banner {
   padding: 0.75rem 1rem;
@@ -185,4 +167,4 @@
 }
 .spider-column:empty { min-height: 0; height: auto; aspect-ratio: 5 / 7; border: 1px dashed var(--spider-empty-column-border); }
 .spider-stats, .spider-actions { flex-wrap: wrap; gap: .75rem; }
-@media (prefers-reduced-motion: reduce) { .spider-card, .spider-button { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .spider-card { transition: none; } }
