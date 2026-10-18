@@ -91,9 +91,9 @@ const TimelineItem: React.FC<TimelineItemProps> = ({ data, isLeft }) => {
             className="timeline-content timeline-front"
             style={{ backfaceVisibility: "hidden" }}
           >
-            <span className="timeline-date">{date}</span>
-            <h3 className="timeline-item-title">{title}</h3>
-            <p className="timeline-item-description">{description}</p>
+            <span className="timeline-date df-annotation">{date}</span>
+            <h3 className="timeline-item-title df-heading-3">{title}</h3>
+            <p className="timeline-item-description df-body">{description}</p>
           </motion.div>
 
           {/* Back of card */}

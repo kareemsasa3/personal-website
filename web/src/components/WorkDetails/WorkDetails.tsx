@@ -19,9 +19,9 @@ const WorkDetails: React.FC<WorkDetailsProps> = ({
       <div className="work-header">
         <div className="work-dates df-annotation">{dates}</div>
         <div className="work-company-info">
-          <h3 className="work-company">{company}</h3>
-          <div className="work-role">{role}</div>
-          {location && <div className="work-location">{location}</div>}
+          <h3 className="work-company df-heading-3">{company}</h3>
+          <div className="work-role df-heading-3">{role}</div>
+          {location && <div className="work-location df-body-sm">{location}</div>}
         </div>
       </div>
       <div className="work-content">
@@ -29,7 +29,7 @@ const WorkDetails: React.FC<WorkDetailsProps> = ({
           <h4 className="section-title df-label">Key Responsibilities</h4>
           <ul className="work-achievements">
             {description.map((desc, index) => (
-              <li key={index} className="achievement-item">
+              <li key={index} className="achievement-item df-body">
                 {desc}
               </li>
             ))}
@@ -40,7 +40,7 @@ const WorkDetails: React.FC<WorkDetailsProps> = ({
             <h4 className="section-title df-label">Notable Projects</h4>
             <ul className="work-projects">
               {projects.map((project, index) => (
-                <li key={index} className="project-item">
+                <li key={index} className="project-item df-body">
                   {project}
                 </li>
               ))}

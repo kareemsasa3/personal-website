@@ -171,7 +171,7 @@ test("T8 measure: no Phase 3 max-width or grid track holds a literal ch value; p
   assert.ok(decls.some((d) => d.prop === "max-width" && /--measure-body/.test(d.value)), "measure-body is read nowhere");
   assert.match(await read("components/ArticlePage/ArticlePage.tsx"), /className="article-body df-prose /);
   const art = await read("components/ArticlePage/ArticlePage.tsx");
-  const containers = [...art.matchAll(/className="article-prose (df-prose(?:-links)?)"\s+dangerouslySetInnerHTML=\{\{\s+__html: article\.provenance\.(\w+)/g)].map((m) => `${m[2]}:${m[1]}`);
+  const containers = [...art.matchAll(/className="article-prose (df-prose(?:-links)?) df-body-sm"\s+dangerouslySetInnerHTML=\{\{\s+__html: article\.provenance\.(\w+)/g)].map((m) => `${m[2]}:${m[1]}`);
   // Tables live in Sources and Fact-check: those stay full width (links only); Abstract and Editorial note take the measure.
   assert.deepEqual(containers, ["abstractHtml:df-prose", "sourcesHtml:df-prose-links", "factCheckHtml:df-prose-links", "editorialNoteHtml:df-prose"]);
   const marker = declarations(await read("styles/darkfield/grammar.css")).filter((d) => /a:hover::before/.test(d.selector) && /df-prose/.test(d.selector));
@@ -225,7 +225,7 @@ test("T10 Projects: filters, dropdown, roster actions and the dialog follow the 
   }
   const projectClasses = await classes("pages/Projects/Projects.tsx");
   assert.deepEqual(projectClasses.filter((c) => has(c, "stat-label")), Array(3).fill("stat-label df-label"));
-  assert.deepEqual(projectClasses.filter((c) => has(c, "stat-number")), Array(3).fill("stat-number df-control__value"));
+  assert.deepEqual(projectClasses.filter((c) => has(c, "stat-number")), Array(3).fill("stat-number df-control__value df-readout"));
   // The two filters are Selected by aria-pressed; the coverage card is the one latch.
   const cards = (await classes("pages/Projects/Projects.tsx")).filter((c) => has(c, "stat-card"));
   assert.deepEqual(cards.map((c) => has(c, "df-control--latch")), [false, false, true]);
@@ -465,4 +465,48 @@ test("T13 reading controls use the shared model and Journey turns only on activa
       /^(background|background-color|color|border|border-color|border-radius|box-shadow|transition|transform|outline|opacity)$/.test(d.prop));
     assert.deepEqual(bad.map(where), [], file);
   }
+});
+
+// Generated article HTML cannot carry type classes. Icon-only selectors size glyphs, not text.
+const GENERATED_TYPE = new Set([
+  "components/ArticlePage/ArticlePage.css|.article-body h2",
+  "components/ArticlePage/ArticlePage.css|.article-body h3",
+  "components/ArticlePage/ArticlePage.css|.article-body pre, .article-prose pre",
+  "components/ArticlePage/ArticlePage.css|.article-body code, .article-prose code",
+  "components/ArticlePage/ArticlePage.css|.article-table table",
+]);
+const ICON_SIZES = new Set([
+  "components/Navigation/SiteNavigation.css|.site-header__caret",
+  "components/ProjectRoster/ProjectRoster.css|.project-roster__toggle-icon",
+  "components/SettingsPanel/SettingsPanel.css|.settings-header h3::before",
+  "components/SettingsPanel/SettingsPanel.css|.settings-action svg",
+  "components/TerminalDropdown/TerminalDropdown.css|.terminal-dropdown-arrow",
+  "components/TerminalDropdown/TerminalDropdown.css|.terminal-option-prefix",
+  "components/TimelineItem/TimelineItem.css|.timeline-icon-wrapper",
+]);
+// The existing normalize reset still governs native Phase 5 text and controls. Retire it after those surfaces lift their type.
+const RESET_HOLD = new Map([
+  ["index.css|html|line-height", "1.15"],
+  ["index.css|h1|font-size", "2em"],
+  ["index.css|pre|font-size", "1em"],
+  ["index.css|b, strong|font-weight", "bolder"],
+  ["index.css|code, kbd, samp|font-size", "1em"],
+  ["index.css|small|font-size", "80%"],
+  ["index.css|sub, sup|font-size", "75%"],
+  ["index.css|sub, sup|line-height", "0"],
+  ["index.css|button, input, optgroup, select, textarea|font-size", "100%"],
+  ["index.css|button, input, optgroup, select, textarea|line-height", "1.15"],
+]);
+test("T14 type: Phase 3 text gets size, line, weight and tracking from generated classes", async () => {
+  const bad = (await phase3Decls()).filter((d) => {
+    if (!/^(font|font-size|line-height|letter-spacing|font-weight)$/.test(d.prop)) return false;
+    if (d.value === "inherit" || /^var\(--[^)]+\)$/.test(d.value)) return false;
+    const key = `${d.file}|${innermost(d.selector)}`;
+    if (GENERATED_TYPE.has(key)) return false;
+    if (RESET_HOLD.get(`${key}|${d.prop}`) === d.value) return false;
+    return !(d.prop === "font-size" && ICON_SIZES.has(key));
+  });
+  assert.deepEqual(bad.map(where), []);
+  const held = (await phase3Decls()).filter((d) => RESET_HOLD.has(`${d.file}|${innermost(d.selector)}|${d.prop}`));
+  assert.deepEqual(held.map((d) => [`${d.file}|${innermost(d.selector)}|${d.prop}`, d.value]), [...RESET_HOLD]);
 });

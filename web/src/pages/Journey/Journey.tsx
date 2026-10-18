@@ -43,13 +43,13 @@ const Journey = () => {
 
   return (
     <div
-      className="page-content journey-page"
+      className="page-content journey-page df-body"
     >
       <header id="journey-intro" className="journey-header prose-surface prose-surface--start">
-        <h1 className="journey-title">
+        <h1 className="journey-title df-heading-1">
           Background &amp; Journey
         </h1>
-        <p className="journey-subtitle">
+        <p className="journey-subtitle df-body-lg">
           A narrative of how my work evolved and what I focused on over time.
         </p>
       </header>
@@ -61,7 +61,7 @@ const Journey = () => {
             id={eraName.toLowerCase().replace(/ & /g, "-").replace(/ /g, "-")}
             className="timeline-era"
           >
-            <h2 className="timeline-era-header">{eraName}</h2>
+            <h2 className="timeline-era-header df-heading-2">{eraName}</h2>
             {eras[eraName].map((item) => {
               // Find the global index of the current item in the flat list.
               // This is a pure calculation based on props and state.

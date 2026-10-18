@@ -1894,6 +1894,41 @@ if (MODE === "check") {
       invariant(bad.length === 0, `${route}: voice ${JSON.stringify(bad.slice(0, 8))}`);
     });
   }
+  // Case-study prompt text uses the generated code voice even where the evidence block keeps its line breaks.
+  await withPage({ theme: THEMES[0], route: "/case-studies/where-the-specification-lived" }, async (page) => {
+    const prompt = page.locator(".case-study-prompt").first();
+    await prompt.locator("summary").click();
+    const fonts = await prompt.locator("pre").evaluate((el) => {
+      const probe = document.createElement("span");
+      probe.className = "df-code";
+      document.body.appendChild(probe);
+      const expected = getComputedStyle(probe).fontFamily;
+      probe.remove();
+      return { actual: getComputedStyle(el).fontFamily, expected };
+    });
+    invariant(fonts.actual === fonts.expected, `case-study prompt code voice ${JSON.stringify(fonts)}`);
+  });
+  // Phase 3 Task 14 (§06): site text resolves to one of the generated type styles.
+  for (const route of P3_ROUTES) {
+    await withPage({ theme: THEMES[0], route }, async (page) => {
+      const bad = await page.evaluate((skip) => {
+        const styles = ["df-display-1", "df-display-2", "df-heading-1", "df-heading-2", "df-heading-3",
+          "df-body-lg", "df-body", "df-body-sm", "df-label-lg", "df-label", "df-label-sm",
+          "df-readout-xl", "df-readout", "df-code", "df-data", "df-annotation", "df-glyph", "df-glyph-2x"];
+        const probe = document.createElement("span");
+        probe.style.cssText = "position:absolute;visibility:hidden";
+        document.body.appendChild(probe);
+        const allowed = new Set(styles.map((name) => { probe.className = name; return getComputedStyle(probe).fontSize; }));
+        probe.remove();
+        const icons = ".site-header__caret, .project-roster__toggle-icon, .terminal-dropdown-arrow, .terminal-option-prefix, .timeline-icon-wrapper";
+        const own = (el) => [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim());
+        return [...document.querySelectorAll("body *")].filter((el) => el.checkVisibility({ opacityProperty: true, visibilityProperty: true }) &&
+          own(el) && !el.closest(`${skip}, .article-prose, ${icons}`) && !allowed.has(getComputedStyle(el).fontSize))
+          .map((el) => `${el.tagName.toLowerCase()}.${el.className} ${getComputedStyle(el).fontSize}`).slice(0, 16);
+      }, P3_SKIP);
+      invariant(bad.length === 0, `${route}: type size ${JSON.stringify(bad)}`);
+    });
+  }
   // Phase 3 Task 8 (§06): running text keeps to the body measure. The probe resolves the measure in the paragraph's own font.
   for (const route of P3_ROUTES) for (const width of [VIEW_W, 768]) {
     await withPage({ theme: THEMES[0], route }, async (page) => {

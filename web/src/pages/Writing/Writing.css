@@ -21,7 +21,6 @@
 .writing-header p:not(.writing-eyebrow) {
   color: var(--fg-muted);
   max-width: var(--measure-body);
-  line-height: 1.6;
 }
 
 .writing-grid {
@@ -42,8 +41,6 @@
 
 .writing-card h2 {
   margin: 0.15rem 0 0;
-  font-size: 1.2rem;
-  line-height: 1.35;
 }
 
 .writing-card-eyebrow {
@@ -57,35 +54,27 @@
   max-width: var(--measure-body);
   margin: -0.3rem 0 0;
   color: var(--fg-muted);
-  font-size: 0.74rem;
 }
 
 .writing-card-subtitle {
   margin: 0;
   color: var(--fg-muted);
-  font-size: 0.9rem;
-  line-height: 1.5;
 }
 
 .writing-card-description {
   margin: 0;
   color: var(--fg-muted);
-  font-size: 0.88rem;
-  line-height: 1.55;
 }
 
 .writing-card-meta {
   margin: 0;
   color: var(--fg-muted);
-  font-size: 0.78rem;
   padding-top: 0.25rem;
 }
 
 .writing-card-link {
   margin-top: auto;
   color: inherit;
-  font-size: 0.85rem;
-  font-weight: 650;
 }
 
 @media (max-width: 480px) {

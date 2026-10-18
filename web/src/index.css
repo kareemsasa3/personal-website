@@ -10,6 +10,7 @@
   Use modern scrollbar-gutter to prevent layout shifts.
 */
 html {
+  /* Browser reset hold: native simulation and game text keeps its existing line box until Phase 5. */
   line-height: 1.15;
   -webkit-text-size-adjust: 100%;
   overflow-x: hidden;
@@ -141,6 +142,7 @@ optgroup,
 select,
 textarea {
   font-family: inherit;
+  /* Browser reset hold for native controls; Phase 5 lifts their type locally. */
   font-size: 100%;
   line-height: 1.15;
   margin: 0;

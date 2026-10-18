@@ -24,17 +24,17 @@ export const HeroSection = ({
       <div className="hero-content prose-surface">
         <h1
           id="home-hero-title"
-          className="hero-title"
+          className="hero-title df-display-2"
         >
           {heroContent.title}
         </h1>
         <p
-          className="hero-subtitle"
+          className="hero-subtitle df-body-lg"
         >
           {heroContent.subtitle}
         </p>
         <p
-          className="hero-description"
+          className="hero-description df-body-lg"
         >
           {heroContent.description}
         </p>
@@ -74,8 +74,8 @@ export const HeroSection = ({
           {heroProofContent.map((item) => (
             <div className="hero-proof-item" key={item.label}>
               <span className="hero-proof-label df-label">{item.label}</span>
-              <strong className="hero-proof-value">{item.value}</strong>
-              <span className="hero-proof-detail">{item.detail}</span>
+              <strong className="hero-proof-value df-body">{item.value}</strong>
+              <span className="hero-proof-detail df-body-sm">{item.detail}</span>
             </div>
           ))}
         </div>

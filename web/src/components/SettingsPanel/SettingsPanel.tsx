@@ -224,9 +224,9 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
               aria-modal="false"
               aria-labelledby="settings-title"
             >
-              <div className="settings-panel">
+              <div className="settings-panel df-body">
                 <div className="settings-header">
-                  <h3 id="settings-title">Settings</h3>
+                  <h3 className="df-heading-3" id="settings-title">Settings</h3>
                   <button
                     type="button"
                     className="settings-close df-control"
@@ -265,11 +265,11 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                         onChange={setNavMode}
                       />
                     ) : (
-                      <span className="setting-static-value">Header</span>
+                      <span className="setting-static-value df-data">Header</span>
                     )}
                   </SettingRow>
                   {!isDockAvailable && (
-                    <p className="setting-note">
+                    <p className="setting-note df-body-sm">
                       The dock is available on screens at least 430 px wide;
                       this screen uses the header.
                     </p>
@@ -296,7 +296,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                         hidden={!isDockTuningOpen}
                       >
                         {dockTuningNote && (
-                          <p id="dock-tuning-note" className="setting-note">
+                          <p id="dock-tuning-note" className="setting-note df-body-sm">
                             {dockTuningNote}
                           </p>
                         )}
@@ -340,7 +340,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                     onChange={(speed) => onBackgroundMotionSpeedChange?.(speed)}
                   />
                   {reducedMotion && (
-                    <p id="reduced-motion-note" className="setting-note">
+                    <p id="reduced-motion-note" className="setting-note df-body-sm">
                       Your system prefers reduced motion; the background stays
                       still.
                     </p>
@@ -384,7 +384,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                   title="About"
                   className="settings-about"
                 >
-                  <p className="settings-about__name">Personal website</p>
+                  <p className="settings-about__name df-body">Personal website</p>
                   <p>React · TypeScript · Framer Motion</p>
                   <BuildIdentifier />
                 </SettingsSection>

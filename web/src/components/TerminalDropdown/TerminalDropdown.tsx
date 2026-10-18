@@ -161,7 +161,7 @@ const TerminalDropdown: React.FC<TerminalDropdownProps> = ({
         {isOpen && (
           <div className="terminal-dropdown-menu">
             {showMenuChrome && (
-              <div className="terminal-dropdown-header">
+              <div className="terminal-dropdown-header df-code">
                 <span className="terminal-prompt">$</span> cat options.txt
               </div>
             )}
@@ -189,7 +189,7 @@ const TerminalDropdown: React.FC<TerminalDropdownProps> = ({
               ))}
             </div>
             {showMenuChrome && (
-              <div className="terminal-dropdown-footer">
+              <div className="terminal-dropdown-footer df-annotation">
                 <span className="terminal-comment">
                   # Use ↑↓ to navigate, Enter to select, Esc to close
                 </span>

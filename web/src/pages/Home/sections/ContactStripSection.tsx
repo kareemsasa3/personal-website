@@ -23,12 +23,12 @@ export const ContactStripSection = forwardRef(
         <div className="contact-strip-content interactive-card">
           <h2
             id="contact-title"
-            className="contact-strip-title"
+            className="contact-strip-title df-heading-2"
           >
             {socialContent.title}
           </h2>
           <p
-            className="contact-strip-description"
+            className="contact-strip-description df-body-sm"
           >
             {professionalContactContent.description}
           </p>

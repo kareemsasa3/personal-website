@@ -60,9 +60,9 @@ const ArticlePage = ({ article }: ArticlePageProps) => {
   );
 
   return (
-    <div className="page-content article-page">
+    <div className="page-content article-page df-body">
       <div className="article-container">
-        <p className="article-breadcrumbs">
+        <p className="article-breadcrumbs df-body-sm">
           <Link className="df-control df-control--light df-label" to="/writing">Writing</Link>
           <span aria-hidden="true"> / </span>
           <span>{article.title}</span>
@@ -71,15 +71,15 @@ const ArticlePage = ({ article }: ArticlePageProps) => {
         <header className="article-header prose-surface prose-surface--reading">
           <p className="article-eyebrow df-label">{KIND_LABELS[article.kind]}</p>
           {article.series ? (
-            <p className="article-series df-prose">
+            <p className="article-series df-prose df-body-sm">
               {formatSeriesPosition(article.series)} in <a href="#in-this-series">{article.series.name}</a>
             </p>
           ) : null}
-          <h1 className="article-title">{article.title}</h1>
+          <h1 className="article-title df-heading-1">{article.title}</h1>
           {article.subtitle ? (
-            <p className="article-subtitle">{article.subtitle}</p>
+            <p className="article-subtitle df-body-lg">{article.subtitle}</p>
           ) : null}
-          <p className="article-meta">
+          <p className="article-meta df-data">
             <time dateTime={article.published}>
               {formatPublished(article.published)}
             </time>
@@ -116,7 +116,7 @@ const ArticlePage = ({ article }: ArticlePageProps) => {
           ) : null}
 
           <article
-            className="article-body df-prose prose-surface prose-surface--reading"
+            className="article-body df-prose prose-surface prose-surface--reading df-body-lg"
             dangerouslySetInnerHTML={{ __html: article.bodyHtml }}
           />
         </div>
@@ -148,17 +148,17 @@ const ArticlePage = ({ article }: ArticlePageProps) => {
         ) : null}
 
         <section className="article-provenance prose-surface prose-surface--reading" aria-labelledby="provenance-title">
-          <h2 id="provenance-title">Provenance</h2>
-          <p className="article-provenance-note">
+          <h2 className="df-heading-2" id="provenance-title">Provenance</h2>
+          <p className="article-provenance-note df-body-sm">
             This piece is published with the material behind it: what it argues
             in brief, what it drew on, how its claims were checked, and which
             ideas are original to it.
           </p>
 
           <div className="article-provenance-section">
-            <h3>Abstract</h3>
+            <h3 className="df-heading-3">Abstract</h3>
             <div
-              className="article-prose df-prose"
+              className="article-prose df-prose df-body-sm"
               dangerouslySetInnerHTML={{
                 __html: article.provenance.abstractHtml,
               }}
@@ -168,7 +168,7 @@ const ArticlePage = ({ article }: ArticlePageProps) => {
           <details className="article-provenance-section">
             <summary className="df-control df-control--latch df-label">Sources ({article.provenance.sourceCount})</summary>
             <div
-              className="article-prose df-prose-links"
+              className="article-prose df-prose-links df-body-sm"
               dangerouslySetInnerHTML={{
                 __html: article.provenance.sourcesHtml,
               }}
@@ -180,7 +180,7 @@ const ArticlePage = ({ article }: ArticlePageProps) => {
               Fact-check table ({article.provenance.factCheckRowCount})
             </summary>
             <div
-              className="article-prose df-prose-links"
+              className="article-prose df-prose-links df-body-sm"
               dangerouslySetInnerHTML={{
                 __html: article.provenance.factCheckHtml,
               }}
@@ -190,7 +190,7 @@ const ArticlePage = ({ article }: ArticlePageProps) => {
           <details className="article-provenance-section">
             <summary className="df-control df-control--latch df-label">Editorial note: original synthesis</summary>
             <div
-              className="article-prose df-prose"
+              className="article-prose df-prose df-body-sm"
               dangerouslySetInnerHTML={{
                 __html: article.provenance.editorialNoteHtml,
               }}
@@ -199,16 +199,16 @@ const ArticlePage = ({ article }: ArticlePageProps) => {
         </section>
 
         {seriesArticles.length > 0 && <nav id="in-this-series" className="article-footer prose-surface" aria-label="In this series">
-          <h2>In this series</h2><ol>{seriesArticles.map(entry => <li key={entry.slug}><Link to={`/writing/${entry.slug}`} aria-current={entry.slug === article.slug ? "page" : undefined}>{entry.title}</Link></li>)}</ol>
+          <h2 className="df-heading-2">In this series</h2><ol>{seriesArticles.map(entry => <li key={entry.slug}><Link to={`/writing/${entry.slug}`} aria-current={entry.slug === article.slug ? "page" : undefined}>{entry.title}</Link></li>)}</ol>
         </nav>}
         {otherArticles.length > 0 ? (
           <footer className="article-footer">
-            <h2>More writing</h2>
+            <h2 className="df-heading-2">More writing</h2>
             <ul>
               {otherArticles.map((entry) => (
                 <li key={entry.slug}>
                   <Link to={`/writing/${entry.slug}`}>{entry.title}</Link>
-                  <span className="article-footer-kind">
+                  <span className="article-footer-kind df-label-sm">
                     {KIND_LABELS[entry.kind]} · {entry.readingMinutes} min
                   </span>
                 </li>

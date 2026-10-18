@@ -35,7 +35,7 @@ const Work = () => {
   if (!workExperienceData || workExperienceData.length === 0) {
     return (
       <div
-        className="page-content work-page"
+        className="page-content work-page df-body"
       >
         <div>Loading work experience data...</div>
       </div>
@@ -44,13 +44,13 @@ const Work = () => {
 
   return (
     <div
-      className="page-content work-page"
+      className="page-content work-page df-body"
     >
       <header className="work-header prose-surface">
-        <h1 className="work-title">
+        <h1 className="work-title df-heading-1">
           Experience
         </h1>
-        <p className="work-subtitle">
+        <p className="work-subtitle df-body-lg">
           Professional experience across consulting, delivery, and platform
           engineering work.
         </p>
@@ -77,7 +77,7 @@ const Work = () => {
       <section className="work-contact-cta" aria-labelledby="work-contact-title">
         <div>
           <p className="work-contact-eyebrow df-label">Next Step</p>
-          <h2 id="work-contact-title">{professionalContactContent.title}</h2>
+          <h2 className="df-heading-2" id="work-contact-title">{professionalContactContent.title}</h2>
           <p>{professionalContactContent.description}</p>
         </div>
         <div className="work-contact-actions">

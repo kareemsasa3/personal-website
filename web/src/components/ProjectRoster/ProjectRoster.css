@@ -73,7 +73,6 @@ with globally bundled card/badge styles.
     gap: 0.4rem 0.9rem;
     margin: 0 0 0.55rem;
     color: var(--fg-muted);
-    font-size: 0.78rem;
 }
 
 .project-roster__meta-item {
@@ -97,9 +96,6 @@ with globally bundled card/badge styles.
     grid-area: title;
     margin: 0;
     color: var(--fg);
-    font-size: 1.45rem;
-    font-weight: 700;
-    line-height: 1.2;
     overflow-wrap: anywhere;
 }
 
@@ -108,8 +104,6 @@ with globally bundled card/badge styles.
     max-width: var(--measure-body);
     margin: 0.55rem 0 0;
     color: var(--fg-muted);
-    font-size: 1rem;
-    line-height: 1.55;
 }
 
 .project-roster__actions {
@@ -134,7 +128,6 @@ with globally bundled card/badge styles.
     justify-content: center;
     width: 1rem;
     font-size: 1rem;
-    line-height: 1;
 }
 
 /* Detail panel -------------------------------------------------------- */
@@ -149,8 +142,6 @@ with globally bundled card/badge styles.
     max-width: var(--measure-body);
     margin: 0;
     color: var(--fg);
-    font-size: 1rem;
-    line-height: 1.65;
 }
 
 .project-roster__detail-grid {
@@ -167,7 +158,6 @@ with globally bundled card/badge styles.
 .project-roster__detail-heading {
     margin: 0 0 0.7rem;
     color: var(--fg-muted);
-    font-size: 0.85rem;
 }
 
 .project-roster__tags,
@@ -199,8 +189,6 @@ with globally bundled card/badge styles.
     position: relative;
     padding-left: 1rem;
     color: var(--fg);
-    font-size: 0.9rem;
-    line-height: 1.5;
 }
 
 .project-roster__point::before {
@@ -246,14 +234,6 @@ with globally bundled card/badge styles.
 
     .project-roster__item[data-expanded="true"] {
         padding-inline: 0.75rem;
-    }
-
-    .project-roster__title {
-        font-size: 1.25rem;
-    }
-
-    .project-roster__deck {
-        font-size: 0.95rem;
     }
 
     .project-roster__toggle,

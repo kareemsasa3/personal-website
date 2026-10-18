@@ -33,7 +33,7 @@ interface SettingRowProps {
 // A label on the left and a compact control on the right; wraps when narrow.
 export const SettingRow = ({ labelId, label, children }: SettingRowProps) => (
   <div className="setting-row">
-    <span id={labelId} className="setting-label">
+    <span id={labelId} className="setting-label df-label">
       {label}
     </span>
     {children}
@@ -144,10 +144,10 @@ export const SettingSlider = ({
   return (
     <div className="setting-slider">
       <div className="setting-slider__head">
-        <label htmlFor={id} className="setting-label">
+        <label htmlFor={id} className="setting-label df-label">
           {label}
         </label>
-        <span className="setting-value" aria-hidden="true">
+        <span className="setting-value df-data" aria-hidden="true">
           {displayValue}
         </span>
       </div>

@@ -37,7 +37,7 @@ export const FeaturedProjectsSection = forwardRef(
       >
         <h2
           id="featured-projects-title"
-          className="section-title"
+          className="section-title df-heading-2"
         >
           Featured Systems
         </h2>
@@ -52,7 +52,7 @@ export const FeaturedProjectsSection = forwardRef(
                 aria-label={`Read the ${caseStudy.title} case study`}
               >
                 <div className="project-header">
-                  <h3 className="project-title">{caseStudy.title}</h3>
+                  <h3 className="project-title df-heading-3">{caseStudy.title}</h3>
                   <div className="project-badges">
                     <span
                       className={`status-badge df-label-sm df-context${
@@ -63,7 +63,7 @@ export const FeaturedProjectsSection = forwardRef(
                     </span>
                   </div>
                 </div>
-                <p className="project-description">
+                <p className="project-description df-body-sm">
                   {caseStudy.shortDescription}
                 </p>
                 <div className="project-tech">
@@ -74,7 +74,7 @@ export const FeaturedProjectsSection = forwardRef(
                   ))}
                 </div>
                 <div className="featured-project-footer">
-                  <span className="featured-project-link-text">
+                  <span className="featured-project-link-text df-label">
                     Read case study →
                   </span>
                 </div>

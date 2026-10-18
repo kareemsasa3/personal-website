@@ -100,12 +100,10 @@
 
 .timeline-back-content h3 {
     margin: 0 0 10px 0;
-    font-size: 1.5rem;
 }
 
 .timeline-back-content p {
     margin: 0;
-    font-size: 1.1rem;
 }
 
 .timeline-flip-hint {
@@ -171,22 +169,17 @@
 }
 
 .timeline-date {
-    font-size: 0.9rem;
-    font-weight: 600;
     color: var(--signal-dim);
     margin-bottom: 8px;
     display: block;
 }
 
 .timeline-item-title {
-    font-size: 1.25rem;
     margin: 0 0 10px 0;
     color: var(--fg);
 }
 
 .timeline-item-description {
-    font-size: 1rem;
-    line-height: 1.5;
     color: var(--fg-muted);
     margin: 0;
 }

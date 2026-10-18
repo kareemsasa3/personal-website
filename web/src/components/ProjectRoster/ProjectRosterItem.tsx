@@ -25,7 +25,7 @@ const ProjectRosterDetail = ({
 
   return (
     <div id={detailId} className="project-roster__detail">
-      <p className="project-roster__description">{project.description}</p>
+      <p className="project-roster__description df-body">{project.description}</p>
 
       <div className="project-roster__detail-grid">
         <section
@@ -53,7 +53,7 @@ const ProjectRosterDetail = ({
           </h4>
           <ul className="project-roster__points" role="list">
             {project.highlights.map((point, index) => (
-              <li key={`${detailId}-highlight-${index}`} className="project-roster__point">
+              <li key={`${detailId}-highlight-${index}`} className="project-roster__point df-body-sm">
                 {point}
               </li>
             ))}
@@ -69,7 +69,7 @@ const ProjectRosterDetail = ({
           </h4>
           <ul className="project-roster__points" role="list">
             {project.features.map((point, index) => (
-              <li key={`${detailId}-feature-${index}`} className="project-roster__point">
+              <li key={`${detailId}-feature-${index}`} className="project-roster__point df-body-sm">
                 {point}
               </li>
             ))}
@@ -134,10 +134,10 @@ const ProjectRosterItem = ({ project }: ProjectRosterItemProps) => {
               {statusLabel}
             </span>
           </p>
-          <h3 id={titleId} className="project-roster__title">
+          <h3 id={titleId} className="project-roster__title df-heading-3">
             {project.title}
           </h3>
-          <p className="project-roster__deck">{project.shortDescription}</p>
+          <p className="project-roster__deck df-body">{project.shortDescription}</p>
 
           <div className="project-roster__actions">
             {/* D8: the primary action is an idle control placed first in the row. */}

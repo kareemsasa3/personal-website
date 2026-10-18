@@ -19,7 +19,7 @@ export const CapabilitiesSection = forwardRef(
         <div className="capabilities-content">
           <h2
             id="capabilities-title"
-            className="section-title"
+            className="section-title df-heading-2"
           >
             {capabilitiesContent.title}
           </h2>
@@ -32,10 +32,10 @@ export const CapabilitiesSection = forwardRef(
                 key={item.title}
                 className="capability-row"
               >
-                <span className="capability-index" aria-hidden="true">
+                <span className="capability-index df-data" aria-hidden="true">
                   {String(index + 1).padStart(2, "0")}
                 </span>
-                <h3>{item.title}</h3>
+                <h3 className="df-heading-3">{item.title}</h3>
                 <p>{item.description}</p>
               </li>
             ))}

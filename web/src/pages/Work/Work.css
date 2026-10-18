@@ -20,8 +20,6 @@
 }
 
 .work-title {
-    font-size: 2.5rem;
-    font-weight: 700;
     color: var(--fg);
     margin: 0;
     padding-left: 1rem;
@@ -45,8 +43,6 @@
     max-width: var(--measure-body);
     margin: 1.5rem auto 0;
     color: var(--fg-muted);
-    font-size: 1rem;
-    line-height: 1.7;
 }
 
 /* Timeline Layout */
@@ -163,14 +159,12 @@
 .work-contact-cta h2 {
     margin: 0;
     color: var(--fg);
-    font-size: 1.35rem;
 }
 
 .work-contact-cta p:last-child {
     max-width: var(--measure-body);
     margin: 0.75rem 0 0;
     color: var(--fg-muted);
-    line-height: 1.6;
 }
 
 .work-contact-actions {
@@ -189,17 +183,12 @@
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .work-title {
-        font-size: 2rem;
         margin-bottom: 2rem;
     }
 
     .work-header {
         padding: 1.5rem 0;
         margin: 0 0 2rem 0;
-    }
-
-    .work-subtitle {
-        font-size: 0.95rem;
     }
 
     .work-timeline-container {
@@ -229,7 +218,6 @@
 
 @media (max-width: 480px) {
     .work-title {
-        font-size: 1.8rem;
         margin-bottom: 1.5rem;
     }
 

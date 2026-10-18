@@ -7,7 +7,6 @@
 }
 
 .terminal-dropdown-label {
-    font-size: 0.875rem;
     color: var(--fg-muted);
     display: flex;
     align-items: center;
@@ -74,8 +73,6 @@
     padding: 0.5rem 1rem;
     border-bottom: 1px solid var(--terminal-primary, #4CAF50);
     color: var(--terminal-primary, #4CAF50);
-    font-size: 0.8rem;
-    font-weight: bold;
 }
 
 /* Each option is a bounded control: a cell of space keeps neighbouring boundaries from doubling into one heavy line. */
@@ -120,7 +117,6 @@
     background: var(--terminal-header-bg, #2a2a2a);
     padding: 0.5rem 1rem;
     border-top: 1px solid var(--terminal-primary, #4CAF50);
-    font-size: 0.75rem;
     color: var(--terminal-text-muted, #666);
     font-style: italic;
 }
@@ -136,11 +132,6 @@
     }
 }
 
-@media (max-width: 480px) {
-    .terminal-dropdown-label {
-        font-size: 0.8rem;
-    }
-}
 .terminal-dropdown-menu { right: auto; width: max-content; min-width: 100%; max-width: calc(100vw - 2rem); }
 .terminal-dropdown-options { overflow-x: hidden; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--signal-dim) var(--field); }
 .terminal-dropdown-option { white-space: nowrap; }

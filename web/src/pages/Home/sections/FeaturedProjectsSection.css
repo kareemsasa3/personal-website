@@ -41,8 +41,6 @@
 
 .project-title {
   margin: 0;
-  font-size: 1.5rem;
-  font-weight: 700;
 }
 
 .project-badges {
@@ -55,7 +53,6 @@
   max-width: var(--measure-body);
   margin: 0 0 1rem 0;
   color: var(--fg-muted);
-  line-height: 1.6;
 }
 
 .project-tech {
@@ -66,10 +63,6 @@
 
 .featured-project-footer {
   margin-top: auto;
-}
-
-.featured-project-link-text {
-  font-weight: 700;
 }
 
 .featured-projects-cta {
@@ -121,9 +114,5 @@
   .project-header {
     flex-direction: column;
     gap: 0.5rem;
-  }
-
-  .project-title {
-    font-size: 1.25rem;
   }
 }

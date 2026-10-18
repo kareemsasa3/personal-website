@@ -24,16 +24,12 @@
 .contact-strip-title {
   margin: 0;
   color: var(--fg);
-  font-size: 1rem;
-  font-weight: 600;
 }
 
 .contact-strip-description {
   max-width: var(--measure-body);
   margin: 0;
   color: var(--fg-muted);
-  font-size: 0.9rem;
-  line-height: 1.6;
 }
 
 .contact-strip-links {

@@ -90,7 +90,7 @@ const Home = () => {
   };
 
   return (
-    <div className="page-content home-page">
+    <div className="page-content home-page df-body">
       <div className="home-container">
         {/* Hero Section */}
         <div id="hero">

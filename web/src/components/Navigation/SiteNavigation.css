@@ -136,7 +136,6 @@
     padding-left: 0.75rem;
     border-left: 1px solid color-mix(in srgb, var(--rule) 80%, transparent);
     color: var(--fg-muted);
-    font-size: 0.72rem;
     white-space: nowrap;
 }
 
@@ -289,7 +288,6 @@
     padding: 0.6rem 0.7rem 0.2rem;
     border-top: 1px solid color-mix(in srgb, var(--rule) 80%, transparent);
     color: var(--fg-muted);
-    font-size: 0.72rem;
 }
 
 /* Narrow mid band: drop the brand name and tighten labels before the row crowds. */
