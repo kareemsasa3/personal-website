@@ -39,6 +39,7 @@ jobs:
 
       - name: Deployment tests
         run: |
-          shellcheck infrastructure/prod/deploy-release.sh infrastructure/tests/*.sh
+          shellcheck infrastructure/prod/deploy-release.sh infrastructure/prod/restore-web-release.sh infrastructure/tests/*.sh
           node infrastructure/tests/deploy-workflow.test.mjs
           bash infrastructure/tests/deploy-release.test.sh
+          bash infrastructure/tests/restore-web-release.test.sh

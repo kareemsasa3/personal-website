@@ -143,6 +143,33 @@ if [ "$STATUS" -eq 0 ] && [ "$(running_digest)" = "$A_DIGEST" ] && serving; then
   pass "rollback to release A by commit and digest"
 else bad "rollback" "status $STATUS, running $(running_digest): $(tail -n 3 <<<"$OUTPUT")"; fi
 
+# --- Emergency restore: no GitHub, no deploy script, no registry, no secrets -----
+restore() {
+  STATUS=0
+  OUTPUT="$(env -u GHCR_TOKEN -u GHCR_USERNAME -u GRAFANA_ADMIN_USER -u GRAFANA_ADMIN_PASSWORD \
+    PROJECT_DIR="$PROJECT" bash "$ROOT/infrastructure/prod/restore-web-release.sh" "$@" 2>&1)" || STATUS=$?
+}
+monitoring_fingerprint() { stack_fingerprint | grep -Ev '^/portfolio-(web|nginx)-prod '; }
+docker rm -f portfolio-web-prod >/dev/null
+docker stop portfolio-nginx-prod >/dev/null
+if serving; then bad "emergency setup" "site still serving"; fi
+before="$(stack_fingerprint)"; monitoring_before="$(monitoring_fingerprint)"
+
+restore --image "$WEB_REPO@$B_DIGEST"
+if [ "$STATUS" -eq 0 ] && grep -qF "Nothing was changed" <<<"$OUTPUT" && [ "$(stack_fingerprint)" = "$before" ]; then
+  pass "emergency preflight with the site down passes and changes nothing"
+else bad "emergency preflight" "status $STATUS: $(tail -n 3 <<<"$OUTPUT")"; fi
+
+restore --image "$WEB_REPO:latest" --execute
+if [ "$STATUS" -ne 0 ] && [ "$(stack_fingerprint)" = "$before" ]; then pass "emergency restore refuses a tag"
+else bad "emergency tag" "status $STATUS"; fi
+
+restore --image "$WEB_REPO@$B_DIGEST" --execute
+if [ "$STATUS" -eq 0 ] && [ "$(running_digest)" = "$B_DIGEST" ] && serving \
+   && [ "$(monitoring_fingerprint)" = "$monitoring_before" ]; then
+  pass "emergency restore of release B by digest: web recreated, nginx started, monitoring untouched"
+else bad "emergency restore" "status $STATUS, running $(running_digest): $(tail -n 3 <<<"$OUTPUT")"; fi
+
 tail -n 2 "$PROJECT/.deploy/releases.log"
 if [ "$failures" -ne 0 ]; then printf '%d rehearsal check(s) failed\n' "$failures"; exit 1; fi
 echo "deploy rehearsal: all checks passed"
