@@ -48,13 +48,12 @@
 
 .terminal-dropdown-menu {
     position: absolute;
-    top: 100%;
+    top: calc(100% - var(--stroke-hair));
     left: 0;
     right: 0;
     /* An overlay (§08 Layers and overlays): surface-2 bounded in edge; its options hover one step up. */
     background: var(--surface-2);
     border: var(--stroke-hair) solid var(--edge);
-    border-top: none;
     --df-ground-up: var(--surface-3);
     z-index: 1000;
     max-height: 300px;

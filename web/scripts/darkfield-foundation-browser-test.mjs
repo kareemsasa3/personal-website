@@ -1510,6 +1510,19 @@ if (MODE === "check") {
       await trigger.focus(); await page.keyboard.press("Enter");
       const options = page.locator(".terminal-dropdown-option");
       await options.first().waitFor();
+      // The menu can be wider than its trigger. Its entire upper edge must still be closed,
+      // with the shared line aligned to the trigger's lower edge.
+      const frame = await page.locator(".terminal-dropdown-menu").evaluate((menu) => {
+        const trigger = menu.parentElement.querySelector(".terminal-dropdown-trigger");
+        const m = menu.getBoundingClientRect();
+        const b = trigger.getBoundingClientRect();
+        const s = getComputedStyle(menu);
+        return { width: m.width, triggerWidth: b.width, top: m.top, triggerBottom: b.bottom,
+          borderTop: parseFloat(s.borderTopWidth), borderColor: s.borderTopColor };
+      });
+      invariant(frame.width >= frame.triggerWidth && frame.borderTop > 0 &&
+        Math.abs(frame.top - (frame.triggerBottom - frame.borderTop)) <= 1 &&
+        frame.borderColor === t["--edge"], `${theme} /projects: dropdown frame ${JSON.stringify(frame)}`);
       const n = await options.count();
       invariant(n > 1, `${theme} /projects: dropdown shows ${n} options`);
       for (let i = 0; i < n; i++) invariant(await options.nth(i).evaluate((e) => e.matches(".df-control")), `${theme} /projects: option ${i} is not a df-control`);
