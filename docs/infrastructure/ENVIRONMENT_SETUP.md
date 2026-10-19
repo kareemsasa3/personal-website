@@ -41,7 +41,7 @@ cp env.example .env
 
 | Variable | Description | Default | Required |
 |----------|-------------|---------|----------|
-| `WEB_IMAGE` | Frontend image to deploy | `ghcr.io/username/personal-website/web:build-id` | No |
+| `WEB_IMAGE` | Frontend image for manual compose runs such as `prod.sh`. The deploy workflow ignores it and pins each release by registry digest; see [DEPLOYMENT_AND_ROLLBACK.md](DEPLOYMENT_AND_ROLLBACK.md). | `ghcr.io/username/personal-website/web:build-id` | No |
 | `WEB_NODE_ENV` | Node environment passed to the container | `production` | No |
 
 ### Nginx
