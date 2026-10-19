@@ -5,6 +5,19 @@ on:
     workflows: ["Build & Publish Images"]
     types:
       - completed
+  # Deploys a chosen, already-published release: the rollback path. The image is
+  # selected by commit SHA and, preferably, pinned to its registry digest.
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: "Full commit SHA of the release to deploy (image tag ghcr.io/<repo>/web:<sha>)"
+        required: true
+        type: string
+      expected_digest:
+        description: "Registry digest the image must match (sha256:...). Strongly recommended for rollbacks."
+        required: false
+        type: string
+        default: ""
 
 permissions:
   contents: read
@@ -16,7 +29,17 @@ concurrency:
 
 jobs:
   deploy:
-    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' }}
+    # workflow_run fires for every completed build, including pull requests from
+    # forks, and runs here with production secrets. Deploy only a successful push
+    # to main in this repository, or a manual dispatch of the workflow on main.
+    if: >-
+      (github.event_name == 'workflow_run' &&
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'main' &&
+      github.event.workflow_run.head_repository.full_name == github.repository) ||
+      (github.event_name == 'workflow_dispatch' &&
+      github.ref == 'refs/heads/main')
     runs-on: ubuntu-latest
     env:
       PROD_DOMAIN: ${{ secrets.PROD_DOMAIN }}
@@ -37,7 +60,8 @@ jobs:
           grafana_admin_user: ${{ secrets.GRAFANA_ADMIN_USER }}
           grafana_admin_password: ${{ secrets.GRAFANA_ADMIN_PASSWORD }}
           repository: ${{ github.repository }}
-          sha: ${{ github.event.workflow_run.head_sha }}
+          sha: ${{ github.event_name == 'workflow_dispatch' && inputs.sha || github.event.workflow_run.head_sha }}
+          expected_digest: ${{ github.event_name == 'workflow_dispatch' && inputs.expected_digest || '' }}
 
       - name: Verify production health
         if: ${{ env.PROD_DOMAIN != '' }}
