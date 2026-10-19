@@ -36,3 +36,9 @@ jobs:
       - name: Typecheck
         working-directory: web
         run: npm run typecheck
+
+      - name: Deployment tests
+        run: |
+          shellcheck infrastructure/prod/deploy-release.sh infrastructure/tests/*.sh
+          node infrastructure/tests/deploy-workflow.test.mjs
+          bash infrastructure/tests/deploy-release.test.sh
