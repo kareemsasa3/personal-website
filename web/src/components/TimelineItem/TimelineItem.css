@@ -1,10 +1,10 @@
 /* Each item on the timeline */
 .timeline-item {
     position: relative;
-    width: 60%;
+    width: 50%;
     margin-bottom: 50px;
-    padding: 0 50px;
-    /* Increased padding for more breathing room */
+    /* Keep content clear of the shared central rail once cards have no ground. */
+    padding: 0 var(--space-6);
 }
 
 /* Position items on the left or right */
@@ -13,7 +13,7 @@
 }
 
 .timeline-item.right {
-    left: 40%;
+    left: 50%;
 }
 
 /* Flip container */
@@ -36,7 +36,7 @@
     height: 40px;
     border-radius: var(--radius-0);
     background-color: var(--surface-1);
-    border: 3px solid var(--rule);
+    border: 0;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -70,13 +70,11 @@
     color: #e74c3c;
 }
 
-/* The content box */
+/* Timeline content shares a seam with the preceding region. */
 .timeline-content {
     position: relative;
     padding: 30px;
-    background-color: var(--surface-1);
-    border-radius: var(--radius-0);
-    border: 1px solid var(--rule);
+    border-top: var(--stroke-hair) solid var(--rule);
     transition: all 0.3s ease;
     min-height: 200px;
 }
@@ -123,51 +121,6 @@
     opacity: 1;
 }
 
-/* --- REFINEMENT: Perfect Timeline Arrow --- */
-/* The fill of the arrow */
-.timeline-content::before {
-    content: "";
-    position: absolute;
-    top: 28px;
-    width: 0;
-    height: 0;
-    border: 10px solid transparent;
-    z-index: 1;
-}
-
-/* The border of the arrow */
-.timeline-content::after {
-    content: "";
-    position: absolute;
-    top: 27px;
-    /* 1px offset for border */
-    width: 0;
-    height: 0;
-    border: 11px solid transparent;
-    /* 1px larger for border */
-    z-index: 0;
-}
-
-.timeline-item.left .timeline-content::before {
-    right: -20px;
-    border-left-color: var(--surface-1);
-}
-
-.timeline-item.left .timeline-content::after {
-    right: -22px;
-    border-left-color: var(--rule);
-}
-
-.timeline-item.right .timeline-content::before {
-    left: -20px;
-    border-right-color: var(--surface-1);
-}
-
-.timeline-item.right .timeline-content::after {
-    left: -22px;
-    border-right-color: var(--rule);
-}
-
 .timeline-date {
     color: var(--signal-dim);
     margin-bottom: 8px;
@@ -204,19 +157,6 @@
         left: 0;
     }
 
-    .timeline-item.left .timeline-content::after,
-    .timeline-item.right .timeline-content::after {
-        left: -22px;
-        border-right-color: var(--rule);
-        border-left-color: transparent;
-    }
-
-    .timeline-item.left .timeline-content::before,
-    .timeline-item.right .timeline-content::before {
-        left: -20px;
-        border-right-color: var(--surface-1);
-        border-left-color: transparent;
-    }
 }
 .timeline-flip-container { position: relative; cursor: default; }
 .timeline-item-description { color: var(--fg-muted); opacity: 1; }

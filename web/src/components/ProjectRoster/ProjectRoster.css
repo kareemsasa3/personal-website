@@ -19,7 +19,7 @@ with globally bundled card/badge styles.
     margin: 0 auto;
     padding: 0;
     list-style: none;
-    border-bottom: 1px solid var(--roster-rule);
+    border-bottom: var(--stroke-hair) solid var(--rule);
     color: var(--fg);
 }
 
@@ -36,16 +36,14 @@ with globally bundled card/badge styles.
 }
 
 .project-roster__item {
-    border-top: 1px solid var(--roster-rule);
+    border-top: var(--stroke-hair) solid var(--rule);
     padding: 1.75rem 1.25rem;
     transition: background-color 0.25s ease;
 }
 
 .project-roster__item[data-expanded="true"] {
     margin-block: 0.5rem;
-    background: color-mix(in srgb, var(--surface-1) 45%, transparent);
     border-radius: var(--radius-0);
-    border-top-color: transparent;
 }
 
 .project-roster__article {
@@ -135,7 +133,7 @@ with globally bundled card/badge styles.
 .project-roster__detail {
     margin-top: 1.4rem;
     padding: 0.25rem 0 0.25rem 1.25rem;
-    border-left: 2px solid var(--rule);
+    border-left: var(--stroke-hair) solid var(--rule);
 }
 
 .project-roster__description {

@@ -60,18 +60,6 @@ primary comprehension layer.
     overflow-wrap: anywhere;
 }
 
-.projects-title::after {
-    content: '';
-    position: absolute;
-    bottom: -10px;
-    left: 50%;
-    width: 80px;
-    height: 3px;
-    background: linear-gradient(90deg, var(--signal-dim), #000000);
-    border-radius: var(--radius-0);
-    transform: translateX(-50%);
-}
-
 .projects-subtitle {
     max-width: var(--measure-body);
     margin: 1.5rem auto 0;
@@ -133,11 +121,7 @@ primary comprehension layer.
     gap: 1.5rem;
     margin-bottom: 2rem;
     padding: 1.5rem;
-    border: 1px solid color-mix(in srgb, var(--rule) 80%, transparent);
-    border-radius: var(--radius-0);
-    background: color-mix(in srgb, var(--surface-1) 90%, transparent);
-    /* Its controls sit on a surface-1 ground: hover rises one step (§13 Hover). */
-    --df-ground-up: var(--surface-2);
+    border-top: var(--stroke-hair) solid var(--rule);
 }
 
 .filters-section {
@@ -204,9 +188,7 @@ primary comprehension layer.
 
 .no-projects {
     padding: 4rem 2rem;
-    background: var(--surface-1);
-    border: 2px solid color-mix(in srgb, var(--terminal-primary, #4CAF50) 60%, transparent);
-    border-radius: var(--radius-0);
+    border-top: var(--stroke-hair) solid var(--rule);
     text-align: center;
 }
 
@@ -291,9 +273,7 @@ primary comprehension layer.
     align-items: center;
     gap: 1rem;
     padding: 0.75rem;
-    background: var(--surface-1);
-    border: 1px solid var(--rule);
-    border-radius: var(--radius-0);
+    border-top: var(--stroke-hair) solid var(--rule);
     transition: all 0.3s ease;
 }
 

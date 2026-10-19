@@ -31,7 +31,7 @@
     align-items: center;
     gap: 1rem;
     padding: 0.55rem 0.7rem;
-    border: 1px solid color-mix(in srgb, var(--rule) 76%, transparent);
+    border-bottom: var(--stroke-hair) solid var(--rule);
     border-radius: var(--radius-0);
     background: var(--field);
     color: var(--fg);
@@ -134,7 +134,7 @@
 
 .site-header__explore-label {
     padding-left: 0.75rem;
-    border-left: 1px solid color-mix(in srgb, var(--rule) 80%, transparent);
+    border-left: var(--stroke-hair) solid var(--rule);
     color: var(--fg-muted);
     white-space: nowrap;
 }
@@ -286,7 +286,7 @@
 .site-header__panel-heading {
     margin-top: 0.2rem;
     padding: 0.6rem 0.7rem 0.2rem;
-    border-top: 1px solid color-mix(in srgb, var(--rule) 80%, transparent);
+    border-top: var(--stroke-hair) solid var(--rule);
     color: var(--fg-muted);
 }
 

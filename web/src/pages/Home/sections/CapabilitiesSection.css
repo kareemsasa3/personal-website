@@ -21,11 +21,6 @@
   text-align: left;
 }
 
-.capabilities-section .section-title::after {
-  left: 0;
-  transform: none;
-}
-
 /* Spec-sheet list: numbered rows with hairline dividers instead of a card row */
 .capabilities-list {
   width: 100%;
@@ -33,7 +28,7 @@
   margin: 2rem auto 0 auto;
   padding: 0;
   list-style: none;
-  border-top: 1px solid color-mix(in srgb, var(--rule) 70%, transparent);
+  border-top: var(--stroke-hair) solid var(--rule);
 }
 
 .capability-row {
@@ -42,7 +37,7 @@
   column-gap: 1.5rem;
   align-items: baseline;
   padding: 1.5rem 0;
-  border-bottom: 1px solid color-mix(in srgb, var(--rule) 70%, transparent);
+  border-bottom: var(--stroke-hair) solid var(--rule);
   text-align: left;
 }
 

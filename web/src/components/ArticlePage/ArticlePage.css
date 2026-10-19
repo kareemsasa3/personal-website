@@ -72,8 +72,14 @@
 .article-body blockquote {
   margin: 1.5rem 0;
   padding: 0.25rem 0 0.25rem 1rem;
-  border-left: 3px solid var(--signal-dim);
+  border-left: var(--stroke-bold) solid var(--edge);
   color: var(--fg-muted);
+}
+
+.article-body hr,
+.article-prose hr {
+  border: 0;
+  border-top: var(--stroke-hair) solid var(--rule);
 }
 
 .article-body a,
@@ -87,7 +93,7 @@
   max-width: 100%;
   overflow-x: auto;
   padding: 1rem;
-  border: 1px solid var(--rule);
+  border: var(--stroke-hair) solid var(--edge);
   border-radius: var(--radius-0);
   background: var(--surface-1);
   font-size: 0.82rem;
@@ -105,8 +111,6 @@
   max-width: 100%;
   overflow-x: auto;
   margin: 1.25rem 0;
-  border: 1px solid var(--rule);
-  border-radius: var(--radius-0);
 }
 
 .article-table table {
@@ -119,7 +123,7 @@
 .article-table th,
 .article-table td {
   padding: 0.55rem 0.7rem;
-  border-bottom: 1px solid var(--rule);
+  border-bottom: var(--stroke-hair) solid var(--rule);
   text-align: left;
   vertical-align: top;
 }
@@ -133,9 +137,7 @@
 .article-toc {
   margin-bottom: 1.5rem;
   padding: 0.75rem 1rem;
-  border: 1px solid var(--rule);
-  border-radius: var(--radius-0);
-  background: var(--surface-1);
+  border-top: var(--stroke-hair) solid var(--rule);
 }
 
 .article-toc summary {
@@ -161,7 +163,7 @@
 /* Provenance: a visually distinct region after the conclusion. */
 .article-provenance {
   padding-top: 1.5rem;
-  border-top: 2px solid var(--rule);
+  border-top: var(--stroke-hair) solid var(--rule);
 }
 
 .article-provenance > h2 {
@@ -178,8 +180,7 @@
 .article-provenance-section {
   margin-bottom: 1rem;
   padding: 0.85rem 1rem;
-  border: 1px solid var(--rule);
-  border-radius: var(--radius-0);
+  border-top: var(--stroke-hair) solid var(--rule);
 }
 
 .article-provenance-section > h3 {
@@ -202,7 +203,7 @@
   justify-content: space-between;
   gap: 1rem;
   padding-top: 1.25rem;
-  border-top: 1px solid var(--rule);
+  border-top: var(--stroke-hair) solid var(--rule);
 }
 
 .article-series-link {
@@ -224,7 +225,7 @@
 
 .article-footer {
   padding-top: 1.25rem;
-  border-top: 1px solid var(--rule);
+  border-top: var(--stroke-hair) solid var(--rule);
 }
 
 .article-footer h2 {

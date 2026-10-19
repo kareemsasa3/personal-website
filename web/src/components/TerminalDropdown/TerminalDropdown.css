@@ -71,7 +71,7 @@
 .terminal-dropdown-header {
     background: var(--terminal-header-bg, #2a2a2a);
     padding: 0.5rem 1rem;
-    border-bottom: 1px solid var(--terminal-primary, #4CAF50);
+    border-bottom: var(--stroke-hair) solid var(--rule);
     color: var(--terminal-primary, #4CAF50);
 }
 
@@ -116,7 +116,7 @@
 .terminal-dropdown-footer {
     background: var(--terminal-header-bg, #2a2a2a);
     padding: 0.5rem 1rem;
-    border-top: 1px solid var(--terminal-primary, #4CAF50);
+    border-top: var(--stroke-hair) solid var(--rule);
     color: var(--terminal-text-muted, #666);
     font-style: italic;
 }

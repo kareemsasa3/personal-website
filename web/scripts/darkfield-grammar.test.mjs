@@ -33,7 +33,7 @@ const DEAD_RULES = {
 };
 // Header brand, held unchanged for Phase 4 (D5: R1 symbol and wordmark replace the KS mark). Exact innermost selectors.
 const BRAND_HOLD = { "components/Navigation/SiteNavigation.css": [".site-header__brand", ".site-header__brand-mark",
-  '[data-theme="light"] .site-header__brand-mark', ".site-header__brand-name"] };
+  '[data-theme="light"] .site-header__brand-mark', ".site-header__brand-name", ".site-header__brand:focus-visible"] };
 // Phase 3 declarations: PHASE3 files, governed and rendered selectors only.
 export const phase3Decls = async () => {
   const out = [];
@@ -547,4 +547,27 @@ test("T16 every governed Phase 3 corner is square with no legacy radius alias", 
   assert.deepEqual(decls.filter((d) => /var\(--(?:border-radius-|dock-border-radius)/.test(d.value)).map(where), []);
   const timelineTransforms = decls.filter((d) => d.file === "pages/Work/Work.css" && /\.timeline-node\b/.test(d.selector) && d.prop === "transform");
   assert.deepEqual(timelineTransforms.map(where), [], "Work timeline state points must remain axis-aligned squares");
+});
+
+test("T17 lines: governed boundaries use line tokens and headings have no decorative bars", async () => {
+  const decls = await phase3Decls();
+  const allowedColours = new Set(["var(--rule)", "var(--edge)", "var(--signal)", "var(--fg-muted)", "var(--fg-faint)", "transparent", "currentColor"]);
+  const allowedWidths = new Set(["var(--stroke-hair)", "var(--stroke-bold)", "0"]);
+  const bad = [];
+  for (const d of decls) {
+    if (!/^(?:border(?:-(?:top|right|bottom|left|block-start|block-end|inline-start|inline-end))?|outline)(?:-(?:width|color))?$/.test(d.prop)) continue;
+    // The normalize reset remains until the native Phase 5 controls receive their own focus treatment.
+    if (d.file === "index.css" && d.prop === "outline" && d.value === "1px dotted ButtonText" &&
+        innermost(d.selector) === 'button:-moz-focusring, [type="button"]:-moz-focusring, [type="reset"]:-moz-focusring, [type="submit"]:-moz-focusring') continue;
+    // Phase 1's transparent outline reserves space for the two-part keyboard focus ring.
+    if (d.prop === "outline" && d.value === "2px solid transparent !important" && /:focus-visible/.test(d.selector)) continue;
+    const parts = d.value.split(/\s+/);
+    if (parts.some((p) => {
+      if (/^(?:\d+(?:\.\d+)?(?:px|rem|em)?|var\(--stroke-[^)]+\))$/.test(p)) return !allowedWidths.has(p);
+      if (/^(?:var\(--[^)]+\)|transparent|currentColor|#[0-9a-f]+|rgba?\(|color-mix\()/.test(p)) return !allowedColours.has(p);
+      return false;
+    })) bad.push(where(d));
+  }
+  assert.deepEqual(bad, []);
+  assert.deepEqual(decls.filter((d) => /(?:title::after|title::before)$/.test(innermost(d.selector)) && /^background(?:-|$)/.test(d.prop)).map(where), []);
 });

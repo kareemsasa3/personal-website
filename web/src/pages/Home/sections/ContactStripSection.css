@@ -19,6 +19,7 @@
   grid-template-columns: auto minmax(16rem, 1fr) auto;
   align-items: center;
   gap: 1rem;
+  border-top: var(--stroke-hair) solid var(--rule);
 }
 
 .contact-strip-title {

@@ -83,18 +83,6 @@ TABLE OF CONTENTS
   text-align: center;
 }
 
-.section-title::after {
-  content: '';
-  position: absolute;
-  bottom: -10px;
-  left: 50%;
-  width: 80px;
-  height: 3px;
-  background: linear-gradient(90deg, var(--signal-dim), #000000);
-  border-radius: var(--radius-0);
-  transform: translateX(-50%);
-}
-
 
 /* ========================================
    4. ANIMATIONS & KEYFRAMES
@@ -129,7 +117,7 @@ TABLE OF CONTENTS
 /* --- High Contrast Mode --- */
 @media (prefers-contrast: more) {
   .skill-item {
-    border: 2px solid var(--signal-dim);
+    border-top: var(--stroke-bold) solid var(--edge);
   }
 }
 

@@ -1,9 +1,6 @@
 .work-details-container {
-    background: var(--field);
-    border: 1px solid var(--rule);
-    border-radius: var(--radius-0);
+    border-top: var(--stroke-hair) solid var(--rule);
     padding: 2rem;
-    transition: all 0.3s ease;
     margin-bottom: 2rem;
 }
 
@@ -18,12 +15,9 @@
 .work-dates {
     color: var(--fg-faint);
     padding: 0.5rem 1rem;
-    background: var(--surface-1);
-    border: 1px solid var(--signal-dim);
-    border-radius: var(--radius-0);
+    border-left: var(--stroke-hair) solid var(--rule);
     text-align: center;
     font-family: var(--font-mono);
-    transition: all 0.3s ease;
 }
 
 .work-company-info {
@@ -60,7 +54,7 @@
 .section-title {
     color: var(--fg-muted);
     margin: 0 0 1rem 0;
-    border-bottom: 1px solid var(--rule);
+    border-bottom: var(--stroke-hair) solid var(--rule);
     padding-bottom: 0.5rem;
 }
 
@@ -97,7 +91,7 @@
 
 .work-tech-stack,
 .work-highlights {
-    border-top: 1px solid var(--rule);
+    border-top: var(--stroke-hair) solid var(--rule);
     padding-top: 1.5rem;
 }
 

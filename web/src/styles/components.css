@@ -12,12 +12,9 @@ a.interactive-card::before {
   inset-inline-start: calc(var(--df-card-pad-inline) - var(--cell-w));
 }
 
-/* Static cards keep their existing frame until the Phase 3 frame pass. */
+/* Static modules share a top seam with their neighbours. */
 .interactive-card:not(a) {
-  background: var(--field);
-  border: 1px solid var(--rule);
-  border-radius: var(--radius-0);
-  transition: all 0.3s ease;
+  border-top: var(--stroke-hair) solid var(--rule);
 }
 
 .interactive-card > * {
@@ -53,11 +50,5 @@ a.interactive-card::before {
   .interactive-card {
     --df-card-pad-inline: 1rem;
     padding: 1rem;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .interactive-card:not(a) {
-    transition: none;
   }
 }

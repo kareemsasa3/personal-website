@@ -1927,6 +1927,24 @@ if (MODE === "check") {
       invariant(bad.length === 0, `${theme} ${route}: governed corners ${JSON.stringify(bad)}`);
     });
   }
+  // Phase 3 Task 17 (§03, §09): only controls, inputs and true containers carry a closed frame.
+  for (const theme of THEMES) for (const route of P3_ROUTES) {
+    await withPage({ theme, route }, async (page) => {
+      const frames17 = await page.evaluate((skip) => {
+        const closed = (el) => {
+          const c = getComputedStyle(el);
+          return ["Top", "Right", "Bottom", "Left"].every((s) =>
+            parseFloat(c[`border${s}Width`]) > 0 && c[`border${s}Style`] !== "none" &&
+            !/rgba\(.*, 0\)$/.test(c[`border${s}Color`]));
+        };
+        const allowed = '.df-control, input, select, textarea, [role="dialog"], dialog, .settings-panel, .site-header__panel, .dock-explore__panel, .terminal-dropdown-options, .dot-tooltip, .dock-tooltip, pre';
+        return [...document.querySelectorAll("body *")].filter((el) => el.getClientRects().length &&
+          !el.closest(skip) && closed(el) && !el.matches(allowed))
+          .map((el) => `${el.tagName}.${el.className}`).slice(0, 10);
+      }, P3_SKIP);
+      invariant(frames17.length === 0, `${theme} ${route}: closed frames ${JSON.stringify(frames17)}`);
+    });
+  }
   for (const route of P3_ROUTES) {
     await withPage({ theme: THEMES[0], route }, async (page) => {
       const bad = await page.evaluate((skip) => {

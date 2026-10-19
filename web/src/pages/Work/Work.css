@@ -26,18 +26,6 @@
     white-space: nowrap;
 }
 
-.work-title::after {
-    content: '';
-    position: absolute;
-    bottom: -10px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 80px;
-    height: 3px;
-    background: linear-gradient(90deg, var(--signal-dim), #000000);
-    border-radius: var(--radius-0);
-}
-
 .work-subtitle {
     max-width: var(--measure-body);
     margin: 1.5rem auto 0;
@@ -66,7 +54,7 @@
     width: 16px;
     height: 16px;
     background-color: var(--signal-dim);
-    border: 3px solid var(--surface-1);
+    border: 0;
     border-radius: var(--radius-0);
     z-index: 1;
     margin-top: 2rem;
@@ -100,40 +88,17 @@
 
 /* The vertical line connecting the nodes */
 .timeline-line {
-    width: 2px;
+    width: var(--stroke-hair);
     height: 100%;
-    background: linear-gradient(to bottom, var(--signal-dim), transparent);
+    background: var(--edge);
     margin-top: 1rem;
     position: relative;
-}
-
-.timeline-line::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 6px;
-    height: 6px;
-    background-color: var(--signal-dim);
-    border-radius: var(--radius-0);
 }
 
 /* The content card */
 .work-timeline-content {
     padding: 1rem 0;
     position: relative;
-}
-
-.work-timeline-content::before {
-    content: '';
-    position: absolute;
-    left: -1rem;
-    top: 0;
-    bottom: 0;
-    width: 2px;
-    background: linear-gradient(to bottom, transparent, var(--signal-dim), transparent);
-    opacity: 0.3;
 }
 
 .work-contact-cta {
@@ -144,9 +109,7 @@
     margin: 2rem auto 0;
     padding: 1.5rem;
     max-width: 960px;
-    border: 1px solid var(--rule);
-    border-radius: var(--radius-0);
-    background: var(--field);
+    border-top: var(--stroke-hair) solid var(--rule);
 }
 
 .work-contact-eyebrow {

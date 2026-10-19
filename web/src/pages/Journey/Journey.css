@@ -63,8 +63,8 @@ TABLE OF CONTENTS
     top: 0;
     bottom: 0;
     left: 50%;
-    width: 3px;
-    background: var(--rule);
+    width: var(--stroke-hair);
+    background: var(--edge);
     border-radius: var(--radius-0);
     transform: translateX(-50%);
 }
@@ -99,8 +99,7 @@ TABLE OF CONTENTS
 
     /* Appearance */
     background-color: var(--surface-1);
-    border: 2px solid var(--signal-dim);
-    border-radius: var(--radius-0);
+    border-bottom: var(--stroke-hair) solid var(--rule);
 
     /* Typography */
     color: var(--signal-dim);

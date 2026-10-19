@@ -54,9 +54,7 @@
   width: min(100%, 960px);
   margin: 2.75rem auto 0;
   padding: 0.75rem;
-  border: 1px solid color-mix(in srgb, var(--rule) 78%, transparent);
-  border-radius: var(--radius-0);
-  background: var(--field);
+  border-top: var(--stroke-hair) solid var(--rule);
 }
 
 .hero-proof-item {
@@ -64,9 +62,12 @@
   gap: 0.35rem;
   min-width: 0;
   padding: 0.85rem;
-  border: 1px solid color-mix(in srgb, var(--rule) 60%, transparent);
-  border-radius: var(--radius-0);
+  border-left: var(--stroke-hair) solid var(--rule);
   text-align: left;
+}
+
+.hero-proof-item:first-child {
+  border-left: 0;
 }
 
 .hero-proof-label {
@@ -80,11 +81,6 @@
 
 .hero-proof-detail {
   color: var(--fg-muted);
-}
-
-/* Light theme: the strip sits at content level and its cells one step above it. */
-[data-theme="light"] .hero-proof-item {
-  background: var(--surface-1);
 }
 
 @media (max-width: 768px) {
@@ -140,7 +136,13 @@
   }
 
   .hero-proof-item {
+    border-left: 0;
+    border-top: var(--stroke-hair) solid var(--rule);
     text-align: center;
+  }
+
+  .hero-proof-item:first-child {
+    border-top: 0;
   }
 }
 
