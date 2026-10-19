@@ -29,8 +29,12 @@ inputs:
     description: owner/repo for images
     required: true
   sha:
-    description: Git SHA to deploy
+    description: Git SHA to deploy; the image tag ghcr.io/<repository>/web:<sha>
     required: true
+  expected_digest:
+    description: Optional sha256 digest the image must resolve to (sha256:<64 hex>)
+    required: false
+    default: ""
 runs:
   using: composite
   steps:
@@ -79,14 +83,33 @@ runs:
 
     - name: Deploy over SSH
       shell: bash
+      env:
+        HOST_RAW: ${{ inputs.host }}
+        USER_RAW: ${{ inputs.user }}
+        PORT_RAW: ${{ inputs.port }}
+        GHCR_TOKEN: ${{ inputs.ghcr_token }}
+        GHCR_USERNAME: ${{ inputs.ghcr_username }}
+        GRAFANA_ADMIN_USER: ${{ inputs.grafana_admin_user }}
+        GRAFANA_ADMIN_PASSWORD: ${{ inputs.grafana_admin_password }}
+        REPO: ${{ inputs.repository }}
+        SHA: ${{ inputs.sha }}
+        EXPECTED_DIGEST: ${{ inputs.expected_digest }}
       run: |
-        HOST_RAW='${{ inputs.host }}'
-        USER_RAW='${{ inputs.user }}'
-        PORT_RAW='${{ inputs.port }}'
         HOST=$(printf "%s" "$HOST_RAW" | tr -d ' \t\r\n')
         USER=$(printf "%s" "$USER_RAW" | tr -d ' \t\r\n')
         PORT=$(printf "%s" "$PORT_RAW" | tr -d ' \t\r\n')
         if [ -z "$PORT" ]; then PORT=22; fi
+
+        # Validate the release identity here too, before anything reaches the server.
+        if ! [[ "$SHA" =~ ^[0-9a-f]{40}$ ]]; then
+          echo "ERROR: sha must be a full 40-character commit SHA" >&2
+          exit 1
+        fi
+        if [ -n "$EXPECTED_DIGEST" ] && ! [[ "$EXPECTED_DIGEST" =~ ^sha256:[0-9a-f]{64}$ ]]; then
+          echo "ERROR: expected_digest must look like sha256:<64 hex characters>" >&2
+          exit 1
+        fi
+        REPO=$(printf "%s" "$REPO" | tr '[:upper:]' '[:lower:]')
 
         echo "Resolving host: $HOST"
         (getent hosts "$HOST" || nslookup -timeout=5 "$HOST" || dig +short "$HOST") 2>/dev/null || true
@@ -98,235 +121,37 @@ runs:
           (echo > "/dev/tcp/$HOST/$PORT") >/dev/null 2>&1 || true
         fi
 
-        # Prepare remote script once, then stream it to SSH (allows retries)
-        # Use single-quoted heredoc so shell vars like $HOME, $DOMAIN_NAME expand on remote side
-        cat > /tmp/remote_deploy.sh << 'RSCRIPT'
-        set -euo pipefail
-        cd "$HOME/personal-website"
-
-        # Validate required environment variables are present
-        : "${GHCR_TOKEN:?missing GHCR_TOKEN}"
-        : "${GHCR_USERNAME:?missing GHCR_USERNAME}"
-        : "${GRAFANA_ADMIN_USER:?missing GRAFANA_ADMIN_USER}"
-        : "${GRAFANA_ADMIN_PASSWORD:?missing GRAFANA_ADMIN_PASSWORD}"
-        : "${REPO:?missing REPO}"
-        : "${SHA:?missing SHA}"
-
-        echo "Disk usage before cleanup:" && df -h /
-        echo "Docker disk usage before cleanup:" && docker system df || true
-
-        DOCKER_CONFIG_DIR="$(mktemp -d -t docker-config-XXXXXX 2>/dev/null || echo /tmp/docker-config)"
-        export DOCKER_CONFIG="$DOCKER_CONFIG_DIR"
-
-        echo "Using GHCR workflow identity: $GHCR_USERNAME"
-        echo "Deploying image: ghcr.io/$REPO/web:$SHA"
-
-        echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin        
-        trap 'rm -rf "$DOCKER_CONFIG_DIR"' EXIT
-
-        export WEB_IMAGE=ghcr.io/$REPO/web:$SHA
-        export GRAFANA_ADMIN_USER
-        export GRAFANA_ADMIN_PASSWORD
-
-        # Note: rely on compose pull/up --pull always; no manual docker pull here
-
-        if [ -f infrastructure/.env ]; then
-          echo "Loading environment from infrastructure/.env"
-          set -a
-          while IFS= read -r line || [ -n "$line" ]; do
-            case "$line" in ''|\#*) continue ;; esac
-            printf '%s' "$line" | grep -Eq '^[A-Za-z_][A-Za-z0-9_]*=' || continue
-            export "$line"
-          done < infrastructure/.env
-          set +a
-        else
-          echo "WARNING: infrastructure/.env not found; continuing without extra env" >&2
-        fi
-
-        # If TLS certs are missing, obtain them via standalone certbot (binds to host :80)
-        if [ -z "${DOMAIN_NAME:-}" ]; then
-          echo "ERROR: DOMAIN_NAME is required in infrastructure/prod/.env" >&2
-          exit 1
-        fi
-        DOMAIN_NAME_VALUE="$DOMAIN_NAME"
-        SSL_EMAIL_VALUE=${SSL_EMAIL:-${USER}@localhost}
-        CERT_PATH_HOST="$(pwd)/infrastructure/nginx/ssl/live/${DOMAIN_NAME_VALUE}/fullchain.pem"
-        if [ ! -f "$CERT_PATH_HOST" ]; then
-          echo "TLS certificates for ${DOMAIN_NAME_VALUE} not found. Attempting standalone certbot issuance..."
-          # Ensure directories exist
-          mkdir -p infrastructure/nginx/ssl
-          mkdir -p infrastructure/nginx/certbot/www
-          # Stop any service bound to :80 to free the port (best effort)
-          (docker ps --format '{{.ID}} {{.Ports}} {{.Names}}' | grep -E ':80->|:80/' | awk '{print $1}' | xargs -r docker stop) || true
-          # Run certbot in standalone mode to write into our ssl mount
-          docker run --rm -p 80:80 \
-            -v "$(pwd)/infrastructure/nginx/ssl:/etc/letsencrypt" \
-            certbot/certbot:latest certonly --standalone \
-            -d "$DOMAIN_NAME_VALUE" -m "$SSL_EMAIL_VALUE" \
-            --agree-tos --no-eff-email --non-interactive --preferred-challenges http || {
-              echo "ERROR: Certbot issuance failed. Check DNS A record points to this server and port 80 is reachable." >&2
-              exit 1
-            }
-          echo "Certificate obtained for ${DOMAIN_NAME_VALUE}."
-        else
-          echo "Found existing TLS certificate at $CERT_PATH_HOST"
-        fi
-
-        echo "Preflight: required config files"
-        test -f infrastructure/nginx/nginx.conf
-        test -f infrastructure/monitoring/prometheus/prometheus.yml
-
-        docker network create portfolio-network-prod >/dev/null 2>&1 || true
-        # Override to force images (and null-out any build) so server never builds locally
-        cat > /tmp/compose.images.override.yml << 'IMG'
-        services:
-          web:
-            build: null
-            image: ${WEB_IMAGE}
-        IMG
-
-        cat > /tmp/compose.network.override.yml << 'OVR'
-        networks:
-          portfolio-network-prod:
-            external: true
-            name: portfolio-network-prod
-        OVR
-
-        if command -v docker-compose >/dev/null 2>&1; then
-          COMPOSE_CMD="docker-compose --project-directory $HOME/personal-website"
-        else
-          COMPOSE_CMD="docker compose --project-directory $HOME/personal-website"
-        fi
-
-        echo "Preflight: render compose and verify key mount sources"
-        cd "$HOME/personal-website"
-        $COMPOSE_CMD --env-file infrastructure/.env -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml -f infrastructure/prod/docker-compose.monitoring.prod.yml -f /tmp/compose.images.override.yml -f /tmp/compose.network.override.yml config > /tmp/compose.rendered.yml
-        if grep -n "infrastructure/infrastructure" /tmp/compose.rendered.yml >/dev/null 2>&1; then
-          echo "ERROR: compose render contains doubled infrastructure path:" >&2
-          grep -n "infrastructure/infrastructure" /tmp/compose.rendered.yml | head -n 20 >&2
-          exit 1
-        fi
-        grep -n "prometheus.yml\|nginx.conf\|conf.d" /tmp/compose.rendered.yml | head -n 50 || true
-
-        # Note: nginx -t runs after up to ensure upstream hostnames resolve.
-        # Bring stack down with same overrides to prevent name conflicts and stale containers
-        $COMPOSE_CMD --env-file infrastructure/.env -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml -f infrastructure/prod/docker-compose.monitoring.prod.yml -f /tmp/compose.images.override.yml -f /tmp/compose.network.override.yml down --remove-orphans || true
-        # Extra safety: remove any lingering conflicting containers by explicit names
-        docker rm -f portfolio-redis-prod portfolio-web-prod >/dev/null 2>&1 || true
-        # And remove any container matching portfolio-*-prod just in case
-        CONFLICTING_CONTAINERS=$(docker ps -aq --filter name='^/portfolio-.*-prod$' || true)
-        if [ -n "$CONFLICTING_CONTAINERS" ]; then
-          echo "Removing lingering containers: $CONFLICTING_CONTAINERS"
-          docker rm -f $CONFLICTING_CONTAINERS >/dev/null 2>&1 || true
-        fi
-        # Small wait to ensure Docker releases names
-        sleep 2
-        $COMPOSE_CMD --env-file infrastructure/.env -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml -f infrastructure/prod/docker-compose.monitoring.prod.yml -f /tmp/compose.images.override.yml -f /tmp/compose.network.override.yml pull || true
-        $COMPOSE_CMD --env-file infrastructure/.env -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml -f infrastructure/prod/docker-compose.monitoring.prod.yml -f /tmp/compose.images.override.yml -f /tmp/compose.network.override.yml up -d --no-build --pull always
-        $COMPOSE_CMD --env-file infrastructure/.env -f infrastructure/docker-compose.yml -f infrastructure/prod/docker-compose.prod.yml -f infrastructure/prod/docker-compose.monitoring.prod.yml -f /tmp/compose.images.override.yml -f /tmp/compose.network.override.yml ps
-
-        echo "Post-up: nginx config test"
-        docker exec portfolio-nginx-prod nginx -t
-
-        echo "Waiting for service health (local nginx) ..."
-        for i in $(seq 1 60); do
-          ok=0
-          curl -fsS -m 5 "http://localhost/health" >/dev/null 2>&1 && ok=$((ok+1)) || true
-          if [ "$ok" -eq 1 ]; then
-            echo "Main site endpoint healthy."
-            break
-          fi
-          sleep 5
-        done
-        if [ "$ok" -ne 1 ]; then
-          echo "ERROR: Main site health check failed at http://localhost/health" >&2
-          exit 1
-        fi
-
-        echo "Waiting for monitoring services to become healthy..."
-        for i in $(seq 1 60); do
-          ok=0
-          curl -fsS -m 5 http://localhost:9090/-/healthy >/dev/null 2>&1 && ok=$((ok+1)) || true
-          curl -fsS -m 5 http://localhost:3000/api/health >/dev/null 2>&1 && ok=$((ok+1)) || true
-          if [ "$ok" -eq 2 ]; then
-            echo "Monitoring services healthy (Prometheus and Grafana)."
-            break
-          fi
-          sleep 5
-        done
-        if [ "$ok" -ne 2 ]; then
-          echo "ERROR: Monitoring health checks failed (Prometheus or Grafana)" >&2
-          exit 1
-        fi
-
-        echo "Disk usage after cleanup:" && df -h /
-        echo "Docker disk usage after cleanup:" && docker system df || true
-
-        echo "Ensuring daily cert renewal cron job exists..."
-        CRON_LINE="0 3 * * * bash -lc 'PROJECT_DIR=\"$HOME/personal-website\" $HOME/personal-website/infrastructure/prod/renew-ssl.sh >> $HOME/personal-website/infrastructure/logs/certbot/cron.log 2>&1'"
-        (crontab -l 2>/dev/null || true) | grep -F "$HOME/personal-website/infrastructure/prod/renew-ssl.sh" >/dev/null 2>&1 || \
-        ( (crontab -l 2>/dev/null; echo "$CRON_LINE") | crontab - )
-        echo "Cron entry ensured."
-        RSCRIPT
-
         SSH_OPTS="-i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=60 -o ConnectionAttempts=3 -o ServerAliveInterval=15 -o ServerAliveCountMax=4 -o PreferredAuthentications=publickey -o PubkeyAuthentication=yes -o IPQoS=none"
 
-        # Pass environment variables to remote script via SSH
-        # These will be available as $GHCR_TOKEN, $GHCR_USERNAME, $REPO, $SHA in the remote script
-        # Use double quotes so GitHub Actions substitutions are properly passed to bash
-        success=""
+        # The remote command line is parsed by the remote shell, so quote each value.
+        REMOTE_ENV="$(printf '%q=%q ' \
+          GHCR_TOKEN "$GHCR_TOKEN" \
+          GHCR_USERNAME "$GHCR_USERNAME" \
+          GRAFANA_ADMIN_USER "$GRAFANA_ADMIN_USER" \
+          GRAFANA_ADMIN_PASSWORD "$GRAFANA_ADMIN_PASSWORD" \
+          REPO "$REPO" \
+          SHA "$SHA" \
+          EXPECTED_DIGEST "$EXPECTED_DIGEST")"
+
+        # Retry only when SSH itself fails (exit 255). A deploy script failure is a
+        # result, not a transport error, and running the deploy again could undo
+        # the script's own recovery.
+        status=255
         for attempt in 1 2 3; do
           echo "SSH attempt $attempt..."
-          if ssh -T $SSH_OPTS -p "$PORT" "$USER@$HOST" \
-            GHCR_TOKEN="${{ inputs.ghcr_token }}" \
-            GHCR_USERNAME="${{ inputs.ghcr_username }}" \
-            GRAFANA_ADMIN_USER="${{ inputs.grafana_admin_user }}" \
-            GRAFANA_ADMIN_PASSWORD="${{ inputs.grafana_admin_password }}" \
-            REPO="${{ inputs.repository }}" \
-            SHA="${{ inputs.sha }}" \
-            bash -s < /tmp/remote_deploy.sh; then
-            success="yes"; break
-          fi
-          echo "SSH attempt $attempt failed. Retrying in 15s..."
+          status=0
+          ssh -T $SSH_OPTS -p "$PORT" "$USER@$HOST" "$REMOTE_ENV bash -s" \
+            < infrastructure/prod/deploy-release.sh || status=$?
+          if [ "$status" -ne 255 ]; then break; fi
+          echo "SSH connection failed. Retrying in 15s..."
           sleep 15
         done
 
-        if [ -z "$success" ]; then
-          echo "Final SSH attempt with verbose logging (-vvv) for diagnostics:" >&2
-          echo "Printing remote SSH banner via netcat for diagnostics (if available)" >&2
+        if [ "$status" -eq 255 ]; then
+          echo "SSH connection diagnostics (-vvv, no deploy):" >&2
           if command -v nc >/dev/null 2>&1; then
             nc -v -w 5 "$HOST" "$PORT" </dev/null || true
           fi
-          ssh -vvv -T $SSH_OPTS -p "$PORT" "$USER@$HOST" \
-            GHCR_TOKEN="${{ inputs.ghcr_token }}" \
-            GHCR_USERNAME="${{ inputs.ghcr_username }}" \
-            GRAFANA_ADMIN_USER="${{ inputs.grafana_admin_user }}" \
-            GRAFANA_ADMIN_PASSWORD="${{ inputs.grafana_admin_password }}" \
-            REPO="${{ inputs.repository }}" \
-            SHA="${{ inputs.sha }}" \
-            bash -s < /tmp/remote_deploy.sh || true
-          exit 1
+          ssh -vvv -T $SSH_OPTS -p "$PORT" "$USER@$HOST" true || true
         fi
-
-    - name: Fetch rendered compose config (on failure)
-      if: failure()
-      shell: bash
-      run: |
-        HOST_RAW='${{ inputs.host }}'
-        USER_RAW='${{ inputs.user }}'
-        PORT_RAW='${{ inputs.port }}'
-        HOST=$(printf "%s" "$HOST_RAW" | tr -d ' \t\r\n')
-        USER=$(printf "%s" "$USER_RAW" | tr -d ' \t\r\n')
-        PORT=$(printf "%s" "$PORT_RAW" | tr -d ' \t\r\n')
-        if [ -z "$PORT" ]; then PORT=22; fi
-        SSH_OPTS="-i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=30 -o ConnectionAttempts=2 -o PreferredAuthentications=publickey -o PubkeyAuthentication=yes"
-        mkdir -p /tmp/compose-artifacts
-        scp $SSH_OPTS -P "$PORT" "$USER@$HOST":/tmp/compose.rendered.yml /tmp/compose-artifacts/compose.rendered.yml || true
-
-    - name: Upload rendered compose config (on failure)
-      if: failure()
-      uses: actions/upload-artifact@v4
-      with:
-        name: compose-rendered
-        path: /tmp/compose-artifacts/compose.rendered.yml
-        if-no-files-found: warn
+        exit "$status"
