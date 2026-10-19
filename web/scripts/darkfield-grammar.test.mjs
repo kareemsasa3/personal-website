@@ -571,3 +571,19 @@ test("T17 lines: governed boundaries use line tokens and headings have no decora
   assert.deepEqual(bad, []);
   assert.deepEqual(decls.filter((d) => /(?:title::after|title::before)$/.test(innermost(d.selector)) && /^background(?:-|$)/.test(d.prop)).map(where), []);
 });
+
+test("T18 aliases: governed Phase 3 styles read tokens directly", async () => {
+  const indexDock = new Set(["--dock-icon-size", "--dock-height", "--dock-height-mobile", "--dock-spacing", "--dock-padding", "--dock-border-radius"]);
+  const layoutReads = new Set(["--dock-height", "--dock-height-mobile"]);
+  const bad = (await phase3Decls()).filter((d) => {
+    const aliases = [d.prop, ...Array.from(d.value.matchAll(/var\((--[a-z0-9-]+)/g), (m) => m[1])];
+    return aliases.some((name) => {
+      if (!/^(?:--terminal-|--roster-|--pill-|--dock-|--settings-danger$|--range-)/.test(name)) return false;
+      if (d.file === "index.css" && innermost(d.selector) === ":root" && d.prop === name && indexDock.has(name)) return false;
+      if (d.file === "components/Layout/Layout.css" && innermost(d.selector) === ".app-content" &&
+          d.prop === "padding-bottom" && layoutReads.has(name)) return false;
+      return true;
+    });
+  });
+  assert.deepEqual(bad.map(where), []);
+});

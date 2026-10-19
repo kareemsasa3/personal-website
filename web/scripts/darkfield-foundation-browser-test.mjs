@@ -923,6 +923,26 @@ if (MODE === "check") {
     await page.waitForURL((url) => url.pathname.replace(/\/$/, "") === `/${path}`);
     await page.waitForLoadState("networkidle");
   };
+  // Project styles remain attached after client navigation. They must not leave page-level terminal
+  // colours on <html>. Terminal.css is eagerly loaded by the route table, so compare each arrival
+  // with its direct load: the terminal header alias is present even on /journey.
+  for (const route of ["/journey", "/terminal"]) {
+    const readTerminalAliases = (page) => page.evaluate(() => {
+      const style = getComputedStyle(document.documentElement);
+      return [style.getPropertyValue("--terminal-text-light").trim(), style.getPropertyValue("--terminal-header-bg").trim()];
+    });
+    let direct;
+    await withPage({ theme: "light", route }, async (page) => {
+      direct = await readTerminalAliases(page);
+    });
+    invariant(direct[0] === "" && direct[1] !== "", `Light direct ${route}: terminal aliases ${JSON.stringify(direct)}`);
+    await withPage({ theme: "light", route: "/projects" }, async (page) => {
+      await follow(page, route);
+      const seen = await readTerminalAliases(page);
+      invariant(JSON.stringify(seen) === JSON.stringify(direct),
+        `Light /projects → ${route}: leaked terminal colours ${JSON.stringify(seen)}; direct load ${JSON.stringify(direct)}`);
+    });
+  }
   const NAVIGATION = [
     { name: "direct", start: (game) => `/simulations/${game}` },
     { name: "/games alias", start: (game) => `/games/${game}` },
@@ -953,28 +973,30 @@ if (MODE === "check") {
         });
       }
     }
-    // The Projects tech-stack modal is portaled outside .projects-container (r9). It must read the page's
-    // scoped value, so the modal renders as the page does.
+    // The Projects tech-stack modal is portaled outside .projects-container (r9). It must read the
+    // same global roles as its page, without a page-scoped terminal alias.
     await withPage({ theme, route: "/projects" }, async (page) => {
       await page.getByTitle("View technical coverage").click();
       const modal = await page.locator(".tech-stack-modal").evaluate((el) => {
         const scope = document.querySelector(".projects-container");
-        const value = (node) => getComputedStyle(node).getPropertyValue("--terminal-primary").trim();
-        // The page's own reading of the scoped value (the eyebrow no longer reads it: Instrument label, T6).
         const probe = document.createElement("span");
-        probe.style.color = "var(--terminal-primary)";
-        scope.appendChild(probe);
-        const pageColor = getComputedStyle(probe).color;
+        el.appendChild(probe);
+        probe.style.color = "var(--fg)";
+        const fg = getComputedStyle(probe).color;
+        probe.style.color = "var(--fg-muted)";
+        const muted = getComputedStyle(probe).color;
         probe.remove();
         return {
-          portaled: !scope.contains(el), modal: value(el), page: value(scope),
+          portaled: !scope.contains(el),
+          alias: getComputedStyle(el).getPropertyValue("--terminal-primary").trim(),
           name: getComputedStyle(el.querySelector(".tech-name")).color,
-          eyebrow: pageColor,
+          count: getComputedStyle(el.querySelector(".tech-count")).color,
+          fg, muted,
         };
       });
       invariant(modal.portaled, `${theme}: the tech-stack modal is not portaled; this check no longer tests the portal`);
-      invariant(modal.page !== "" && modal.modal === modal.page && modal.name === modal.eyebrow,
-        `${theme}: tech-stack modal ${modal.modal} / ${modal.name}; page ${modal.page} / ${modal.eyebrow}`);
+      invariant(modal.alias === "" && modal.name === modal.fg && modal.count === modal.muted,
+        `${theme}: tech-stack modal roles ${JSON.stringify(modal)}`);
     });
   }
   // Measurement controls (r10): the contrast passes, run on a fixture with known answers, so that a pass
