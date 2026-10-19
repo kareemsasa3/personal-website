@@ -1,7 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+  SITE_URL,
   defaultRouteMetadata,
+  getCanonicalUrl,
   getRouteMetadata,
   normalizeRoutePath,
   routeMetadata,
@@ -64,5 +66,38 @@ test("structured data agrees for both spellings", () => {
       getStructuredDataJson(metadata.path),
       metadata.path
     );
+  }
+});
+
+// The canonical URL must be the one production serves without a redirect: a route's shell is
+// a directory index, so nginx answers /path with a 301 to /path/.
+test("canonical URLs name the trailing-slash URL production serves", () => {
+  assert.equal(getCanonicalUrl("/"), `${SITE_URL}/`);
+  for (const metadata of nonRootRoutes) {
+    assert.equal(
+      getCanonicalUrl(metadata.canonicalPath),
+      `${SITE_URL}${metadata.canonicalPath}/`,
+      metadata.path
+    );
+  }
+});
+
+test("structured data URLs on this site point at canonical URLs", () => {
+  const siteUrls = (value) =>
+    Array.isArray(value)
+      ? value.flatMap(siteUrls)
+      : value && typeof value === "object"
+        ? Object.entries(value).flatMap(([key, child]) =>
+            (key === "url" || key === "item") && typeof child === "string"
+              ? [child]
+              : siteUrls(child)
+          )
+        : [];
+
+  for (const metadata of routeMetadata) {
+    for (const url of siteUrls(JSON.parse(getStructuredDataJson(metadata.path)))) {
+      if (!url.startsWith(`${SITE_URL}/`)) continue;
+      assert.ok(url.endsWith("/"), `${metadata.path}: ${url}`);
+    }
   }
 });

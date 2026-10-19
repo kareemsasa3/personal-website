@@ -54,6 +54,8 @@ for (const route of routes) {
   if (route !== "/") {
     assert.notEqual(new URL(expected.canonical).pathname, "/", `${slashed}: shell canonical is not the homepage`);
   }
+  // The canonical names the URL production serves without a redirect.
+  assert.equal(new URL(expected.canonical).pathname, slashed, `${slashed}: canonical is the served URL`);
 
   for (const spelling of route === "/" ? ["/"] : [slashed, route]) {
     await page.goto(`${base}${spelling}`, { waitUntil: "networkidle" });

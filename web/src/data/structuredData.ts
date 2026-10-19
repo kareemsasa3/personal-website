@@ -7,7 +7,12 @@ import { projectsData, type Project } from "./projects";
 import { articlesData, articleBySlug, type Article } from "./generated/articles";
 import { socialContent } from "./siteContent";
 import { proceduralAnimationsData, type ProceduralAnimation } from "./proceduralAnimations";
-import { SITE_URL, DEFAULT_IMAGE_URL, getRouteMetadata } from "./routeMetadata";
+import {
+  SITE_URL,
+  DEFAULT_IMAGE_URL,
+  getCanonicalUrl,
+  getRouteMetadata,
+} from "./routeMetadata";
 
 type StructuredDataNode = Record<string, unknown>;
 
@@ -21,7 +26,9 @@ const publicProfileLinks = socialContent.links
 
 const getCanonicalPath = (pathname: string) => getRouteMetadata(pathname).canonicalPath;
 
-const getCanonicalUrl = (canonicalPath: string) => `${SITE_URL}${canonicalPath}`;
+// @id values are identifiers, not links, so they keep the slash-free path; url and item
+// fields use the canonical URL that production serves.
+const getNodeIdBase = (canonicalPath: string) => `${SITE_URL}${canonicalPath}`;
 
 const graph = (nodes: StructuredDataNode[]) => ({
   "@context": "https://schema.org",
@@ -68,12 +75,10 @@ const createWebPageEntry = (
   } = {}
 ): StructuredDataNode => {
   const metadata = getRouteMetadata(canonicalPath);
-  const canonicalUrl = getCanonicalUrl(metadata.canonicalPath);
-
   return {
     "@type": options.type ?? "WebPage",
-    "@id": `${canonicalUrl}#webpage`,
-    url: canonicalUrl,
+    "@id": `${getNodeIdBase(metadata.canonicalPath)}#webpage`,
+    url: getCanonicalUrl(metadata.canonicalPath),
     name: metadata.title,
     description: metadata.description,
     isPartOf: { "@id": WEBSITE_ID },
@@ -89,7 +94,7 @@ const createBreadcrumbList = (
   items: Array<{ name: string; path: string }>
 ): StructuredDataNode => ({
   "@type": "BreadcrumbList",
-  "@id": `${getCanonicalUrl(canonicalPath)}#breadcrumb`,
+  "@id": `${getNodeIdBase(canonicalPath)}#breadcrumb`,
   itemListElement: items.map((item, index) => ({
     "@type": "ListItem",
     position: index + 1,
@@ -115,7 +120,7 @@ const createCaseStudyEntry = (caseStudy: CaseStudy): StructuredDataNode => ({
   name: `${caseStudy.title} Case Study`,
   headline: `${caseStudy.title} Case Study`,
   description: caseStudy.shortDescription,
-  url: `${SITE_URL}/case-studies/${caseStudy.slug}`,
+  url: getCanonicalUrl(`/case-studies/${caseStudy.slug}`),
   author: { "@id": PERSON_ID },
   about: caseStudy.focusAreas,
 });
@@ -128,7 +133,7 @@ const createArticleEntry = (article: Article): StructuredDataNode => ({
   description: article.description,
   datePublished: article.published,
   wordCount: article.wordCount,
-  url: `${SITE_URL}/writing/${article.slug}`,
+  url: getCanonicalUrl(`/writing/${article.slug}`),
   author: { "@id": PERSON_ID },
   inLanguage: "en-US",
   ...(article.series
@@ -136,7 +141,7 @@ const createArticleEntry = (article: Article): StructuredDataNode => ({
         isPartOf: {
           "@type": "CreativeWorkSeries",
           name: article.series.name,
-          url: `${SITE_URL}/writing`,
+          url: getCanonicalUrl("/writing"),
         },
         position: article.series.part,
       }

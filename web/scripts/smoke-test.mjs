@@ -77,9 +77,14 @@ const assertNodeType = (nodes, type, label) => {
   }
 };
 
+// Production nginx 301s /path to the shell's directory URL /path/, so that is the canonical
+// URL. JSON-LD @id values are identifiers, not links, and keep the bare path.
+const canonicalUrlFor = (canonicalPath) =>
+  `${siteUrl}${canonicalPath === "/" ? "/" : `${canonicalPath}/`}`;
+
 const assertWebPage = (nodes, canonicalPath) => {
-  const canonicalUrl = `${siteUrl}${canonicalPath}`;
-  const webPage = findNodeById(nodes, `${canonicalUrl}#webpage`);
+  const canonicalUrl = canonicalUrlFor(canonicalPath);
+  const webPage = findNodeById(nodes, `${siteUrl}${canonicalPath}#webpage`);
 
   if (!webPage || !nodeHasType(webPage, "WebPage")) {
     throw new Error(`Expected ${canonicalPath} JSON-LD to include WebPage`);
@@ -100,6 +105,12 @@ const assertBreadcrumb = (nodes, canonicalPath, expectedNames) => {
   }
 
   const actualNames = (breadcrumb.itemListElement ?? []).map((item) => item.name);
+
+  for (const { item } of breadcrumb.itemListElement ?? []) {
+    if (!item.startsWith(`${siteUrl}/`) || !item.endsWith("/")) {
+      throw new Error(`Expected ${canonicalPath} breadcrumb item ${item} to be a canonical URL`);
+    }
+  }
 
   if (JSON.stringify(actualNames) !== JSON.stringify(expectedNames)) {
     throw new Error(
@@ -122,17 +133,17 @@ const main = async () => {
   const simulations = await readBuildFile("simulations/index.html");
   const orbital = await readBuildFile("simulations/orbital-simulator/index.html");
   assertIncludes(orbital, "Orbital Simulator", "orbital route shell");
-  assertIncludes(orbital, 'href="https://kareemsasa.dev/simulations/orbital-simulator"', "orbital canonical URL");
+  assertIncludes(orbital, 'href="https://kareemsasa.dev/simulations/orbital-simulator/"', "orbital canonical URL");
   assertIncludes(simulations, 'href="/simulations/orbital-simulator"', "simulations launch link");
   const traffic = await readBuildFile("simulations/traffic-simulator/index.html");
   assertIncludes(traffic, "Traffic Simulator", "traffic route shell");
-  assertIncludes(traffic, 'href="https://kareemsasa.dev/simulations/traffic-simulator"', "traffic canonical URL");
+  assertIncludes(traffic, 'href="https://kareemsasa.dev/simulations/traffic-simulator/"', "traffic canonical URL");
   assertIncludes(simulations, 'href="/simulations/traffic-simulator"', "simulations traffic launch link");
   const snake = await readBuildFile("simulations/snake/index.html");
   const spider = await readBuildFile("simulations/spider/index.html");
   const proceduralAnimations = await readBuildFile("procedural-animations/index.html");
   assertIncludes(proceduralAnimations, "Procedural Animations", "procedural animations route shell");
-  assertIncludes(proceduralAnimations, 'href="https://kareemsasa.dev/procedural-animations"', "procedural animations canonical URL");
+  assertIncludes(proceduralAnimations, 'href="https://kareemsasa.dev/procedural-animations/"', "procedural animations canonical URL");
   const terminal = await readBuildFile("terminal/index.html");
   const sitemap = await readBuildFile("sitemap.xml");
   const writingIndex = await readBuildFile("writing/index.html");
@@ -431,7 +442,7 @@ const main = async () => {
   );
   assertIncludes(
     specificationCaseStudy,
-    'href="https://kareemsasa.dev/case-studies/where-the-specification-lived"',
+    'href="https://kareemsasa.dev/case-studies/where-the-specification-lived/"',
     "specification case study canonical URL"
   );
   for (const text of [
@@ -460,7 +471,7 @@ const main = async () => {
   );
   assertIncludes(
     caseStudiesIndex,
-    'href="https://kareemsasa.dev/case-studies"',
+    'href="https://kareemsasa.dev/case-studies/"',
     "case studies canonical URL"
   );
   assertIncludes(
@@ -476,7 +487,7 @@ const main = async () => {
   );
   assertIncludes(
     erebusCaseStudy,
-    'href="https://kareemsasa.dev/case-studies/erebus"',
+    'href="https://kareemsasa.dev/case-studies/erebus/"',
     "Erebus case study canonical URL"
   );
   assertIncludes(
@@ -487,22 +498,40 @@ const main = async () => {
 
   for (const route of [
     "https://kareemsasa.dev/",
-    "https://kareemsasa.dev/projects",
-    "https://kareemsasa.dev/case-studies",
-    "https://kareemsasa.dev/case-studies/erebus",
-    "https://kareemsasa.dev/case-studies/arachne",
-    "https://kareemsasa.dev/case-studies/aether",
-    "https://kareemsasa.dev/case-studies/where-the-specification-lived",
-    "https://kareemsasa.dev/experience",
-    "https://kareemsasa.dev/simulations/orbital-simulator",
-    "https://kareemsasa.dev/simulations/traffic-simulator",
-    "https://kareemsasa.dev/procedural-animations",
+    "https://kareemsasa.dev/projects/",
+    "https://kareemsasa.dev/case-studies/",
+    "https://kareemsasa.dev/case-studies/erebus/",
+    "https://kareemsasa.dev/case-studies/arachne/",
+    "https://kareemsasa.dev/case-studies/aether/",
+    "https://kareemsasa.dev/case-studies/where-the-specification-lived/",
+    "https://kareemsasa.dev/experience/",
+    "https://kareemsasa.dev/simulations/orbital-simulator/",
+    "https://kareemsasa.dev/simulations/traffic-simulator/",
+    "https://kareemsasa.dev/procedural-animations/",
   ]) {
     assertIncludes(sitemap, `<loc>${route}</loc>`, "sitemap canonical routes");
   }
 
   for (const disallowed of ["/work", "monitoring", "grafana", "admin", "/api", ".map"]) {
     assertNotIncludes(sitemap, disallowed, "sitemap private or non-canonical routes");
+  }
+
+  // Every sitemap entry is a URL production serves without a redirect, and it is the URL
+  // that page's canonical, og:url and WebPage url declare.
+  const sitemapLocs = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]);
+  if (sitemapLocs.length === 0) throw new Error("Expected sitemap entries");
+  for (const loc of sitemapLocs) {
+    const { pathname } = new URL(loc);
+    if (!pathname.endsWith("/")) {
+      throw new Error(`Expected sitemap entry ${loc} to end with a slash`);
+    }
+    const shell = await readBuildFile(`${pathname.slice(1)}index.html`);
+    assertIncludes(shell, `<link rel="canonical" href="${loc}" />`, `${pathname} canonical`);
+    assertIncludes(shell, `<meta property="og:url" content="${loc}" />`, `${pathname} og:url`);
+    const webPages = findNodesByType(structuredDataNodes(shell), "WebPage");
+    if (webPages.length !== 1 || webPages[0].url !== loc) {
+      throw new Error(`Expected ${pathname} WebPage url to equal ${loc}`);
+    }
   }
 
   // Each procedural animation has a canonical, indexable route shell; the raw artifact it
@@ -517,13 +546,13 @@ const main = async () => {
     const path = `/procedural-animations/${slug}`;
     const shell = await readBuildFile(`procedural-animations/${slug}/index.html`);
     assertIncludes(shell, `<title>${title} - Kareem Sasa</title>`, `${path} shell title`);
-    assertIncludes(shell, `href="${siteUrl}${path}"`, `${path} canonical URL`);
+    assertIncludes(shell, `href="${siteUrl}${path}/"`, `${path} canonical URL`);
     assertNotIncludes(shell, "noindex", `${path} shell`);
     assertNotIncludes(shell, 'class="homepage-fallback', `${path} shell body`);
     assertWebPage(structuredDataNodes(shell), path);
     assertBreadcrumb(structuredDataNodes(shell), path, ["Home", "Procedural Animations", title]);
     assertIncludes(proceduralAnimations, `href="${path}"`, "procedural animations index links to each piece");
-    assertIncludes(sitemap, `<loc>${siteUrl}${path}</loc>`, "sitemap procedural animation routes");
+    assertIncludes(sitemap, `<loc>${siteUrl}${path}/</loc>`, "sitemap procedural animation routes");
     assertNotIncludes(sitemap, `${path}/piece.html`, "sitemap raw artifacts");
 
     const artifact = await readBuildFile(`procedural-animations/${slug}/piece.html`);
@@ -618,18 +647,18 @@ const main = async () => {
 
   // 4. Sitemap covers the index and every article.
   for (const route of [
-    "https://kareemsasa.dev/writing",
-    "https://kareemsasa.dev/writing/what-should-still-be-hard",
-    "https://kareemsasa.dev/writing/presence-is-not-a-control",
-    "https://kareemsasa.dev/writing/the-centaur-era",
-    "https://kareemsasa.dev/writing/what-the-second-agent-is-for",
-    "https://kareemsasa.dev/writing/normal-is-not-inevitable",
-    "https://kareemsasa.dev/writing/when-programming-became-the-smaller-part",
-    "https://kareemsasa.dev/writing/what-should-the-agent-have-to-figure-out",
-    "https://kareemsasa.dev/writing/the-work-the-agent-stopped-doing",
-    "https://kareemsasa.dev/writing/the-system-gets-a-brake-one-way-or-another",
-    "https://kareemsasa.dev/writing/bottlenecks-dont-disappear",
-    "https://kareemsasa.dev/writing/the-machine-should-explain-itself",
+    "https://kareemsasa.dev/writing/",
+    "https://kareemsasa.dev/writing/what-should-still-be-hard/",
+    "https://kareemsasa.dev/writing/presence-is-not-a-control/",
+    "https://kareemsasa.dev/writing/the-centaur-era/",
+    "https://kareemsasa.dev/writing/what-the-second-agent-is-for/",
+    "https://kareemsasa.dev/writing/normal-is-not-inevitable/",
+    "https://kareemsasa.dev/writing/when-programming-became-the-smaller-part/",
+    "https://kareemsasa.dev/writing/what-should-the-agent-have-to-figure-out/",
+    "https://kareemsasa.dev/writing/the-work-the-agent-stopped-doing/",
+    "https://kareemsasa.dev/writing/the-system-gets-a-brake-one-way-or-another/",
+    "https://kareemsasa.dev/writing/bottlenecks-dont-disappear/",
+    "https://kareemsasa.dev/writing/the-machine-should-explain-itself/",
   ]) {
     assertIncludes(sitemap, `<loc>${route}</loc>`, "sitemap writing routes");
   }
