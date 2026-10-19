@@ -55,7 +55,8 @@ mkdir -p "$DOCKER_CONFIG"
 trap 'rm -rf "$WORK_DIR"' EXIT
 
 echo "Disk usage before deploy:" && df -h /
-echo "Docker disk usage before deploy:" && docker system df || true
+echo "Docker disk usage before deploy:"
+docker system df || true
 
 # --- Environment file -------------------------------------------------------
 if [ -f infrastructure/.env ]; then
@@ -259,7 +260,8 @@ printf '%s %s %s previous=%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$SHA" "$WEB_IM
   >> "$PROJECT_DIR/.deploy/releases.log"
 
 echo "Disk usage after deploy:" && df -h /
-echo "Docker disk usage after deploy:" && docker system df || true
+echo "Docker disk usage after deploy:"
+docker system df || true
 
 log "Ensuring daily cert renewal cron job exists"
 CRON_LINE="0 3 * * * bash -lc 'PROJECT_DIR=\"$HOME/personal-website\" $HOME/personal-website/infrastructure/prod/renew-ssl.sh >> $HOME/personal-website/infrastructure/logs/certbot/cron.log 2>&1'"
