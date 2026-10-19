@@ -201,6 +201,21 @@ run_deploy STUB_CERT_CHECK_STATUS=125
 expect_failure_without_disruption "certificate check that cannot run fails before disruption" "could not determine whether the TLS certificate"
 chmod 755 "$PROJECT/infrastructure/nginx/ssl/live"
 
+setup dirs-uncreatable
+mkdir -p "$PROJECT/infrastructure/logs"; chmod 555 "$PROJECT/infrastructure/logs"
+run_deploy
+expect_failure_without_disruption "a missing directory that cannot be created stops before disruption" "cannot create $PROJECT/infrastructure/logs/nginx"
+chmod 755 "$PROJECT/infrastructure/logs"
+
+setup renewal-log-unwritable
+mkdir -p "$PROJECT/infrastructure/logs/nginx" "$PROJECT/infrastructure/logs/certbot" "$PROJECT/infrastructure/nginx/certbot/www"
+chmod 555 "$PROJECT/infrastructure/logs/certbot"
+run_deploy
+if [ "$STATUS" -ne 0 ]; then bad "renewal log dir" "exit $STATUS: $OUTPUT"
+elif ! grep -qF "logs/certbot is not writable" <<<"$OUTPUT"; then bad "renewal log dir" "no warning"
+else pass "existing directories are left alone; an unwritable renewal log directory is reported"; fi
+chmod 755 "$PROJECT/infrastructure/logs/certbot"
+
 setup rollback
 run_deploy SHA="$OLD_SHA" EXPECTED_DIGEST="$OLD_DIGEST" STUB_DIGEST="$OLD_DIGEST"
 if [ "$STATUS" -ne 0 ]; then bad "rollback" "exit $STATUS: $OUTPUT"

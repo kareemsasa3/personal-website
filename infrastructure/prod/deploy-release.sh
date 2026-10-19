@@ -187,6 +187,17 @@ case "$(certificate_state)" in
   *) fail "could not determine whether the TLS certificate for $DOMAIN_NAME exists; nothing was stopped" ;;
 esac
 
+# nginx bind-mounts the first two; the renewal cron job appends its log to the third,
+# and cannot run if that redirect fails. Create whichever is missing now, while a
+# failure still changes nothing. Existing directories are left as they are.
+for dir in infrastructure/nginx/certbot/www infrastructure/logs/nginx infrastructure/logs/certbot; do
+  [ -d "$dir" ] || mkdir -p "$dir" \
+    || fail "cannot create $PROJECT_DIR/$dir; create it on the host (its parent may be owned by root). Nothing was stopped"
+done
+if [ ! -w infrastructure/logs/certbot ]; then
+  log "WARNING: infrastructure/logs/certbot is not writable by $(id -un); the certificate renewal cron job cannot write its log"
+fi
+
 # Record what is running now, so an unhealthy release can be reverted.
 previous_image=""
 if previous_id="$(docker inspect --format '{{.Image}}' "$WEB_CONTAINER" 2>/dev/null)"; then
@@ -206,7 +217,6 @@ for id in $(docker ps -aq --filter 'name=^portfolio-.*-prod$'); do
     docker rm -f "$id" >/dev/null
   fi
 done
-mkdir -p infrastructure/nginx/certbot/www infrastructure/logs/nginx infrastructure/logs/certbot
 
 # The proxy's own /health answers without reaching the web container, so check the
 # container directly: it runs the pinned image, its healthcheck passes, and the
