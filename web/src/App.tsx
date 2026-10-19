@@ -16,7 +16,7 @@ import {
 import {
   DEFAULT_IMAGE_ALT,
   DEFAULT_IMAGE_URL,
-  SITE_URL,
+  getCanonicalUrl,
   getRouteMetadata,
 } from "./data/routeMetadata";
 import { getStructuredDataJson } from "./data/structuredData";
@@ -26,7 +26,7 @@ const RouteMetadataUpdater = () => {
 
   useEffect(() => {
     const meta = getRouteMetadata(location.pathname);
-    const canonicalUrl = `${SITE_URL}${meta.canonicalPath}`;
+    const canonicalUrl = getCanonicalUrl(meta.canonicalPath);
 
     if (document.title !== meta.title) document.title = meta.title;
 

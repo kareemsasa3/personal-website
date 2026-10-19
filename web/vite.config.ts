@@ -28,8 +28,8 @@ import { articlesData, articleBySlug } from "./src/data/generated/articles";
 import {
   DEFAULT_IMAGE_ALT,
   DEFAULT_IMAGE_URL,
-  SITE_URL,
   type RouteMetadata,
+  getCanonicalUrl,
   routeMetadataByPath,
   sitemapRouteMetadata,
 } from "./src/data/routeMetadata";
@@ -227,7 +227,7 @@ const renderSitemap = () => `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${sitemapRouteMetadata
   .map((metadata) => `  <url>
-    <loc>${SITE_URL}${metadata.canonicalPath}</loc>
+    <loc>${getCanonicalUrl(metadata.canonicalPath)}</loc>
     <changefreq>${metadata.sitemap?.changefreq}</changefreq>
     <priority>${metadata.sitemap?.priority}</priority>
   </url>`)
@@ -921,7 +921,7 @@ const replaceTag = (html: string, pattern: RegExp, replacement: string) => {
 };
 
 const applyRouteShell = (baseHtml: string, route: StaticRouteShell) => {
-  const canonicalUrl = `${SITE_URL}${route.canonicalPath}`;
+  const canonicalUrl = getCanonicalUrl(route.canonicalPath);
 
   return [
     {

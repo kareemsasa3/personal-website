@@ -186,6 +186,13 @@ export const routeMetadataByPath = routeMetadata.reduce<Record<string, RouteMeta
 export const normalizeRoutePath = (pathname: string) =>
   pathname.split(/[?#]/)[0].replace(/\/+$/, "") || "/";
 
+/**
+ * The public URL for a canonical path: the directory URL nginx serves without a redirect.
+ * canonicalPath stays slash-free because it is the route's identity everywhere else.
+ */
+export const getCanonicalUrl = (canonicalPath: string) =>
+  `${SITE_URL}${canonicalPath === "/" ? "/" : `${canonicalPath}/`}`;
+
 export const getRouteMetadata = (pathname: string): RouteMetadata =>
   routeMetadataByPath[normalizeRoutePath(pathname)] ?? defaultRouteMetadata;
 
