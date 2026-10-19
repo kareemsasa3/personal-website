@@ -155,11 +155,12 @@ else
   echo "skip real compose: docker compose not available"
 fi
 
-# Nothing automated may invoke the restore.
-if grep -rn "restore-web-release" "$ROOT/.github" "$ROOT/infrastructure" \
-     --exclude=restore-web-release.sh --exclude=restore-web-release.test.sh --exclude=deploy-rehearsal.sh; then
-  bad "not automated" "referenced by automation (above)"
-else pass "no workflow, action or deploy script invokes the restore"; fi
+# Nothing that deploys or runs on the host may invoke the restore. CI only lints it
+# and runs this test, which never reaches a host.
+if grep -rn "restore-web-release" "$ROOT/.github/workflows/deploy.yml" "$ROOT/.github/actions" \
+     "$ROOT/infrastructure" --exclude-dir=tests --exclude=restore-web-release.sh; then
+  bad "not automated" "referenced on the deploy path (above)"
+else pass "no deploy workflow, action or host script invokes the restore"; fi
 
 if [ "$failures" -ne 0 ]; then printf '%d restore case(s) failed\n' "$failures"; exit 1; fi
 echo "restore-web-release: all cases passed"
