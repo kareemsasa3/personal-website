@@ -657,3 +657,18 @@ test("T21 Terminal colour aliases use one root mapping; grep matches take the se
     .filter((d) => innermost(d.selector) === ".grep-highlight" && d.prop === "background-color");
   assert.deepEqual(matches.map((d) => d.value), ["var(--terminal-selection-bg)"]);
 });
+
+test("T22 timing: Phase 3 transitions and animations use duration and easing tokens", async () => {
+  // These two global reduced-motion overrides truncate authored motion.
+  const reducedOverride = (d) => d.file === "index.css" &&
+    d.selector === "@media (prefers-reduced-motion: reduce) >> *, *::before, *::after" &&
+    ["animation-duration", "transition-duration"].includes(d.prop) && d.value === "0.001ms !important";
+  const bad = (await phase3Decls()).filter((d) => !reducedOverride(d) &&
+    /^(transition|animation)(-duration|-timing-function|-delay)?$/.test(d.prop) && d.value !== "none" &&
+    (/(?<![\w-])\d*\.?\d+m?s\b|\b(ease|ease-in|ease-out|ease-in-out|linear|cubic-bezier|steps)\b(?![\w-])/.test(d.value.replace(/var\([^)]*\)/g, "")) || /\ball\b/.test(d.value)));
+  assert.deepEqual(bad.map(where), []);
+  const root = declarations(await read("index.css"));
+  assert.deepEqual(root.filter((d) => d.prop === "--interaction-transition").map((d) => d.value),
+    ["background-color var(--dur-fast) var(--ease-standard), color var(--dur-fast) var(--ease-standard), border-color var(--dur-fast) var(--ease-standard)"]);
+  assert.deepEqual(root.filter((d) => innermost(d.selector) === "body" && d.prop === "transition").map(where), []);
+});

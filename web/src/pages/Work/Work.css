@@ -59,7 +59,7 @@
     z-index: 1;
     margin-top: 2rem;
     position: relative;
-    transition: all 0.3s ease;
+    transition: background-color var(--dur-fast) var(--ease-standard);
 }
 
 /* The vertical line connecting the nodes */

@@ -33,7 +33,6 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background-color: var(--field);
   color: var(--fg);
-  transition: background-color 0.4s ease, color 0.4s ease, filter 0.2s ease;
   /* Ensure minimum height to prevent layout shifts */
   min-height: 100vh;
 }
@@ -261,7 +260,7 @@ template {
   --transition-fast: 0.1s ease-in-out;
   --transition-normal: 0.3s ease;
   --transition-slow: 0.5s ease-out;
-  --interaction-transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  --interaction-transition: background-color var(--dur-fast) var(--ease-standard), color var(--dur-fast) var(--ease-standard), border-color var(--dur-fast) var(--ease-standard);
 
   /* Z-index layers */
   --z-index-background: -1;

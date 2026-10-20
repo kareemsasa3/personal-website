@@ -258,7 +258,7 @@ roles for page chrome and content.
     gap: 1rem;
     padding: 0.75rem;
     border-top: var(--stroke-hair) solid var(--rule);
-    transition: all 0.3s ease;
+    transition: border-color var(--dur-fast) var(--ease-standard);
 }
 
 
