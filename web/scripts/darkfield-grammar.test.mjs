@@ -587,3 +587,8 @@ test("T18 aliases: governed Phase 3 styles read tokens directly", async () => {
   });
   assert.deepEqual(bad.map(where), []);
 });
+
+test("T19 literals: Phase 3 surfaces name colours only through tokens", async () => {
+  const bad = (await phase3Decls()).filter((d) => LITERAL.test(d.value) && !/^(font-family|content|grid-template-areas)$/.test(d.prop));
+  assert.deepEqual(bad.map(where), []);
+});

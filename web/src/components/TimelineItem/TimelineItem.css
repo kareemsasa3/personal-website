@@ -36,6 +36,7 @@
     height: 40px;
     border-radius: var(--radius-0);
     background-color: var(--surface-1);
+    color: var(--fg-muted);
     border: 0;
     display: flex;
     align-items: center;
@@ -51,23 +52,6 @@
 
 .timeline-item.right .timeline-icon-wrapper {
     left: -20px;
-}
-
-/* Category-specific icon colors */
-.timeline-icon-wrapper.education {
-    color: #3498db;
-}
-
-.timeline-icon-wrapper.career {
-    color: #9b59b6;
-}
-
-.timeline-icon-wrapper.milestone {
-    color: #f1c40f;
-}
-
-.timeline-icon-wrapper.personal {
-    color: #e74c3c;
 }
 
 /* Timeline content shares a seam with the preceding region. */
