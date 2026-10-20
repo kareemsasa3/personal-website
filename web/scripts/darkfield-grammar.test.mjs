@@ -34,6 +34,8 @@ const DEAD_RULES = {
 // Header brand, held unchanged for Phase 4 (D5: R1 symbol and wordmark replace the KS mark). Exact innermost selectors.
 const BRAND_HOLD = { "components/Navigation/SiteNavigation.css": [".site-header__brand", ".site-header__brand-mark",
   '[data-theme="light"] .site-header__brand-mark', ".site-header__brand-name", ".site-header__brand:focus-visible"] };
+// P3-9: the Traffic speed ramp mirrors native renderer artwork. Phase 5 owns its retirement.
+const HOLDS = { "pages/TrafficSimulator/TrafficSimulator.css": Array.from({ length: 5 }, (_, i) => `--traffic-speed-${i}`) };
 // Phase 3 declarations: PHASE3 files, governed and rendered selectors only.
 export const phase3Decls = async () => {
   const out = [];
@@ -591,4 +593,37 @@ test("T18 aliases: governed Phase 3 styles read tokens directly", async () => {
 test("T19 literals: Phase 3 surfaces name colours only through tokens", async () => {
   const bad = (await phase3Decls()).filter((d) => LITERAL.test(d.value) && !/^(font-family|content|grid-template-areas)$/.test(d.prop));
   assert.deepEqual(bad.map(where), []);
+});
+
+test("T20 Simulations chrome is page scoped; Traffic chart uses signal while native speed ramp stays mirrored", async () => {
+  const sim = declarations(await read("pages/Simulations/Simulations.css"));
+  const aliases = sim.filter((d) => d.prop.startsWith("--"));
+  assert.deepEqual(aliases.map((d) => [innermost(d.selector), d.prop, d.value]), [
+    [".simulations-container", "--terminal-primary", "var(--signal-dim)"],
+    [".simulations-container", "--terminal-text-light", "var(--fg)"],
+    [".simulations-container", "--terminal-text-muted", "var(--fg-muted)"],
+  ]);
+  assert.deepEqual(sim.filter((d) => /:root\b|\[data-theme/.test(d.selector)).map(where), [], "no root or theme block");
+  assert.doesNotMatch(await read("pages/Simulations/Simulations.css"), /\[data-theme/, "no empty theme block");
+  assert.deepEqual(sim.filter((d) => d.prop === "font-family" && innermost(d.selector) === ".simulations-container").map((d) => d.value), ["var(--font-mono)"]);
+
+  const trafficFile = "pages/TrafficSimulator/TrafficSimulator.css";
+  const css = await read(trafficFile);
+  const traffic = declarations(css);
+  assert.deepEqual(traffic.filter((d) => d.prop === "--traffic-chart-line").map((d) => [innermost(d.selector), d.value]),
+    [[".traffic-container", "var(--signal)"]]);
+  assert.match(css.slice(0, css.indexOf("--traffic-speed-0")), /P3-9.*native.*Phase 5/i, "speed-ramp hold comment");
+  const renderer = await read("components/TrafficSimulator/renderer.ts");
+  const speedInRenderer = [...renderer.matchAll(/speed:\s*\[([^\]]+)\]/g)].map((m) =>
+    [...m[1].matchAll(/"(#[0-9a-f]{6})"/gi)].map((x) => x[1]));
+  assert.equal(speedInRenderer.length, 2, "native dark and light palettes");
+  // The shared declaration walker only parses lettered property names; inspect the numbered ramp in its two blocks.
+  const blocks = [css.match(/^\.traffic-container\s*\{([^}]+)\}/m), css.match(/^html\[data-theme="light"\] \.traffic-container\s*\{([^}]+)\}/m)];
+  for (const [index, block] of blocks.entries()) {
+    assert.ok(block, `speed block ${index} exists`);
+    const speed = [...block[1].matchAll(/(--traffic-speed-[0-4]):\s*(#[0-9a-f]{6})\s*;/gi)];
+    assert.deepEqual(speed.map((m) => m[1]), HOLDS[trafficFile], `speed block ${index}: held properties`);
+    assert.deepEqual(speed.map((m) => m[2]), speedInRenderer[index], `speed block ${index}: native mirror`);
+  }
+  assert.equal([...css.matchAll(/--traffic-speed-[0-9]+\s*:/g)].length, 10);
 });

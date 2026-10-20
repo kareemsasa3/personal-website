@@ -1,11 +1,11 @@
 .traffic-container {
-  /* Speed ramp mirrors renderer.ts (validated one-hue ordinal ramp per theme). */
+  /* P3-9 native hold for Phase 5: speed ramp mirrors renderer.ts in each theme. */
   --traffic-speed-0: #eef5fe;
   --traffic-speed-1: #b7d3f6;
   --traffic-speed-2: #6da7ec;
   --traffic-speed-3: #3987e5;
   --traffic-speed-4: #256abf;
-  --traffic-chart-line: #6da7ec;
+  --traffic-chart-line: var(--signal);
   max-width: 1400px;
   margin: 0 auto;
   color: var(--fg);
@@ -18,7 +18,6 @@ html[data-theme="light"] .traffic-container {
   --traffic-speed-2: #256abf;
   --traffic-speed-3: #3987e5;
   --traffic-speed-4: #6da7ec;
-  --traffic-chart-line: #256abf;
 }
 .traffic-header {
   margin-bottom: 1.5rem;
