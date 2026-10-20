@@ -115,7 +115,9 @@ const TerminalView: React.FC<TerminalViewProps> = ({
               <span
                 dangerouslySetInnerHTML={{
                   __html: line.highlightedText.replace(
-                    /\\x1b\[1;31m(.*?)\\x1b\[0m/g,
+                    // Grep emits ANSI escape characters around each match.
+                    // eslint-disable-next-line no-control-regex
+                    /\x1b\[1;31m(.*?)\x1b\[0m/g,
                     '<span class="grep-highlight">$1</span>'
                   ),
                 }}

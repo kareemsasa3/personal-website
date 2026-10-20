@@ -627,3 +627,33 @@ test("T20 Simulations chrome is page scoped; Traffic chart uses signal while nat
   }
   assert.equal([...css.matchAll(/--traffic-speed-[0-9]+\s*:/g)].length, 10);
 });
+
+test("T21 Terminal colour aliases use one root mapping; grep matches take the selection band", async () => {
+  const expected = [
+    ["--terminal-text-primary", "var(--fg)"],
+    ["--terminal-text-muted", "var(--fg-muted)"],
+    ["--terminal-text-error", "var(--fault)"],
+    ["--terminal-text-success", "var(--signal)"],
+    ["--terminal-text-info", "var(--fg)"],
+    ["--terminal-window-bg", "var(--field-deep)"],
+    ["--terminal-header-bg", "var(--surface-2)"],
+    ["--terminal-border", "var(--edge)"],
+    ["--terminal-selection-bg", "var(--signal-deep)"],
+    ["--terminal-selection-text", "var(--fg)"],
+  ];
+  const colourNames = new Set(expected.map(([name]) => name));
+  const css = await read("components/Terminal/Terminal.css");
+  const colourDefs = declarations(css).filter((d) => colourNames.has(d.prop));
+  assert.deepEqual(colourDefs.map((d) => [innermost(d.selector), d.prop, d.value]),
+    expected.map(([name, value]) => [":root", name, value]));
+  assert.deepEqual(declarations(css).filter((d) => /\[data-theme/.test(d.selector) && d.prop.startsWith("--terminal-")).map(where), [],
+    "theme blocks must not define Terminal colour aliases");
+  assert.deepEqual(colourDefs.filter((d) => LITERAL.test(d.value)).map(where), [], "Terminal colour definitions contain no literals");
+  for (const file of PHASE5.filter((name) => /^components\/Terminal\/.*\.css$/.test(name) && name !== "components/Terminal/Terminal.css")) {
+    const otherDefs = declarations(await read(file)).filter((d) => colourNames.has(d.prop));
+    assert.deepEqual(otherDefs.map((d) => where({ file, ...d })), [], `${file}: colour aliases are defined only in Terminal.css`);
+  }
+  const matches = declarations(await read("components/Terminal/TerminalView.css"))
+    .filter((d) => innermost(d.selector) === ".grep-highlight" && d.prop === "background-color");
+  assert.deepEqual(matches.map((d) => d.value), ["var(--terminal-selection-bg)"]);
+});
