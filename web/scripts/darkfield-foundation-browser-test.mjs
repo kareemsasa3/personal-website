@@ -1267,7 +1267,8 @@ if (MODE === "check") {
     await page.locator(".dock-container").waitFor();
   };
   // Phase 3 (§13): every listed control is a df-control and renders Idle, Hover, Pressed and its hold.
-  // Tasks 9–13 and 15 add entries; prepare(page) brings controls on screen (Settings open, dock mode). Token colours are read from the page.
+  // Tasks 9–13 and 15 add entries; prepare(page) brings controls on screen (Settings open, dock mode). Token colours are read from the page,
+  // or from inside `scope` (a selector) when the controls sit under a scoped token set (Phase 5, P5-1).
   const P3_CONTROLS = [
     { route: "/", selectors: [".btn", ".hero-text-link", "a.featured-project-link", ".contact-strip-link", ".exploration-pill"] },
     { route: "/projects", selectors: [".stat-card", ".terminal-dropdown-trigger", ".project-roster__toggle", ".project-roster__action"] },
@@ -1313,8 +1314,9 @@ if (MODE === "check") {
       await page.locator(".error-button").first().waitFor();
     } },
   ];
-  const tokenRgb = (page, name) => page.evaluate((n) => { const p = document.createElement("i"); p.style.color = `var(${n})`;
-    document.body.append(p); const c = getComputedStyle(p).color; p.remove(); return c; }, name);
+  // scope (Phase 5, P5-1): the probe is placed inside that element, so a control under a scoped token set resolves its own.
+  const tokenRgb = (page, name, scope) => page.evaluate(([n, s]) => { const p = document.createElement("i"); p.style.color = `var(${n})`;
+    (s ? document.querySelector(s) : document.body).append(p); const c = getComputedStyle(p).color; p.remove(); return c; }, [name, scope]);
   // A card's marker is drawn by its title (its one heading), not by the card itself.
   const look = (el) => el.evaluate((e) => { const c = getComputedStyle(e); const title = e.matches(".df-control--card") ? e.querySelector("h1, h2, h3, h4, h5, h6") : null;
     return { b: c.borderTopColor, bg: c.backgroundColor,
@@ -1357,7 +1359,7 @@ if (MODE === "check") {
     invariant(Math.abs(hover.marker - hover.left) <= 0.5, `${where}: hover marker ends at ${hover.marker}, label starts at ${hover.left}`);
   };
   for (const theme of THEMES) {
-    for (const { route, prepare, selectors, width = VIEW_W, narrow = 375, relayout = false, reducedMotion = "reduce", wideOnly = false } of P3_CONTROLS) {
+    for (const { route, prepare, scope, selectors, width = VIEW_W, narrow = 375, relayout = false, reducedMotion = "reduce", wideOnly = false } of P3_CONTROLS) {
       await withPage({ theme, route, reducedMotion }, async (page) => {
         if (width !== VIEW_W) { await page.setViewportSize({ width, height: VIEW_H }); await frames(page); }
         if (prepare) await prepare(page);
@@ -1365,7 +1367,7 @@ if (MODE === "check") {
         // A resize re-lays the header and dock after the site's debounced window-size update (the header can change layout,
         // which moves the page below it); wait it out before measuring.
         const resized = async () => { await frames(page); await page.waitForTimeout(250); await frames(page); };
-        const t = {}; for (const n of ["--edge", "--fg-muted", "--fg", "--signal", "--on-signal"]) t[n] = await tokenRgb(page, n);
+        const t = {}; for (const n of ["--edge", "--fg-muted", "--fg", "--signal", "--on-signal"]) t[n] = await tokenRgb(page, n, scope);
         const instant = await page.evaluate(() => parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--dur-instant")));
         for (const selector of selectors) {
           const all = page.locator(selector);
@@ -2431,6 +2433,30 @@ if (MODE === "check") {
         invariant(served.status() === 200, `${icon.src} not served (${served.status()})`);
       }
     });
+  }
+  // Phase 5 (§03, §06): on each listed route, governed elements outside creative regions have square corners and a
+  // Darkfield family. P5_NATIVE: native elements outside any region (they host controls or governed labels).
+  const P5_ROUTES = [];
+  const P5_NATIVE = [];
+  const P5_FAMILIES = ["Archivo", "Archivo Narrow", "IBM Plex Mono"];
+  for (const theme of THEMES) {
+    for (const route of P5_ROUTES) {
+      await withPage({ theme, route }, async (page) => {
+        const bad = await page.evaluate(([skip, families]) => {
+          const out = new Set();
+          for (const el of document.querySelectorAll("body *")) {
+            if (!el.getClientRects().length || el.closest("[data-df-region], svg") || el.matches("img, video, canvas, iframe") || (skip && el.closest(skip))) continue;
+            const c = getComputedStyle(el);
+            if ([c.borderTopLeftRadius, c.borderTopRightRadius, c.borderBottomRightRadius, c.borderBottomLeftRadius].some((r) => r !== "0px")) out.add(`radius ${el.tagName}.${el.classList[0] ?? ""}`);
+            const own = [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim());
+            const family = c.fontFamily.split(",")[0].replace(/["']/g, "").trim();
+            if (own && !families.includes(family)) out.add(`family ${el.tagName}.${el.classList[0] ?? ""} ${family}`);
+          }
+          return [...out].slice(0, 12);
+        }, [P5_NATIVE.join(", "), P5_FAMILIES]);
+        invariant(bad.length === 0, `${theme} ${route}: ${JSON.stringify(bad)}`);
+      });
+    }
   }
 }
 

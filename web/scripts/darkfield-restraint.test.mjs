@@ -3,7 +3,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readdir } from "node:fs/promises";
 import { resolve } from "node:path";
-import { src, read, CREATIVE, reachable, governed, declarations, NATIVE, DEAD, innermost, governedDecls, where } from "./darkfield-css-scope.mjs";
+import { src, read, CREATIVE, reachable, governed, declarations, NATIVE, NATIVE_KEYFRAMES, DEAD, innermost, governedDecls, where } from "./darkfield-css-scope.mjs";
 
 test("scope: the walk reaches the shell, skips creative paths, matches DEAD, and every NATIVE selector exists", async () => {
   const files = await reachable();
@@ -103,7 +103,6 @@ test("T9 framer: no springs, overshoot, hover scale, parallax or literal timing;
 
 // Terminal cursor and top-row motion: the Phase 5 terminal task. Native keyframes: D6 ruling.
 const KEYFRAME_HANDOFF = { "components/Terminal/TerminalView.css": ["blink"], "components/Terminal/VimUI.css": ["blink"], "components/Terminal/TopUI.css": ["processUpdate"] };
-const NATIVE_KEYFRAMES = { "components/SnakeGame/SnakeGame.css": ["pulse"], "components/SimulationCard/SimulationCard.css": ["snakeMove", "pulse", "rhythmPreviewDrift"], "components/RhythmLab/RhythmLab.css": ["rhythmLabHitBurst", "rhythmLabJudgmentReadout"] };
 test("T10 keyframes: each governed @keyframes is annotated and timed by tokens", async () => {
   const bad = [];
   for (const f of await governed(".css")) {
