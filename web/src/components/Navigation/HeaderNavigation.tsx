@@ -11,6 +11,7 @@ import {
 import { useSettings } from "../../contexts/SettingsContext";
 import { useDisclosure } from "../../hooks/useDisclosure";
 import { useHeaderLayout } from "./useHeaderLayout";
+import r1Symbol from "../../assets/darkfield/darkfield-r1-symbol-currentcolor.svg?raw";
 
 const EXPLORE_LABEL_ID = "site-nav-explore-label";
 
@@ -91,10 +92,13 @@ const HeaderNavigation = forwardRef<HTMLElement>(function HeaderNavigation(
       aria-label="Kareem Sasa home"
       aria-current={pathname === "/" ? "page" : undefined}
     >
-      <span className="site-header__brand-mark" aria-hidden="true">
-        KS
-      </span>
-      <span className="site-header__brand-name">Kareem Sasa</span>
+      {/* The registered R1 symbol file (§18), never redrawn here. */}
+      <span
+        className="site-header__brand-mark"
+        aria-hidden="true"
+        dangerouslySetInnerHTML={{ __html: r1Symbol }}
+      />
+      <span className="site-header__brand-name df-heading-3">Kareem Sasa</span>
     </Link>
   );
 

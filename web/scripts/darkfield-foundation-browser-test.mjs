@@ -44,7 +44,7 @@ const PAIRS = [
   { selector: ".project-roster__action--primary", hover: true },
   { selector: ".project-media__bar .project-media__control", hover: true },
   { selector: ".not-found h1", min: 3 },
-  { selector: ".project-media__label" }, { selector: ".site-header__brand-mark", rendered: true },
+  { selector: ".project-media__label" }, { selector: ".site-header__brand-name", rendered: true },
 ];
 // Layout measurements the site writes on <html> (SiteNavigation.tsx, useDock.ts), each a px length.
 // Any other inline custom property, or any other value, is a theme value written inline.
@@ -148,8 +148,8 @@ const invariant = (ok, message) => { if (!ok) invariantFailures.push(message); }
 const CLOCK_START = new Date("2026-01-01T00:00:00Z");
 const CLOCK_PAUSED = new Date("2026-01-01T01:00:00Z");
 
-const withPage = async ({ theme, route = "/", javaScriptEnabled = true, forcedColors = "none", reducedMotion = "reduce", clock = false, routePass = false }, run) => {
-  const context = await browser.newContext({ viewport: { width: VIEW_W, height: VIEW_H }, javaScriptEnabled, forcedColors, reducedMotion });
+const withPage = async ({ theme, route = "/", javaScriptEnabled = true, forcedColors = "none", reducedMotion = "reduce", clock = false, routePass = false, scale = 1 }, run) => {
+  const context = await browser.newContext({ viewport: { width: VIEW_W, height: VIEW_H }, deviceScaleFactor: scale, javaScriptEnabled, forcedColors, reducedMotion });
   if (theme) await context.addInitScript((value) => localStorage.setItem("theme", value), theme);
   // Seeded randomness (r10): decorative backgrounds draw a random static frame under reduced motion, and it
   // shows through translucent grounds. The same seed on every load and build keeps rendered grounds
@@ -528,7 +528,9 @@ const contrastOf = async (page, selector, { all = true, rendered = false, painte
         const style = getComputedStyle(el);
         if (box.width * box.height <= 1 || style.clip === "rect(0px, 0px, 0px, 0px)" || /^inset\(50%/.test(style.clipPath)) continue;
       }
-      const text = (paintedPass ? [...el.childNodes].filter((n) => n.nodeType === Node.TEXT_NODE).map((n) => n.textContent).join(" ") : el.textContent).trim().replace(/\s+/g, " ").slice(0, 30);
+      // An inline SVG's <title> renders nothing, so it is not part of the element's name (Phase 4 Task 2).
+      const shown = el.querySelector("svg title") ? (() => { const c = el.cloneNode(true); c.querySelectorAll("svg title").forEach((t) => t.remove()); return c.textContent; })() : el.textContent;
+      const text = (paintedPass ? [...el.childNodes].filter((n) => n.nodeType === Node.TEXT_NODE).map((n) => n.textContent).join(" ") : shown).trim().replace(/\s+/g, " ").slice(0, 30);
       const name = el.tagName.toLowerCase() + (el.classList[0] ? `.${el.classList[0]}` : "");
       const base = paintedPass ? `${name}|${text}` : text;
       seen[base] = (seen[base] || 0) + 1;
@@ -591,7 +593,9 @@ const interactions = async (page) => {
     return [...document.querySelectorAll(sel)].flatMap((el, i) => {
       if (!el.checkVisibility?.() || !el.textContent.trim() || el.closest("[data-df-region]") || el.matches(":disabled") || el.parentElement?.closest(sel)) return [];
       el.setAttribute("data-df-control", String(i));
-      const base = `${el.tagName.toLowerCase()}|${el.textContent.trim().replace(/\s+/g, " ").slice(0, 30)}`;
+      // An inline SVG's <title> renders nothing, so it is not part of the control's name (Phase 4 Task 2).
+      const shown = el.querySelector("svg title") ? (() => { const c = el.cloneNode(true); c.querySelectorAll("svg title").forEach((t) => t.remove()); return c.textContent; })() : el.textContent;
+      const base = `${el.tagName.toLowerCase()}|${shown.trim().replace(/\s+/g, " ").slice(0, 30)}`;
       seen[base] = (seen[base] || 0) + 1;
       return [{ i, key: `${base}#${seen[base]}` }];
     });
@@ -707,7 +711,9 @@ const backdrop = async (page, theme) => {
     return [...document.querySelectorAll(".site-header a[href], .site-header button")].flatMap((el, i) => {
       if (!el.checkVisibility() || !el.textContent.trim()) return [];
       el.setAttribute("data-df-backdrop", String(i));
-      const base = `${el.tagName.toLowerCase()}|${el.textContent.trim().replace(/\s+/g, " ").slice(0, 30)}`;
+      // An inline SVG's <title> renders nothing, so it is not part of the control's name (Phase 4 Task 2).
+      const shown = el.querySelector("svg title") ? (() => { const c = el.cloneNode(true); c.querySelectorAll("svg title").forEach((t) => t.remove()); return c.textContent; })() : el.textContent;
+      const base = `${el.tagName.toLowerCase()}|${shown.trim().replace(/\s+/g, " ").slice(0, 30)}`;
       seen[base] = (seen[base] || 0) + 1;
       return [{ i, key: `${base}#${seen[base]}` }];
     });
@@ -2119,10 +2125,10 @@ if (MODE === "check") {
   }
   // Phase 3 Task 7 (§06): Narrator text is Archivo; uppercase text is Archivo Narrow.
   const P3_ROUTES = ["/", "/projects", "/case-studies", "/case-studies/aether", "/writing", "/writing/what-should-still-be-hard", "/experience", "/journey"];
-  // Not Phase 3's on these routes: creative regions, project media chrome (Phase 5), the header mark (Phase 4).
-  const P3_SKIP = "[data-df-region], .project-media, .media-inspector, .site-header__brand";
-  // Phase 3 Task 16 (§03, §17): every visible governed corner is square. Native playfields, independent media and
-  // the held brand mark keep their own geometry until their assigned phase.
+  // Not Phase 3's on these routes: creative regions and project media chrome (Phase 5).
+  const P3_SKIP = "[data-df-region], .project-media, .media-inspector";
+  // Phase 3 Task 16 (§03, §17): every visible governed corner is square. Native playfields and independent media
+  // keep their own geometry until their assigned phase.
   for (const theme of THEMES) for (const route of P3_ROUTES) {
     await withPage({ theme, route }, async (page) => {
       const bad = await page.evaluate((skip) => [...document.querySelectorAll("body *")]
@@ -2278,6 +2284,128 @@ if (MODE === "check") {
       });
       invariant(seen !== null, `${route}: no eyebrow with df-label is rendered`);
       invariant(JSON.stringify(seen.eyebrow) === JSON.stringify(seen.probe), `${route}: eyebrow ${JSON.stringify(seen.eyebrow)} differs from the label ${JSON.stringify(seen.probe)}`);
+    });
+  }
+  // Phase 4 Task 2 (§18; r1/SPEC.md §1–§2; D5 ruling): the registered symbol, uncontained, one colour per theme, clear space kept.
+  const R1_PATH = (await readFile(new URL("../src/assets/darkfield/darkfield-r1-symbol-currentcolor.svg", import.meta.url), "utf8")).match(/\sd="([^"]+)"/)[1];
+  const markCheck = (page) => page.evaluate((d) => {
+    const host = document.querySelector(".site-header__brand-mark"), svg = host?.querySelector("svg"), p = svg?.querySelector("path");
+    if (!p || svg.querySelectorAll("path").length !== 1) return ["no single registered path"];
+    const out = [], root = document.documentElement, brand = host.closest(".site-header__brand"), header = host.closest(".site-header");
+    if (p.getAttribute("d") !== d) out.push("path differs from the registered file");
+    const probe = document.createElement("span");
+    probe.style.color = getComputedStyle(root).getPropertyValue(root.dataset.theme === "light" ? "--fg" : "--signal");
+    document.body.append(probe); const want = getComputedStyle(probe).color; probe.remove();
+    if (getComputedStyle(svg).color !== want || getComputedStyle(p).fill !== want) out.push(`colour ${getComputedStyle(p).fill} != ${want}`);
+    const painted = (el) => { const c = getComputedStyle(el);
+      return c.backgroundColor !== "rgba(0, 0, 0, 0)" || c.backgroundImage !== "none" || c.boxShadow !== "none" || c.filter !== "none" || c.clipPath !== "none" ||
+        (c.outlineStyle !== "none" && parseFloat(c.outlineWidth) > 0) ||
+        ["Top", "Right", "Bottom", "Left"].some((s) => parseFloat(c[`border${s}Width`]) > 0 && c[`border${s}Style`] !== "none"); };
+    for (let el = p; el && el !== header; el = el.parentElement) if (painted(el)) out.push(`container on ${el.tagName}.${el.getAttribute("class")}`);
+    const size = parseFloat(getComputedStyle(brand).getPropertyValue("--df-mark-size")), clear = parseFloat(getComputedStyle(brand).getPropertyValue("--df-mark-clear"));
+    const r = svg.getBoundingClientRect();
+    if (r.width !== size || r.height !== size || !Number.isInteger(r.width)) out.push(`size ${r.width}x${r.height} != ${size}`);
+    // Pixel crispness is checked on the painted pixels (markPaint below), not on this geometry.
+    const zone = { l: r.left - clear, t: r.top - clear, rt: r.right + clear, b: r.bottom + clear };
+    const h = header.getBoundingClientRect(), hc = getComputedStyle(header);
+    if (zone.l < h.left + parseFloat(hc.borderLeftWidth) || zone.t < h.top + parseFloat(hc.borderTopWidth) || zone.b > h.bottom - parseFloat(hc.borderBottomWidth)) out.push("clear space crosses the header boundary");
+    for (const el of header.querySelectorAll("*")) {
+      if (el === host || host.contains(el) || el.contains(host) || !el.checkVisibility()) continue;
+      const b = el.getBoundingClientRect();
+      if (b.width && b.height && b.left < zone.rt && b.right > zone.l && b.top < zone.b && b.bottom > zone.t) out.push(`${el.tagName}.${el.getAttribute("class")} inside clear space`);
+    }
+    return out;
+  }, R1_PATH);
+  // The I2 rule beneath the link where the wordmark is hidden, and the mark against the header's ground.
+  const brandRule = (page) => page.evaluate(() => {
+    const brand = document.querySelector(".site-header__brand"), a = getComputedStyle(brand, "::after");
+    return { bg: a.backgroundColor, top: parseFloat(a.top), left: parseFloat(a.left), height: brand.getBoundingClientRect().height,
+      clear: parseFloat(getComputedStyle(brand).getPropertyValue("--df-mark-clear")) };
+  });
+  const lum = (rgb) => { const [r, g, b] = rgb.match(/[\d.]+/g).slice(0, 3).map((v) => { const c = Number(v) / 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; });
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+  const MARK_VIEWS = [{ route: "/" }, { route: "/projects" }, { route: "/", width: 1181, height: 900 }, { route: "/", width: 767, height: 900 },
+    { route: "/", width: 375, height: 812 }, { route: "/", width: 1181, height: 900, scale: 2 }, { route: "/", width: 375, height: 812, scale: 2 }];
+  // Pixel crispness (r1/SPEC.md §1; Phase 4 Task 2 ruling): the mark as painted in the header equals the same registered
+  // markup rendered at a whole-pixel origin with the same size, colour and ground, pixel for pixel. Layout positions alone do
+  // not say what is painted, so the pixels are compared. Each image is cut to the pixels that differ from its ground.
+  const markPaint = async (page) => {
+    const pad = 4;
+    const at = await page.evaluate(() => { const r = document.querySelector(".site-header__brand-mark svg").getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height }; });
+    const clip = (x, y) => ({ x: Math.floor(x) - pad, y: Math.floor(y) - pad, width: Math.ceil(at.w) + 2 * pad + 1, height: Math.ceil(at.h) + 2 * pad + 1 });
+    const painted = await page.screenshot({ clip: clip(at.x, at.y), animations: "disabled" });
+    await page.evaluate(({ w, h }) => {
+      const svg = document.querySelector(".site-header__brand-mark svg"), ref = document.createElement("div");
+      ref.id = "df-mark-reference";
+      ref.style.cssText = `position:fixed;left:0;top:0;z-index:2147483647;width:${w + 16}px;height:${h + 16}px;` +
+        `background:${getComputedStyle(document.querySelector(".site-header")).backgroundColor};color:${getComputedStyle(svg).color}`;
+      ref.innerHTML = svg.outerHTML;
+      Object.assign(ref.firstElementChild.style, { position: "absolute", left: "8px", top: "8px", width: `${w}px`, height: `${h}px`, display: "block" });
+      document.body.append(ref);
+    }, at);
+    const reference = await page.screenshot({ clip: clip(8, 8), animations: "disabled" });
+    await page.evaluate(() => document.getElementById("df-mark-reference").remove());
+    return decoder.evaluate(async (images) => {
+      const cut = async (data) => {
+        const image = new Image(); image.src = `data:image/png;base64,${data}`; await image.decode();
+        const canvas = new OffscreenCanvas(image.width, image.height), context = canvas.getContext("2d");
+        context.drawImage(image, 0, 0);
+        const { data: px, width, height } = context.getImageData(0, 0, image.width, image.height);
+        const ground = px.slice(0, 4).join();
+        let [l, t, r, b] = [width, height, -1, -1];
+        for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
+          if (px.slice((y * width + x) * 4, (y * width + x) * 4 + 4).join() === ground) continue;
+          [l, t, r, b] = [Math.min(l, x), Math.min(t, y), Math.max(r, x), Math.max(b, y)];
+        }
+        const rows = [];
+        for (let y = t; y <= b; y++) rows.push(px.slice((y * width + l) * 4, (y * width + r + 1) * 4).join());
+        return { size: `${r - l + 1}x${b - t + 1}`, rows };
+      };
+      const [painted, reference] = await Promise.all(images.map(cut));
+      const differing = painted.rows.length === reference.rows.length ? painted.rows.filter((row, i) => row !== reference.rows[i]).length : null;
+      return { equal: painted.size === reference.size && differing === 0, painted: painted.size, reference: reference.size, differing };
+    }, [painted.toString("base64"), reference.toString("base64")]);
+  };
+  const PAINT_VIEWS = [[1440, 900], [1181, 900], [768, 900], [767, 900], [375, 812], [320, 812]];
+  for (const theme of [...new Set([...THEMES, "mono"])]) for (const [width, height] of PAINT_VIEWS) for (const scale of [1, 2, 3]) {
+    await withPage({ theme, route: "/", scale }, async (page) => {
+      await page.setViewportSize({ width, height }); await page.reload({ waitUntil: "networkidle" });
+      await page.evaluate(() => document.fonts.ready); await frames(page);
+      const seen = await markPaint(page);
+      invariant(seen.equal, `${theme} / ${width}px ${scale}x: the painted mark differs from the reference render ${JSON.stringify(seen)}`);
+    });
+  }
+  for (const theme of [...new Set([...THEMES, "mono"])]) for (const view of MARK_VIEWS) {
+    await withPage({ theme, route: view.route, scale: view.scale }, async (page) => {
+      if (view.width) { await page.setViewportSize({ width: view.width, height: view.height }); await page.reload({ waitUntil: "networkidle" }); }
+      await page.evaluate(() => document.fonts.ready);
+      const where = `${theme} ${view.route} ${view.width ?? VIEW_W}px ${view.scale ?? 1}x`;
+      const t = { "--fg-muted": await tokenRgb(page, "--fg-muted"), "--signal": await tokenRgb(page, "--signal") };
+      const ground = await page.evaluate(() => getComputedStyle(document.querySelector(".site-header")).backgroundColor);
+      const fill = await page.evaluate(() => getComputedStyle(document.querySelector(".site-header__brand-mark path")).fill);
+      const opaque = !/rgba\(.*,\s*(0?\.\d+|0)\)$/.test(ground);
+      invariant(opaque, `${where}: header ground ${ground} is not opaque; the mark's contrast cannot be read from it (stop and report)`);
+      if (opaque) { const [hi, lo] = [lum(fill), lum(ground)].sort((a, b) => b - a);
+        invariant((hi + 0.05) / (lo + 0.05) >= 3, `${where}: mark ${fill} on header ${ground} below 3:1`); }
+      const name = page.locator(".site-header__brand-name");
+      const wordmark = await name.evaluate((e) => e.checkVisibility());
+      const target = wordmark ? name : page.locator(".site-header__brand-mark");
+      const states = [];
+      states.push(["rest", await markCheck(page), wordmark ? null : await brandRule(page)]);
+      const box = await target.boundingBox();
+      await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2); await frames(page);
+      invariant(await page.locator(".site-header__brand").evaluate((e) => e.matches(":hover")), `${where}: the brand link is not hovered`);
+      states.push(["hover", await markCheck(page), wordmark ? null : await brandRule(page)]);
+      await page.mouse.down(); await frames(page);
+      states.push(["pressed", await markCheck(page), wordmark ? null : await brandRule(page)]);
+      await page.mouse.move(0, 0); await page.mouse.up(); await frames(page);
+      invariant(new URL(page.url()).pathname.replace(/\/$/, "") === view.route.replace(/\/$/, ""), `${where}: a press released away navigated to ${page.url()}`);
+      for (const [state, failures] of states) invariant(failures.length === 0, `${where} ${state}: mark ${JSON.stringify(failures)}`);
+      if (!wordmark) {
+        const want = { rest: "rgba(0, 0, 0, 0)", hover: t["--fg-muted"], pressed: t["--signal"] };
+        for (const [state, , rule] of states) invariant(rule.bg === want[state] && Math.abs(rule.top - rule.height) < 0.01 && Math.abs(rule.left - rule.clear) < 0.01,
+          `${where} ${state}: the rule beneath the mark ${JSON.stringify(rule)}, want ${want[state]}`);
+      }
     });
   }
 }

@@ -49,41 +49,28 @@
     pointer-events: none;
 }
 
+/* Identity (§18; r1/SPEC.md §1–§2; D5 ruling): the registered R1 symbol, one colour, no container, clear space
+   as a margin. Size and clear space are token names the reviewer checks against r1/SPEC.md §1 and §18 (P4-7). */
 .site-header__brand {
+    --df-mark-size: var(--space-6);
+    --df-mark-clear: var(--space-2);
     display: inline-flex;
     align-items: center;
     flex: 0 0 auto;
-    gap: 0.6rem;
     min-width: max-content;
     color: var(--fg);
     text-decoration: none;
 }
-
-.site-header__brand-mark {
-    display: grid;
-    place-items: center;
-    width: 2.4rem;
-    aspect-ratio: 1;
-    border: 1px solid color-mix(in srgb, var(--signal-dim) 68%, transparent);
-    border-radius: 6px;
-    background: rgba(0, 0, 0, 0.2);
-    color: var(--signal-dim);
-    font-family: var(--font-mono);
-    font-size: 0.85rem;
-    font-weight: 800;
-}
-
-/* Light: only fg keeps 4.5:1 when dark content scrolls behind the translucent header.
-   The border keeps the brand colour (an accessibility correction, not a D5 ruling). */
-[data-theme="light"] .site-header__brand-mark {
-    color: var(--fg);
-}
-
-.site-header__brand-name {
-    font-size: 0.95rem;
-    font-weight: 700;
-    white-space: nowrap;
-}
+.site-header__brand-mark { display: block; flex: none; width: var(--df-mark-size); height: var(--df-mark-size); margin: var(--df-mark-clear); color: var(--signal); }
+[data-theme="light"] .site-header__brand-mark { color: var(--fg); }
+/* The registered file carries a <title>; the link already names itself, so the symbol takes no pointer (no tooltip). */
+.site-header__brand-mark svg { display: block; width: 100%; height: 100%; pointer-events: none; }
+/* The wordmark (§06 Narrator, mixed case, P4-4) takes the link's states (§13); the mark never does (P4-5). */
+.site-header__brand-name { position: relative; padding: var(--space-2) var(--space-3); }
+.site-header__brand-name::before { content: ""; position: absolute; inset-block: 0; inset-inline-start: var(--space-1); width: var(--cell-w); display: flex; align-items: center; font-family: var(--font-mono); pointer-events: none; }
+.site-header__brand:hover .site-header__brand-name { background-color: var(--df-ground-up, var(--surface-1)); transition: background-color var(--dur-fast) var(--ease-standard); }
+.site-header__brand:hover .site-header__brand-name::before { content: "›"; content: "›" / ""; }
+.site-header__brand:is(:active, [data-df-pressed]) .site-header__brand-name { background-color: var(--signal); color: var(--on-signal); transition: none; }
 
 .site-header__nav {
     display: flex;
@@ -118,11 +105,6 @@
     width: 100%;
     text-align: center;
     white-space: nowrap;
-}
-
-.site-header__brand:focus-visible {
-    outline: 2px solid var(--signal-dim);
-    outline-offset: 3px;
 }
 
 /* Explore: a quieter second tier where it fits, a disclosure where it does not. */
@@ -299,6 +281,13 @@
     .site-header__brand-name {
         display: none;
     }
+
+    /* Wordmark hidden: the link is the mark alone. Its states draw an L2 rule beneath the link's box,
+       which ends at the clear-space edge, never a ground behind the mark (P4-5 ruling). */
+    .site-header__brand { position: relative; }
+    .site-header__brand::after { content: ""; position: absolute; inset-inline: var(--df-mark-clear); top: 100%; height: var(--stroke-hair); background-color: transparent; pointer-events: none; }
+    .site-header__brand:hover::after { background-color: var(--fg-muted); }
+    .site-header__brand:is(:active, [data-df-pressed])::after { height: var(--stroke-bold); background-color: var(--signal); }
 }
 
 @media (max-width: 768px) {
@@ -306,13 +295,15 @@
         display: contents;
     }
 
+    /* Centred by layout, not a transform: a translate of half an odd width would put the identity mark between
+       device pixels (r1/SPEC.md §1, pixel crispness). Same box and position as before. */
     .site-header {
         position: fixed;
         top: max(0.5rem, env(safe-area-inset-top));
-        left: 50%;
-        transform: translateX(-50%);
+        left: 0;
+        right: 0;
         width: min(calc(100vw - 1rem), 1180px);
-        margin: 0;
+        margin: 0 auto;
     }
 }
 
@@ -329,13 +320,11 @@
         padding: 0.45rem;
     }
 
-    .site-header__brand-mark,
     .site-header__settings-button {
         width: 2.15rem;
     }
 
-    /* The width above is the brand mark's (held for Phase 4). The settings latch keeps sizing to its lamp
-       and icon, which a fixed width would clip. */
+    /* The settings latch keeps sizing to its lamp and icon, which a fixed width would clip. */
     .site-header__settings-button {
         width: auto;
     }

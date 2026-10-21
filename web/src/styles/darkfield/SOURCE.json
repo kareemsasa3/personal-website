@@ -91,6 +91,12 @@
       "transform": "c2pa-strip",
       "sourceSha256": "d07fab010d15c2132e0e8eeadeeb94b06e1ebb2f688e3bd99c0f6d98ba440c27",
       "sha256": "50277a1caddbf471111e4f9dd24669478c0c0c9f640b5a397b26fd49150f0291"
+    },
+    "src/assets/darkfield/darkfield-r1-symbol-currentcolor.svg": {
+      "from": "r1/symbol/darkfield-r1-symbol-currentcolor.svg",
+      "transform": "c2pa-strip",
+      "sourceSha256": "527680a1bbc52e79d56f8427fe155bfc5c34d046c34eb766d07b1ee9be8f8ee0",
+      "sha256": "3a3f3211632af10193d8f5e60b1721033d25d275759c35da18019a937838ad5e"
     }
   }
 }

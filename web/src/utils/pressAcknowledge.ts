@@ -3,7 +3,7 @@
 import { parseDuration } from "./motionTokens";
 
 const ATTR = "data-df-pressed";
-const TARGET = ".df-control, .df-prose a";
+const TARGET = ".df-control, .df-prose a, .site-header__brand";
 const BUTTONISH = "button, summary, [role='button'], [role='option'], [role='switch'], [role='combobox']";
 const PRESS_KEYS = ["Enter", " "];
 

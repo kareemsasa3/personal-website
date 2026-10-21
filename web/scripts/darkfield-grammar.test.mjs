@@ -29,16 +29,13 @@ const DEAD_RULES = {
   "pages/Projects/Projects.css": [".projects-cta", ".projects-cta-primary", ".projects-hero-actions"],
   "components/TimelineItem/TimelineItem.css": [".timeline-flip-hint", ".timeline-flip-container:hover .timeline-flip-hint"],
 };
-// Header brand, held unchanged for Phase 4 (D5: R1 symbol and wordmark replace the KS mark). Exact innermost selectors.
-const BRAND_HOLD = { "components/Navigation/SiteNavigation.css": [".site-header__brand", ".site-header__brand-mark",
-  '[data-theme="light"] .site-header__brand-mark', ".site-header__brand-name", ".site-header__brand:focus-visible"] };
 // P3-9: the Traffic speed ramp mirrors native renderer artwork. Phase 5 owns its retirement.
 const HOLDS = { "pages/TrafficSimulator/TrafficSimulator.css": Array.from({ length: 5 }, (_, i) => `--traffic-speed-${i}`) };
 // Phase 3 declarations: PHASE3 files, governed and rendered selectors only.
 export const phase3Decls = async () => {
   const out = [];
   for (const file of (await governed(".css")).filter((f) => PHASE3.includes(f))) {
-    const skip = [...(NATIVE[file] ?? []), ...(DEAD_RULES[file] ?? []), ...(BRAND_HOLD[file] ?? [])];
+    const skip = [...(NATIVE[file] ?? []), ...(DEAD_RULES[file] ?? [])];
     for (const d of declarations(await read(file))) if (!skip.includes(innermost(d.selector))) out.push({ file, ...d });
   }
   return out;
@@ -118,7 +115,7 @@ test("T6 eyebrows speak in the Instrument voice (§06 Interface label); Rhythm L
 // Machine voice (§06): the only Phase 3 selectors that may set the mono family. Exact innermost selectors.
 const MACHINE = [".work-dates", ".setting-static-value, .setting-value", ".settings-about .settings-build",
   ".article-body code, .article-prose code", "pre", "code, kbd, samp", "code", ".df-control::before",
-  ".df-control--card :is(h1, h2, h3, h4, h5, h6)::before", ".df-context--live::before"];
+  ".df-control--card :is(h1, h2, h3, h4, h5, h6)::before", ".df-context--live::before", ".site-header__brand-name::before"];
 test("T7 voices: Phase 3 sets mono only on Machine text; Narrator inherits; uppercase is the Instrument classes' alone", async () => {
   const decls = await phase3Decls();
   const family = decls.filter((d) => d.prop === "font-family" && !/^(inherit)$/.test(d.value) && !(d.value === "var(--font-sans)" && innermost(d.selector) === "body") && !(d.value === "var(--font-mono)" && MACHINE.includes(innermost(d.selector))));
@@ -353,9 +350,9 @@ test("T11 header and dock: navigation follows the control model; the dock's dots
   // Made dead here: the dock's colour variables, its dots and the magnification leftovers.
   const dock = await read("components/Dock/Dock.css");
   assert.doesNotMatch(dock, /--dock-(?!icon-size)[a-z-]+|dock-active-indicator|magnif|will-change:\s*width/i);
-  // The 375px brand-mark rule is held unchanged (Phase 4); the settings latch overrides only its own width after it.
+  // Phase 4 Task 2: the identity mark keeps its token size at every width; no narrow-width rule groups it with the settings latch.
   const nav = await read("components/Navigation/SiteNavigation.css");
-  assert.match(nav, /\.site-header__brand-mark,\s*\.site-header__settings-button\s*\{\s*width:\s*2\.15rem;\s*\}/);
+  assert.doesNotMatch(nav, /\.site-header__brand-mark\s*,|,\s*\.site-header__brand-mark\b/);
 });
 
 test("T12 settings and section rail: controls follow the model; the switch has no track; the slider is direct manipulation; the rail is an L1 rule", async () => {
