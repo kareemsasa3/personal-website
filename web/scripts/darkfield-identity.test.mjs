@@ -2,9 +2,10 @@
 // Task 2 (D5 ruling): the header shows the registered R1 symbol, uncontained, one colour per theme, beside the wordmark.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readdir } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 import { relative, resolve } from "node:path";
-import { read, src, declarations, innermost } from "./darkfield-css-scope.mjs";
+import { read, src, web, declarations, innermost } from "./darkfield-css-scope.mjs";
+import { pngChunks } from "./darkfield-r1.mjs";
 
 const SYMBOL = "assets/darkfield/darkfield-r1-symbol-currentcolor.svg";
 const HEADER = "components/Navigation/HeaderNavigation.tsx";
@@ -98,4 +99,62 @@ test("T2 legacy: nothing outside the dead legacy logo files imports them", async
     }
   }
   assert.deepEqual(bad, []);
+});
+
+// Task 3 (§18 favicon containment; r1/SPEC.md §3, §4, §6): the web manifest names the registered app icons at their own
+// sizes, and theme-color follows the active theme's field token.
+const runtime = JSON.parse(await read("styles/darkfield/tokens.runtime.json"));
+const darkField = runtime.color.tokens.find((t) => t.name === "field").value.dark;
+const SOURCE_JSON = JSON.parse(await read("styles/darkfield/SOURCE.json"));
+const ICONS = [
+  { src: "/icon-192.png", sizes: "192x192", type: "image/png" },
+  { src: "/icon-512.png", sizes: "512x512", type: "image/png" },
+  { src: "/icon-512-maskable.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
+];
+
+test("T3 manifest: exact members, the registered icons at their own sizes, Dark field colours", async () => {
+  const manifest = JSON.parse(await readFile(resolve(web, "public/manifest.webmanifest"), "utf8"));
+  assert.deepEqual(Object.keys(manifest).sort(), ["background_color", "icons", "name", "short_name", "start_url", "theme_color"]);
+  assert.equal(manifest.name, "Kareem Sasa");
+  assert.equal(manifest.short_name, "Kareem Sasa");
+  assert.equal(manifest.start_url, "/");
+  assert.deepEqual(manifest.icons, ICONS);
+  for (const icon of manifest.icons) {
+    const path = `public${icon.src}`;
+    const entry = SOURCE_JSON.files[path];
+    assert.equal(entry?.transform, "c2pa-strip", `${path} is a registered file shipped through the strip`);
+    const ihdr = pngChunks(await readFile(resolve(web, path)))[0];
+    assert.equal(ihdr.type, "IHDR", path);
+    assert.equal(`${ihdr.raw.readUInt32BE(8)}x${ihdr.raw.readUInt32BE(12)}`, icon.sizes, `${path} pixel size`);
+  }
+  assert.equal(manifest.background_color, darkField);
+  assert.equal(manifest.theme_color, darkField);
+});
+
+test("T3 head: the manifest link and one theme-color holding Dark field; the favicon links are unchanged", async () => {
+  const html = await readFile(resolve(web, "index.html"), "utf8");
+  assert.equal(html.split('<link rel="manifest" href="/manifest.webmanifest" />').length, 2, "one manifest link");
+  const colours = [...html.matchAll(/<meta name="theme-color"[^>]*>/g)].map((m) => m[0]);
+  assert.deepEqual(colours, [`<meta name="theme-color" content="${darkField}" />`]);
+  assert.ok(html.includes([
+    '<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />',
+    '<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />',
+    '<link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png" />',
+    '<link rel="icon" type="image/svg+xml" href="/favicon.svg" />',
+    '<link rel="apple-touch-icon" href="/apple-touch-icon.png" />',
+  ].join("\n    ")), "the five favicon links");
+  assert.equal([...html.matchAll(/<link rel="(icon|apple-touch-icon)"/g)].length, 5, "no other icon link");
+  // P4-8: the boot script does not set theme-color; React does, from the token.
+  for (const [, script] of html.matchAll(/<script>([\s\S]*?)<\/script>/g)) assert.doesNotMatch(script, /theme-color/);
+});
+
+test("T3 theme: applyThemeToDocument writes the computed --field to theme-color after selecting the theme", async () => {
+  const code = await read("contexts/ThemeContext.tsx");
+  const body = code.match(/const applyThemeToDocument = \(theme: Theme\) => \{([\s\S]*?)\n\};/)?.[1];
+  assert.ok(body, "applyThemeToDocument not found");
+  const select = body.indexOf('root.setAttribute("data-theme", theme)');
+  const field = body.search(/const (\w+) = getComputedStyle\(root\)\.getPropertyValue\("--field"\)\.trim\(\);/);
+  const write = body.search(/document\.querySelector\('meta\[name="theme-color"\]'\)\?\.setAttribute\("content", \w+\)/);
+  assert.ok(select >= 0 && field > select && write > field, "select the theme, then read --field, then write theme-color");
+  assert.equal(code.match(/meta\[name="theme-color"\]/g).length, 1, "theme-color is written in one place");
 });

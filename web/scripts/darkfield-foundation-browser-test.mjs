@@ -2408,6 +2408,30 @@ if (MODE === "check") {
       }
     });
   }
+  // Phase 4 Task 3 (§18 favicon containment; r1/SPEC.md §3; P4-8, P4-9): theme-color holds the active theme's field, and the
+  // web manifest and every icon it names are served.
+  for (const theme of [...new Set([...THEMES, "mono"])]) {
+    await withPage({ theme, route: "/" }, async (page) => {
+      const seen = await page.evaluate(() => ({
+        theme: document.documentElement.dataset.theme,
+        metas: document.querySelectorAll('meta[name="theme-color"]').length,
+        content: document.querySelector('meta[name="theme-color"]')?.content.toLowerCase(),
+        field: getComputedStyle(document.documentElement).getPropertyValue("--field").trim().toLowerCase(),
+      }));
+      invariant(seen.theme === theme && seen.metas === 1 && seen.field !== "" && seen.content === seen.field,
+        `${theme} /: theme-color ${JSON.stringify(seen)} does not hold the theme's field`);
+      if (theme !== "dark") return;
+      const response = await page.request.get(`${base}/manifest.webmanifest`);
+      invariant(response.status() === 200, `manifest.webmanifest not served (${response.status()})`);
+      let manifest = null;
+      try { manifest = JSON.parse(await response.text()); } catch { invariant(false, "manifest.webmanifest does not parse"); }
+      invariant(Array.isArray(manifest?.icons) && manifest.icons.length > 0, "manifest.webmanifest names no icons");
+      for (const icon of manifest?.icons ?? []) {
+        const served = await page.request.get(new URL(icon.src, `${base}/`).href);
+        invariant(served.status() === 200, `${icon.src} not served (${served.status()})`);
+      }
+    });
+  }
 }
 
 await browser.close();

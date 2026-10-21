@@ -26,6 +26,9 @@ const applyThemeToDocument = (theme: Theme) => {
   const root = document.documentElement;
   root.setAttribute("data-theme", theme);
   root.style.colorScheme = theme === "light" ? "light" : "dark";
+  // theme-color follows the active theme's field token (P4-8); tokens.css is applied before React mounts.
+  const field = getComputedStyle(root).getPropertyValue("--field").trim();
+  if (field) document.querySelector('meta[name="theme-color"]')?.setAttribute("content", field);
 };
 
 interface ThemeProviderProps {

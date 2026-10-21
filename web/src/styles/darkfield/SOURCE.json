@@ -92,6 +92,24 @@
       "sourceSha256": "d07fab010d15c2132e0e8eeadeeb94b06e1ebb2f688e3bd99c0f6d98ba440c27",
       "sha256": "50277a1caddbf471111e4f9dd24669478c0c0c9f640b5a397b26fd49150f0291"
     },
+    "public/icon-192.png": {
+      "from": "r1/favicon/icon-192.png",
+      "transform": "c2pa-strip",
+      "sourceSha256": "6af2cb144506987fc35c40333c37f931d5ba91e086f8f3aaef1ec5b704eed3b3",
+      "sha256": "cc87e7160b1e2777e6586b2fca2766741fac2a972dd3921101401f177ae15638"
+    },
+    "public/icon-512.png": {
+      "from": "r1/favicon/icon-512.png",
+      "transform": "c2pa-strip",
+      "sourceSha256": "a39653cf3f558ef2c19c609799faeaf1e4fe41c7fa01bade1b881d81a822a5af",
+      "sha256": "2c0201ef3f05c351e614e21b20034ebab4a738d4334f136a4af436edeff39468"
+    },
+    "public/icon-512-maskable.png": {
+      "from": "r1/favicon/icon-512-maskable.png",
+      "transform": "c2pa-strip",
+      "sourceSha256": "36a64186fd69404600d3b91f1c626a73779cbfb008361859667457a327c807d9",
+      "sha256": "d46081dcceae4276abe01490eb2bc11e1c8356036c94935cebf2a138343a5b29"
+    },
     "src/assets/darkfield/darkfield-r1-symbol-currentcolor.svg": {
       "from": "r1/symbol/darkfield-r1-symbol-currentcolor.svg",
       "transform": "c2pa-strip",

@@ -27,6 +27,9 @@ const STRIPPED = [
   "public/favicon-32.png",
   "public/favicon-48.png",
   "public/apple-touch-icon.png",
+  "public/icon-192.png",
+  "public/icon-512.png",
+  "public/icon-512-maskable.png",
   "src/assets/darkfield/darkfield-r1-symbol-currentcolor.svg",
 ];
 const sha = async (path) => createHash("sha256").update(await readFile(resolve(web, path))).digest("hex");
