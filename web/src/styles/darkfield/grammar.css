@@ -184,8 +184,12 @@
 
 /* Primary-dialog chamfer at the top-left corner (§09 Frames and corners, §17 Chamfers; P3-2). */
 .df-cut-md { position: relative; clip-path: polygon(var(--cut-md) 0, 100% 0, 100% 100%, 0 100%, 0 var(--cut-md)); }
+/* The diagonal starts at the border-box corner (one boundary width outside the padding box its offsets measure from), so,
+   like the straight edges, its outer edge lies on the cut and its width falls inside it, where the clip keeps all of it.
+   A diagonal hairline cannot sit on whole pixels; it antialiases across two. */
 .df-cut-md::before {
-  content: ""; position: absolute; inset-block-start: 0; inset-inline-start: 0; pointer-events: none;
+  content: ""; position: absolute; pointer-events: none;
+  inset-block-start: calc(-1 * var(--stroke-hair)); inset-inline-start: calc(-1 * var(--stroke-hair));
   /* the diagonal of a cut-md square; 1.4142 is the square root of two, not a design value */
   width: calc(var(--cut-md) * 1.4142); height: var(--stroke-hair); background-color: var(--edge);
   transform-origin: 0 0; transform: translateY(var(--cut-md)) rotate(-45deg);

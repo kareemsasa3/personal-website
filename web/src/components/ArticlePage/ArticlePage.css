@@ -72,7 +72,7 @@
 .article-body blockquote {
   margin: 1.5rem 0;
   padding: 0.25rem 0 0.25rem 1rem;
-  border-left: var(--stroke-bold) solid var(--edge);
+  border-left: var(--stroke-hair) solid var(--edge);
   color: var(--fg-muted);
 }
 
@@ -80,6 +80,12 @@
 .article-prose hr {
   border: 0;
   border-top: var(--stroke-hair) solid var(--rule);
+}
+
+/* The body's closing rules would stand a few lines above the seam that opens the next region (the series links or the
+   provenance), reading as two seams: that seam alone closes the body. */
+.article-body > hr:not(:has(~ :not(hr))) {
+  display: none;
 }
 
 .article-body a,
@@ -177,9 +183,10 @@
   color: var(--fg-muted);
 }
 
+/* Each section opens on a seam and keeps the region's left edge: no inset left over from a boxed card. */
 .article-provenance-section {
   margin-bottom: 1rem;
-  padding: 0.85rem 1rem;
+  padding-block: 0.85rem;
   border-top: var(--stroke-hair) solid var(--rule);
 }
 
@@ -286,7 +293,7 @@
 
 @media (max-width: 480px) {
   .article-provenance-section {
-    padding: 0.75rem;
+    padding-block: 0.75rem;
   }
 
   .article-table table {

@@ -598,6 +598,14 @@ test("T17 lines: governed boundaries use line tokens and headings have no decora
     })) bad.push(where(d));
   }
   assert.deepEqual(bad, []);
+  // §09 Line hierarchy: a width and a colour declared together name one level. The bold width belongs to a signal path
+  // (and focus, drawn by the shared focus rule); the hair width is a structure seam in rule or a boundary in edge.
+  const LEVEL = { "var(--stroke-bold)": ["var(--signal)"], "var(--stroke-hair)": ["var(--rule)", "var(--edge)"] };
+  const pairs = decls.filter((d) => /^(?:border(?:-(?:top|right|bottom|left|block-start|block-end|inline-start|inline-end))?|outline)$/.test(d.prop))
+    .map((d) => ({ d, width: d.value.match(/var\(--stroke-[a-z]+\)/)?.[0], colour: d.value.match(/var\(--(?!stroke-)[a-z0-9-]+\)/)?.[0] }))
+    .filter(({ width, colour }) => width && colour);
+  assert.ok(pairs.length > 0, "no width and colour pair found; the check no longer tests anything");
+  assert.deepEqual(pairs.filter(({ width, colour }) => !(LEVEL[width] ?? []).includes(colour)).map(({ d }) => where(d)), []);
   assert.deepEqual(decls.filter((d) => /(?:title::after|title::before)$/.test(innermost(d.selector)) && /^background(?:-|$)/.test(d.prop)).map(where), []);
 });
 

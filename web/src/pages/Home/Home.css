@@ -117,7 +117,7 @@ TABLE OF CONTENTS
 /* --- High Contrast Mode --- */
 @media (prefers-contrast: more) {
   .skill-item {
-    border-top: var(--stroke-bold) solid var(--edge);
+    border-top: var(--stroke-hair) solid var(--edge);
   }
 }
 

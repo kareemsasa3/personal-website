@@ -1554,10 +1554,13 @@ if (MODE === "check") {
       await page.mouse.move(0, 0); await page.mouse.up(); await page.keyboard.press("Escape");
       // P3-2: the coverage dialog is the one chamfered panel, on surface-2 inside an edge boundary.
       await page.getByTitle("View technical coverage").click();
+      // Fix wave (R2): the diagonal starts at the border-box corner, one boundary width outside the padding box, so its outer
+      // edge lies on the cut like the straight edges' outer edges lie on the box.
       const dialog = await page.locator(".tech-stack-content").evaluate((e) => { const c = getComputedStyle(e); const b = getComputedStyle(e, "::before");
-        return { clip: c.clipPath, bg: c.backgroundColor, border: c.borderTopColor, radius: c.borderTopLeftRadius, cut: b.backgroundColor, chamfered: document.querySelectorAll(".df-cut-md").length }; });
-      invariant(/polygon/.test(dialog.clip) && dialog.cut === t["--edge"] && dialog.border === t["--edge"] && dialog.radius === "0px" && dialog.chamfered === 1,
-        `${theme} /projects: coverage dialog ${JSON.stringify(dialog)}`);
+        return { clip: c.clipPath, bg: c.backgroundColor, border: c.borderTopColor, radius: c.borderTopLeftRadius, cut: b.backgroundColor, chamfered: document.querySelectorAll(".df-cut-md").length,
+          corner: [parseFloat(b.top) + parseFloat(c.borderTopWidth), parseFloat(b.left) + parseFloat(c.borderLeftWidth)] }; });
+      invariant(/polygon/.test(dialog.clip) && dialog.cut === t["--edge"] && dialog.border === t["--edge"] && dialog.radius === "0px" && dialog.chamfered === 1 &&
+        dialog.corner[0] === 0 && dialog.corner[1] === 0, `${theme} /projects: coverage dialog ${JSON.stringify(dialog)}`);
     });
   }
 
@@ -2061,6 +2064,27 @@ if (MODE === "check") {
         invariant(Math.abs(m.right - m.line.left) <= 0.5, `${where} "${m.text}": marker ends at ${m.right}, title starts at ${m.line.left}`);
         invariant(m.clipped.length === 0, `${where} "${m.text}": marker clipped by ${JSON.stringify(m.clipped)}`);
       }
+    });
+  }
+  // Fix wave (R2, §09 Line hierarchy, §03 Nested structures): an article body ends on the seam that opens the next region
+  // (series links or provenance), not on a rule of its own a few lines above it; provenance sections open on a seam and keep
+  // the region's left edge, with no inset left over from a boxed card. Checked at a wide and a phone width.
+  for (const route of ["/writing/what-should-still-be-hard", "/writing/the-machine-should-explain-itself"]) for (const width of [VIEW_W, 375]) {
+    await withPage({ theme: THEMES[0], route }, async (page) => {
+      if (width !== VIEW_W) { await page.setViewportSize({ width, height: 812 }); await frames(page); }
+      const end = await page.evaluate(() => {
+        const body = document.querySelector(".article-body");
+        const shown = [...body.children].filter((e) => e.checkVisibility());
+        const region = document.querySelector(".article-provenance");
+        const sections = [...document.querySelectorAll(".article-provenance-section")].map((e) => {
+          const c = getComputedStyle(e);
+          return [Math.round(e.getBoundingClientRect().left), Math.round(region.getBoundingClientRect().left), c.borderTopStyle, c.paddingLeft, c.paddingRight];
+        });
+        return { last: shown.at(-1)?.tagName, sections };
+      });
+      invariant(end.last && end.last !== "HR", `${route} ${width}px: the article body ends on a rule of its own (${end.last})`);
+      invariant(end.sections.length > 0 && end.sections.every(([left, edge, seam, pl, pr]) => left === edge && seam === "solid" && pl === "0px" && pr === "0px"),
+        `${route} ${width}px: provenance sections ${JSON.stringify(end.sections)}`);
     });
   }
   // Phase 3 Task 7 (§06): Narrator text is Archivo; uppercase text is Archivo Narrow.
