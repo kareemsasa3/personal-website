@@ -1,12 +1,12 @@
-/* Immersive piece page: a slim site bar above the artwork, nothing over it. */
+/* Immersive piece page: a slim site bar above the artwork, nothing over it. Each piece paints its own ground inside
+   the frame; field-deep sits behind it until the piece has loaded. */
 .animation-piece {
   position: fixed;
   inset: 0;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
-  background: #000;
-  font-family: var(--font-mono);
-  font-size: 0.85rem;
+  background: var(--field-deep);
+  font-family: inherit;
 }
 
 /* The page never scrolls, so drop the site's reserved scrollbar gutter, which
@@ -15,45 +15,34 @@ html:has(.animation-piece) {
   scrollbar-gutter: auto;
 }
 
+/* The bar is one surface step above the field with a structure seam (§09 L1) to the artwork; its controls rise one
+   step further on hover (§13). */
 .animation-piece__bar {
   grid-row: 1;
   grid-column: 1;
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  /* The title shortens with an ellipsis rather than widening the page's one grid column past the viewport. */
+  min-width: 0;
   min-height: 44px;
   padding: env(safe-area-inset-top, 0px) calc(0.75rem + env(safe-area-inset-right, 0px)) 0
     calc(0.75rem + env(safe-area-inset-left, 0px));
-  background: var(--field);
-  border-bottom: 1px solid var(--rule);
+  background: var(--surface-1);
+  border-bottom: var(--stroke-hair) solid var(--rule);
   color: var(--fg);
+  --df-ground-up: var(--surface-2);
 }
 
+/* Boundary, colour, states and target size come from .df-control; the hover marker is an in-flow cell, so the
+   control is not a flex row and the icon keeps its own space before the label. */
 .animation-piece__control {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  min-height: 32px;
-  padding: 0 0.6rem;
-  border: 1px solid transparent;
-  border-radius: 6px;
-  background: transparent;
-  color: var(--fg-muted);
-  font: inherit;
-  text-decoration: none;
+  display: inline-block;
   white-space: nowrap;
-  cursor: pointer;
 }
 
-.animation-piece__control:hover {
-  color: var(--signal-dim);
-  border-color: var(--edge);
-}
-
-.animation-piece__control:focus-visible,
-.animation-piece__frame:focus-visible {
-  outline: 2px solid var(--signal-dim);
-  outline-offset: -2px;
+.animation-piece__control > svg {
+  margin-inline-end: var(--space-2);
 }
 
 .animation-piece__title {
@@ -62,9 +51,6 @@ html:has(.animation-piece) {
   margin: 0;
   overflow: hidden;
   color: var(--fg);
-  font-size: inherit;
-  font-weight: 600;
-  letter-spacing: 0.04em;
   text-align: center;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -77,7 +63,33 @@ html:has(.animation-piece) {
   width: 100%;
   height: 100%;
   border: 0;
-  background: #000;
+}
+
+/* DEV-5: keyboard focus on the artwork (set by ProceduralAnimationPiece.tsx only when it arrived by Tab). The frame
+   fills the viewport, so the focus ring is drawn inside its edges, inset by the ring's own width (gap and ring, each
+   stroke-bold), over the artwork's outer band while the frame holds keyboard focus. It takes no pointer input. */
+.animation-piece[data-frame-focus]::after {
+  content: "";
+  position: relative;
+  grid-row: 2;
+  grid-column: 1;
+  margin: calc(2 * var(--stroke-bold));
+  box-shadow: var(--focus-ring);
+  pointer-events: none;
+}
+
+/* Small or coarse-pointer screens: the bar's controls grow to the target size (.df-control), so the bar keeps a
+   space-1 band above and below them, where their focus ring draws. Icon-only Fullscreen is at least as wide as it
+   is tall. */
+@media (max-width: 768px), (pointer: coarse) {
+  .animation-piece__bar {
+    padding-top: calc(env(safe-area-inset-top, 0px) + var(--space-1));
+    padding-bottom: var(--space-1);
+  }
+
+  .animation-piece__control {
+    min-inline-size: calc(3 * var(--cell-h));
+  }
 }
 
 
@@ -86,17 +98,31 @@ html:has(.animation-piece) {
     gap: 0.25rem;
   }
 
-  .animation-piece__control {
-    padding: 0 0.4rem;
+  /* Icon only on phones; the button's aria-label keeps its name. The label is removed rather than clipped, so the
+     control's content is the icon alone and stays centred in its boundary. */
+  .animation-piece__label {
+    display: none;
   }
 
-  /* Icon only on phones; the text stays as the button's accessible name. */
-  .animation-piece__label {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
+  .animation-piece__control:has(> .animation-piece__label) > svg {
+    margin-inline-end: 0;
+  }
+
+  /* The title wraps between words rather than losing letters to an ellipsis. It never narrows below its longest word:
+     when that does not fit beside Back, the bar wraps; Fullscreen stays at the end of its row. */
+  .animation-piece__bar {
+    flex-wrap: wrap;
+  }
+
+  .animation-piece__control:last-child {
+    margin-inline-start: auto;
+  }
+
+  .animation-piece__title {
+    flex: 1 1 0;
+    min-width: min-content;
+    overflow: visible;
+    overflow-wrap: break-word;
+    white-space: normal;
   }
 }

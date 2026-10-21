@@ -1339,6 +1339,8 @@ if (MODE === "check") {
     { route: "/experience", selectors: [".work-contact-link"] },
     { route: "/journey", selectors: [".timeline-flip-toggle"] },
     { route: "/procedural-animations", selectors: [".procedural-animations-card"] },
+    // Phase 5 Task 6: the piece bar's Back and Fullscreen controls, on the bar's surface above the framed artwork.
+    { route: "/procedural-animations/mechanical-time", selectors: [".animation-piece__control"] },
     // Task 15: the two controls on Phase 5 surfaces rest directly on the Layout field.
     { route: "/simulations/spider", selectors: [".spider-button"] },
     { route: "/terminal", selectors: [".terminal-sidecar"],
@@ -2651,7 +2653,7 @@ if (MODE === "check") {
   }
   // Phase 5 (§03, §06): on each listed route, governed elements outside creative regions have square corners and a
   // Darkfield family. P5_NATIVE: native elements outside any region (they host controls or governed labels).
-  const P5_ROUTES = ["/darkfield-404-probe"];
+  const P5_ROUTES = ["/darkfield-404-probe", "/procedural-animations", "/procedural-animations/mechanical-time"];
   const P5_NATIVE = [];
   const P5_FAMILIES = ["Archivo", "Archivo Narrow", "IBM Plex Mono"];
   for (const theme of THEMES) {
@@ -2672,6 +2674,128 @@ if (MODE === "check") {
         invariant(bad.length === 0, `${theme} ${route}: ${JSON.stringify(bad)}`);
       });
     }
+  }
+  // Phase 5 Task 6 (§13 Focus; DEV-5): keyboard entry into a framed piece shows the focus ring inside the frame's edges;
+  // leaving by Shift+Tab removes it; a click into the piece shows none. The piece still receives its own keys. On a phone
+  // the bar's controls keep their ring inside the viewport, icon-only Fullscreen is at least three cells wide, and the
+  // title wraps instead of losing letters.
+  const PIECES = ["mechanical-time", "descent", "observing", "one-quiet-day"];
+  const pieceReady = (page) => page.waitForFunction(() => { const f = document.querySelector("iframe.animation-piece__frame");
+    return f?.contentDocument?.readyState === "complete" && /piece\.html$/.test(f.contentWindow.location.pathname); });
+  const inFrame = () => document.activeElement?.tagName === "IFRAME";
+  const ringOf = (page) => page.evaluate(() => {
+    const main = document.querySelector(".animation-piece"), frame = document.querySelector(".animation-piece__frame");
+    const a = getComputedStyle(main, "::after"), f = frame.getBoundingClientRect();
+    const probe = document.createElement("i"); probe.style.boxShadow = "var(--focus-ring)"; document.body.append(probe);
+    const token = getComputedStyle(probe).boxShadow; probe.remove();
+    const spread = Math.max(...[...token.matchAll(/(-?[\d.]+)px/g)].map((m) => parseFloat(m[1])));
+    return { on: main.hasAttribute("data-frame-focus"), shadow: a.boxShadow, token, spread, events: a.pointerEvents,
+      margins: ["Top", "Right", "Bottom", "Left"].map((s) => parseFloat(a[`margin${s}`])), width: parseFloat(a.width), height: parseFloat(a.height), frame: [f.width, f.height],
+      inView: f.left >= -0.5 && f.top >= document.querySelector(".animation-piece__bar").getBoundingClientRect().bottom - 0.5 && f.right <= innerWidth + 0.5 && f.bottom <= innerHeight + 0.5 };
+  });
+  const enter = async (page) => { for (let i = 0; i < 6 && !(await page.evaluate(inFrame)); i++) await page.keyboard.press("Tab"); return page.evaluate(inFrame); };
+  const ringShown = async (page, where) => {
+    const r = await ringOf(page);
+    invariant(r.on && r.shadow === r.token && r.events === "none", `${where}: no focus ring on keyboard entry ${JSON.stringify(r)}`);
+    // Drawn inside the frame: inset on every side by at least the ring's outer spread and sized to the frame less the
+    // insets, so the whole ring lies on the frame; the frame lies inside the viewport, so no side is clipped.
+    invariant(r.margins.every((m) => m >= r.spread) && Math.abs(r.width - (r.frame[0] - r.margins[1] - r.margins[3])) <= 1 &&
+      Math.abs(r.height - (r.frame[1] - r.margins[0] - r.margins[2])) <= 1 && r.inView, `${where}: ring not wholly inside the frame and viewport ${JSON.stringify(r)}`);
+  };
+  const ringOff = async (page, where) => invariant(!(await ringOf(page)).on, `${where}`);
+  const clickFrame = async (page) => { const box = await page.locator("iframe.animation-piece__frame").boundingBox();
+    await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2); await frames(page); await page.waitForTimeout(100); };
+  for (const theme of THEMES) for (const slug of PIECES) {
+    const route = `/procedural-animations/${slug}`, at = `${theme} ${route}`;
+    // Entry by Tab, the piece's own keys, exit by Shift+Tab; then entry again and exit forward by Tab.
+    await withPage({ theme, route }, async (page) => {
+      await pieceReady(page);
+      invariant(await enter(page), `${at}: Tab never reached the piece`);
+      await ringShown(page, `${at} 1440px`);
+      const got = await page.evaluate(() => { const w = document.querySelector("iframe.animation-piece__frame").contentWindow; w.dfKeys = 0;
+        w.addEventListener("keydown", () => { w.dfKeys += 1; }, true); return true; });
+      await page.keyboard.press("ArrowRight");
+      invariant(got && (await page.frameLocator("iframe.animation-piece__frame").locator("body").evaluate(() => window.dfKeys)) > 0, `${at}: the piece did not receive a key`);
+      for (let i = 0; i < 12 && (await page.evaluate(inFrame)); i++) { await page.keyboard.press("Shift+Tab"); await frames(page); }
+      invariant(!(await page.evaluate(inFrame)), `${at}: Shift+Tab never left the piece`);
+      await ringOff(page, `${at}: ring not removed after Shift+Tab out of the piece`);
+    });
+    await withPage({ theme, route }, async (page) => {
+      await pieceReady(page);
+      invariant(await enter(page), `${at}: Tab never reached the piece`);
+      for (let i = 0; i < 20 && (await page.evaluate(inFrame)); i++) { await page.keyboard.press("Tab"); await frames(page); }
+      invariant(!(await page.evaluate(inFrame)), `${at}: Tab never left the piece forward`);
+      await ringOff(page, `${at}: ring not removed after Tab out of the piece`);
+    });
+    // Mouse: a click into the piece shows no ring; a click after keyboard entry clears it.
+    await withPage({ theme, route }, async (page) => {
+      await pieceReady(page);
+      await clickFrame(page);
+      invariant(await page.evaluate(inFrame), `${at}: a click did not focus the piece`);
+      await ringOff(page, `${at}: ring shown after a click into the piece`);
+    });
+    await withPage({ theme, route }, async (page) => {
+      await pieceReady(page);
+      invariant(await enter(page), `${at}: Tab never reached the piece`);
+      await ringShown(page, `${at} 1440px before a click`);
+      await clickFrame(page);
+      await ringOff(page, `${at}: ring kept after a click following keyboard entry`);
+    });
+    // Fullscreen from the keyboard: no ring while the piece is fullscreen; leaving it, the ring returns, because the
+    // piece still holds keyboard focus.
+    await withPage({ theme, route }, async (page) => {
+      await pieceReady(page);
+      const fs = page.locator("button.animation-piece__control");
+      if (!(await fs.count())) return;
+      for (let i = 0; i < 4 && !(await fs.evaluate((e) => e === document.activeElement)); i++) await page.keyboard.press("Tab");
+      await page.keyboard.press("Enter");
+      await page.waitForFunction(() => document.fullscreenElement?.tagName === "IFRAME");
+      await frames(page);
+      await ringOff(page, `${at}: ring shown in fullscreen`);
+      await page.evaluate(() => document.exitFullscreen());
+      await page.waitForFunction(() => !document.fullscreenElement); await frames(page);
+      invariant(await page.evaluate(inFrame), `${at}: focus left the piece on leaving fullscreen`);
+      await ringShown(page, `${at} after fullscreen`);
+    });
+  }
+  // The ring is whole at each width (no side clipped by the viewport or the bar).
+  for (const theme of THEMES) for (const [width, height] of [[1440, 900], [768, 1024], [375, 812], [320, 640]]) for (const slug of PIECES) {
+    const route = `/procedural-animations/${slug}`;
+    await withPage({ theme, route }, async (page) => {
+      await page.setViewportSize({ width, height }); await frames(page); await pieceReady(page);
+      invariant(await enter(page), `${theme} ${route} ${width}px: Tab never reached the piece`);
+      await ringShown(page, `${theme} ${route} ${width}px`);
+    });
+  }
+  for (const width of [320, 375, 390]) for (const slug of PIECES) {
+    const route = `/procedural-animations/${slug}`;
+    await withPage({ theme: THEMES[0], route }, async (page) => {
+      await page.setViewportSize({ width, height: 812 }); await frames(page); await pieceReady(page);
+      const seen = await page.evaluate(() => { const t = document.querySelector(".animation-piece__title"), de = document.documentElement;
+        const cell = parseFloat(getComputedStyle(de).getPropertyValue("--cell-h"));
+        const fs = document.querySelector("button.animation-piece__control")?.getBoundingClientRect();
+        // Lines of the title: wrapping happens between words only, so there are never more lines than words.
+        const range = document.createRange(); range.selectNodeContents(t);
+        const lines = new Set([...range.getClientRects()].map((r) => Math.round(r.top))).size;
+        const words = t.textContent.trim().split(/\s+/).length;
+        const tr = t.getBoundingClientRect();
+        const overlaps = [...document.querySelectorAll(".animation-piece__control")].some((c) => { const r = c.getBoundingClientRect();
+          return r.left < tr.right - 0.5 && tr.left < r.right - 0.5 && r.top < tr.bottom - 0.5 && tr.top < r.bottom - 0.5; });
+        return { cut: t.scrollWidth > t.clientWidth + 0.5 || getComputedStyle(t).whiteSpace === "nowrap", pageX: de.scrollWidth > de.clientWidth,
+          lines, words, overlaps, fullscreen: fs ? [fs.width, fs.height, 3 * cell] : null }; });
+      invariant(!seen.cut && !seen.pageX && seen.lines <= seen.words && !seen.overlaps, `${route} ${width}px: title cut, broken inside a word or over a control, or page overflows ${JSON.stringify(seen)}`);
+      invariant(!seen.fullscreen || (seen.fullscreen[0] >= seen.fullscreen[2] - 0.5 && seen.fullscreen[1] >= seen.fullscreen[2] - 0.5),
+        `${route} ${width}px: Fullscreen below three cells ${JSON.stringify(seen.fullscreen)}`);
+      // Each bar control's focus ring stays inside the viewport.
+      for (let i = 0; i < 2; i++) {
+        await page.keyboard.press("Tab"); await frames(page);
+        const ring = await page.evaluate(() => { const e = document.activeElement; if (!e?.matches(".animation-piece__control")) return null;
+          const r = e.getBoundingClientRect(); const spread = Math.max(...[...getComputedStyle(e).boxShadow.matchAll(/(-?[\d.]+)px/g)].map((m) => parseFloat(m[1])));
+          return [r.top - spread, r.left - spread, r.right + spread, innerWidth]; });
+        if (!ring) continue;
+        invariant(ring[0] >= 0 && ring[1] >= 0 && ring[2] <= ring[3], `${route} ${width}px: control focus ring clipped by the viewport ${JSON.stringify(ring)}`);
+      }
+    });
   }
 }
 

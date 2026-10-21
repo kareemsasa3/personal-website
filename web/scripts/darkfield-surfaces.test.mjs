@@ -5,7 +5,8 @@ import { read, governed, declarations, innermost, where, NATIVE, NATIVE_KEYFRAME
 
 // Stylesheets a Phase 5 task has finished; the rules below hold for these. Task 24 requires DONE5 to equal PHASE5.
 export const DONE5 = ["pages/NotFound/NotFound.css", "components/common/ErrorBoundary.css", "components/Terminal/TerminalErrorBoundary.css",
-  "components/common/Toast.css", "components/common/ToastContainer.css", "components/common/Modal.css", "components/common/PageLoader.css"];
+  "components/common/Toast.css", "components/common/ToastContainer.css", "components/common/Modal.css", "components/common/PageLoader.css",
+  "pages/ProceduralAnimations/ProceduralAnimations.css", "pages/ProceduralAnimationPiece/ProceduralAnimationPiece.css"];
 const decls5 = async () => {
   const out = [];
   for (const file of (await governed(".css")).filter((f) => DONE5.includes(f))) {

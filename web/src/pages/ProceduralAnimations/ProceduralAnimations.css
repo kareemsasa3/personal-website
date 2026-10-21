@@ -1,9 +1,9 @@
+/* Type comes from the generated .df-* classes on each element (§06). */
 .procedural-animations-container {
   width: 100%;
   max-width: 1280px;
   margin: 0 auto;
   min-width: 0;
-  font-family: var(--font-mono);
 }
 
 .procedural-animations-container > * + * {
@@ -21,8 +21,7 @@
 
 .procedural-animations-header p:not(.procedural-animations-eyebrow) {
   color: var(--fg-muted);
-  max-width: 68ch;
-  line-height: 1.6;
+  max-width: var(--measure-body);
 }
 
 .procedural-animations-grid {
@@ -35,41 +34,34 @@
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  --df-card-pad-inline: 1rem;
   padding: 1rem 1rem 1.25rem;
   text-decoration: none;
   min-width: 0;
 }
 
-/* Static still from the piece; the gallery never runs the animations. */
+/* Static still from the piece; the gallery never runs the animations. The image keeps its pixels; its corners are
+   the site's frame, so they are square (§03 Rules). */
 .procedural-animations-card__poster {
   display: block;
   width: 100%;
   height: auto;
   aspect-ratio: 16 / 9;
   object-fit: cover;
-  border-radius: 8px;
-  background: #000;
+  background: var(--field-deep);
 }
 
 .procedural-animations-card h2 {
   margin: 0.25rem 0 0;
-  font-size: 1.2rem;
-  line-height: 1.35;
 }
 
 .procedural-animations-card__description {
   margin: 0;
   color: var(--fg-muted);
-  font-size: 0.88rem;
-  line-height: 1.55;
 }
 
 .procedural-animations-card__link {
   margin-top: auto;
   color: inherit;
-  font-size: 0.85rem;
-  font-weight: 650;
 }
 
 @media (max-width: 480px) {
@@ -78,7 +70,6 @@
   }
 
   .procedural-animations-card {
-    --df-card-pad-inline: 0.75rem;
     padding: 0.75rem 0.75rem 1rem;
   }
 }
