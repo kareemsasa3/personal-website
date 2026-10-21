@@ -96,10 +96,14 @@ test("T6 eyebrows speak in the Instrument voice (§06 Interface label); Rhythm L
 // Machine voice (§06): the only Phase 3 selectors that may set the mono family. Exact innermost selectors.
 const MACHINE = [".work-dates", ".setting-static-value, .setting-value", ".settings-about .settings-build",
   ".article-body code, .article-prose code", "pre", "code, kbd, samp", "code", ".df-control::before",
-  ".df-control--card :is(h1, h2, h3, h4, h5, h6)::before", ".df-context--live::before", ".site-header__brand-name::before"];
+  ".df-control--card :is(h1, h2, h3, h4, h5, h6)::before", ".df-context--live::before", ".site-header__brand-name::before",
+  ".df-error::before", ".df-warning::before", ".df-confirmed::before", ".df-field"];
+// Instrument voice in generated content, which cannot carry the label class: the alarm tile's state word (§05 Alarm).
+const INSTRUMENT_GENERATED = [".df-error--alarm::before"];
 test("T7 voices: Phase 3 sets mono only on Machine text; Narrator inherits; uppercase is the Instrument classes' alone", async () => {
   const decls = await phase3Decls();
-  const family = decls.filter((d) => d.prop === "font-family" && !/^(inherit)$/.test(d.value) && !(d.value === "var(--font-sans)" && innermost(d.selector) === "body") && !(d.value === "var(--font-mono)" && MACHINE.includes(innermost(d.selector))));
+  const family = decls.filter((d) => d.prop === "font-family" && !/^(inherit)$/.test(d.value) && !(d.value === "var(--font-sans)" && innermost(d.selector) === "body") && !(d.value === "var(--font-mono)" && MACHINE.includes(innermost(d.selector))) &&
+    !(d.value === "var(--font-narrow)" && d.file === "styles/darkfield/grammar.css" && INSTRUMENT_GENERATED.includes(innermost(d.selector))));
   assert.deepEqual(family.map(where), []);
   assert.deepEqual(decls.filter((d) => /--terminal-font/.test(d.value) || d.prop === "--terminal-font").map(where), []);
   assert.deepEqual(decls.filter((d) => d.prop === "text-transform" && d.value !== "none").map(where), []);
@@ -542,6 +546,8 @@ test("T14 type: Phase 3 text gets size, line, weight and tracking from generated
     const key = `${d.file}|${innermost(d.selector)}`;
     if (GENERATED_TYPE.has(key)) return false;
     if (RESET_HOLD.get(`${key}|${d.prop}`) === d.value) return false;
+    // The alarm tile's word takes the label class's weight; generated content cannot carry the class.
+    if (key === "styles/darkfield/grammar.css|.df-error--alarm::before" && d.prop === "font-weight" && d.value === "600") return false;
     return !(d.prop === "font-size" && ICON_SIZES.has(key));
   });
   assert.deepEqual(bad.map(where), []);
@@ -558,6 +564,11 @@ test("T16 every governed Phase 3 corner is square with no legacy radius alias", 
   assert.deepEqual(timelineTransforms.map(where), [], "Work timeline state points must remain axis-aligned squares");
 });
 
+// §05 ranks and §13 states: the shared state signatures alone draw the fault frame (Error, invalid field), the caution
+// frame (Warning) and the Confirmed decay's signal-dim frame. Full selector -> the one extra colour it may use.
+const STATE_FRAMES = new Map([[".df-error", "var(--fault)"], [".df-warning", "var(--caution)"],
+  ['.df-field[aria-invalid="true"]', "var(--fault)"], ["@keyframes df-confirmed-decay >> 50%", "var(--signal-dim)"]]);
+const stateFrame = (d) => (d.file === "styles/darkfield/grammar.css" ? STATE_FRAMES.get(d.selector) : undefined);
 test("T17 lines: governed boundaries use line tokens and headings have no decorative bars", async () => {
   const decls = await phase3Decls();
   const allowedColours = new Set(["var(--rule)", "var(--edge)", "var(--signal)", "var(--fg-muted)", "var(--fg-faint)", "transparent", "currentColor"]);
@@ -573,7 +584,7 @@ test("T17 lines: governed boundaries use line tokens and headings have no decora
     const parts = d.value.split(/\s+/);
     if (parts.some((p) => {
       if (/^(?:\d+(?:\.\d+)?(?:px|rem|em)?|var\(--stroke-[^)]+\))$/.test(p)) return !allowedWidths.has(p);
-      if (/^(?:var\(--[^)]+\)|transparent|currentColor|#[0-9a-f]+|rgba?\(|color-mix\()/.test(p)) return !allowedColours.has(p);
+      if (/^(?:var\(--[^)]+\)|transparent|currentColor|#[0-9a-f]+|rgba?\(|color-mix\()/.test(p)) return !allowedColours.has(p) && p !== stateFrame(d);
       return false;
     })) bad.push(where(d));
   }
@@ -585,7 +596,7 @@ test("T17 lines: governed boundaries use line tokens and headings have no decora
     .map((d) => ({ d, width: d.value.match(/var\(--stroke-[a-z]+\)/)?.[0], colour: d.value.match(/var\(--(?!stroke-)[a-z0-9-]+\)/)?.[0] }))
     .filter(({ width, colour }) => width && colour);
   assert.ok(pairs.length > 0, "no width and colour pair found; the check no longer tests anything");
-  assert.deepEqual(pairs.filter(({ width, colour }) => !(LEVEL[width] ?? []).includes(colour)).map(({ d }) => where(d)), []);
+  assert.deepEqual(pairs.filter(({ d, width, colour }) => !(LEVEL[width] ?? []).includes(colour) && colour !== stateFrame(d)).map(({ d }) => where(d)), []);
   assert.deepEqual(decls.filter((d) => /(?:title::after|title::before)$/.test(innermost(d.selector)) && /^background(?:-|$)/.test(d.prop)).map(where), []);
 });
 

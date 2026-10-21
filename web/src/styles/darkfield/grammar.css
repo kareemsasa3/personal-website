@@ -3,8 +3,9 @@
    measure, §09 chamfer). Values come only from tokens.css; type styles are the generated .df-* classes. */
 
 /* §08: what lies behind an overlay shows at opacity-dim (P3-1). The scrim is the field at the
-   complementary alpha. */
-:root {
+   complementary alpha. Declared on every [data-theme] element too, so a subtree with its own theme
+   derives the scrim from its own field (P5-1). */
+:root, [data-theme] {
   --df-scrim: color-mix(in srgb, var(--field) calc((1 - var(--opacity-dim)) * 100%), transparent);
 }
 
@@ -194,3 +195,47 @@
   width: calc(var(--cut-md) * 1.4142); height: var(--stroke-hair); background-color: var(--edge);
   transform-origin: 0 0; transform: translateY(var(--cut-md)) rotate(-45deg);
 }
+
+/* Error (§13 Error; §05 Alarm, control size): an annunciator cell and a bold fault frame; the message stays fg.
+   The word is the element's own text; the glyph is hidden from assistive technology. */
+.df-error { border: var(--stroke-bold) solid var(--fault); color: var(--fg); }
+.df-error::before {
+  content: "×"; content: "×" / "";
+  display: inline-block; inline-size: var(--cell-w); block-size: var(--cell-h); line-height: var(--cell-h);
+  margin-inline-end: var(--space-2); text-align: center; vertical-align: middle;
+  background-color: var(--fault); color: var(--on-fault); font-family: var(--font-mono);
+}
+/* System-integrity fault (§13 Errors; §05 Alarm): the tile widens to carry the state word, over the fault-deep band. */
+.df-error--alarm { background-color: var(--fault-deep); }
+.df-error--alarm::before { content: "× FAULT"; content: "× FAULT" / ""; inline-size: auto; padding-inline: var(--space-1); font-family: var(--font-narrow); font-weight: 600; letter-spacing: inherit; }
+/* Warning (§13 Warning; §05 Caution): ∆, a hairline caution frame. */
+.df-warning { border: var(--stroke-hair) solid var(--caution); color: var(--fg); }
+.df-warning::before { content: "∆"; content: "∆" / ""; margin-inline-end: var(--space-2); color: var(--caution); font-family: var(--font-mono); }
+/* Confirmed (§13 Confirmed): the › echo marker; boundary and marker arrive at signal and decay to rest (edge, fg-muted). */
+.df-confirmed { border: var(--stroke-hair) solid var(--edge); color: var(--fg); animation: df-confirmed-decay var(--dur-decay) var(--ease-standard); }
+.df-confirmed::before {
+  content: "›"; content: "›" / ""; margin-inline-end: var(--space-2); color: var(--fg-muted); font-family: var(--font-mono);
+  animation: df-confirmed-marker var(--dur-decay) var(--ease-standard);
+}
+/* §12: state transition (afterglow) · a result was confirmed */
+@keyframes df-confirmed-decay { from { border-color: var(--signal); } 50% { border-color: var(--signal-dim); } }
+/* §12: state transition (afterglow) · the echo marker of a confirmed result */
+@keyframes df-confirmed-marker { from { color: var(--signal); } }
+/* §12: state transition (afterglow, reduced) · signal on arrival, one discrete step to rest */
+@keyframes df-confirmed-step { from { border-color: var(--signal); } }
+/* Reduced motion keeps the state: the site-wide reduced rule shortens every animation with !important, so these
+   declarations need their own to hold signal for dur-decay before the single step. */
+@media (prefers-reduced-motion: reduce) {
+  .df-confirmed { animation: df-confirmed-step var(--dur-decay) var(--ease-snap) !important; }
+  .df-confirmed::before { animation: df-confirmed-marker var(--dur-decay) var(--ease-snap) !important; }
+}
+/* Inputs and selects (§13 Idle and Error; §06 typed values are Machine). */
+.df-field {
+  box-sizing: border-box; border: var(--stroke-hair) solid var(--edge); border-radius: var(--radius-0);
+  background-color: var(--field-deep); color: var(--fg); font-family: var(--font-mono);
+}
+.df-field::placeholder { color: var(--fg-faint); }
+/* Disabled (§13; §17 Disabled control): a dashed boundary and the faint tier. aria-disabled keeps the field focusable. */
+.df-field:is(:disabled, [aria-disabled="true"]) { border-style: dashed; color: var(--fg-faint); cursor: not-allowed; }
+/* Invalid (§13 Error): only by aria-invalid, which consumers pair with a .df-error message naming the cause. */
+.df-field[aria-invalid="true"] { border: var(--stroke-bold) solid var(--fault); }

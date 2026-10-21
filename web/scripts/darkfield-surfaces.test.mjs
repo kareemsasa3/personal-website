@@ -59,3 +59,109 @@ test("P5 holds: every HOLDS5 pair names a real declaration", async () => {
     for (const [s, p] of pairs) assert.ok(present.has(`${s} ${p}`), `${file} ${s} ${p}`);
   }
 });
+
+// Selector helpers: top-level comma items, and the subject compound (pseudo-class arguments and pseudo-elements dropped).
+const topLevel = (sel) => {
+  const out = [""]; let depth = 0;
+  for (const ch of sel) { if (ch === "(") depth += 1; if (ch === ")") depth -= 1; if (ch === "," && !depth) out.push(""); else out[out.length - 1] += ch; }
+  return out.map((s) => s.trim());
+};
+const flat = (sel) => { let out = "", depth = 0; for (const ch of sel) { if (ch === "(") depth += 1; else if (ch === ")") depth -= 1; else if (!depth) out += ch; } return out; };
+const subject = (item) => flat(item).trim().split(/\s*[\s>+~]\s*/).pop().replace(/::[\w-]+$/, "");
+const reads = (value, name) => new RegExp(`var\\(${name.replace(/[\\.]/g, "\\$&")}(?![\\w-])`).test(value);
+// Elements that can sit above a [data-theme] wrapper (P5-1: .rhythm-lab-page, .annals-sheet): the document root, the
+// app mount and the layout shell around every route, and the Annals page around its sheet.
+const ANCESTOR = (compound) => /:root\b|^(html|body|main)\b|#(root|main-content-area)\b/.test(compound) ||
+  [...compound.matchAll(/\.([\w-]+)/g)].some(([, c]) => /^(layout-foreground|nav-mode-[\w-]+|has-section-rail|app-content|page-content|annals-page)$/.test(c));
+const derivedOnAncestors = (decls, colours) => {
+  const derived = new Set(colours);
+  for (let grew = true; grew;) {
+    grew = false;
+    for (const d of decls) if (d.prop.startsWith("--") && !derived.has(d.prop) && [...derived].some((n) => reads(d.value, n))) { derived.add(d.prop); grew = true; }
+  }
+  return decls.filter((d) => d.prop.startsWith("--") && derived.has(d.prop) && !colours.has(d.prop))
+    .filter((d) => { const items = topLevel(innermost(d.selector)); return !items.includes("[data-theme]") && items.some((i) => ANCESTOR(subject(i))); });
+};
+const colourTokens = async () => new Set(declarations(await read("styles/darkfield/tokens.css")).filter((d) => /\[data-theme=/.test(d.selector) && d.prop.startsWith("--")).map((d) => d.prop));
+
+// P5-1: a custom property whose value reads a colour token is computed where it is declared. Declared on an element
+// above a [data-theme] wrapper, it reaches the wrapper's subtree with the outer theme's colour, so there it must be
+// declared on a rule that also matches [data-theme]. Declared on the element that reads it, it is resolved in that
+// element's own theme and needs nothing. tokens.css is out of scope.
+test("P5 derived variables: colour-derived custom properties on a scoped wrapper's ancestors are also declared on [data-theme]", async () => {
+  const colours = await colourTokens();
+  assert.ok(colours.has("--field") && colours.has("--fault"), "colour tokens not found in tokens.css");
+  const decls = [];
+  for (const file of ["styles/darkfield/grammar.css", ...DONE5]) for (const d of declarations(await read(file))) decls.push({ file, ...d });
+  const scrim = decls.find((d) => d.prop === "--df-scrim");
+  assert.ok(scrim && topLevel(innermost(scrim.selector)).includes(":root") && topLevel(innermost(scrim.selector)).includes("[data-theme]"), "--df-scrim");
+  assert.deepEqual(derivedOnAncestors(decls, colours).map(where), []);
+});
+test("P5 derived variables: the check flags a root-level derived variable and passes an element-local one", async () => {
+  const colours = await colourTokens();
+  const css = ":root { --x: var(--field); }\n.layout-foreground.nav-mode-dock { --y: var(--x); }\n.error-button { --df-ground-up: var(--surface-2); }\n" +
+    ".df-control:hover { --df-bracket-ink: var(--fg-muted); }\n:root, [data-theme] { --z: var(--field); }";
+  assert.deepEqual(derivedOnAncestors(declarations(css).map((d) => ({ file: "probe.css", ...d })), colours).map((d) => d.prop), ["--x", "--y"]);
+});
+
+// §13 state model and §05 state encoding: glyph, word and colour together mark a state; the glyph is generated content
+// with empty alternative text, so assistive technology reads only the element's own words.
+test("P5 state signatures: error, alarm, warning, confirmed and field are defined from tokens; glyphs are silent", async () => {
+  const g = declarations(await read("styles/darkfield/grammar.css"));
+  const rule = (sel) => Object.fromEntries(g.filter((d) => d.selector === sel).map((d) => [d.prop, d.value]));
+  const has = (sel, want) => { const r = rule(sel); for (const [p, v] of Object.entries(want)) assert.equal(r[p], v, `${sel} { ${p} }`); };
+  has(".df-error", { border: "var(--stroke-bold) solid var(--fault)", color: "var(--fg)" });
+  has(".df-error::before", { content: '"×" / ""', "background-color": "var(--fault)", color: "var(--on-fault)", "font-family": "var(--font-mono)" });
+  has(".df-error--alarm", { "background-color": "var(--fault-deep)" });
+  has(".df-error--alarm::before", { content: '"× FAULT" / ""' });
+  has(".df-warning", { border: "var(--stroke-hair) solid var(--caution)", color: "var(--fg)" });
+  has(".df-warning::before", { content: '"∆" / ""', color: "var(--caution)", "font-family": "var(--font-mono)" });
+  has(".df-confirmed", { border: "var(--stroke-hair) solid var(--edge)", color: "var(--fg)" });
+  has(".df-confirmed::before", { content: '"›" / ""', color: "var(--fg-muted)", "font-family": "var(--font-mono)",
+    animation: "df-confirmed-marker var(--dur-decay) var(--ease-standard)" });
+  assert.equal(rule(".df-confirmed").animation, "df-confirmed-decay var(--dur-decay) var(--ease-standard)");
+  assert.equal(rule("@keyframes df-confirmed-decay >> from")["border-color"], "var(--signal)");
+  assert.equal(rule("@keyframes df-confirmed-marker >> from").color, "var(--signal)");
+  assert.equal(rule("@keyframes df-confirmed-step >> from")["border-color"], "var(--signal)");
+  // Reduced motion: signal on arrival, held for dur-decay, one step to rest; !important outranks the site-wide reduced rule.
+  has("@media (prefers-reduced-motion: reduce) >> .df-confirmed", { animation: "df-confirmed-step var(--dur-decay) var(--ease-snap) !important" });
+  has("@media (prefers-reduced-motion: reduce) >> .df-confirmed::before", { animation: "df-confirmed-marker var(--dur-decay) var(--ease-snap) !important" });
+  has(".df-field", { border: "var(--stroke-hair) solid var(--edge)", "border-radius": "var(--radius-0)", "background-color": "var(--field-deep)",
+    color: "var(--fg)", "font-family": "var(--font-mono)" });
+  has(".df-field::placeholder", { color: "var(--fg-faint)" });
+  has('.df-field:is(:disabled, [aria-disabled="true"])', { "border-style": "dashed", color: "var(--fg-faint)" });
+  has('.df-field[aria-invalid="true"]', { border: "var(--stroke-bold) solid var(--fault)" });
+  assert.deepEqual(g.filter((d) => /user-invalid/.test(d.selector)).map((d) => d.selector), [], "invalid is shown only through aria-invalid");
+  // Every generated glyph in the shared grammar ends with empty alternative text (the plain form before it is the fallback).
+  const glyphs = Object.entries(Object.fromEntries(g.filter((d) => d.prop === "content" && d.value !== '""').map((d) => [d.selector, d.value])));
+  assert.ok(glyphs.length >= 6, "glyph rules not found");
+  assert.deepEqual(glyphs.filter(([, v]) => !/^"[^"]+" \/ ""$/.test(v)).map(([s, v]) => `${s} { content: ${v} }`), []);
+});
+
+// WCAG 2 contrast of every ink/ground pair the signatures introduce, read from tokens.css in each theme:
+// text and glyphs at least 4.5:1, frames and field boundaries at least 3:1.
+test("P5 state signatures: text and boundary pairs meet contrast in all three themes", async () => {
+  const theme = {};
+  for (const d of declarations(await read("styles/darkfield/tokens.css"))) {
+    const t = /\[data-theme="(\w+)"\]/.exec(d.selector)?.[1];
+    if (t && /^#[0-9a-f]{6}$/i.test(d.value)) (theme[t] ??= {})[d.prop.slice(2)] = d.value;
+  }
+  assert.deepEqual(Object.keys(theme).sort(), ["dark", "light", "mono"]);
+  const lum = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255).map((c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4))
+    .reduce((s, c, i) => s + c * [0.2126, 0.7152, 0.0722][i], 0);
+  const ratio = (a, b) => { const [hi, lo] = [lum(a), lum(b)].sort((x, y) => y - x); return (hi + 0.05) / (lo + 0.05); };
+  const GROUNDS = ["field", "field-deep", "surface-1", "surface-2", "surface-3"];
+  const PAIRS = [
+    ["fg", [...GROUNDS, "fault-deep"], 4.5], // messages, including on the alarm band
+    ["on-fault", ["fault"], 4.5], // the annunciator glyph and word
+    ["caution", GROUNDS, 4.5], ["signal", GROUNDS, 4.5], ["fg-muted", GROUNDS, 4.5], // warning glyph; confirmed marker on arrival and at rest
+    ["fg-faint", ["field-deep"], 4.5], // field placeholder, and a disabled field's value
+    ["fault", [...GROUNDS, "fault-deep"], 3], ["caution", GROUNDS, 3], ["signal-dim", GROUNDS, 3], ["edge", GROUNDS, 3], // frames
+  ];
+  const bad = [];
+  for (const [t, c] of Object.entries(theme)) for (const [ink, grounds, min] of PAIRS) for (const gr of grounds) {
+    const r = ratio(c[ink], c[gr]);
+    if (!(r >= min)) bad.push(`${t}: ${ink} on ${gr} ${r.toFixed(2)} < ${min}`);
+  }
+  assert.deepEqual(bad, []);
+});
