@@ -6,6 +6,11 @@
     gap: 0.5rem;
 }
 
+/* Open, the dropdown rises above the scrim that dims the page behind its menu (Layout.css, §08). */
+.terminal-dropdown:has([aria-expanded="true"]) {
+    z-index: calc(var(--z-index-overlay) + 1);
+}
+
 .terminal-dropdown-label {
     color: var(--fg-muted);
     display: flex;

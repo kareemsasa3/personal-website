@@ -1695,6 +1695,73 @@ if (MODE === "check") {
     });
   }
 
+  // Fix wave (R3, §08 Layers and overlays): an open menu dims the page behind it with the scrim. For each of the four menus
+  // (the header's Explore and Menu panels, the dock's Explore stack, the Projects dropdown), once open: a fixed layer whose
+  // ground is the resolved --df-scrim covers the viewport, unblurred and unanimated; it is what a pointer meets over the
+  // page, while the menu and its opener stay above it; a press on it closes the menu without navigating; reopened from
+  // the keyboard, Escape closes it, returns focus to the opener and removes the scrim.
+  const MENUS = [
+    { name: "header Explore", route: "/", width: 768, opener: ".site-header__explore .site-header__disclosure-toggle", menu: ".site-header__explore .site-header__panel" },
+    { name: "header Menu", route: "/projects", width: 320, opener: ".site-header__menu .site-header__disclosure-toggle", menu: ".site-header__menu-panel" },
+    { name: "dock Explore", route: "/projects", width: 500, dock: true, opener: ".dock-explore__toggle", menu: ".dock-explore__panel" },
+    { name: "Projects dropdown", route: "/projects", width: VIEW_W, opener: ".terminal-dropdown-trigger", menu: ".terminal-dropdown-menu" },
+  ];
+  const scrimState = (page, menu, opener) => page.evaluate(([menuSel, openerSel]) => {
+    // The probe resolves the scrim token and measures the viewport a fixed layer at inset 0 covers (less any scrollbar gutter).
+    const probe = document.createElement("i"); probe.style.cssText = "position: fixed; inset: 0; visibility: hidden; background-color: var(--df-scrim)";
+    document.body.append(probe);
+    const want = getComputedStyle(probe).backgroundColor; const view = probe.getBoundingClientRect(); probe.remove();
+    const host = document.querySelector(".layout-foreground");
+    const b = getComputedStyle(host, "::before");
+    const above = (sel) => { const e = document.querySelector(sel); if (!e) return false; const r = e.getBoundingClientRect();
+      const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); return !!hit && e.contains(hit); };
+    // A grid of points over the page, away from the navigation chrome, the menu and its opener.
+    const chrome = `.site-header, .dock-container, .global-section-navigation, .global-scroll-progress, ${menuSel}, ${openerSel}`;
+    const points = [];
+    for (let i = 1; i < 8; i++) for (let j = 1; j < 8; j++) {
+      const [x, y] = [Math.round((innerWidth * i) / 8), Math.round((innerHeight * j) / 8)];
+      const hit = document.elementFromPoint(x, y);
+      if (hit && !hit.closest(chrome)) points.push({ x, y, scrim: hit === host, hit: `${hit.tagName.toLowerCase()}.${[...hit.classList].join(".")}` });
+    }
+    return { want, ground: b.backgroundColor, content: b.content, position: b.position, top: b.top, left: b.left, width: parseFloat(b.width),
+      height: parseFloat(b.height), blur: b.backdropFilter, animation: b.animationName, vw: view.width, vh: view.height,
+      menuAbove: above(menuSel), openerAbove: above(openerSel), points };
+  }, [menu, opener]);
+  for (const theme of THEMES) {
+    for (const { name, route, width, dock, opener, menu } of MENUS) {
+      await withPage({ theme, route }, async (page) => {
+        // Loaded at this width: a resize re-runs the header's layout steps, and a layout change closes an open panel.
+        await page.setViewportSize({ width, height: width <= 500 ? 812 : VIEW_H });
+        if (dock) await dockMode(page); else await page.reload({ waitUntil: "networkidle" });
+        const where = `${theme} ${route} ${width}px ${name}`;
+        const toggle = page.locator(opener).first();
+        await toggle.click(); await page.mouse.move(0, 0); await frames(page);
+        invariant(await toggle.getAttribute("aria-expanded") === "true", `${where}: did not open`);
+        const open = await scrimState(page, menu, opener);
+        invariant(open.content !== "none" && open.position === "fixed" && open.ground === open.want && open.top === "0px" && open.left === "0px" &&
+          Math.abs(open.width - open.vw) <= 1 && Math.abs(open.height - open.vh) <= 1 && open.blur === "none" && open.animation === "none",
+          `${where}: scrim ${JSON.stringify({ ...open, points: undefined })}`);
+        invariant(open.menuAbove && open.openerAbove, `${where}: menu above scrim ${open.menuAbove}, opener above scrim ${open.openerAbove}`);
+        const covered = open.points.filter((p) => !p.scrim);
+        invariant(open.points.length > 0 && covered.length === 0, `${where}: page points not under the scrim ${JSON.stringify(covered.slice(0, 4))} of ${open.points.length}`);
+        // A press on the scrim closes the menu where it is, without acting on the page beneath.
+        const url = page.url();
+        const target = open.points.find((p) => p.scrim) ?? open.points[0];
+        if (target) await page.mouse.click(target.x, target.y);
+        await frames(page);
+        const closed = await scrimState(page, menu, opener);
+        invariant(await toggle.getAttribute("aria-expanded") === "false" && closed.content === "none" && page.url() === url,
+          `${where}: a press on the scrim left ${await toggle.getAttribute("aria-expanded")} ${closed.content} ${page.url()}`);
+        // From the keyboard: Escape closes, focus returns to the opener, the scrim goes.
+        await toggle.focus(); await page.keyboard.press("Enter"); await frames(page);
+        invariant(await toggle.getAttribute("aria-expanded") === "true" && (await scrimState(page, menu, opener)).content !== "none", `${where}: Enter did not open with the scrim`);
+        await page.keyboard.press("Escape"); await frames(page);
+        invariant(await toggle.getAttribute("aria-expanded") === "false" && await toggle.evaluate((e) => document.activeElement === e) &&
+          (await scrimState(page, menu, opener)).content === "none", `${where}: Escape did not close, return focus and remove the scrim`);
+      });
+    }
+  }
+
   // Phase 3 Task 12 (§13, §09): Settings and the section rail. A segmented group's pressed option is Selected (band,
   // signal boundary, node); the switch is a latch whose lamp shows On; sliders are direct manipulation (a filled square
   // handle in signal on an edge hairline rail, no fill) and step from the keyboard; controls disabled under reduced motion
