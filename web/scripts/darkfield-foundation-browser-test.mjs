@@ -2436,7 +2436,7 @@ if (MODE === "check") {
   }
   // Phase 5 (§03, §06): on each listed route, governed elements outside creative regions have square corners and a
   // Darkfield family. P5_NATIVE: native elements outside any region (they host controls or governed labels).
-  const P5_ROUTES = [];
+  const P5_ROUTES = ["/darkfield-404-probe"];
   const P5_NATIVE = [];
   const P5_FAMILIES = ["Archivo", "Archivo Narrow", "IBM Plex Mono"];
   for (const theme of THEMES) {

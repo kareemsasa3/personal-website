@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { read, governed, declarations, innermost, where, NATIVE, NATIVE_KEYFRAMES, PHASE5, NATIVE5, HOLDS5, DEAD_RULES5 } from "./darkfield-css-scope.mjs";
 
 // Stylesheets a Phase 5 task has finished; the rules below hold for these. Task 24 requires DONE5 to equal PHASE5.
-export const DONE5 = [];
+export const DONE5 = ["pages/NotFound/NotFound.css", "components/common/ErrorBoundary.css", "components/Terminal/TerminalErrorBoundary.css"];
 const decls5 = async () => {
   const out = [];
   for (const file of (await governed(".css")).filter((f) => DONE5.includes(f))) {
@@ -164,4 +164,22 @@ test("P5 state signatures: text and boundary pairs meet contrast in all three th
     if (!(r >= min)) bad.push(`${t}: ${ink} on ${gr} ${r.toFixed(2)} < ${min}`);
   }
   assert.deepEqual(bad, []);
+});
+
+// §13 Errors (P5-10): the not-found page reports a failed navigation with the error signature; a caught render error is
+// a system-integrity fault and adds the alarm band. The signature sits on the container that holds the message and the
+// next step. The heading words name the fault; the generated tile is silent.
+test("P5 errors: the not-found page and the error boundaries carry the error signature on their content container", async () => {
+  const CONTAINERS = [["pages/NotFound/NotFound.tsx", "not-found-content", false], ["components/common/ErrorBoundary.tsx", "error-content", true],
+    ["components/common/AppErrorBoundary.tsx", "error-content", true], ["components/Terminal/TerminalErrorBoundary.tsx", "error-message", true]];
+  for (const [file, container, alarm] of CONTAINERS) {
+    const classes = [...(await read(file)).matchAll(/className="([^"]*)"/g)].map((m) => m[1].split(/\s+/)).filter((c) => c[0] === container);
+    assert.equal(classes.length, 1, `${file}: one .${container}`);
+    assert.ok(classes[0].includes("df-error"), `${file}: .${container} lacks df-error`);
+    assert.equal(classes[0].includes("df-error--alarm"), alarm, `${file}: .${container} df-error--alarm`);
+  }
+  // Controls do not rest on the alarm band: the idle edge boundary is under 3:1 on fault-deep in Mono, so the actions sit on the field.
+  for (const [file, tray] of [["components/common/ErrorBoundary.css", ".error-content .error-actions"], ["components/Terminal/TerminalErrorBoundary.css", ".terminal-error-boundary .error-actions"]]) {
+    assert.ok(declarations(await read(file)).some((d) => topLevel(d.selector).includes(tray) && d.prop === "background-color" && d.value === "var(--field)"), `${file}: ${tray}`);
+  }
 });

@@ -44,9 +44,9 @@ class AppErrorBoundary extends Component<Props, State> {
     if (this.state.hasError) {
       return (
         <div className="error-boundary app-error">
-          <div className="error-content">
-            <h1>Critical Error</h1>
-            <p>
+          <div className="error-content df-error df-error--alarm">
+            <h1 className="df-heading-2">Critical Error</h1>
+            <p className="df-body">
               We&apos;re sorry, but the application has encountered a critical
               error. This has been logged and our team will investigate.
             </p>
@@ -65,20 +65,22 @@ class AppErrorBoundary extends Component<Props, State> {
 
             {import.meta.env.DEV && this.state.error && (
               <details className="error-details">
-                <summary>Technical Details (Development)</summary>
+                <summary className="df-control df-control--latch df-label">
+                  Technical Details (Development)
+                </summary>
                 <div className="error-info">
-                  <h4>Error Message:</h4>
-                  <pre className="error-message">
+                  <h4 className="df-label">Error Message:</h4>
+                  <pre className="error-message df-code">
                     {this.state.error.message}
                   </pre>
 
-                  <h4>Error Stack:</h4>
-                  <pre className="error-stack">{this.state.error.stack}</pre>
+                  <h4 className="df-label">Error Stack:</h4>
+                  <pre className="error-stack df-code">{this.state.error.stack}</pre>
 
                   {this.state.errorInfo && (
                     <>
-                      <h4>Component Stack:</h4>
-                      <pre className="error-stack">
+                      <h4 className="df-label">Component Stack:</h4>
+                      <pre className="error-stack df-code">
                         {this.state.errorInfo.componentStack}
                       </pre>
                     </>
