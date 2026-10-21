@@ -119,22 +119,32 @@
   gap: 1rem;
 }
 
+/* Label and action share their first line's baseline, so a label's first line starts at the top of the control whether it
+   wraps or not, and the marker below meets it there. */
 .case-study-link {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
   gap: 1rem;
   min-width: 0;
 }
 
+/* The marker sits in the leading padding, one line tall, level with the label's first line however many lines the label
+   wraps to: its top is the control's block padding (grammar.css), the same at every width. */
 .case-study-link::before {
   position: absolute;
-  inset-block: 0;
+  inset-block-start: var(--space-2);
   inset-inline-start: var(--space-1);
   display: flex;
   align-items: center;
-  height: auto;
+  height: 1lh;
   margin-inline-start: 0;
+}
+
+@media (max-width: 768px), (pointer: coarse) {
+  .case-study-link::before {
+    inset-block-start: max(var(--space-2), calc((3 * var(--cell-h) - 1lh) / 2 - var(--stroke-hair)));
+  }
 }
 
 /* The label absorbs the squeeze; the action (View, Open, unavailable note) wraps only
@@ -249,12 +259,6 @@
 
   .case-study-link {
     display: block;
-  }
-
-  .case-study-link::before {
-    inset-block: auto;
-    inset-block-start: calc((3 * var(--cell-h) - 1lh) / 2);
-    height: 1lh;
   }
 
   .case-study-link span:last-child {

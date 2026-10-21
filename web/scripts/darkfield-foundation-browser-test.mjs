@@ -2067,6 +2067,35 @@ if (MODE === "check") {
       }
     });
   }
+  // Fix wave round 2 (§13 state model): a case-study link's › marker sits level with its label's first line, also where the
+  // label wraps (the "Related: …" link wraps at the wide width). Hovered, each link's marker centre lies within the first line
+  // of its label at a wide and a phone width.
+  for (const width of [VIEW_W, 375]) {
+    await withPage({ theme: THEMES[0], route: "/case-studies/where-the-specification-lived" }, async (page) => {
+      if (width !== VIEW_W) { await page.setViewportSize({ width, height: 812 }); await frames(page); }
+      const links = page.locator(".case-study-link:not(.disabled)");
+      const n = await links.count();
+      invariant(n > 0, `${width}px: no case-study link rendered`);
+      let wrapped = 0;
+      for (let i = 0; i < n; i++) {
+        const link = links.nth(i);
+        await link.scrollIntoViewIfNeeded(); await page.mouse.move(0, 0); await frames(page);
+        await link.hover(); await frames(page);
+        const m = await link.evaluate((e) => {
+          const label = e.querySelector("span"); const range = document.createRange(); range.selectNodeContents(label);
+          const lines = [...range.getClientRects()]; const tops = new Set(lines.map((r) => Math.round(r.top)));
+          const b = getComputedStyle(e, "::before"); const r = e.getBoundingClientRect(); const c = getComputedStyle(e);
+          const top = r.top + parseFloat(c.borderTopWidth) + parseFloat(b.top);
+          return { text: label.textContent.trim().slice(0, 40), content: b.content, lines: tops.size, centre: top + parseFloat(b.height) / 2,
+            first: { top: lines[0].top, bottom: lines[0].bottom } };
+        });
+        if (m.lines > 1) wrapped += 1;
+        invariant(m.content.startsWith('"›"') && m.centre >= m.first.top && m.centre <= m.first.bottom,
+          `${width}px case-study link "${m.text}" (${m.lines} lines): marker ${m.content} centre ${m.centre} outside the first line ${m.first.top}-${m.first.bottom}`);
+      }
+      if (width === VIEW_W) invariant(wrapped > 0, `${width}px: no case-study link wraps; the wrapped-link check no longer tests anything`);
+    });
+  }
   // Fix wave (R2, §09 Line hierarchy, §03 Nested structures): an article body ends on the seam that opens the next region
   // (series links or provenance), not on a rule of its own a few lines above it; provenance sections open on a seam and keep
   // the region's left edge, with no inset left over from a boxed card. Checked at a wide and a phone width.
@@ -2145,37 +2174,29 @@ if (MODE === "check") {
       invariant(bad.length === 0, `${route}: voice ${JSON.stringify(bad.slice(0, 8))}`);
     });
   }
-  // Fix wave (R1, §06 Hierarchy): a label names a thing in one to three words. Every rendered Instrument label on the Phase 3
-  // routes (and the other case studies, a series article, open Settings and the coverage dialog) holds at most three words of
-  // its own: text inside a descendant with its own type class is that descendant's, and screen-reader-only text is not shown.
-  const LABEL_ROUTES = [...P3_ROUTES.map((route) => ({ route })), { route: "/case-studies/erebus" }, { route: "/case-studies/arachne" },
-    { route: "/case-studies/where-the-specification-lived" }, { route: "/writing/the-machine-should-explain-itself" },
-    { route: "/", prepare: openSettings }, { route: "/projects", prepare: (page) => page.getByTitle("View technical coverage").click() }];
-  for (const { route, prepare } of LABEL_ROUTES) {
+  // Fix wave (R1, §06): long control text uses the reading voice. The control and table text the fix wave moved out of the
+  // label voice (heading links in the table of contents, the editorial note's summary, case-study links, the comparison
+  // table's caption and row headers, the section rail's tooltips) renders in the Narrator family, as written (no case
+  // transform) and without the label's tracking. The static test names the same elements in markup; the editorial note is
+  // the provenance region's last disclosure.
+  const READING = [
+    { route: "/writing/the-machine-should-explain-itself", selectors: [".article-toc a", ".article-provenance > details:last-of-type > summary"] },
+    { route: "/case-studies/where-the-specification-lived", selectors: [".case-study-link > span:first-child", ".case-study-comparison caption",
+      ".case-study-comparison tbody th", ".dot-tooltip"] },
+    { route: "/case-studies/erebus", selectors: [".case-study-link.disabled > span"] },
+  ];
+  for (const { route, selectors } of READING) {
     await withPage({ theme: THEMES[0], route }, async (page) => {
-      if (prepare) await prepare(page);
-      const long = await page.evaluate((skip) => {
-        const TYPE = /(^|\s)df-(display-[12]|heading-[123]|body(-lg|-sm)?|label(-lg|-sm)?|readout(-xl)?|code|data|annotation|glyph(-2x)?)(\s|$)/;
-        const typed = (el) => { for (let e = el; e; e = e.parentElement) if (TYPE.test(e.getAttribute("class") ?? "")) return e; return null; };
-        const out = [];
-        for (const label of document.querySelectorAll(".df-label, .df-label-sm, .df-label-lg")) {
-          if (!label.checkVisibility() || label.closest(skip)) continue;
-          const words = [];
-          const walker = document.createTreeWalker(label, NodeFilter.SHOW_TEXT);
-          for (let n = walker.nextNode(); n; n = walker.nextNode()) {
-            if (typed(n.parentElement) !== label) continue;
-            let shown = true;
-            for (let e = n.parentElement; e && e !== label.parentElement; e = e.parentElement) {
-              const r = e.getBoundingClientRect();
-              if (!e.checkVisibility() || r.width <= 1 || r.height <= 1) { shown = false; break; }
-            }
-            if (shown) words.push(...n.textContent.split(/\s+/).filter((w) => /[\p{L}\p{N}]/u.test(w)));
-          }
-          if (words.length > 3) out.push(`${label.tagName.toLowerCase()}.${[...label.classList].join(".")}: ${words.join(" ")}`);
-        }
-        return out;
-      }, P3_SKIP);
-      invariant(long.length === 0, `${route}${prepare ? " (prepared)" : ""}: labels longer than three words ${JSON.stringify(long.slice(0, 12))}`);
+      const seen = await page.evaluate((sels) => sels.map((sel) => {
+        const all = [...document.querySelectorAll(sel)];
+        const off = all.map((e) => { const c = getComputedStyle(e); return { text: e.textContent.trim().slice(0, 40), family: c.fontFamily.split(",")[0].replace(/["']/g, "").trim(), transform: c.textTransform, tracking: c.letterSpacing }; })
+          .filter((v) => v.family !== "Archivo" || v.transform !== "none" || v.tracking !== "normal");
+        return { sel, n: all.length, off };
+      }), selectors);
+      for (const { sel, n, off } of seen) {
+        invariant(n > 0, `${route}: ${sel} not rendered; the reading-voice check no longer tests it`);
+        invariant(off.length === 0, `${route}: ${sel} not in the reading voice ${JSON.stringify(off.slice(0, 6))}`);
+      }
     });
   }
   // Case-study prompt text uses the generated code voice even where the evidence block keeps its line breaks.

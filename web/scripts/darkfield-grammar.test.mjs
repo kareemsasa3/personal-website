@@ -165,9 +165,9 @@ test("T7 cascade guard: a header paragraph rule excludes its eyebrow so the labe
   }
 });
 
-// Fix wave (R1): control and table text longer than a label (a heading used as a link, a sentence, a long link text) speaks in
-// the Narrator voice and keeps its control class; the Instrument classes stay on names of one to three words (§06 Hierarchy).
-// The browser test counts the words of every rendered label; this names the reclassified elements.
+// Fix wave (R1, §06): long control and table text (a heading used as a link, a sentence, a long link text) uses the reading
+// voice and keeps its control class; the label classes stay on short names. This names the reclassified elements in markup;
+// the browser test checks they render in the reading voice.
 test("T7 long control text is Narrator: reclassified elements carry a body class, never the label class", async () => {
   const classes = async (f) => [...(await read(f)).matchAll(/className=(?:"([^"]*)"|\{`([^`]*)`\})/g)].map((m) => m[1] ?? m[2]);
   const has = (c, cls) => c.split(/\s+/).includes(cls);
