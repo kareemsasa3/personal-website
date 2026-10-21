@@ -1543,6 +1543,143 @@ if (MODE === "check") {
       await toast.waitFor({ state: "detached" });
     });
   }
+  // Phase 5 Task 5 (§13 Processing; §12 Scan, reduced form; §08 overlay panel; owner loading decisions 2026-10-21): the
+  // Home action whose route chunk is held waits behind the loader. On the frame it turns busy the action keeps its label
+  // and shows the busy signature in place of Disabled. The loader carries LOADING and its plain message in a polite status
+  // region, and mm:ss outside it, from the moment it is inserted; the count rises by whole seconds, no faster, and starts
+  // again at 00:00 on the next load. Under reduced motion no cell travels and the word stands alone. Once the chunk
+  // arrives the loader leaves with ease-depart (no leave under reduced motion) and is gone.
+  for (const theme of THEMES) for (const reducedMotion of ["reduce", "no-preference"]) {
+    await withPage({ theme, route: "/", reducedMotion }, async (page) => {
+      const where = `${theme} ${reducedMotion} loader`;
+      let release;
+      const held = new Promise((done) => { release = done; });
+      await page.route("**/assets/CaseStudies-*.js", async (r) => { await held; await r.continue(); });
+      const t = {}; for (const n of ["--edge", "--fg-muted", "--fg-faint", "--surface-2"]) t[n] = await tokenRgb(page, n);
+      const action = page.locator(".hero-buttons .btn-primary");
+      await action.scrollIntoViewIfNeeded();
+      const label = await action.textContent();
+      await action.evaluate((e) => {
+        new MutationObserver(() => {
+          if (e.getAttribute("aria-busy") !== "true" || window.dfBusy) return;
+          // Read once the state change has settled, not mid-transition from the hover the click left.
+          e.style.transition = "none";
+          const s = getComputedStyle(e), a = getComputedStyle(e, "::after");
+          window.dfBusy = { disabled: e.disabled, label: e.textContent, border: `${s.borderTopStyle} ${s.borderTopColor}`, fg: s.color, cursor: s.cursor,
+            scan: a.content !== "none" && a.display !== "none" ? `${a.animationName} ${a.width} ${a.height} ${a.backgroundColor}` : "absent" };
+          e.style.transition = "";
+        }).observe(e, { attributes: true, attributeFilter: ["aria-busy"] });
+        const root = document.getElementById("portal-root");
+        window.dfLoader = []; window.dfLeave = [];
+        new MutationObserver((records) => {
+          for (const node of records.flatMap((r) => [...r.addedNodes])) {
+            if (!(node instanceof HTMLElement) || !node.matches(".page-loader-overlay")) continue;
+            const s = getComputedStyle(node);
+            if (node.matches(".page-loader-overlay--leaving")) {
+              window.dfLeave.push({ connected: node.isConnected, animation: `${s.animationName} ${s.animationTimingFunction}`, hidden: node.getAttribute("aria-hidden"),
+                live: node.matches("[role], [aria-live]") || !!node.querySelector("[role], [aria-live]") });
+            } else {
+              const status = node.querySelector('.page-loader__status[role="status"][aria-live="polite"]');
+              window.dfLoader.push({ word: node.querySelector(".page-loader__state")?.textContent, elapsed: node.querySelector(".page-loader__elapsed")?.textContent,
+                message: node.querySelector(".loading-text")?.textContent, statusText: status?.textContent,
+                timerOutside: !!status && !status.querySelector(".page-loader__elapsed") && node.querySelector(".page-loader__elapsed")?.getAttribute("role") === "timer",
+                regions: node.querySelectorAll('[role="status"], [aria-live="polite"], [aria-live="assertive"]').length });
+            }
+          }
+        }).observe(root, { childList: true });
+      });
+      await action.click();
+      const overlay = page.locator(".page-loader-overlay:not(.page-loader-overlay--leaving)");
+      await overlay.waitFor();
+      const busy = await page.evaluate(() => window.dfBusy);
+      // The cell travels the lower edge; under reduced motion there is none.
+      const cell = await page.evaluate(() => { const p = document.createElement("i"); p.style.cssText = "display: block; width: var(--cell-w); height: var(--stroke-bold)";
+        document.body.append(p); const s = getComputedStyle(p); const v = `${s.width} ${s.height}`; p.remove(); return v; });
+      const scan = reducedMotion === "reduce" ? "absent" : `df-processing-scan ${cell} ${t["--fg-muted"]}`;
+      invariant(busy && busy.disabled && busy.border === `solid ${t["--edge"]}` && busy.fg === t["--fg-muted"] && busy.cursor === "progress" && busy.scan === scan,
+        `${where}: the waiting Home action is not busy (want scan ${scan}) ${JSON.stringify(busy)}`);
+      invariant(!busy || busy.label === label, `${where}: the busy Home action changed its label (${label} -> ${busy?.label})`);
+      const inserted = await page.evaluate(() => window.dfLoader[0]);
+      invariant(inserted?.word === "LOADING" && inserted.elapsed === "00:00" && inserted.message === "Loading the page." &&
+        inserted.statusText === "LOADINGLoading the page." && inserted.timerOutside && inserted.regions === 1,
+        `${where}: inserted without its word, message, status region or counter ${JSON.stringify(inserted)}`);
+      const look = () => overlay.evaluate((o) => {
+        const q = (sel) => o.querySelector(sel), shown = (el) => !!el && el.checkVisibility();
+        if (![".page-loader__state", ".page-loader__elapsed", ".loading-text", ".loader-content"].every(q)) return { missing: o.innerHTML };
+        const panel = getComputedStyle(q(".loader-content"));
+        return { glyph: getComputedStyle(q(".page-loader__state"), "::before").content, word: getComputedStyle(q(".page-loader__state")).color,
+          elapsed: q(".page-loader__elapsed").textContent, counter: getComputedStyle(q(".page-loader__elapsed")).color,
+          message: getComputedStyle(q(".loading-text")).color, panel: `${panel.backgroundColor} ${panel.borderTopStyle} ${panel.borderTopColor} ${panel.borderTopLeftRadius}`,
+          scan: shown(q(".page-loader__scan")) ? getComputedStyle(q(".page-loader__scan")).animationName : "hidden",
+          words: [...o.querySelectorAll(".df-label")].filter(shown).map((e) => e.textContent) };
+      });
+      const first = await look();
+      if (first.missing) { invariant(false, `${where}: the loader lacks its word or counter ${first.missing}`); release(); return; }
+      invariant(first.glyph.startsWith('"…"') && first.word === t["--fg-muted"] && first.counter === t["--fg-faint"] && first.message === t["--fg-muted"],
+        `${where}: state word, counter or message ${JSON.stringify(first)}`);
+      invariant(first.panel === `${t["--surface-2"]} solid ${t["--edge"]} 0px`, `${where}: panel ${first.panel}`);
+      invariant((reducedMotion === "reduce" ? first.scan === "hidden" : first.scan === "page-loader-scan") && JSON.stringify(first.words) === '["LOADING"]',
+        `${where}: scan ${first.scan}, words ${JSON.stringify(first.words)}`);
+      await page.waitForTimeout(2200);
+      const later = await look();
+      const secs = (s) => { const [m, x] = s.split(":").map(Number); return m * 60 + x; };
+      const rose = secs(later.elapsed) - secs(first.elapsed);
+      invariant(rose >= 2 && rose <= 3, `${where}: in about 2.2 s the counter went from ${first.elapsed} to ${later.elapsed}`);
+      release();
+      await page.locator(".case-studies-page").waitFor();
+      await page.locator(".page-loader-overlay").waitFor({ state: "detached" });
+      const leave = await page.evaluate(() => window.dfLeave);
+      const easeDepart = await page.evaluate(() => { const p = document.createElement("i"); p.style.animationTimingFunction = "var(--ease-depart)";
+        document.body.append(p); const v = getComputedStyle(p).animationTimingFunction; p.remove(); return v; });
+      // Under reduced motion the copy is removed as soon as it is placed (it has no leave to play).
+      invariant(reducedMotion === "reduce" ? leave.every((l) => !l.connected) :
+        leave.length === 1 && leave[0].connected && leave[0].animation === `page-loader-out ${easeDepart}` && leave[0].hidden === "true" && !leave[0].live,
+        `${where}: leave ${JSON.stringify(leave)}`);
+      // The next load starts its own count at 00:00, with the first message.
+      let releaseNext;
+      const heldNext = new Promise((done) => { releaseNext = done; });
+      await page.route("**/assets/Projects-*.js", async (r) => { await heldNext; await r.continue(); });
+      await page.evaluate(() => { history.pushState({}, "", "/projects"); dispatchEvent(new PopStateEvent("popstate")); });
+      await overlay.waitFor();
+      const next = await page.evaluate(() => window.dfLoader[1]);
+      invariant(next?.elapsed === "00:00" && next.message === "Loading the page.", `${where}: the next load ${JSON.stringify(next)}`);
+      releaseNext();
+      await page.locator(".page-loader-overlay").waitFor({ state: "detached" });
+    });
+  }
+  // Owner decision (2026-10-21): a long load replaces the message once at each threshold, with the counter counting on.
+  // The clock is driven by the test. Each replacement changes the polite status region once; the counter's steps do not
+  // touch it.
+  await withPage({ theme: "dark", route: "/" }, async (page) => {
+    await page.clock.install();
+    await page.reload({ waitUntil: "networkidle" });
+    let release;
+    const held = new Promise((done) => { release = done; });
+    await page.route("**/assets/CaseStudies-*.js", async (r) => { await held; await r.continue(); });
+    await page.evaluate(() => {
+      window.dfStatus = [];
+      new MutationObserver(() => {
+        const status = document.querySelector('.page-loader-overlay:not(.page-loader-overlay--leaving) [role="status"]');
+        const text = status?.textContent ?? null;
+        if (text !== null && window.dfStatus.at(-1) !== text) window.dfStatus.push(text);
+      }).observe(document.getElementById("portal-root"), { childList: true, subtree: true, characterData: true });
+    });
+    await page.evaluate(() => { history.pushState({}, "", "/case-studies"); dispatchEvent(new PopStateEvent("popstate")); });
+    const overlay = page.locator(".page-loader-overlay:not(.page-loader-overlay--leaving)");
+    await overlay.waitFor();
+    const at = async () => overlay.evaluate((o) => [o.querySelector(".page-loader__elapsed")?.textContent ?? null, o.querySelector(".loading-text")?.textContent ?? null]);
+    const steps = [];
+    for (const ms of [9000, 2000, 18000, 2000]) { await page.clock.runFor(ms); steps.push(await at()); }
+    invariant(JSON.stringify(steps.map(([, m]) => m)) === JSON.stringify(["Loading the page.", "Still loading. This is taking longer than expected.",
+      "Still loading. This is taking longer than expected.", "Still waiting for the page to load."]), `long wait: messages ${JSON.stringify(steps)}`);
+    invariant(JSON.stringify(steps.map(([e]) => e)) === JSON.stringify(["00:09", "00:11", "00:29", "00:31"]), `long wait: counter ${JSON.stringify(steps)}`);
+    const announced = await page.evaluate(() => window.dfStatus);
+    invariant(JSON.stringify(announced) === JSON.stringify(["LOADINGLoading the page.", "LOADINGStill loading. This is taking longer than expected.",
+      "LOADINGStill waiting for the page to load."]), `long wait: status region changes ${JSON.stringify(announced)}`);
+    release();
+    await page.clock.runFor(1000);
+    await page.locator(".case-studies-page").waitFor();
+  });
   // §13 Activation, the reset dialog's backdrop: a press that starts on the backdrop and is released over the dialog does
   // not close it; a press and release on the backdrop does.
   await withPage({ theme: "dark", route: "/" }, async (page) => {

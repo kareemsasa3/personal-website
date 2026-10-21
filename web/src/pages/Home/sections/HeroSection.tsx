@@ -47,17 +47,19 @@ export const HeroSection = ({
             className="btn btn-primary df-control df-label"
             onClick={onNavigateToCaseStudies}
             disabled={isNavigatingToCaseStudies}
+            aria-busy={isNavigatingToCaseStudies}
             aria-label="Read flagship system case studies"
           >
-            {isNavigatingToCaseStudies ? "Loading..." : heroContent.cta}
+            {heroContent.cta}
           </button>
           <button
             className="btn btn-secondary df-control df-label"
             onClick={onNavigateToWork}
             disabled={isNavigatingToWork}
+            aria-busy={isNavigatingToWork}
             aria-label="View my professional work experience"
           >
-            {isNavigatingToWork ? "Loading..." : "View Experience"}
+            View Experience
           </button>
           <button
             className="hero-text-link df-control df-control--light df-label"

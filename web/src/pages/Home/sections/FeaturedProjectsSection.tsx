@@ -89,17 +89,19 @@ export const FeaturedProjectsSection = forwardRef(
             className="btn btn-outline df-control df-label"
             onClick={onNavigateToCaseStudies}
             disabled={isNavigatingToCaseStudies}
+            aria-busy={isNavigatingToCaseStudies}
             aria-label="Read flagship system case studies"
           >
-            {isNavigatingToCaseStudies ? "Loading..." : "Read Case Studies →"}
+            Read Case Studies →
           </button>
           <button
             className="btn btn-secondary df-control df-label"
             onClick={onNavigateToProjects}
             disabled={isNavigatingToProjects}
+            aria-busy={isNavigatingToProjects}
             aria-label="Browse the full project archive"
           >
-            {isNavigatingToProjects ? "Loading..." : "Browse All Projects →"}
+            Browse All Projects →
           </button>
         </div>
       </section>

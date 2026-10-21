@@ -5,7 +5,7 @@ import { read, governed, declarations, innermost, where, NATIVE, NATIVE_KEYFRAME
 
 // Stylesheets a Phase 5 task has finished; the rules below hold for these. Task 24 requires DONE5 to equal PHASE5.
 export const DONE5 = ["pages/NotFound/NotFound.css", "components/common/ErrorBoundary.css", "components/Terminal/TerminalErrorBoundary.css",
-  "components/common/Toast.css", "components/common/ToastContainer.css", "components/common/Modal.css"];
+  "components/common/Toast.css", "components/common/ToastContainer.css", "components/common/Modal.css", "components/common/PageLoader.css"];
 const decls5 = async () => {
   const out = [];
   for (const file of (await governed(".css")).filter((f) => DONE5.includes(f))) {
@@ -206,4 +206,84 @@ test("P5 toasts and modal: outcome states use the shared signatures; dialog cont
     const found = classes(modal, first);
     assert.ok(found.length > 0 && found.every((c) => c.includes("df-control") && c.includes("df-label")), `${first}: df-control df-label`);
   }
+});
+
+// §13 Processing (P5-6) and the owner's loading decisions (2026-10-21). The loader keeps Phase 2's row-form scan. It
+// states LOADING (with the §05 … glyph) and one plain message in a polite status region, and shows mm:ss beside it,
+// outside that region, counted by a single interval from the moment the overlay mounts (DEV-2: no delay before it shows).
+// Two later messages replace the first at the owner's thresholds and derive from the same count. Under reduced motion the
+// travelling cell goes and the word stands alone. The overlay is a §08 panel over the dimmed page and leaves with
+// ease-depart (§12 Create / remove). The Home actions keep their labels while their route loads, stay disabled, and
+// set aria-busy; the grammar's busy rule takes over from Disabled and from hover and press.
+test("P5 processing: the loader says LOADING with a plain message and mm:ss; the waiting home actions are busy", async () => {
+  const tsx = await read("components/common/PageLoader.tsx");
+  const classOf = (first) => [...tsx.matchAll(/className="([^"]*)"/g)].map((m) => m[1].split(/\s+/)).filter((c) => c[0] === first);
+  const one = (first, type) => { const c = classOf(first); assert.ok(c.length === 1 && c[0].includes(type), `PageLoader.tsx: .${first} ${type}`); };
+  one("page-loader__state", "df-label");
+  one("page-loader__elapsed", "df-annotation");
+  one("loading-text", "df-body-sm");
+  assert.match(tsx, /className="page-loader__state df-label"[^>]*>\s*LOADING\s*</, "the state word");
+  assert.doesNotMatch(tsx, /PENDING|SCANNING|SCAN/, "one state word");
+  // The announced region holds the word and the message only; the timer is outside it and not announced.
+  const status = /<div className="page-loader__status" role="status" aria-live="polite">([\s\S]*?)<\/div>/.exec(tsx);
+  assert.ok(status, "a polite status region");
+  assert.match(status[1], /page-loader__state[\s\S]*loading-text/);
+  assert.doesNotMatch(status[1], /page-loader__elapsed/, "the timer is outside the status region");
+  assert.match(tsx, /className="page-loader__elapsed df-annotation" role="timer" aria-live="off"/);
+  assert.equal((tsx.match(/role="status"/g) ?? []).length, 1, "one status region");
+  // Copy (owner): one generic line, then the two long-wait lines; no invented activity.
+  for (const line of ["Loading the page.", "Still loading. This is taking longer than expected.", "Still waiting for the page to load."]) {
+    assert.ok(tsx.includes(`"${line}"`), line);
+  }
+  assert.doesNotMatch(tsx, /loadingMessages|Math\.random|Reticulating|Compiling/, "invented loading messages");
+  // Mounted with the overlay; one interval drives both the counter and the long-wait lines.
+  assert.doesNotMatch(tsx, /setTimeout\(/, "PageLoader.tsx: a timeout");
+  assert.doesNotMatch(tsx, /&&\s*\(?\s*<(span|p) className="(page-loader__(state|elapsed)|loading-text)/, "PageLoader.tsx: a conditional word, counter or message");
+  assert.equal((tsx.match(/setInterval\(/g) ?? []).length, 1, "one interval");
+  assert.match(tsx, /clearInterval\(/, "the interval is cleared on unmount");
+  assert.match(tsx, /\{messageFor\(elapsed\)\}/, "the message derives from the elapsed count");
+
+  const css = declarations(await read("components/common/PageLoader.css"));
+  const rule = (sel) => Object.fromEntries(css.filter((d) => d.selector === sel).map((d) => [d.prop, d.value]));
+  const has = (sel, want) => { const r = rule(sel); for (const [p, v] of Object.entries(want)) assert.equal(r[p], v, `${sel} { ${p} }`); };
+  has(".page-loader-overlay", { background: "var(--df-scrim)" });
+  has(".loader-content", { "background-color": "var(--surface-2)", border: "var(--stroke-hair) solid var(--edge)" });
+  has(".loading-text", { margin: "0", color: "var(--fg-muted)" });
+  has(".page-loader__state", { color: "var(--fg-muted)" });
+  has(".page-loader__state::before", { content: '"…" / ""', "font-family": "var(--font-mono)" });
+  has(".page-loader__elapsed", { color: "var(--fg-faint)" });
+  has("@media (prefers-reduced-motion: reduce) >> .page-loader__scan", { display: "none" });
+  has(".page-loader-overlay--leaving", { animation: "page-loader-out var(--dur-fast) var(--ease-depart) forwards", "pointer-events": "none" });
+  assert.match(tsx, /page-loader-overlay--leaving/, "the leaving copy takes the leave class");
+
+  // The Home actions: disabled and aria-busy together; the label never changes while busy.
+  for (const [file, flags] of [["pages/Home/sections/HeroSection.tsx", ["isNavigatingToCaseStudies", "isNavigatingToWork"]],
+    ["pages/Home/sections/FeaturedProjectsSection.tsx", ["isNavigatingToCaseStudies", "isNavigatingToProjects"]]]) {
+    const code = await read(file);
+    for (const flag of flags) {
+      assert.match(code, new RegExp(`disabled=\\{${flag}\\}\\s*aria-busy=\\{${flag}\\}`), `${file}: ${flag}`);
+      assert.doesNotMatch(code, new RegExp(`\\{${flag} \\?`), `${file}: ${flag} swaps the label`);
+    }
+    assert.doesNotMatch(code, /Loading\.\.\./, `${file}: a Loading... label`);
+  }
+
+  const g = declarations(await read("styles/darkfield/grammar.css"));
+  const grule = (sel) => Object.fromEntries(g.filter((d) => d.selector === sel).map((d) => [d.prop, d.value]));
+  const busy = '.df-control[aria-busy="true"]';
+  // The cell is drawn only where ::after is free: not on a latch (lamp) or a selected control (node).
+  const cell = `${busy}:where(:not(.df-control--latch, [aria-current]:not([aria-current="false"]), [aria-selected="true"], [aria-pressed="true"]))::after`;
+  for (const [p, v] of Object.entries({ "border-style": "solid", "border-color": "var(--edge)", color: "var(--fg-muted)", cursor: "progress" })) {
+    assert.equal(grule(busy)[p], v, `${busy} { ${p} }`);
+  }
+  for (const [p, v] of Object.entries({ "inset-block-end": "0", width: "var(--cell-w)", height: "var(--stroke-bold)", "background-color": "var(--fg-muted)",
+    animation: "df-processing-scan var(--dur-scan) var(--ease-linear) infinite" })) assert.equal(grule(cell)[p], v, `busy ::after { ${p} }`);
+  assert.deepEqual(g.filter((d) => /aria-busy/.test(d.selector) && /::after/.test(d.selector) && d.selector.split(" >> ").pop() !== cell).map(where), [], "an unscoped busy ::after");
+  assert.equal(grule(`@media (prefers-reduced-motion: reduce) >> ${cell}`).display, "none", "reduced: no cell");
+  // Equal specificity: the busy rule comes after Disabled, so it takes over.
+  const at = (sel) => g.findIndex((d) => d.selector === sel);
+  assert.ok(at(busy) > at('.df-control:is(:disabled, [aria-disabled="true"])') && at('.df-control:is(:disabled, [aria-disabled="true"])') >= 0, "busy after Disabled");
+  // Hover, press and the pressed value leave a busy control alone: every rule gated on the inactive states also names busy.
+  const gate = g.filter((d) => /:is\(:hover, \[data-df-active\]\)|:is\(:active, \[data-df-pressed\]\)/.test(d.selector) && /:where\(:not\(:disabled/.test(d.selector));
+  assert.ok(gate.length >= 4, "hover and press rules found");
+  assert.deepEqual(gate.filter((d) => !/:where\(:not\([^)]*\[aria-busy="true"\]/.test(d.selector)).map(where), [], "hover or press reaches a busy control");
 });

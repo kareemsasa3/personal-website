@@ -20,19 +20,67 @@
     from { opacity: 0; }
 }
 
-.loader-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1.5rem;
-    /* Increased gap for better spacing */
-    font-family: var(--font-mono);
-    /* Use mono font for theme */
+/* The copy that plays the leave once the route has loaded (PageLoader.tsx). */
+.page-loader-overlay--leaving {
+    pointer-events: none;
+    animation: page-loader-out var(--dur-fast) var(--ease-depart) forwards;
 }
 
+.page-loader-overlay--leaving .page-loader__scan {
+    animation: none;
+}
+
+/* §12: state transition (remove) · the route chunk finished loading */
+@keyframes page-loader-out {
+    to { opacity: 0; }
+}
+
+/* §08 Layers and overlays: the loader sits in a raised panel, framed by a hairline, above the dimmed page. */
+.loader-content {
+    box-sizing: border-box;
+    max-width: calc(100vw - 2 * var(--space-4));
+    padding: var(--space-4) var(--space-6);
+    border: var(--stroke-hair) solid var(--edge);
+    border-radius: var(--radius-0);
+    background-color: var(--surface-2);
+}
+
+/* §13 Processing: the state word and the message (the announced status) beside the time spent so far, with a
+   single cell travelling the row's lower edge. */
 .page-loader__row {
     position: relative;
-    padding-bottom: var(--stroke-bold);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: start;
+    column-gap: var(--space-6);
+    padding-bottom: calc(var(--space-2) + var(--stroke-bold));
+}
+
+.page-loader__status {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+/* §05 State encoding: the waiting state carries the … glyph with its word. */
+.page-loader__state {
+    color: var(--fg-muted);
+}
+
+.page-loader__state::before {
+    content: "…";
+    content: "…" / "";
+    margin-inline-end: var(--space-1);
+    font-family: var(--font-mono);
+}
+
+.page-loader__elapsed {
+    color: var(--fg-faint);
+}
+
+.loading-text {
+    margin: 0;
+    color: var(--fg-muted);
 }
 
 .page-loader__scan {
@@ -54,11 +102,7 @@
 @media (prefers-reduced-motion: reduce) {
     .page-loader-overlay,
     .page-loader__scan { animation: none; }
-}
-
-.loading-text {
-    color: var(--fg);
-    font-size: 1rem;
-    letter-spacing: 1px;
-    text-transform: uppercase;
+    /* §12 Reduced motion, by class (scan): no travelling cell; the LOADING word stands as the static indicator. */
+    .page-loader__row { padding-bottom: 0; }
+    .page-loader__scan { display: none; }
 }

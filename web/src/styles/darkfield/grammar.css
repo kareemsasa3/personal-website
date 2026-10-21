@@ -81,14 +81,14 @@
 
 /* Hover (§13, operable): the ground rises a surface step; the boundary turns fg-muted and the label fg; the › marker shows.
    [data-df-active] is the item a listbox's keyboard cursor rests on (aria-activedescendant): the item Enter will act on. */
-.df-control:is(:hover, [data-df-active]):where(:not(:disabled, [aria-disabled="true"], .df-control--unavailable)) {
+.df-control:is(:hover, [data-df-active]):where(:not(:disabled, [aria-disabled="true"], [aria-busy="true"], .df-control--unavailable)) {
   background-color: var(--df-ground-up, var(--surface-1));
   border-color: var(--fg-muted);
   --df-bracket-ink: var(--fg-muted);
   color: var(--fg);
 }
-.df-control:is(:hover, [data-df-active]):where(:not(:disabled, [aria-disabled="true"], .df-control--unavailable))::before,
-.df-control--card:is(:hover, [data-df-active]):where(:not(:disabled, [aria-disabled="true"], .df-control--unavailable)) :is(h1, h2, h3, h4, h5, h6)::before {
+.df-control:is(:hover, [data-df-active]):where(:not(:disabled, [aria-disabled="true"], [aria-busy="true"], .df-control--unavailable))::before,
+.df-control--card:is(:hover, [data-df-active]):where(:not(:disabled, [aria-disabled="true"], [aria-busy="true"], .df-control--unavailable)) :is(h1, h2, h3, h4, h5, h6)::before {
   content: "›"; content: "›" / "";
 }
 
@@ -136,9 +136,35 @@
 .df-control:is(:disabled, [aria-disabled="true"]) { border-style: dashed; color: var(--fg-faint); cursor: not-allowed; }
 .df-control--unavailable { border-color: transparent; background-image: none; color: var(--fg-faint); cursor: default; }
 
+/* Processing (§13): the control is waiting on something it set going. Placed after Disabled at equal specificity, it
+   takes over from it: a muted label, a solid frame, and one cell running along the lower edge while the wait lasts.
+   Hover and press leave a busy control alone; the consumer also keeps it disabled, so it cannot be set going twice.
+   The cell uses ::after, which latch lamps and the selection node also use: a busy latch or selected control keeps its
+   own mark and shows no cell. */
+.df-control[aria-busy="true"] { border-style: solid; border-color: var(--edge); color: var(--fg-muted); cursor: progress; }
+.df-control[aria-busy="true"]:where(:not(.df-control--latch, [aria-current]:not([aria-current="false"]), [aria-selected="true"], [aria-pressed="true"]))::after {
+  content: "";
+  position: absolute;
+  inset-block-end: 0;
+  inset-inline-start: 0;
+  width: var(--cell-w);
+  height: var(--stroke-bold);
+  background-color: var(--fg-muted);
+  pointer-events: none;
+  animation: df-processing-scan var(--dur-scan) var(--ease-linear) infinite;
+}
+/* §12: scan / inspection · the route chunk is loading */
+@keyframes df-processing-scan {
+  from { inset-inline-start: 0; }
+  to { inset-inline-start: calc(100% - var(--cell-w)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .df-control[aria-busy="true"]:where(:not(.df-control--latch, [aria-current]:not([aria-current="false"]), [aria-selected="true"], [aria-pressed="true"]))::after { display: none; }
+}
+
 /* Pressed (§13): the inverse, shown on contact and held for dur-instant (pressAcknowledge.ts).
    Pressed and Selected have equal specificity; Pressed wins by coming later in this file. */
-.df-control.df-control:is(:active, [data-df-pressed]):where(:not(:disabled, [aria-disabled="true"], .df-control--unavailable)) {
+.df-control.df-control:is(:active, [data-df-pressed]):where(:not(:disabled, [aria-disabled="true"], [aria-busy="true"], .df-control--unavailable)) {
   background-color: var(--signal);
   border-color: var(--signal);
   --df-bracket-ink: var(--signal);
@@ -153,7 +179,7 @@
    the faint tier with it while disabled or unavailable. */
 .df-control .df-control__value { color: var(--fg); }
 .df-control:is(:disabled, [aria-disabled="true"], .df-control--unavailable) .df-control__value,
-.df-control.df-control:is(:active, [data-df-pressed]):where(:not(:disabled, [aria-disabled="true"], .df-control--unavailable)) .df-control__value {
+.df-control.df-control:is(:active, [data-df-pressed]):where(:not(:disabled, [aria-disabled="true"], [aria-busy="true"], .df-control--unavailable)) .df-control__value {
   color: inherit;
 }
 
