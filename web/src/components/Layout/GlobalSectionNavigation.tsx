@@ -139,7 +139,7 @@ const GlobalSectionNavigation = () => {
               aria-current={activeSection === section.id ? "location" : undefined}
               title={section.label}
             >
-              <span className="dot-tooltip df-label">{section.label}</span>
+              <span className="dot-tooltip df-body-sm">{section.label}</span>
             </button>
           </li>
         ))}

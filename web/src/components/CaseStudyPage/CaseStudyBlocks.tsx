@@ -80,7 +80,7 @@ const CaseStudyBlocks = ({ blocks }: { blocks?: CaseStudyBlock[] }) => {
             return (
               <div key={key} className="case-study-block case-study-comparison">
                 <table className="df-data">
-                  <caption className="df-label">{block.caption}</caption>
+                  <caption className="df-body-sm">{block.caption}</caption>
                   <thead>
                     <tr>
                       <td />
@@ -94,7 +94,7 @@ const CaseStudyBlocks = ({ blocks }: { blocks?: CaseStudyBlock[] }) => {
                   <tbody>
                     {block.rows.map((row) => (
                       <tr key={row.label}>
-                        <th scope="row" className="df-label">{row.label}</th>
+                        <th scope="row" className="df-body-sm">{row.label}</th>
                         {row.values.map((value, column) => (
                           <td key={block.columns[column]} data-label={block.columns[column]} className="df-data">
                             {value}

@@ -1697,7 +1697,7 @@ if (MODE === "check") {
   // handle in signal on an edge hairline rail, no fill) and step from the keyboard; controls disabled under reduced motion
   // stay focusable, show the Disabled signature and ignore activation; the dock tuning disclosure opens and closes from
   // the keyboard. The rail's cells are square and the current one Selected; the rail is an L1 rule at full opacity; the
-  // cell's name shows as a label on surface-2 in edge.
+  // cell's name shows as a tooltip on surface-2 in edge.
   for (const theme of THEMES) {
     const tokens = async (page) => { const t = {}; for (const n of ["--edge", "--rule", "--fg-muted", "--fg", "--fg-faint", "--signal", "--signal-deep", "--surface-2"]) t[n] = await tokenRgb(page, n); return t; };
     const settle = async (page) => page.waitForTimeout(2 * (await page.evaluate(() => parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--dur-instant")))));
@@ -1861,7 +1861,8 @@ if (MODE === "check") {
       await second.hover(); await frames(page); await page.waitForTimeout(300);
       const hovered = await look(second);
       invariant(hovered.bg !== idle.bg && hovered.b === t["--fg-muted"] && hovered.marker.startsWith('"›"'), `${theme} rail: hovered cell ${JSON.stringify(hovered)}`);
-      const tl = await tip.evaluate((e) => { const c = getComputedStyle(e); return [e.matches(".df-label"), c.visibility, c.opacity, c.backgroundColor, c.borderTopColor, c.color, c.borderTopLeftRadius]; });
+      // The cell's name is a section heading, so it speaks in the Narrator voice (fix wave, R1).
+      const tl = await tip.evaluate((e) => { const c = getComputedStyle(e); return [e.matches(".df-body-sm"), c.visibility, c.opacity, c.backgroundColor, c.borderTopColor, c.color, c.borderTopLeftRadius]; });
       invariant(tl[0] && tl[1] === "visible" && tl[2] === "1" && tl[3] === t["--surface-2"] && tl[4] === t["--edge"] && tl[5] === t["--fg-muted"] && tl[6] === "0px", `${theme} rail: tooltip ${tl}`);
       await page.mouse.move(0, 0);
       // From the keyboard: Enter on another cell makes it the current one.
@@ -1998,6 +1999,39 @@ if (MODE === "check") {
         return out;
       }, P3_SKIP);
       invariant(bad.length === 0, `${route}: voice ${JSON.stringify(bad.slice(0, 8))}`);
+    });
+  }
+  // Fix wave (R1, §06 Hierarchy): a label names a thing in one to three words. Every rendered Instrument label on the Phase 3
+  // routes (and the other case studies, a series article, open Settings and the coverage dialog) holds at most three words of
+  // its own: text inside a descendant with its own type class is that descendant's, and screen-reader-only text is not shown.
+  const LABEL_ROUTES = [...P3_ROUTES.map((route) => ({ route })), { route: "/case-studies/erebus" }, { route: "/case-studies/arachne" },
+    { route: "/case-studies/where-the-specification-lived" }, { route: "/writing/the-machine-should-explain-itself" },
+    { route: "/", prepare: openSettings }, { route: "/projects", prepare: (page) => page.getByTitle("View technical coverage").click() }];
+  for (const { route, prepare } of LABEL_ROUTES) {
+    await withPage({ theme: THEMES[0], route }, async (page) => {
+      if (prepare) await prepare(page);
+      const long = await page.evaluate((skip) => {
+        const TYPE = /(^|\s)df-(display-[12]|heading-[123]|body(-lg|-sm)?|label(-lg|-sm)?|readout(-xl)?|code|data|annotation|glyph(-2x)?)(\s|$)/;
+        const typed = (el) => { for (let e = el; e; e = e.parentElement) if (TYPE.test(e.getAttribute("class") ?? "")) return e; return null; };
+        const out = [];
+        for (const label of document.querySelectorAll(".df-label, .df-label-sm, .df-label-lg")) {
+          if (!label.checkVisibility() || label.closest(skip)) continue;
+          const words = [];
+          const walker = document.createTreeWalker(label, NodeFilter.SHOW_TEXT);
+          for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+            if (typed(n.parentElement) !== label) continue;
+            let shown = true;
+            for (let e = n.parentElement; e && e !== label.parentElement; e = e.parentElement) {
+              const r = e.getBoundingClientRect();
+              if (!e.checkVisibility() || r.width <= 1 || r.height <= 1) { shown = false; break; }
+            }
+            if (shown) words.push(...n.textContent.split(/\s+/).filter((w) => /[\p{L}\p{N}]/u.test(w)));
+          }
+          if (words.length > 3) out.push(`${label.tagName.toLowerCase()}.${[...label.classList].join(".")}: ${words.join(" ")}`);
+        }
+        return out;
+      }, P3_SKIP);
+      invariant(long.length === 0, `${route}${prepare ? " (prepared)" : ""}: labels longer than three words ${JSON.stringify(long.slice(0, 12))}`);
     });
   }
   // Case-study prompt text uses the generated code voice even where the evidence block keeps its line breaks.

@@ -213,7 +213,7 @@ const CaseStudyPage = ({ caseStudy }: CaseStudyPageProps) => {
             {caseStudy.links.map((link) => {
               if (link.unavailable) {
                 return (
-                  <div key={link.label} className="case-study-link disabled df-control df-control--unavailable df-label">
+                  <div key={link.label} className="case-study-link disabled df-control df-control--unavailable df-body-sm">
                     <span>{link.label}</span>
                     <span>{link.unavailableLabel ?? "Not public yet"}</span>
                   </div>
@@ -224,21 +224,21 @@ const CaseStudyPage = ({ caseStudy }: CaseStudyPageProps) => {
                 return (
                   <a
                     key={link.label}
-                    className="case-study-link df-control df-label"
+                    className="case-study-link df-control df-body-sm"
                     href={link.href}
                     target="_blank"
                     rel="noreferrer"
                   >
                     <span>{link.label}</span>
-                    <span>Open</span>
+                    <span className="df-label">Open</span>
                   </a>
                 );
               }
 
               return (
-                <Link key={link.label} className="case-study-link df-control df-label" to={link.href}>
+                <Link key={link.label} className="case-study-link df-control df-body-sm" to={link.href}>
                   <span>{link.label}</span>
-                  <span>View</span>
+                  <span className="df-label">View</span>
                 </Link>
               );
             })}

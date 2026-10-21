@@ -166,6 +166,32 @@ test("T7 cascade guard: a header paragraph rule excludes its eyebrow so the labe
   }
 });
 
+// Fix wave (R1): control and table text longer than a label (a heading used as a link, a sentence, a long link text) speaks in
+// the Narrator voice and keeps its control class; the Instrument classes stay on names of one to three words (§06 Hierarchy).
+// The browser test counts the words of every rendered label; this names the reclassified elements.
+test("T7 long control text is Narrator: reclassified elements carry a body class, never the label class", async () => {
+  const classes = async (f) => [...(await read(f)).matchAll(/className=(?:"([^"]*)"|\{`([^`]*)`\})/g)].map((m) => m[1] ?? m[2]);
+  const has = (c, cls) => c.split(/\s+/).includes(cls);
+  const narrator = (c) => /(^|\s)df-body(-sm|-lg)?(\s|$)/.test(c) && !/(^|\s)df-label(-sm|-lg)?(\s|$)/.test(c);
+  const article = await read("components/ArticlePage/ArticlePage.tsx");
+  // The table of contents links (heading text) and the editorial note's summary keep their control model.
+  assert.match(article, /<a className="df-control df-control--light df-body-sm" href=\{`#\$\{entry\.id\}`\}/);
+  assert.match(article, /<summary className="df-control df-control--latch df-body-sm">Editorial note: original synthesis<\/summary>/);
+  // The footer pairs a kind label with its reading time as a Machine value.
+  assert.match(article, /<span className="article-footer-kind">\s*<span className="df-label-sm">\{KIND_LABELS\[entry\.kind\]\}<\/span>\s*<span className="df-data"> · \{entry\.readingMinutes\} min<\/span>/);
+  for (const [file, cls, model] of [["components/CaseStudyPage/CaseStudyPage.tsx", "case-study-link", "df-control"],
+    ["components/Layout/GlobalSectionNavigation.tsx", "dot-tooltip", null]]) {
+    const found = (await classes(file)).filter((c) => has(c, cls));
+    assert.ok(found.length > 0, `${file}: ${cls} not rendered`);
+    for (const c of found) { assert.ok(narrator(c), `${file}: ${c}`); if (model) assert.ok(has(c, model), `${file}: ${c}`); }
+  }
+  // A case-study link's action word (View, Open) stays a label beside the Narrator link text.
+  assert.equal((await read("components/CaseStudyPage/CaseStudyPage.tsx")).match(/<span className="df-label">(View|Open)<\/span>/g)?.length, 2);
+  const blocks = await read("components/CaseStudyPage/CaseStudyBlocks.tsx");
+  assert.match(blocks, /<caption className="df-body-sm">\{block\.caption\}<\/caption>/);
+  assert.match(blocks, /<th scope="row" className="df-body-sm">\{row\.label\}<\/th>/);
+});
+
 test("T8 measure: no Phase 3 max-width or grid track holds a literal ch value; prose containers carry df-prose", async () => {
   const decls = await phase3Decls();
   const bad = decls.filter((d) => /^(max-width|grid-template-columns)$/.test(d.prop) && /\d\s*ch\b/.test(d.value));
@@ -362,7 +388,7 @@ test("T12 settings and section rail: controls follow the model; the switch has n
   assert.match(controls, /aria-pressed=\{option\.value === value\}/);
   assert.match(rail, /aria-current=\{activeSection === section\.id \? "location" : undefined\}/);
   assert.deepEqual((await classes(RAIL + ".tsx")).filter((c) => /\bactive\b/.test(c)), []);
-  assert.match(rail, /className="dot-tooltip df-label"/);
+  assert.match(rail, /className="dot-tooltip df-body-sm"/);
   // §13 Disabled keeps focus: the switch and sliders set aria-disabled, never the disabled attribute, and their handlers
   // ignore activation while disabled.
   assert.doesNotMatch(controls, /(?<![\w-])disabled=\{/);

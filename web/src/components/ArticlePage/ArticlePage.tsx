@@ -107,7 +107,7 @@ const ArticlePage = ({ article }: ArticlePageProps) => {
                 >
                   {article.toc.map((entry) => (
                     <li key={entry.id}>
-                      <a className="df-control df-control--light df-label" href={`#${entry.id}`} aria-current={activeHeading === entry.id ? "location" : undefined}>{entry.label}</a>
+                      <a className="df-control df-control--light df-body-sm" href={`#${entry.id}`} aria-current={activeHeading === entry.id ? "location" : undefined}>{entry.label}</a>
                     </li>
                   ))}
                 </ol>
@@ -188,7 +188,7 @@ const ArticlePage = ({ article }: ArticlePageProps) => {
           </details>
 
           <details className="article-provenance-section">
-            <summary className="df-control df-control--latch df-label">Editorial note: original synthesis</summary>
+            <summary className="df-control df-control--latch df-body-sm">Editorial note: original synthesis</summary>
             <div
               className="article-prose df-prose df-body-sm"
               dangerouslySetInnerHTML={{
@@ -208,8 +208,9 @@ const ArticlePage = ({ article }: ArticlePageProps) => {
               {otherArticles.map((entry) => (
                 <li key={entry.slug}>
                   <Link to={`/writing/${entry.slug}`}>{entry.title}</Link>
-                  <span className="article-footer-kind df-label-sm">
-                    {KIND_LABELS[entry.kind]} · {entry.readingMinutes} min
+                  <span className="article-footer-kind">
+                    <span className="df-label-sm">{KIND_LABELS[entry.kind]}</span>
+                    <span className="df-data"> · {entry.readingMinutes} min</span>
                   </span>
                 </li>
               ))}
