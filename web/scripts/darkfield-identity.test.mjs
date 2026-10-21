@@ -158,3 +158,67 @@ test("T3 theme: applyThemeToDocument writes the computed --field to theme-color 
   assert.ok(select >= 0 && field > select && write > field, "select the theme, then read --field, then write theme-color");
   assert.equal(code.match(/meta\[name="theme-color"\]/g).length, 1, "theme-color is written in one place");
 });
+
+// Task 4 (P4-10; §04 Overused symbols to avoid, §16, §18 Adopted mark): the social image is generated from the Dark tokens,
+// the registered symbol and the image's own existing words.
+const OG = await import("./darkfield-og-image.mjs");
+const ogSvg = await readFile(resolve(web, "public/og-image.svg"), "utf8");
+const symbolFile = await read(SYMBOL);
+
+test("T4 social image: generated from the committed inputs, byte for byte", () => {
+  assert.equal(OG.buildOgSvg({ runtime, symbol: symbolFile, title: OG.OG_TITLE, description: OG.OG_DESCRIPTION }), ogSvg);
+});
+
+test("T4 social image: no binary strings, monogram, Courier, rounded boxes or opacity; colours are Dark tokens only", () => {
+  assert.doesNotMatch(ogSvg, /[01]{8,}/);
+  for (const banned of ["KS", "Courier", "rx=", "opacity"]) assert.ok(!ogSvg.includes(banned), banned);
+  const dark = new Set(runtime.color.tokens.map((t) => t.value.dark));
+  const hexes = [...ogSvg.matchAll(/#[0-9a-fA-F]{3,8}\b/g)].map((m) => m[0]);
+  assert.ok(hexes.length > 0);
+  assert.deepEqual(hexes.filter((h) => !dark.has(h)), []);
+  // No text enters through CSS generated content.
+  assert.doesNotMatch(ogSvg, /(^|[\s;{])content\s*:/);
+});
+
+test("T4 social image: the registered symbol nested verbatim, single colour, with only its position and size added", () => {
+  const d = symbolFile.match(/\sd="([^"]+)"/)[1];
+  assert.equal(ogSvg.split(`d="${d}"`).length, 2, "the registered path occurs exactly once");
+  const root = symbolFile.trim();
+  const open = root.match(/^<svg\b[^>]*>/)[0];
+  const nested = ogSvg.match(new RegExp(`${open.slice(0, -1).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")} x="\\d+" y="\\d+" width="(\\d+)" height="(\\d+)">`));
+  assert.ok(nested, "the symbol's root start tag, plus x, y, width and height only");
+  assert.equal(nested[1], nested[2]);
+  assert.ok(ogSvg.includes(nested[0] + root.slice(open.length)), "the symbol's content follows unchanged");
+  assert.equal([...ogSvg.matchAll(/<path\b/g)].length, 1);
+  assert.match(ogSvg.match(/<path\b[^>]*>/)[0], /\sfill="currentColor"/);
+  const signal = runtime.color.tokens.find((t) => t.name === "signal").value.dark;
+  assert.ok(ogSvg.includes(`<g color="${signal}">${nested[0]}`), "the mark inherits Dark signal");
+});
+
+test("T4 social image: its text is exactly the kept words", () => {
+  // As they appear in og-image.svg at 6f3042e.
+  const KEPT = {
+    name: "Kareem Sasa",
+    role: "Systems Engineer",
+    tagline: "Production software for Linux, backend, and infrastructure-heavy products.",
+    title: "Kareem Sasa - Systems Engineer",
+    desc: "Social preview image for Kareem Sasa's systems engineering portfolio.",
+  };
+  assert.deepEqual([OG.OG_NAME, OG.OG_ROLE, OG.OG_TAGLINE, OG.OG_TITLE, OG.OG_DESCRIPTION],
+    [KEPT.name, KEPT.role, KEPT.tagline, KEPT.title, KEPT.desc]);
+  const symbolTitle = symbolFile.match(/<title>([^<]*)<\/title>/)[1];
+  // The <style> element holds only @font-face and class rules (no generated content, checked above); it is not text.
+  const text = ogSvg.replace(/<style>[\s\S]*?<\/style>/, "").split(/<[^>]*>/).map((s) => s.trim()).filter(Boolean);
+  assert.deepEqual(text, [KEPT.title, KEPT.desc, symbolTitle, KEPT.name, KEPT.role, KEPT.tagline]);
+  assert.doesNotMatch(ogSvg, /text-transform/);
+});
+
+test("T4 social image: og-image.png is the size index.html declares", async () => {
+  const html = await readFile(resolve(web, "index.html"), "utf8");
+  const meta = (p) => html.match(new RegExp(`<meta property="og:image:${p}" content="(\\d+)" />`))[1];
+  const ihdr = pngChunks(await readFile(resolve(web, "public/og-image.png")))[0];
+  assert.equal(ihdr.type, "IHDR");
+  assert.deepEqual([ihdr.raw.readUInt32BE(8), ihdr.raw.readUInt32BE(12)], [Number(meta("width")), Number(meta("height"))]);
+  assert.deepEqual([OG.OG_WIDTH, OG.OG_HEIGHT], [Number(meta("width")), Number(meta("height"))]);
+  assert.match(ogSvg, new RegExp(`^<svg [^>]*width="${meta("width")}" height="${meta("height")}"`));
+});
