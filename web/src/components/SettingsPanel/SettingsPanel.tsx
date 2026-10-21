@@ -7,6 +7,7 @@ import {
   faUpload,
 } from "@fortawesome/free-solid-svg-icons";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { useLocation } from "react-router-dom";
 import {
   DOCK_SIZE_CONFIG,
   BACKGROUND_MOTION_SPEED_CONFIG,
@@ -78,6 +79,38 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const [showResetModal, setShowResetModal] = useState(false);
   const [isDockTuningOpen, setIsDockTuningOpen] = useState(false);
+  // The result of the last export or import: a neutral status line beside the data actions (owner decision, Phase 5
+  // Task 4). It is set only once the action has done what it says, and stays until the next action, a dismissal, or
+  // until Settings closes or the page changes. Failures stay error toasts.
+  const [status, setStatus] = useState<{ text: string; from: "export" | "import" } | null>(null);
+  const exportButtonRef = useRef<HTMLButtonElement>(null);
+  const importButtonRef = useRef<HTMLButtonElement>(null);
+  const openRef = useRef(isOpen);
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    openRef.current = isOpen;
+    if (!isOpen) setStatus(null);
+  }, [isOpen]);
+
+  useEffect(() => {
+    setStatus(null);
+  }, [pathname]);
+
+  // A new result clears the line first and is written on the next frame, so the live region changes text even when the
+  // new status repeats the old one, and is announced again.
+  const reportStatus = (next: { text: string; from: "export" | "import" }) => {
+    setStatus(null);
+    requestAnimationFrame(() => {
+      if (openRef.current) setStatus(next);
+    });
+  };
+
+  const dismissStatus = () => {
+    const from = status?.from;
+    setStatus(null);
+    (from === "import" ? importButtonRef : exportButtonRef).current?.focus();
+  };
 
   // Keep controls honest about what the dock and background actually do.
   const isDockTuningInert = windowWidth <= DOCK_COMPACT_MAX_WIDTH;
@@ -120,6 +153,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
   };
 
   const confirmResetToDefaults = () => {
+    setStatus(null);
     try {
       // Clear localStorage
       resetAllSettings();
@@ -143,6 +177,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
   };
 
   const handleExportSettings = () => {
+    setStatus(null);
     try {
       const settings = { version: SETTINGS_EXPORT_VERSION, ...getAllSettings(theme) };
       const settingsBlob = new Blob([JSON.stringify(settings, null, 2)], {
@@ -159,10 +194,8 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      showSuccess(
-        "Settings Exported",
-        "Your settings have been exported successfully."
-      );
+      // The browser does not report whether the file was saved, only that the download began.
+      reportStatus({ text: "Settings download started", from: "export" });
     } catch (_error) {
       console.error("Failed to export settings:", _error);
       showError(
@@ -179,6 +212,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
     input.onchange = (event) => {
       const file = (event.target as HTMLInputElement).files?.[0];
       if (file) {
+        setStatus(null);
         const reader = new FileReader();
         reader.onload = (e) => {
           try {
@@ -189,10 +223,8 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
             if (settings.isAnimationPaused !== undefined) onAnimationToggle(settings.isAnimationPaused);
             if (settings.backgroundMotionSpeed !== undefined) onBackgroundMotionSpeedChange?.(settings.backgroundMotionSpeed);
 
-            showSuccess(
-              "Settings Imported",
-              "Settings have been imported successfully."
-            );
+            // Parsed and applied.
+            reportStatus({ text: "Settings imported", from: "import" });
           } catch (error) {
             console.error("Failed to import settings:", error);
             showError(
@@ -351,6 +383,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                   <div className="settings-actions">
                     <button
                       type="button"
+                      ref={exportButtonRef}
                       className="settings-action df-control df-label"
                       onClick={handleExportSettings}
                       aria-label="Export settings"
@@ -360,6 +393,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                     </button>
                     <button
                       type="button"
+                      ref={importButtonRef}
                       className="settings-action df-control df-label"
                       onClick={handleImportSettings}
                       aria-label="Import settings"
@@ -376,6 +410,21 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                       <FontAwesomeIcon icon={faUndo} />
                       <span>Reset…</span>
                     </button>
+                  </div>
+                  <div className="settings-status">
+                    <p className="settings-status__text df-body-sm" role="status" aria-live="polite">
+                      {status?.text}
+                    </p>
+                    {status && (
+                      <button
+                        type="button"
+                        className="settings-status__dismiss df-control"
+                        onClick={dismissStatus}
+                        aria-label="Dismiss status"
+                      >
+                        <FontAwesomeIcon icon={faTimes} />
+                      </button>
+                    )}
                   </div>
                 </SettingsSection>
 

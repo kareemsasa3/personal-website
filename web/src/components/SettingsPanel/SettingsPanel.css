@@ -264,6 +264,25 @@
     margin-left: auto;
 }
 
+/* Data action status (Phase 5 Task 4): a neutral line under the actions, in the muted reading voice, with no state
+   hue or marker. The live region stays rendered while empty so the next result is announced; it takes space only
+   when it holds text. */
+.settings-status {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.settings-status:has(> .settings-status__text:not(:empty)) {
+    margin-top: var(--space-2);
+}
+
+.settings-status__text {
+    flex: 1;
+    margin: 0;
+    color: var(--fg-muted);
+}
+
 /* About */
 .settings-about p {
     margin: 0;

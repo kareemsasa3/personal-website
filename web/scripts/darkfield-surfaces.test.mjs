@@ -4,7 +4,8 @@ import assert from "node:assert/strict";
 import { read, governed, declarations, innermost, where, NATIVE, NATIVE_KEYFRAMES, PHASE5, NATIVE5, HOLDS5, DEAD_RULES5 } from "./darkfield-css-scope.mjs";
 
 // Stylesheets a Phase 5 task has finished; the rules below hold for these. Task 24 requires DONE5 to equal PHASE5.
-export const DONE5 = ["pages/NotFound/NotFound.css", "components/common/ErrorBoundary.css", "components/Terminal/TerminalErrorBoundary.css"];
+export const DONE5 = ["pages/NotFound/NotFound.css", "components/common/ErrorBoundary.css", "components/Terminal/TerminalErrorBoundary.css",
+  "components/common/Toast.css", "components/common/ToastContainer.css", "components/common/Modal.css"];
 const decls5 = async () => {
   const out = [];
   for (const file of (await governed(".css")).filter((f) => DONE5.includes(f))) {
@@ -181,5 +182,28 @@ test("P5 errors: the not-found page and the error boundaries carry the error sig
   // Controls do not rest on the alarm band: the idle edge boundary is under 3:1 on fault-deep in Mono, so the actions sit on the field.
   for (const [file, tray] of [["components/common/ErrorBoundary.css", ".error-content .error-actions"], ["components/Terminal/TerminalErrorBoundary.css", ".terminal-error-boundary .error-actions"]]) {
     assert.ok(declarations(await read(file)).some((d) => topLevel(d.selector).includes(tray) && d.prop === "background-color" && d.value === "var(--field)"), `${file}: ${tray}`);
+  }
+});
+
+// §13 Confirmed, Warning and Error (P5-9): a toast reports its outcome with the shared state signature, success as
+// Confirmed (no check mark: §07 excludes it), and an informational toast with none. The pictogram type icons go (§14).
+// The toast leaves when its exit transition ends, not on a timer of its own. The modal is a primary overlay (§08):
+// the chamfer, and controls that follow the control model.
+test("P5 toasts and modal: outcome states use the shared signatures; dialog controls are df-controls", async () => {
+  const toast = await read("components/common/Toast.tsx");
+  for (const icon of ["faCheckCircle", "faExclamationCircle", "faExclamationTriangle", "faInfoCircle"]) assert.doesNotMatch(toast, new RegExp(`\\b${icon}\\b`), icon);
+  const map = /const TOAST_STATE\b[^=]*=\s*\{([^}]*)\}/.exec(toast);
+  assert.ok(map, "Toast.tsx: TOAST_STATE map");
+  assert.deepEqual(Object.fromEntries([...map[1].matchAll(/(\w+):\s*"([^"]*)"/g)].map((m) => [m[1], m[2]])),
+    { success: "df-confirmed", error: "df-error", warning: "df-warning", info: "" });
+  assert.match(toast, /className=\{`toast toast-\$\{type\}[^`]*\$\{TOAST_STATE\[type\]\}`\}/, "the toast element takes its state class");
+  assert.doesNotMatch(toast, /setTimeout\([^;]*,\s*\d+\s*\)/, "Toast.tsx: a hand-timed exit");
+  const classes = (code, first) => [...code.matchAll(/className=\{?[`"]([^`"]*)[`"]/g)].map((m) => m[1].split(/\s+/)).filter((c) => c[0] === first);
+  assert.ok(classes(toast, "toast-close").every((c) => c.includes("df-control")) && classes(toast, "toast-close").length === 1, "toast-close df-control");
+  const modal = await read("components/common/Modal.tsx");
+  assert.ok(classes(modal, "modal-content").length === 1 && classes(modal, "modal-content")[0].includes("df-cut-md"), "modal-content df-cut-md");
+  for (const first of ["modal-close", "modal-button"]) {
+    const found = classes(modal, first);
+    assert.ok(found.length > 0 && found.every((c) => c.includes("df-control") && c.includes("df-label")), `${first}: df-control df-label`);
   }
 });

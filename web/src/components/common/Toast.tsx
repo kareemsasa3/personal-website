@@ -1,13 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faCheckCircle,
-  faExclamationTriangle,
-  faInfoCircle,
-  faTimes,
-  faExclamationCircle,
-} from "@fortawesome/free-solid-svg-icons";
+import { faTimes } from "@fortawesome/free-solid-svg-icons";
 import { INSTANT, motionToken } from "../../utils/motionTokens";
 import "./Toast.css";
 
@@ -19,6 +13,13 @@ export interface ToastProps {
   duration?: number;
   onClose: (id: string) => void;
 }
+
+// §13 state model (P5-9): a toast reports an outcome with the shared signature. Success is Confirmed, failure is
+// Error, a degraded result is Warning, and information carries no state marker.
+const TOAST_STATE: Record<ToastProps["type"], string> = { success: "df-confirmed", error: "df-error", warning: "df-warning", info: "" };
+
+// Milliseconds in a second: under reduced motion the time-left bar is sampled once a second.
+const SECOND = 1000;
 
 const Toast: React.FC<ToastProps> = ({
   id,
@@ -32,41 +33,28 @@ const Toast: React.FC<ToastProps> = ({
   const reduce = useReducedMotion();
   // The toast's own lifetime is data, not a design value.
   const progressSeconds = duration / 1000;
+  const shownAt = useRef(0);
+  const [left, setLeft] = useState(1);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsVisible(false);
-      setTimeout(() => onClose(id), 300); // Wait for exit animation
-    }, duration);
-
+    shownAt.current = performance.now();
+    const timer = setTimeout(() => setIsVisible(false), duration);
     return () => clearTimeout(timer);
-  }, [duration, id, onClose]);
+  }, [duration]);
 
-  const handleClose = () => {
-    setIsVisible(false);
-    setTimeout(() => onClose(id), 300);
-  };
-
-  const getIcon = () => {
-    switch (type) {
-      case "success":
-        return faCheckCircle;
-      case "error":
-        return faExclamationCircle;
-      case "warning":
-        return faExclamationTriangle;
-      case "info":
-        return faInfoCircle;
-      default:
-        return faInfoCircle;
-    }
-  };
+  // Reduced motion: the bar steps once a sample, without movement, so it still reports the time left.
+  useEffect(() => {
+    if (!reduce) return;
+    const timer = setInterval(() => setLeft(Math.max(0, 1 - (performance.now() - shownAt.current) / duration)), SECOND);
+    return () => clearInterval(timer);
+  }, [reduce, duration]);
 
   return (
-    <AnimatePresence>
+    // The toast is removed once its exit transition has finished.
+    <AnimatePresence onExitComplete={() => onClose(id)}>
       {isVisible && (
         <motion.div
-          className={`toast toast-${type}`}
+          className={`toast toast-${type} ${TOAST_STATE[type]}`}
           initial={{ opacity: 0 }}
           animate={{
             opacity: 1,
@@ -81,32 +69,27 @@ const Toast: React.FC<ToastProps> = ({
           role="alert"
           aria-live="assertive"
         >
-          <div className="toast-icon">
-            <FontAwesomeIcon icon={getIcon()} />
-          </div>
-
           <div className="toast-content">
-            <h4 className="toast-title">{title}</h4>
-            {message && <p className="toast-message">{message}</p>}
+            <h4 className="toast-title df-label">{title}</h4>
+            {message && <p className="toast-message df-body-sm">{message}</p>}
           </div>
 
           <button
-            className="toast-close"
-            onClick={handleClose}
+            className="toast-close df-control"
+            onClick={() => setIsVisible(false)}
             aria-label="Close notification"
           >
             <FontAwesomeIcon icon={faTimes} />
           </button>
 
-          {/* Progress bar: under reduced motion it renders without animation. */}
           {reduce ? (
-            <div className="toast-progress" />
+            <div className="toast-progress" style={{ transform: `scaleX(${left})` }} />
           ) : (
             <motion.div
               className="toast-progress"
               initial={{ scaleX: 1 }}
               animate={{ scaleX: 0 }}
-              // §12: state transition (continuous change, constant rate per Easing: ease-linear) · time remaining until the notification is dismissed
+              // §12: state transition (continuous change) · the time left before the notification closes; the bar is that time, so it shrinks at a constant rate
               transition={{ ...motionToken("--dur-base", "--ease-linear"), duration: progressSeconds }}
             />
           )}

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import FocusTrap from "focus-trap-react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -46,8 +46,12 @@ const Modal: React.FC<ModalProps> = ({
     onClose();
   };
 
+  // A click closes the dialog only when the press both began and ended on the backdrop: a press dragged off where it
+  // started, either way between the backdrop and the dialog, does nothing (§13 Activation).
+  const pressOnBackdrop = useRef(false);
+  const releaseOnBackdrop = useRef(false);
   const handleBackdropClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
+    if (e.target === e.currentTarget && pressOnBackdrop.current && releaseOnBackdrop.current) {
       onClose();
     }
   };
@@ -65,13 +69,15 @@ const Modal: React.FC<ModalProps> = ({
             animate={{ opacity: 1, transition: enter }}
             // §12: state transition (remove) · the dialog closed
             exit={{ opacity: 0, transition: leave }}
+            onPointerDown={(event) => { pressOnBackdrop.current = event.target === event.currentTarget; }}
+            onPointerUp={(event) => { releaseOnBackdrop.current = event.target === event.currentTarget; }}
             onClick={handleBackdropClick}
             role="dialog"
             aria-modal="true"
             aria-labelledby="modal-title"
           >
             <motion.div
-              className={`modal-content modal-${type}`}
+              className={`modal-content modal-${type} df-cut-md`}
               initial={{ opacity: 0 }}
               // §12: state transition (create) · the dialog opened
               animate={{ opacity: 1, transition: enter }}
@@ -80,12 +86,12 @@ const Modal: React.FC<ModalProps> = ({
               onClick={(e) => e.stopPropagation()}
             >
               <div className="modal-header">
-                <h2 id="modal-title" className="modal-title">
+                <h2 id="modal-title" className="modal-title df-heading-3">
                   {title}
                 </h2>
                 {showCloseButton && (
                   <button
-                    className="modal-close"
+                    className="modal-close df-control df-label"
                     onClick={onClose}
                     aria-label="Close modal"
                   >
@@ -94,13 +100,13 @@ const Modal: React.FC<ModalProps> = ({
                 )}
               </div>
 
-              <div className="modal-body">{children}</div>
+              <div className="modal-body df-body">{children}</div>
 
               {(onConfirm || onCancel) && (
                 <div className="modal-footer">
                   {onCancel && (
                     <button
-                      className="modal-button modal-button-secondary"
+                      className="modal-button modal-button-secondary df-control df-label"
                       onClick={handleCancel}
                     >
                       {cancelText}
@@ -108,7 +114,7 @@ const Modal: React.FC<ModalProps> = ({
                   )}
                   {onConfirm && (
                     <button
-                      className={`modal-button modal-button-${type}`}
+                      className={`modal-button modal-button-${type} df-control df-label`}
                       onClick={handleConfirm}
                     >
                       {confirmText}

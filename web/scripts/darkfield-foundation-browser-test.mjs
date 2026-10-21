@@ -33,12 +33,13 @@ const SAMPLER_SELECTORS = ["main p", "main li", "h1", "h2", "h3", "a", "button",
 // reach, and the 404 heading's large-text floor. min is 4.5 unless set (WCAG 3:1 for large text).
 // rendered: measure against the rendered pixels; the header's backdrop filter is not a colour stack.
 // prepare: the pair is not on screen at load (Settings is closed); it is measured on its route once prepare(page) has
-// brought it on screen, after the route pass (Phase 3 Task 12).
+// brought it on screen, after the route pass (Phase 3 Task 12), and hovered there when hover is set (Phase 5 Task 4).
 const PAIRS = [
   { selector: ".btn-primary" }, { selector: ".btn-outline", hover: true },
   { selector: ".work-contact-link.primary" }, { selector: ".work-dates", hover: true },
   { selector: ".tech-tag", hover: true }, { selector: ".site-header__link.active" },
-  { selector: ".modal-close", hover: true }, { selector: ".toast-close", hover: true },
+  { selector: ".modal-close", hover: true, route: "/", prepare: (page) => openResetDialog(page) },
+  { selector: ".toast-close", hover: true, route: "/", prepare: (page) => openToast(page) },
   { selector: '.settings-segmented__button[aria-pressed="true"]', route: "/", prepare: (page) => openSettings(page) },
   { selector: ".error-button.primary" }, { selector: ".home-link" },
   { selector: ".project-roster__action--primary", hover: true },
@@ -141,6 +142,8 @@ const measured = {};
 const duplicates = [];
 const ran = new Set();
 const uncovered = new Set(PAIRS.map((p) => p.selector));
+// Pairs that render but hold no text run (icon-only controls): reached, yet nothing measured. Reported, never passed.
+const textless = new Set();
 const errors = [];
 const invariant = (ok, message) => { if (!ok) invariantFailures.push(message); };
 // A page that needs a frozen clock gets it before navigation: installed at a fixed time and paused at a
@@ -237,6 +240,28 @@ const openSettings = async (page) => {
   await page.locator(".site-header__settings-button:visible, .dock-settings-button:visible").first().click();
   await page.locator(".settings-content").waitFor();
   await page.waitForFunction(() => [".settings-sidebar", ".settings-content"].every((s) => getComputedStyle(document.querySelector(s)).opacity === "1"));
+  await page.mouse.move(0, 0);
+  await frames(page);
+};
+// Settings → Import of a file that is not settings raises an error toast (Phase 5 Task 4; export and import successes are
+// a status line, not a toast). The toast closes itself when its lifetime ends; the checks
+// need it on screen for longer, so from here on any timer longer than a second is pushed out of the test's reach. The
+// press hold, the debounces and the waits in this file use shorter timers.
+const openToast = async (page) => {
+  await openSettings(page);
+  await page.evaluate(() => { const start = window.setTimeout; window.setTimeout = (run, ms, ...rest) => start(run, ms > 1000 ? 2 ** 31 - 1 : ms, ...rest); });
+  const [chooser] = await Promise.all([page.waitForEvent("filechooser"), page.getByRole("button", { name: "Import settings", exact: true }).click()]);
+  await chooser.setFiles({ name: "settings.json", mimeType: "application/json", buffer: Buffer.from("not settings") });
+  await page.locator(".toast").waitFor();
+  await page.mouse.move(0, 0);
+  await frames(page);
+};
+// Settings → Reset opens the reset dialog (Phase 5 Task 4).
+const openResetDialog = async (page) => {
+  await openSettings(page);
+  await page.getByRole("button", { name: "Reset all settings to defaults", exact: true }).click();
+  await page.locator(".modal-content").waitFor();
+  await page.waitForFunction(() => getComputedStyle(document.querySelector(".modal-content")).opacity === "1");
   await page.mouse.move(0, 0);
   await frames(page);
 };
@@ -826,6 +851,7 @@ for (const theme of THEMES) {
         }
         if (!hovered) { record("pair", theme, route, key, { ratio: null, reason: "not hover" }); continue; }
         if (result) record("pair", theme, route, key, result, { limit: pair.min ?? 4.5 });
+        else textless.add(key);
       }
       if (MODE === "check" && route === "/") {
         const state = await page.evaluate(() => ({
@@ -879,8 +905,19 @@ for (const theme of THEMES) {
       const target = page.locator(pair.selector).first();
       if (!(await target.count()) || !(await target.isVisible())) return;
       uncovered.delete(pair.selector);
-      const [result] = await contrastOf(page, pair.selector, { all: false, rendered: pair.rendered, enter: AT_REST });
-      if (result) record("pair", theme, pair.route, pair.selector, result, { limit: pair.min ?? 4.5 });
+      // A hover pair is hovered and verified first, as on the route pass; a hover that does not hold is unmeasured.
+      if (pair.hover) {
+        const box = await target.boundingBox();
+        await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+        await frames(page);
+        if (!(await target.evaluate((el) => el.matches(":hover")))) {
+          record("pair", theme, pair.route, `${pair.selector}:hover`, { ratio: null, reason: "not hover" });
+          return;
+        }
+      }
+      const [result] = await contrastOf(page, pair.selector, { all: false, rendered: pair.rendered, enter: pair.hover ? null : AT_REST });
+      if (result) record("pair", theme, pair.route, `${pair.selector}${pair.hover ? ":hover" : ""}`, result, { limit: pair.min ?? 4.5 });
+      else textless.add(`${pair.selector}${pair.hover ? ":hover" : ""}`);
     });
   }
 }
@@ -1306,6 +1343,9 @@ if (MODE === "check") {
     { route: "/simulations/spider", selectors: [".spider-button"] },
     { route: "/terminal", selectors: [".terminal-sidecar"],
       prepare: (page) => page.getByRole("button", { name: "Minimize terminal" }).click() },
+    // Phase 5 Task 4: the toast's Close on an error toast raised by a failed Settings import, and the reset dialog's controls.
+    { route: "/", prepare: openToast, selectors: [".toast-close"] },
+    { route: "/", prepare: openResetDialog, selectors: [".modal-button", ".modal-close"] },
     // The error-boundary actions: the Journey route chunk fails to load after a client-side navigation, so its lazy
     // import rejects and the Layout error boundary renders in place of the route.
     { route: "/darkfield-404-probe", selectors: [".error-button"], prepare: async (page) => {
@@ -1397,11 +1437,17 @@ if (MODE === "check") {
             // Released off the control: no activation (§13 Activation). A click, or the reload a click causes, fails.
             const origin = await page.evaluate(() => performance.timeOrigin);
             await el.evaluate((e) => { window.dfClicks = 0; e.addEventListener("click", () => { window.dfClicks += 1; }, { capture: true }); });
+            await el.evaluate((e) => { window.dfTarget = e; });
             await page.mouse.down(); await frames(page);
             const down = await look(el);
             invariant(down.bg === t["--signal"] && down.fg === t["--on-signal"], `${theme} ${route}: ${selector} pressed ${down.bg} ${down.fg}`);
             await page.mouse.move(0, 0); await page.mouse.up();
             await page.waitForTimeout(instant * 2);
+            // The control (and the dialog or panel holding it) is still on screen: a release off it must not close anything.
+            if (!(await page.evaluate(() => window.dfTarget.isConnected))) {
+              invariant(false, `${theme} ${route}: ${selector} was removed by a release off the control (its container closed)`);
+              continue;
+            }
             const after = await page.evaluate(() => [performance.timeOrigin, window.dfClicks]);
             invariant(after[0] === origin && after[1] === 0, `${theme} ${route}: ${selector} activated on a release off the control ${after}`);
             // Hold: contact and release in one task, sampled before any timer can run (synthetic events never click).
@@ -1477,6 +1523,38 @@ if (MODE === "check") {
       });
     }
   }
+
+  // Phase 5 Task 4 (§13 Confirmed; §12 reduced motion): a success toast (Settings → Reset) is Confirmed (the › marker) and
+  // keeps no type icon (its one icon is Close). Its time-left bar reports the time left with and without reduced motion:
+  // it has shrunk a while after the toast appears, and the toast is removed when its exit ends.
+  for (const reducedMotion of ["reduce", "no-preference"]) {
+    await withPage({ theme: "dark", route: "/", reducedMotion }, async (page) => {
+      await openResetDialog(page);
+      await page.locator(".modal-content").getByRole("button", { name: "Reset", exact: true }).click();
+      const toast = page.locator(".toast");
+      await toast.waitFor();
+      invariant(await toast.evaluate((e) => e.matches(".df-confirmed") && getComputedStyle(e, "::before").content.startsWith('"›"') &&
+        e.querySelectorAll("svg").length === 1), `${reducedMotion}: the success toast is not Confirmed, or keeps its type icon`);
+      const left = () => page.locator(".toast-progress").evaluate((e) => new DOMMatrix(getComputedStyle(e).transform).a);
+      const first = await left();
+      await page.waitForTimeout(1500);
+      const later = await left();
+      invariant(later < first && later > 0, `${reducedMotion}: the time-left bar went from ${first} to ${later}`);
+      await toast.waitFor({ state: "detached" });
+    });
+  }
+  // §13 Activation, the reset dialog's backdrop: a press that starts on the backdrop and is released over the dialog does
+  // not close it; a press and release on the backdrop does.
+  await withPage({ theme: "dark", route: "/" }, async (page) => {
+    await openResetDialog(page);
+    const box = await page.locator(".modal-content").boundingBox();
+    await page.mouse.move(2, 2); await page.mouse.down();
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2); await page.mouse.up();
+    await frames(page);
+    invariant(await page.locator(".modal-content").count() === 1, "reset dialog closed by a press dragged from the backdrop onto the dialog");
+    await page.mouse.click(2, 2);
+    await page.locator(".modal-content").waitFor({ state: "detached" });
+  });
 
   // Task 15 (§13 Disabled): Deal stays in keyboard order with a visible, associated reason. Once the five stock deals
   // are exhausted, hover and activation do nothing. This state is not exercised by the generic first-control pass.
@@ -2462,6 +2540,7 @@ if (MODE === "check") {
 
 await browser.close();
 console.log(`UNCOVERED pairs (not rendered on any listed route): ${[...uncovered].join(", ") || "none"}`);
+console.log(`TEXTLESS pairs (rendered, no text run to measure; colours checked by P3_CONTROLS): ${[...textless].join(", ") || "none"}`);
 
 const row = ({ id, detail: text, value }) => ({ id, check: id.split("|")[0], theme: id.split("|")[1], route: id.split("|")[2], detail: text, baseline: value });
 if (MODE === "record") {

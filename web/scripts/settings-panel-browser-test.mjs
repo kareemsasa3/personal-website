@@ -221,17 +221,73 @@ await withPage({ width: 1440, height: 900 }, async (page) => {
   const { button, panel, focused, reachable, open } = helpers(page);
   await open();
 
+  // Export and import report success as a neutral status line beside the actions, not a toast (owner decision, Phase 5
+  // Task 4): a polite live region, set only after the action succeeded, kept until the next action, a dismissal, Settings
+  // closing or a page change. Failures stay error toasts.
+  const status = page.locator(".settings-status__text");
+  // A result is written one frame after its action (so a repeat is announced again).
+  const statusIs = (text) => page.waitForFunction((t) => document.querySelector(".settings-status__text")?.textContent.trim() === t, text);
+  assert.equal(await status.getAttribute("role"), "status");
+  assert.equal(await status.getAttribute("aria-live"), "polite");
+  assert.equal((await status.textContent()).trim(), "", "no status before any action");
   const [download] = await Promise.all([page.waitForEvent("download"), button("Export settings").click()]);
   const exported = JSON.parse(await readFile(await download.path(), "utf8"));
   assert.equal(exported.version, 1);
   for (const key of ["dockSize", "isAnimationPaused", "navMode", "theme", "backgroundMotionSpeed"]) assert.ok(key in exported, `Export includes ${key}`);
-  await page.getByText("Settings Exported").waitFor();
+  // The browser only reports that a download began, so the status says no more than that.
+  await statusIs("Settings download started");
+  assert.equal(await page.locator(".toast").count(), 0, "no success toast for export");
+  // No lifetime: still there after longer than a toast lives.
+  await page.waitForTimeout(5000);
+  assert.equal((await status.textContent()).trim(), "Settings download started", "the status persists");
+  // A repeated export is announced again: the live region's text is cleared and written afresh, not left untouched.
+  await status.evaluate((e) => { window.dfStatusLog = []; new MutationObserver(() => window.dfStatusLog.push(e.textContent.trim()))
+    .observe(e, { childList: true, characterData: true, subtree: true }); });
+  await Promise.all([page.waitForEvent("download"), button("Export settings").click()]);
+  await page.waitForFunction(() => window.dfStatusLog.at(-1) === "Settings download started");
+  const log = await page.evaluate(() => window.dfStatusLog);
+  assert.ok(log.includes("") && log.at(-1) === "Settings download started", `repeated export re-announces: ${JSON.stringify(log)}`);
 
-  const [chooser] = await Promise.all([page.waitForEvent("filechooser"), button("Import settings").click()]);
-  await chooser.setFiles({ name: "settings.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify({ version: 1, theme: "light", backgroundMotionSpeed: 1.5 })) });
-  await page.getByText("Settings Imported").waitFor();
+  const importFile = async (buffer) => {
+    const [chooser] = await Promise.all([page.waitForEvent("filechooser"), button("Import settings").click()]);
+    await chooser.setFiles({ name: "settings.json", mimeType: "application/json", buffer });
+  };
+  // A failed import: the error toast, and no success status (the previous one is replaced by the new action).
+  await importFile(Buffer.from("not settings"));
+  await page.locator(".toast").getByText("Import Failed").waitFor();
+  assert.equal((await status.textContent()).trim(), "", "no success status after a failed import");
+  assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), "dark", "a failed import applies nothing");
+
+  await importFile(Buffer.from(JSON.stringify({ version: 1, theme: "light", backgroundMotionSpeed: 1.5 })));
+  await page.waitForFunction(() => document.querySelector(".settings-status__text")?.textContent.trim() === "Settings imported");
   assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), "light");
   assert.equal(await page.getByRole("slider", { name: "Speed" }).getAttribute("aria-valuetext"), "1.5 times");
+  assert.equal(await page.locator(".toast").getByText("Settings Imported").count(), 0, "no success toast for import");
+
+  // Dismissed from the keyboard: Tab from Import reaches Reset, then the dismiss control; Enter clears the status and
+  // returns focus to the action that produced it.
+  await button("Import settings").focus();
+  await page.keyboard.press("Tab"); await page.keyboard.press("Tab");
+  const dismiss = button("Dismiss status");
+  assert.ok(await focused(dismiss), "the dismiss control follows the actions in keyboard order");
+  assert.ok(await dismiss.evaluate((e) => e.matches(".df-control")), "the dismiss control is a df-control");
+  await page.keyboard.press("Enter");
+  assert.equal((await status.textContent()).trim(), "");
+  assert.equal(await dismiss.count(), 0);
+  assert.ok(await focused(button("Import settings")), "focus returns to Import after dismissing");
+
+  // Cleared when Settings closes, and when the page changes.
+  await button("Export settings").click();
+  await statusIs("Settings download started");
+  await page.keyboard.press("Escape");
+  await panel.waitFor({ state: "detached" });
+  await open();
+  assert.equal((await page.locator(".settings-status__text").textContent()).trim(), "", "status cleared when Settings closed");
+  await button("Export settings").click();
+  await statusIs("Settings download started");
+  await page.evaluate(() => { history.pushState({}, "", "/writing"); dispatchEvent(new PopStateEvent("popstate")); });
+  await page.waitForFunction(() => location.pathname === "/writing");
+  await page.waitForFunction(() => !document.querySelector(".settings-status__text")?.textContent.trim());
 
   await button("Reset all settings to defaults").click();
   const reset = page.getByRole("dialog", { name: "Reset Settings", exact: true });
