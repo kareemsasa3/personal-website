@@ -10,6 +10,7 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { exportRuntime, RUNTIME_PATH } from "./darkfield-export.mjs";
+import { stripC2pa } from "./darkfield-r1.mjs";
 import { verifyCanonical } from "./darkfield-source.mjs";
 
 const TAG = "tokens-v0-test";
@@ -34,12 +35,36 @@ const tokensJson = `${JSON.stringify({ name: "placeholder", ...runtimeFields }, 
 const FONT = Buffer.from("placeholder font bytes");
 assert.equal(schema, "darkfield-runtime/1");
 assert.equal(exportRuntime(JSON.parse(tokensJson)), runtime);
+// A placeholder registered PNG carrying a synthetic caBX chunk, and its stripped copy.
+const pngChunk = (type, data) => {
+  const length = Buffer.alloc(4);
+  length.writeUInt32BE(data.length);
+  return Buffer.concat([length, Buffer.from(type, "latin1"), Buffer.from(data), Buffer.from([1, 2, 3, 4])]);
+};
+const PLACEHOLDER_PNG = Buffer.concat([
+  Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+  pngChunk("IHDR", [0, 0, 0, 1, 0, 0, 0, 1, 8, 6, 0, 0, 0]),
+  pngChunk("caBX", "synthetic provenance payload"),
+  pngChunk("IDAT", [1, 2, 3, 4, 5]),
+  pngChunk("IEND", []),
+]);
+const PLACEHOLDER_FROM = "r1/favicon/placeholder.png";
+// A canonical blob named .png that is not a PNG, so the strip throws on it.
+const NOT_PNG = Buffer.from("not png bytes");
+const NOT_PNG_FROM = "r1/favicon/not-a-png.png";
+const STRIPPED_PNG = stripC2pa(PLACEHOLDER_PNG, PLACEHOLDER_FROM);
+const CHANGED_PNG = Buffer.from(STRIPPED_PNG);
+CHANGED_PNG[CHANGED_PNG.length - 20] ^= 0xff;
+assert.notDeepEqual(STRIPPED_PNG, PLACEHOLDER_PNG);
 
 const web = join(root, "web");
 await mkdir(join(web, "src/styles/darkfield"), { recursive: true });
 await mkdir(join(web, "public/fonts/darkfield"), { recursive: true });
 await writeFile(join(web, "src/styles/darkfield/tokens.runtime.json"), runtime);
 await writeFile(join(web, "public/fonts/darkfield/Placeholder.woff2"), FONT);
+await writeFile(join(web, "public/placeholder.png"), STRIPPED_PNG);
+await writeFile(join(web, "public/placeholder-changed.png"), CHANGED_PNG);
+const strippedEntry = (bytes) => ({ from: PLACEHOLDER_FROM, transform: "c2pa-strip", sourceSha256: sha(PLACEHOLDER_PNG), sha256: sha(bytes) });
 const FONT_ENTRY = "public/fonts/darkfield/Placeholder.woff2";
 const files = {
   "src/styles/darkfield/tokens.runtime.json": {
@@ -57,8 +82,11 @@ let count = 0;
 const plainDir = async () => {
   const dir = join(root, `plain-${++count}`);
   await mkdir(join(dir, "fonts"), { recursive: true });
+  await mkdir(join(dir, "r1/favicon"), { recursive: true });
   await writeFile(join(dir, "tokens.json"), tokensJson);
   await writeFile(join(dir, "fonts/Placeholder.woff2"), FONT);
+  await writeFile(join(dir, PLACEHOLDER_FROM), PLACEHOLDER_PNG);
+  await writeFile(join(dir, NOT_PNG_FROM), NOT_PNG);
   return dir;
 };
 // A synthetic canonical repository: one commit with the placeholder files, an optional tag on it,
@@ -169,4 +197,39 @@ test("HEAD moved off the pinned commit fails", async () => {
 test("a malformed pin fails before git is consulted", async () => {
   const { dir } = await repo();
   assert.deepEqual(await verifyCanonical(dir, sourceFor("HEAD"), web), ["SOURCE.json: canonical tag or commit is malformed"]);
+});
+
+test("a c2pa-strip entry verifies when the local file is the stripped canonical file", async () => {
+  const { dir, pinned } = await repo();
+  const source = sourceFor(pinned);
+  source.files = { ...files, "public/placeholder.png": strippedEntry(STRIPPED_PNG) };
+  assert.deepEqual(await verifyCanonical(cloneAtTag(dir), source, web), []);
+});
+
+test("a c2pa-strip entry whose local file differs from the stripped canonical file by one byte fails", async () => {
+  const { dir, pinned } = await repo();
+  const source = sourceFor(pinned);
+  source.files = { ...files, "public/placeholder-changed.png": strippedEntry(CHANGED_PNG) };
+  assert.deepEqual(await verifyCanonical(cloneAtTag(dir), source, web), ["public/placeholder-changed.png"]);
+});
+
+test("an entry with an unknown transform fails", async () => {
+  const { dir, pinned } = await repo();
+  const source = sourceFor(pinned);
+  source.files = { ...files, "public/placeholder.png": { ...strippedEntry(STRIPPED_PNG), transform: "resize" } };
+  assert.deepEqual(await verifyCanonical(cloneAtTag(dir), source, web), ["public/placeholder.png: unknown transform"]);
+});
+
+test("a c2pa-strip entry whose canonical source hash differs from sourceSha256 fails", async () => {
+  const { dir, pinned } = await repo();
+  const source = sourceFor(pinned);
+  source.files = { ...files, "public/placeholder.png": { ...strippedEntry(STRIPPED_PNG), sourceSha256: sha("other bytes") } };
+  assert.deepEqual(await verifyCanonical(cloneAtTag(dir), source, web), [`public/placeholder.png: canonical ${PLACEHOLDER_FROM} hash`]);
+});
+
+test("a c2pa-strip entry whose canonical file cannot be stripped fails without throwing", async () => {
+  const { dir, pinned } = await repo();
+  const source = sourceFor(pinned);
+  source.files = { ...files, "public/placeholder.png": { ...strippedEntry(STRIPPED_PNG), from: NOT_PNG_FROM, sourceSha256: sha(NOT_PNG) } };
+  assert.deepEqual(await verifyCanonical(cloneAtTag(dir), source, web), [`public/placeholder.png: no strip of ${NOT_PNG_FROM}`]);
 });

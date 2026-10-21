@@ -18,6 +18,15 @@ const COPIED = [
   "public/fonts/darkfield/licenses/Archivo-OFL.txt",
   "public/fonts/darkfield/licenses/Archivo-Narrow-OFL.txt",
   "public/fonts/darkfield/licenses/IBM-Plex-Mono-OFL.txt",
+  "public/favicon.ico",
+];
+// Registered R1 files shipped after the C2PA strip in darkfield-r1.mjs (recorded as transform "c2pa-strip").
+const STRIPPED = [
+  "public/favicon.svg",
+  "public/favicon-16.png",
+  "public/favicon-32.png",
+  "public/favicon-48.png",
+  "public/apple-touch-icon.png",
 ];
 const sha = async (path) => createHash("sha256").update(await readFile(resolve(web, path))).digest("hex");
 
@@ -34,7 +43,7 @@ test("SOURCE.json pins the canonical revision and both archives", () => {
   assert.deepEqual(Object.keys(source).sort(), ["canonical", "export", "files", "r1", "system", "tokensVersion"]);
   assert.deepEqual(Object.keys(source.export).sort(), ["archive", "sha256"]);
   assert.deepEqual(Object.keys(source.r1).sort(), ["archive", "sha256"]);
-  assert.deepEqual(Object.keys(source.files).sort(), [RUNTIME, ...COPIED].sort());
+  assert.deepEqual(Object.keys(source.files).sort(), [RUNTIME, ...COPIED, ...STRIPPED].sort());
 });
 
 test("the runtime tokens are declared as an allowlist export of the pinned canonical tokens.json", async () => {
@@ -48,13 +57,20 @@ test("the runtime tokens are declared as an allowlist export of the pinned canon
   assert.equal(await sha(RUNTIME), entry.sha256);
 });
 
-test("no canonical file is copied into the public repository except fonts and licences", async () => {
+test("no canonical file is copied into the public repository except fonts, licences and registered R1 files", async () => {
   await assert.rejects(access(resolve(web, "src/styles/darkfield/tokens.json")), "the canonical tokens.json must never be committed");
   for (const path of COPIED) assert.deepEqual(Object.keys(source.files[path]).sort(), ["from", "sha256"], path);
-  for (const path of COPIED) assert.match(source.files[path].from, /^(fonts\/[A-Za-z0-9-]+\.woff2|licenses\/[A-Za-z-]+-OFL\.txt)$/, path);
+  for (const path of COPIED) assert.match(source.files[path].from, /^(fonts\/[A-Za-z0-9-]+\.woff2|licenses\/[A-Za-z-]+-OFL\.txt|r1\/favicon\/favicon\.ico)$/, path);
+  for (const path of STRIPPED) {
+    const entry = source.files[path];
+    assert.deepEqual(Object.keys(entry).sort(), ["from", "sha256", "sourceSha256", "transform"], path);
+    assert.equal(entry.transform, "c2pa-strip", path);
+    assert.match(entry.from, /^r1\/(favicon|symbol)\/[a-z0-9-]+\.(png|svg)$/, path);
+    assert.match(entry.sourceSha256, /^[0-9a-f]{64}$/, path);
+  }
 });
 
-for (const path of COPIED) {
+for (const path of [...COPIED, ...STRIPPED]) {
   test(`${path} matches SOURCE.json`, async () => {
     assert.equal(await sha(path), source.files[path].sha256);
   });

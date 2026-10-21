@@ -14,6 +14,7 @@ import { readFile, realpath } from "node:fs/promises";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { exportRuntime, parseCanonical } from "./darkfield-export.mjs";
+import { stripC2pa } from "./darkfield-r1.mjs";
 import { compileTokens } from "./darkfield-tokens.mjs";
 
 const COMMIT = /^[0-9a-f]{40}$/;
@@ -54,8 +55,25 @@ export const verifyCanonical = async (canonicalDir, source, web) => {
 
   for (const [vendored, entry] of Object.entries(source.files)) {
     const local = await readFile(resolve(web, vendored));
-    if (entry.from) {
-      // Copied files (fonts, licences): byte-identical to their canonical counterparts.
+    if (entry.transform === "c2pa-strip") {
+      // Registered R1 files: the local bytes are exactly the C2PA strip of the pinned canonical file.
+      const canonical = pinned(entry.from);
+      if (!canonical || sha(canonical) !== entry.sourceSha256) {
+        fail(`${vendored}: canonical ${entry.from} hash`);
+        continue;
+      }
+      let stripped = null;
+      try {
+        stripped = stripC2pa(canonical, entry.from);
+      } catch {
+        fail(`${vendored}: no strip of ${entry.from}`);
+        continue;
+      }
+      if (!stripped.equals(local) || sha(local) !== entry.sha256) fail(vendored);
+    } else if (entry.transform !== undefined) {
+      fail(`${vendored}: unknown transform`);
+    } else if (entry.from) {
+      // Copied files (fonts, licences, favicon.ico): byte-identical to their canonical counterparts.
       const canonical = pinned(entry.from);
       if (!canonical || sha(canonical) !== entry.sha256 || sha(local) !== entry.sha256) fail(vendored);
     } else if (entry.derivedFrom) {

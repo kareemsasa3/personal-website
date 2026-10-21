@@ -57,6 +57,40 @@
     "public/fonts/darkfield/licenses/IBM-Plex-Mono-OFL.txt": {
       "from": "licenses/IBM-Plex-Mono-OFL.txt",
       "sha256": "7e6b2818edbd8f6a01ae80641cc8f16a51080d08fb4e532be3a0b6f74adb07da"
+    },
+    "public/favicon.ico": {
+      "from": "r1/favicon/favicon.ico",
+      "sha256": "04556046ff49b362e09db2fa831e1cc0588324e31541482ce15951510f6caaa0"
+    },
+    "public/favicon.svg": {
+      "from": "r1/favicon/favicon.svg",
+      "transform": "c2pa-strip",
+      "sourceSha256": "57c445e98debd1bb2671f6ac87e1fc98634455679b387ff0c033d2c3dfdf7438",
+      "sha256": "02edfce32fd81132883cf48657be580127e681d672bdb9c7fb78d27c0de8dad5"
+    },
+    "public/favicon-16.png": {
+      "from": "r1/favicon/favicon-16.png",
+      "transform": "c2pa-strip",
+      "sourceSha256": "23eeaac2682c610ee40df5862f2881df699812ac4675fd6834ae1556fc03bdf5",
+      "sha256": "6127ceca6613550fa63b18bf8299b78e852ccca826175f91aed52ce4c18f4cbb"
+    },
+    "public/favicon-32.png": {
+      "from": "r1/favicon/favicon-32.png",
+      "transform": "c2pa-strip",
+      "sourceSha256": "8ef6a98bf220848f4f455c3c69d2456aef3012db32a3183a03ed5b4bdc116891",
+      "sha256": "a4062256b6efc3e93a2da0d5894d60d6557a02c04e28a15e175304513d387045"
+    },
+    "public/favicon-48.png": {
+      "from": "r1/favicon/favicon-48.png",
+      "transform": "c2pa-strip",
+      "sourceSha256": "a69c1ecdd89405e8971c04d83d6fddc35485ce664cf2e89fcd651b2878759513",
+      "sha256": "812250941dcd0ce6adaf6c495060dbeb6a832e4760f38dc344b2dccafc581b41"
+    },
+    "public/apple-touch-icon.png": {
+      "from": "r1/favicon/apple-touch-icon.png",
+      "transform": "c2pa-strip",
+      "sourceSha256": "d07fab010d15c2132e0e8eeadeeb94b06e1ebb2f688e3bd99c0f6d98ba440c27",
+      "sha256": "50277a1caddbf471111e4f9dd24669478c0c0c9f640b5a397b26fd49150f0291"
     }
   }
 }
