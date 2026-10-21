@@ -151,6 +151,25 @@ for (const [width, height, inert] of [[500, 834, true], [768, 1024, true], [820,
       assert.ok(await size.isDisabled(), "Dock tuning is disabled where the dock ignores it");
       assert.equal(await size.getAttribute("aria-describedby"), "dock-tuning-note");
       assert.equal((await note.textContent()).trim(), "Dock tuning applies on wider screens.");
+      // §13 Disabled, at this narrow width directly: Size reports aria-disabled rather than the disabled attribute, so it
+      // keeps focus and its reason can be read; the keyboard and the pointer leave its value, readout and the dock alone.
+      assert.equal(await size.getAttribute("aria-disabled"), "true");
+      assert.equal(await size.evaluate((el) => el.hasAttribute("disabled")), false, "Size uses aria-disabled, not the disabled attribute");
+      const readout = page.locator(".setting-slider:has(#dock-size) .setting-value");
+      const [value, shown] = [await size.getAttribute("aria-valuetext"), await readout.textContent()];
+      const iconWidth = () => page.locator(".dock-icon").first().evaluate((el) => el.getBoundingClientRect().width);
+      const icon = await iconWidth();
+      await size.focus();
+      assert.ok(await size.evaluate((el) => document.activeElement === el), "disabled Size keeps focus");
+      for (const key of ["ArrowRight", "End", "PageUp", "Home"]) {
+        await page.keyboard.press(key);
+        assert.equal(await size.getAttribute("aria-valuetext"), value, `${key} moved the disabled Size slider`);
+      }
+      const box = await size.boundingBox();
+      await page.mouse.click(box.x + box.width - 2, box.y + box.height / 2);
+      assert.equal(await size.getAttribute("aria-valuetext"), value, "a click moved the disabled Size slider");
+      assert.equal(await readout.textContent(), shown, "the disabled Size readout changed");
+      assert.equal(await iconWidth(), icon, "the dock changed size while tuning is disabled");
     } else {
       assert.equal(await note.count(), 0);
       assert.ok(!(await size.isDisabled()));

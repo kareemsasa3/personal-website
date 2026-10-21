@@ -1,9 +1,7 @@
 // web/scripts/darkfield-grammar.test.mjs: Phase 3 (Grammar) static invariants.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
-import { resolve } from "node:path";
-import { src, read, reachable, governed, declarations, NATIVE, NATIVE_FILES, innermost, where } from "./darkfield-css-scope.mjs";
+import { read, reachable, governed, declarations, NATIVE, NATIVE_FILES, innermost, where } from "./darkfield-css-scope.mjs";
 
 // Phase ownership (plan: Phase 3 / Phase 5 boundary). Every reachable governed stylesheet is in exactly one list.
 export const PHASE3 = ["index.css", "styles/components.css", "styles/darkfield/grammar.css",
@@ -400,6 +398,8 @@ test("T12 settings and section rail: controls follow the model; the switch has n
   assert.doesNotMatch(await read(S + "SettingsPanel.tsx"), /faChevronRight|settings-disclosure__icon/);
   const css = await read(S + "SettingsPanel.css");
   assert.doesNotMatch(css, /--range-|setting-switch__(track|thumb)|--settings-danger|settings-disclosure__icon|rgba?\(|#[0-9a-f]{3,8}\b/i);
+  // The heading takes no bracket glyph prefix: generated decoration, not a state (§16, fix wave).
+  assert.deepEqual(declarations(css).filter((d) => /::(before|after)/.test(d.selector) && /settings-header/.test(d.selector)).map((d) => d.selector), []);
   // Component rules hold no state look for the listed controls (the rule's subject compound names the class).
   const listed = /\.(settings-close|settings-action(--danger)?|settings-segmented__button|setting-switch|settings-disclosure__toggle|settings-build__link|nav-dot)(?![\w-])[^\s>+~]*$/;
   const decls = (await phase3Decls()).filter((d) => d.file.startsWith(S) || d.file.startsWith(RAIL));
@@ -414,7 +414,7 @@ test("T12 settings and section rail: controls follow the model; the switch has n
   assert.deepEqual(value(".settings-panel", "--df-ground-up"), ["var(--surface-3)"]);
   // The segmented group holds no frame of its own.
   assert.deepEqual(decls.filter((d) => innermost(d.selector) === ".settings-segmented" && /^(border|background|border-radius|padding)/.test(d.prop)).map(where), []);
-  // §13 Direct manipulation: a filled square handle in signal on an edge hairline rail; no progress fill.
+  // §13 Direct manipulation: the current value is a solid square in signal riding an edge hairline; the track carries no fill.
   const range = decls.filter((d) => /^\.setting-range/.test(innermost(d.selector)));
   assert.deepEqual(range.filter((d) => /gradient|--range-/.test(d.value) || d.prop.startsWith("--range-")).map(where), []);
   for (const thumb of [".setting-range::-webkit-slider-thumb", ".setting-range::-moz-range-thumb"]) {
@@ -483,7 +483,10 @@ test("T13 reading controls use the shared model and Journey turns only on activa
   assert.doesNotMatch(journey, /onPointerEnter|onPointerLeave|handleMouseEnter|handleMouseLeave/);
   assert.match(journey, /<button className="timeline-flip-toggle[^\"]*" aria-pressed=\{isFlipped\}/);
   assert.match(await read("components/CaseStudyPage/CaseStudyPage.tsx"), /className="case-study-link disabled df-control df-control--unavailable/);
-  assert.match(await read("components/CaseStudyPage/CaseStudyBlocks.tsx"), /<summary className="df-control df-control--latch df-label">/);
+  // A prompt's summary pairs its label with a Narrator meta line; the meta sits outside the label class, so it keeps the
+  // case it was written in (§06: uppercase is the Instrument voice's).
+  assert.match(await read("components/CaseStudyPage/CaseStudyBlocks.tsx"),
+    /<summary className="df-control df-control--latch df-body-sm">\s*<span className="df-label">\{prompt\.label\}<\/span>\s*<span className="case-study-prompt__meta">\{prompt\.summary\}<\/span>/);
   for (const [file, names] of [
     ["components/CaseStudyPage/CaseStudyPage.css", /\.(case-study-link|case-study-artifact-link|case-study-breadcrumbs a)(?![\w-])/],
     ["components/ArticlePage/ArticlePage.css", /\.(article-series-link|article-toc a|article-toc summary)(?![\w-])/],
@@ -536,7 +539,6 @@ const GENERATED_TYPE = new Set([
 const ICON_SIZES = new Set([
   "components/Navigation/SiteNavigation.css|.site-header__caret",
   "components/ProjectRoster/ProjectRoster.css|.project-roster__toggle-icon",
-  "components/SettingsPanel/SettingsPanel.css|.settings-header h3::before",
   "components/SettingsPanel/SettingsPanel.css|.settings-action svg",
   "components/TerminalDropdown/TerminalDropdown.css|.terminal-dropdown-arrow",
   "components/TerminalDropdown/TerminalDropdown.css|.terminal-option-prefix",

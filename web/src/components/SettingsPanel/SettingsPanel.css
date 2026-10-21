@@ -51,11 +51,6 @@
     gap: 0.5rem;
 }
 
-.settings-header h3::before {
-    content: "[ / ]";
-    font-size: 1.2rem;
-}
-
 /* Target size (§13): the close control holds an icon, not a line of text, so the control model's block padding
    alone can leave it short of three cells on small or coarse-pointer screens. */
 @media (max-width: 768px), (pointer: coarse) {
@@ -153,8 +148,8 @@
     min-width: 4.25rem;
 }
 
-/* Slider (§13 Direct manipulation): the current value is a filled square handle in signal on an edge hairline
-   rail; there is no progress fill. Disabled: the rail is dashed and the handle and readout take the faint tier. */
+/* Slider (§13 Direct manipulation): the current value is a solid square in signal riding an edge hairline; the
+   track carries no fill. Disabled: the rail is dashed and the handle and readout take the faint tier. */
 .setting-slider__head {
     display: flex;
     align-items: baseline;

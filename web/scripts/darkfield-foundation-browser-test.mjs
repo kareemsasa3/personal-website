@@ -974,13 +974,14 @@ if (MODE === "check") {
       }
     }
     // The Projects tech-stack modal is portaled outside .projects-container (r9). It must read the
-    // same global roles as its page, without a page-scoped terminal alias.
+    // same global roles as its page, without a page-scoped terminal alias: the probe resolves the roles inside the page
+    // container, and the modal's text is compared with them.
     await withPage({ theme, route: "/projects" }, async (page) => {
       await page.getByTitle("View technical coverage").click();
       const modal = await page.locator(".tech-stack-modal").evaluate((el) => {
         const scope = document.querySelector(".projects-container");
         const probe = document.createElement("span");
-        el.appendChild(probe);
+        scope.appendChild(probe);
         probe.style.color = "var(--fg)";
         const fg = getComputedStyle(probe).color;
         probe.style.color = "var(--fg-muted)";
@@ -1766,8 +1767,8 @@ if (MODE === "check") {
   }
 
   // Phase 3 Task 12 (§13, §09): Settings and the section rail. A segmented group's pressed option is Selected (band,
-  // signal boundary, node); the switch is a latch whose lamp shows On; sliders are direct manipulation (a filled square
-  // handle in signal on an edge hairline rail, no fill) and step from the keyboard; controls disabled under reduced motion
+  // signal boundary, node); the switch is a latch whose lamp shows On; sliders are direct manipulation (the value a solid
+  // signal square riding an edge hairline, no fill) and step from the keyboard; controls disabled under reduced motion
   // stay focusable, show the Disabled signature and ignore activation; the dock tuning disclosure opens and closes from
   // the keyboard. The rail's cells are square and the current one Selected; the rail is an L1 rule at full opacity; the
   // cell's name shows as a tooltip on surface-2 in edge.
@@ -1847,7 +1848,7 @@ if (MODE === "check") {
       invariant(await speed.evaluate((e) => document.activeElement === e) && await speed.getAttribute("aria-valuetext") === "1.0 times", `${theme} settings: disabled speed moved or lost focus`);
       await sw.focus(); await page.keyboard.press("Space"); await settle(page);
       invariant(await sw.getAttribute("aria-checked") === "true", `${theme} settings: switch did not turn back on`);
-      // Keyboard path (§13 Direct manipulation): arrows step, Home and End go to the limits.
+      // Keyboard path (§13 Direct manipulation): an arrow key moves one step; Home and End jump to the minimum and maximum.
       await speed.focus();
       for (const [key, want] of [["ArrowRight", "1.1 times"], ["End", "2.0 times"], ["ArrowLeft", "1.9 times"], ["Home", "0.5 times"]]) {
         await page.keyboard.press(key);
@@ -1867,7 +1868,7 @@ if (MODE === "check") {
       invariant(drawn.rows.length === 1 && drawn.rows[0].runs <= 2, `${theme} settings: slider rail ${JSON.stringify(drawn.rows)}`);
       invariant(drawn.rows.length === 1 && drawn.rows[0].y >= drawn.handle.y0 && drawn.rows[0].y <= drawn.handle.y1, `${theme} settings: rail not through the handle ${JSON.stringify(drawn)}`);
     });
-    // Disabled under reduced motion (§13 Disabled): focusable, dashed edge boundary, faint label, no hover or press response,
+    // Disabled under reduced motion (§13 Disabled): focusable, a dashed edge boundary, the label in the faint tier, unchanged by hover and press,
     // activation ignored; the speed slider's rail is dashed and its handle and readout faint.
     await withPage({ theme, route: "/" }, async (page) => {
       await openSettings(page);
@@ -2190,6 +2191,10 @@ if (MODE === "check") {
       return { actual: getComputedStyle(el).fontFamily, expected };
     });
     invariant(fonts.actual === fonts.expected, `case-study prompt code voice ${JSON.stringify(fonts)}`);
+    // Fix wave (§06): the summary's meta line is Narrator text in the case it was written in, untracked; only its label is uppercase.
+    const meta = await prompt.locator(".case-study-prompt__meta").evaluate((el) => { const c = getComputedStyle(el);
+      return { transform: c.textTransform, tracking: c.letterSpacing, family: c.fontFamily.split(",")[0].replace(/["']/g, "").trim() }; });
+    invariant(meta.transform === "none" && meta.tracking === "normal" && meta.family === "Archivo", `case-study prompt meta ${JSON.stringify(meta)}`);
   });
   // Phase 3 Task 14 (§06): site text resolves to one of the generated type styles.
   for (const route of P3_ROUTES) {

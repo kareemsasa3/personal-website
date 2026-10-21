@@ -39,9 +39,9 @@ const CaseStudyBlocks = ({ blocks }: { blocks?: CaseStudyBlock[] }) => {
                 {block.heading && <h3 className="df-heading-3">{block.heading}</h3>}
                 {block.prompts.map((prompt) => (
                   <details key={prompt.label} className="case-study-prompt">
-                    <summary className="df-control df-control--latch df-label">
-                      <span>{prompt.label}</span>
-                      <span className="case-study-prompt__meta df-body-sm">{prompt.summary}</span>
+                    <summary className="df-control df-control--latch df-body-sm">
+                      <span className="df-label">{prompt.label}</span>
+                      <span className="case-study-prompt__meta">{prompt.summary}</span>
                     </summary>
                     <pre className="df-code">{prompt.text}</pre>
                   </details>
