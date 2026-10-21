@@ -50,16 +50,23 @@
   font-family: var(--font-mono);
   pointer-events: none;
 }
-/* A card holds block content, where an in-flow marker would open a line of its own: there the marker sits in
-   the leading padding, out of flow. */
-.df-control--card::before {
+/* A card holds block content, where an in-flow marker would open a line of its own. There the card's title (its one
+   heading) carries the marker instead: out of flow in the card's leading padding, the cell directly before the title's
+   first line, so the marker stays with the title however much sits above it. */
+.df-control--card::before { display: none; }
+.df-control--card :is(h1, h2, h3, h4, h5, h6) { position: relative; }
+.df-control--card :is(h1, h2, h3, h4, h5, h6)::before {
+  content: "";
   position: absolute;
-  inset-block: 0;
-  inset-inline-start: var(--space-1);
-  height: auto;
-  margin-inline-start: 0;
+  inset-block-start: 0;
+  inset-inline-end: 100%;
   display: flex;
   align-items: center;
+  justify-content: center;
+  width: var(--cell-w);
+  height: 1lh;
+  font-family: var(--font-mono);
+  pointer-events: none;
 }
 
 /* Target size: on small or coarse-pointer screens every non-card control is at least three cells tall. The height
@@ -79,7 +86,10 @@
   --df-bracket-ink: var(--fg-muted);
   color: var(--fg);
 }
-.df-control:is(:hover, [data-df-active]):where(:not(:disabled, [aria-disabled="true"], .df-control--unavailable))::before { content: "›"; content: "›" / ""; }
+.df-control:is(:hover, [data-df-active]):where(:not(:disabled, [aria-disabled="true"], .df-control--unavailable))::before,
+.df-control--card:is(:hover, [data-df-active]):where(:not(:disabled, [aria-disabled="true"], .df-control--unavailable)) :is(h1, h2, h3, h4, h5, h6)::before {
+  content: "›"; content: "›" / "";
+}
 
 /* Selected (§13): the current pick in a set. The ground is the signal-deep band; boundary and label turn signal; a square node marks the upper-right corner. */
 .df-control:is([aria-current]:not([aria-current="false"]), [aria-selected="true"], [aria-pressed="true"]:not(.df-control--latch)) {

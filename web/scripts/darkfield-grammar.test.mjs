@@ -119,7 +119,8 @@ test("T6 eyebrows speak in the Instrument voice (§06 Interface label); Rhythm L
 
 // Machine voice (§06): the only Phase 3 selectors that may set the mono family. Exact innermost selectors.
 const MACHINE = [".work-dates", ".setting-static-value, .setting-value", ".settings-about .settings-build",
-  ".article-body code, .article-prose code", "pre", "code, kbd, samp", "code", ".df-control::before", ".df-context--live::before"];
+  ".article-body code, .article-prose code", "pre", "code, kbd, samp", "code", ".df-control::before",
+  ".df-control--card :is(h1, h2, h3, h4, h5, h6)::before", ".df-context--live::before"];
 test("T7 voices: Phase 3 sets mono only on Machine text; Narrator inherits; uppercase is the Instrument classes' alone", async () => {
   const decls = await phase3Decls();
   const family = decls.filter((d) => d.prop === "font-family" && !/^(inherit)$/.test(d.value) && !(d.value === "var(--font-sans)" && innermost(d.selector) === "body") && !(d.value === "var(--font-mono)" && MACHINE.includes(innermost(d.selector))));

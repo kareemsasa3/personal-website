@@ -1308,8 +1308,10 @@ if (MODE === "check") {
   ];
   const tokenRgb = (page, name) => page.evaluate((n) => { const p = document.createElement("i"); p.style.color = `var(${n})`;
     document.body.append(p); const c = getComputedStyle(p).color; p.remove(); return c; }, name);
-  const look = (el) => el.evaluate((e) => { const c = getComputedStyle(e); return { b: c.borderTopColor, bg: c.backgroundColor,
-    fg: c.color, r: c.borderTopLeftRadius, marker: getComputedStyle(e, "::before").content, card: e.matches(".df-control--card"),
+  // A card's marker is drawn by its title (its one heading), not by the card itself.
+  const look = (el) => el.evaluate((e) => { const c = getComputedStyle(e); const title = e.matches(".df-control--card") ? e.querySelector("h1, h2, h3, h4, h5, h6") : null;
+    return { b: c.borderTopColor, bg: c.backgroundColor,
+    fg: c.color, r: c.borderTopLeftRadius, marker: getComputedStyle(title ?? e, "::before").content, card: e.matches(".df-control--card"),
     light: e.matches(".df-control--light"),
     sel: e.matches('[aria-current]:not([aria-current="false"]), [aria-selected="true"], [aria-pressed="true"]:not(.df-control--latch)'),
     on: e.matches('.df-control--latch:is([aria-pressed="true"], [aria-checked="true"], [aria-expanded="true"]), details[open] > .df-control--latch'),
@@ -1317,8 +1319,9 @@ if (MODE === "check") {
   // Where the label starts, and where the ::before marker's box ends. A pseudo-element has no rect: an absolute marker
   // is located from its offsets; an in-flow marker ends where an empty probe placed right after it begins, less the
   // marker's trailing margin and, in a flex row, the gap the probe adds (taken relative to the control, which may
-  // re-centre when the probe widens it).
-  const geometry = (el) => el.evaluate((e) => {
+  // re-centre when the probe widens it). A card's label is its title, which draws the card's marker.
+  const geometry = (el) => el.evaluate((card) => {
+    const e = card.matches(".df-control--card") ? card.querySelector("h1, h2, h3, h4, h5, h6") : card;
     const range = document.createRange(); range.selectNodeContents(e);
     const label = range.getBoundingClientRect();
     const before = getComputedStyle(e, "::before");
@@ -1944,6 +1947,55 @@ if (MODE === "check") {
     invariant((await toggle.getAttribute("aria-pressed")) === "true", `${theme} Journey toggle does not flip with Enter`);
   });
 
+  // Fix wave (R1, §13 state model): a card's › marker sits in the cell directly before its title's first line, whatever
+  // stands above the title, at a wide and a phone width. Each visible card has one heading, its title. Hovered, exactly one
+  // marker shows (the card's own or its title's); its vertical centre lies within the title's first line, its right edge
+  // meets the title's first glyph box, and no clipping ancestor up to the card cuts it.
+  for (const route of ["/", "/case-studies", "/writing", "/procedural-animations"]) for (const width of [VIEW_W, 375]) {
+    await withPage({ theme: THEMES[0], route }, async (page) => {
+      if (width !== VIEW_W) { await page.setViewportSize({ width, height: 812 }); await frames(page); }
+      const cards = page.locator(".df-control--card");
+      const n = await cards.count();
+      invariant(n > 0, `${route} ${width}px: no card rendered`);
+      for (let i = 0; i < n; i++) {
+        const card = cards.nth(i);
+        if (!(await card.isVisible())) continue;
+        await card.scrollIntoViewIfNeeded(); await page.mouse.move(0, 0); await frames(page);
+        await card.hover(); await frames(page);
+        const m = await card.evaluate((c) => {
+          const titles = c.querySelectorAll("h1, h2, h3, h4, h5, h6");
+          if (titles.length !== 1) return { error: `${titles.length} headings` };
+          const t = titles[0];
+          const range = document.createRange(); range.selectNodeContents(t);
+          const line = range.getClientRects()[0];
+          const shown = [c, t].filter((e) => { const b = getComputedStyle(e, "::before"); return b.display !== "none" && b.content.startsWith('"›"'); });
+          if (shown.length !== 1) return { error: `${shown.length} markers shown` };
+          const host = shown[0]; const b = getComputedStyle(host, "::before"); const r = host.getBoundingClientRect(); const h = getComputedStyle(host);
+          // An absolute marker's offsets are taken from its host's padding box.
+          const box = { left: r.left + parseFloat(h.borderLeftWidth) + parseFloat(b.left), top: r.top + parseFloat(h.borderTopWidth) + parseFloat(b.top),
+            width: parseFloat(b.width), height: parseFloat(b.height) };
+          const clipped = [];
+          for (let a = t.parentElement; a; a = a.parentElement) {
+            const s = getComputedStyle(a);
+            if (s.overflowX !== "visible" || s.overflowY !== "visible") {
+              const ar = a.getBoundingClientRect();
+              const [l, tp] = [ar.left + parseFloat(s.borderLeftWidth), ar.top + parseFloat(s.borderTopWidth)];
+              if (box.left < l - 0.5 || box.top < tp - 0.5 || box.left + box.width > ar.right - parseFloat(s.borderRightWidth) + 0.5) clipped.push(a.className);
+            }
+            if (a === c) break;
+          }
+          return { host: host === t ? "title" : "card", position: b.position, centre: box.top + box.height / 2, right: box.left + box.width,
+            line: { top: line.top, bottom: line.bottom, left: line.left }, clipped, text: t.textContent.trim().slice(0, 30) };
+        });
+        const where = `${route} ${width}px card ${i}`;
+        if (m.error) { invariant(false, `${where}: ${m.error}`); continue; }
+        invariant(m.position === "absolute", `${where} "${m.text}": the ${m.host}'s marker is ${m.position}, not out of flow`);
+        invariant(m.centre >= m.line.top && m.centre <= m.line.bottom, `${where} "${m.text}": marker centre ${m.centre} outside the title's first line ${m.line.top}-${m.line.bottom}`);
+        invariant(Math.abs(m.right - m.line.left) <= 0.5, `${where} "${m.text}": marker ends at ${m.right}, title starts at ${m.line.left}`);
+        invariant(m.clipped.length === 0, `${where} "${m.text}": marker clipped by ${JSON.stringify(m.clipped)}`);
+      }
+    });
+  }
   // Phase 3 Task 7 (§06): Narrator text is Archivo; uppercase text is Archivo Narrow.
   const P3_ROUTES = ["/", "/projects", "/case-studies", "/case-studies/aether", "/writing", "/writing/what-should-still-be-hard", "/experience", "/journey"];
   // Not Phase 3's on these routes: creative regions, project media chrome (Phase 5), the header mark (Phase 4).

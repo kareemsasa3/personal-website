@@ -3,13 +3,7 @@
 .interactive-card {
   position: relative;
   overflow: hidden;
-  --df-card-pad-inline: 1.5rem;
   padding: 1.5rem;
-}
-
-/* Keep each link card's spacing while the marker sits in its leading padding. */
-a.interactive-card::before {
-  inset-inline-start: calc(var(--df-card-pad-inline) - var(--cell-w));
 }
 
 /* Static modules share a top seam with their neighbours. */
@@ -48,7 +42,6 @@ a.interactive-card::before {
 
 @media (max-width: 480px) {
   .interactive-card {
-    --df-card-pad-inline: 1rem;
     padding: 1rem;
   }
 }
