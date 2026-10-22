@@ -32,7 +32,7 @@ export default function TrafficReadout({ simulation }: { simulation: TrafficSimu
         ["Density", value(Math.round((m.onRoad / scenario.length) * 1000), "veh/km", true)],
         ["Mean speed", value(kmh(m.meanSpeed), "km/h")],
         ["Slowest vehicle", value(kmh(m.minSpeed), "km/h")],
-        ["Stopped or crawling", <>{value(m.queued)} of {value(m.onRoad, undefined, true)}</>, "Vehicles below 7 km/h."],
+        ["Stopped or crawling", <>{value(m.queued)} <span className="df-data">of</span> {value(m.onRoad, undefined, true)}</>, "Vehicles below 7 km/h."],
       ]
     : [
         ["Throughput", value(Math.round(m.flow), "veh/h"), "Vehicles leaving the road over the last minute, scaled to an hour."],
@@ -40,8 +40,9 @@ export default function TrafficReadout({ simulation }: { simulation: TrafficSimu
         ["On road", value(m.onRoad)],
         ["Queued", value(m.queued), "Vehicles below 7 km/h."],
         ["Waiting to enter", value(m.waiting), "Arrivals that could not yet fit onto the road."],
-        // The free-flow time follows from the road's length and speed limit, so it is fixed.
-        ["Trip time", <>{seconds(m.tripTime)} (free flow {seconds(m.freeFlowTripTime, true)})</>, "Mean of the last 50 trips, including any wait at the entrance."],
+        // The free-flow time follows from the road's length and speed limit, so it is fixed. The qualifier names which
+        // trip time the second value is: a label beside its value, like the units (§06).
+        ["Trip time", <>{seconds(m.tripTime)} <span className="df-label-sm">(free flow</span> {seconds(m.freeFlowTripTime, true)}<span className="df-label-sm">)</span></>, "Mean of the last 50 trips, including any wait at the entrance."],
         ["Stops per trip", m.stopsPerTrip === null ? value("—", undefined, true) : value(m.stopsPerTrip.toFixed(2)), "Mean of the last 50 trips."],
         ...(scenario.lanes > 1 ? [["Lane changes", value(m.laneChanges)] as [string, ReactNode]] : []),
       ];

@@ -11,14 +11,16 @@ import "./TrafficSimulator.css";
 const elapsed = (seconds: number) =>
   `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, "0")}`;
 
+// §06: each key names its band in the label voice beside its range as Machine text. The swatches mirror the renderer's
+// speed ramp (P5-2 hold).
 function SpeedLegend() {
   return (
     <ul className="traffic-legend" aria-label="Vehicle shading by speed, as a share of the speed limit">
       {SPEED_BINS.map((bin, index) => (
         <li key={bin.label}>
           <span className={`traffic-swatch traffic-swatch-${index}`} aria-hidden="true" />
-          {bin.label}
-          <span className="traffic-legend-range">
+          <span className="traffic-legend-name df-label-sm">{bin.label}</span>
+          <span className="traffic-legend-range df-data">
             {index === 0 ? "<10%" : bin.max === Infinity ? "≥80%" : `<${Math.round(bin.max * 100)}%`}
           </span>
         </li>

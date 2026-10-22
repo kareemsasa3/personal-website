@@ -146,12 +146,15 @@ export const NATIVE5 = {
   "pages/TrafficSimulator/TrafficSimulator.css": [".traffic-canvas, .traffic-spacetime", ".traffic-canvas", ".traffic-spacetime"],
 };
 // Phase 5 holds: [innermost selector, property] pairs that keep a native value inside a governed rule. P5-2 palette
-// mirrors and the existing native-value holds (Spider's empty-column border, Traffic's speed ramp, the parchment shadow).
+// mirrors and the existing native-value holds (Spider's empty-column border, Traffic's speed ramp and the legend
+// swatches that show it, the parchment shadow).
 const trafficRamp = (selector) => [0, 1, 2, 3, 4].map((i) => [selector, `--traffic-speed-${i}`]);
+const trafficSwatches = [0, 1, 2, 3, 4].map((i) => [`.traffic-swatch-${i}`, "background"]);
 export const HOLDS5 = {
   "components/SpiderSolitaire/SpiderSolitaire.css": [[".spider-solitaire", "--spider-empty-column-border"],
     ['[data-theme="light"] .spider-solitaire', "--spider-empty-column-border"]],
-  "pages/TrafficSimulator/TrafficSimulator.css": [...trafficRamp(".traffic-container"), ...trafficRamp('html[data-theme="light"] .traffic-container')],
+  "pages/TrafficSimulator/TrafficSimulator.css": [...trafficRamp(".traffic-container"), ...trafficRamp('html[data-theme="light"] .traffic-container'),
+    ...trafficSwatches],
   "pages/Annals/Annals.css": [[".annals-page", "--annals-sheet-shadow"], ['[data-theme="light"] .annals-page', "--annals-sheet-shadow"]],
 };
 // Phase 5 rules nothing renders (dead-code ruling): excluded by exact innermost selector or at-rule, never deleted.

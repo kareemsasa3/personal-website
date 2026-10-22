@@ -3,7 +3,9 @@
 import { parseDuration } from "./motionTokens";
 
 const ATTR = "data-df-pressed";
-const TARGET = ".df-control, .df-prose a, .site-header__brand";
+// The Traffic time-space table's disclosure is drawn by creative-owned markup without classes; its page styles give it
+// the latched control's look, so it is acknowledged like one.
+const TARGET = ".df-control, .df-prose a, .site-header__brand, .traffic-table > summary";
 const BUTTONISH = "button, summary, [role='button'], [role='option'], [role='switch'], [role='combobox']";
 const PRESS_KEYS = ["Enter", " "];
 // A checkbox or radio is pressed by Space alone (Enter does not toggle it), whatever control it sits in.

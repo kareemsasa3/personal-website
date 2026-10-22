@@ -1882,6 +1882,220 @@ if (MODE === "check") {
     });
   }
 
+  // Phase 5 Task 11 (§15 Data visualisation; §09 Line hierarchy, whole pixels; §12 Stepped or smooth; §13 Inspect; §05
+  // Rationing the secondary hues; §06 voices). On the Traffic route, in each theme, at 1x and 2x, with the simulation run
+  // until the throughput chart holds several samples: the line holds each sample until the next and then steps (no
+  // diagonal); the axes are tick rails and the line, rails, ticks, gridline and demand line are each drawn on whole device
+  // pixels, as solid as their width, with nothing half-drawn beside them, and the rails and ticks meet the non-text
+  // contrast minimum (3:1, WCAG 1.4.11) against the ground, also where the chart's column starts at a fractional x.
+  // The measuring line, brackets, node and readout appear only while the pointer inspects a sample, are drawn the same
+  // way, and leave the ground unchanged; the readout pairs Machine values with label units on surface-2 in edge.
+  // The demand line is the only coolant mark. The chart offers no keyboard inspection (none existed before); its data
+  // table stays reachable from the keyboard. The legend, the tables and the trip-time qualifier speak in their voices.
+  const chartGeometry = () => {
+    const svg = document.querySelector(".traffic-chart svg");
+    const box = svg.getBoundingClientRect();
+    const segs = [];
+    const add = (kind, el, a, b, fixed, horizontal) => {
+      const cs = getComputedStyle(el);
+      segs.push({ kind, from: Math.min(a, b), to: Math.max(a, b), at: fixed, horizontal, width: parseFloat(cs.strokeWidth),
+        dash: cs.strokeDasharray === "none" ? null : cs.strokeDasharray.split(/[ ,]+/).map(parseFloat) });
+    };
+    const parse = (kind, el) => {
+      let x = 0, y = 0;
+      for (const [, c, args] of (el.getAttribute("d") ?? "").matchAll(/([MHV])([^MHV]+)/g)) {
+        const n = args.split(",").map(Number);
+        if (c === "M") [x, y] = n;
+        else if (c === "H") { add(kind, el, x, n[0], y, true); x = n[0]; } else { add(kind, el, y, n[0], x, false); y = n[0]; }
+      }
+    };
+    for (const [kind, sel] of [["axis", ".traffic-chart-axis"], ["line", ".traffic-chart-line"], ["cross", ".traffic-chart-cross"], ["brackets", ".traffic-chart-brackets"]])
+      for (const el of svg.querySelectorAll(sel)) parse(kind, el);
+    for (const [kind, sel] of [["grid", ".traffic-chart-grid"], ["demand", ".traffic-chart-demand"]])
+      for (const el of svg.querySelectorAll(sel)) add(kind, el, +el.getAttribute("x1"), +el.getAttribute("x2"), +el.getAttribute("y1"), true);
+    // Text and the readout (an overlay above the plot) cover the lines beneath them.
+    const covers = [...svg.querySelectorAll("text"), ...document.querySelectorAll(".traffic-chart-tooltip")].map((t) => {
+      const r = t.getBoundingClientRect(); return { l: r.left - box.left, t: r.top - box.top, r: r.right - box.left, b: r.bottom - box.top }; });
+    const node = svg.querySelector(".traffic-chart-node");
+    // The bracket corners: the four outermost pixels of the brackets' box.
+    const br = svg.querySelector(".traffic-chart-brackets")?.getBBox();
+    const corners = br ? [[Math.floor(br.x), Math.floor(br.y)], [Math.ceil(br.x + br.width) - 1, Math.floor(br.y)],
+      [Math.floor(br.x), Math.ceil(br.y + br.height) - 1], [Math.ceil(br.x + br.width) - 1, Math.ceil(br.y + br.height) - 1]] : [];
+    return { left: box.left, top: box.top, width: box.width, height: box.height, segs, covers, corners,
+      node: node ? { cx: +node.getAttribute("cx"), cy: +node.getAttribute("cy"), r: parseFloat(getComputedStyle(node).r) } : null };
+  };
+  // Each segment is probed where nothing else is drawn within a few pixels (inside a dash on a dashed line); a scan
+  // across it must find exactly its width in device pixels, contiguous, in its token colour (the gridline: none, or
+  // one uniform run of its width, since it is drawn at the ghost opacity).
+  const chartAnalyse = async ([b64, tk, g, clip, scale]) => {
+    const img = new Image(); img.src = `data:image/png;base64,${b64}`; await img.decode();
+    const c = document.createElement("canvas"); [c.width, c.height] = [img.width, img.height];
+    const cx2 = c.getContext("2d"); cx2.drawImage(img, 0, 0);
+    const { data, width, height } = cx2.getImageData(0, 0, c.width, c.height);
+    const rgb = (v) => v.match(/\d+/g).map(Number);
+    const ground = rgb(tk["--surface-1"]);
+    const colour = { axis: rgb(tk["--edge"]), brackets: rgb(tk["--edge"]), cross: rgb(tk["--edge"]), line: rgb(tk["--signal"]), demand: rgb(tk["--coolant"]) };
+    const px = (x, y) => (x < 0 || y < 0 || x >= width || y >= height ? ground : [0, 1, 2].map((j) => data[(y * width + x) * 4 + j]));
+    const near = (a, b, t) => a.every((v, j) => Math.abs(v - b[j]) <= t);
+    const lum = (p) => { const l = p.map((v) => v / 255).map((v) => (v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4)); return 0.2126 * l[0] + 0.7152 * l[1] + 0.0722 * l[2]; };
+    const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((m, n) => n - m); return (x + 0.05) / (y + 0.05); };
+    const dist = (s, x, y) => { const [along, across] = s.horizontal ? [x, y] : [y, x];
+      return Math.max(along < s.from ? s.from - along : along > s.to ? along - s.to : 0, Math.abs(across - s.at) - s.width / 2); };
+    const clear = (s, x, y) => g.segs.every((o) => o === s || o.kind === "grid" || dist(o, x, y) > 3) &&
+      g.covers.every((t) => x < t.l - 3 || x > t.r + 3 || y < t.t - 3 || y > t.b + 3) &&
+      (!g.node || s.kind === "line" || Math.hypot(x - g.node.cx, y - g.node.cy) > g.node.r + 4);
+    const out = [];
+    for (const s of g.segs) {
+      if (s.to - s.from < 4) continue;
+      const spots = [];
+      if (s.dash) { const period = s.dash.reduce((a, b) => a + b, 0); for (let p = s.from; p + s.dash[0] <= s.to; p += period) spots.push(p + s.dash[0] / 2); }
+      else for (const f of [0.15, 0.3, 0.5, 0.7, 0.85]) spots.push(s.from + (s.to - s.from) * f);
+      for (const along of spots) {
+        const [x, y] = s.horizontal ? [along, s.at] : [s.at, along];
+        if (!clear(s, x, y)) continue;
+        const X = Math.floor((g.left + x - clip.x) * scale), Y = Math.floor((g.top + y - clip.y) * scale);
+        const inked = [];
+        for (let k = -4 * scale; k <= 4 * scale; k++) { const p = s.horizontal ? px(X, Y + k) : px(X + k, Y); if (!near(p, ground, s.kind === "grid" ? 0 : 10)) inked.push({ k, p }); }
+        const runs = inked.length > 0 && inked.at(-1).k - inked[0].k === inked.length - 1;
+        const solid = s.kind === "grid" ? inked.every((i) => near(i.p, inked[0].p, 0)) : inked.every((i) => near(i.p, colour[s.kind], 8));
+        const ok = s.kind === "grid" ? inked.length === 0 || (runs && inked.length === s.width * scale && solid) : runs && inked.length === s.width * scale && solid;
+        out.push({ kind: s.kind, at: s.at, along: +along.toFixed(1), ok, n: inked.length, contrast: inked.length ? +Math.min(...inked.map((i) => ratio(i.p, ground))).toFixed(2) : 0 });
+        if (!s.dash) break;
+      }
+    }
+    // Each bracket corner pixel is solid edge in every device pixel it covers. Where the svg's own pixel grid starts in
+    // the capture is found from the two rails, whose pixel columns and rows are known.
+    const rail = (horizontal) => g.segs.filter((r) => r.kind === "axis" && r.horizontal === horizontal).sort((a, b) => (b.to - b.from) - (a.to - a.from))[0];
+    const start = (r) => {
+      for (const along of [0.1, 0.2, 0.35, 0.65, 0.8, 0.9].map((f) => r.from + (r.to - r.from) * f)) {
+        const base = Math.floor(((r.horizontal ? g.top : g.left) + r.at - (r.horizontal ? clip.y : clip.x)) * scale);
+        const fixed = Math.floor(((r.horizontal ? g.left : g.top) + along - (r.horizontal ? clip.x : clip.y)) * scale);
+        const hits = [];
+        for (let k = -3 * scale; k <= 3 * scale; k++) { const p = r.horizontal ? px(fixed, base + k) : px(base + k, fixed); if (near(p, colour.axis, 8)) hits.push(base + k); }
+        if (hits.length === scale && hits.at(-1) - hits[0] === scale - 1) return hits[0] - Math.floor(r.at) * scale;
+      }
+      return null;
+    };
+    const origin = g.corners.length ? { x: start(rail(false)), y: start(rail(true)) } : null;
+    if (origin && (origin.x === null || origin.y === null)) out.push({ kind: "corner", ok: false, n: 0, contrast: 0, note: "rails not found" });
+    for (const [x, y] of origin && origin.x !== null && origin.y !== null ? g.corners : []) {
+      if (!g.covers.every((t) => x + 1 < t.l || x > t.r || y + 1 < t.t || y > t.b)) continue;
+      const X = origin.x + x * scale, Y = origin.y + y * scale;
+      const cells = [];
+      for (let j = 0; j < scale; j++) for (let i = 0; i < scale; i++) cells.push(px(X + i, Y + j));
+      out.push({ kind: "corner", at: y, along: x, ok: cells.every((p) => near(p, colour.brackets, 8)), n: cells.length,
+        contrast: +Math.min(...cells.map((p) => ratio(p, ground))).toFixed(2), px: cells.map((p) => p.join(",")) });
+    }
+    return out;
+  };
+  const chartLines = async (page, scale, tok, where, kinds) => {
+    const g = await page.evaluate(chartGeometry);
+    const clip = { x: Math.floor(g.left) - 4, y: Math.floor(g.top) - 4, width: Math.ceil(g.width) + 8, height: Math.ceil(g.height) + 8 };
+    const res = await page.evaluate(chartAnalyse, [(await page.screenshot({ clip })).toString("base64"), tok, g, clip, scale]);
+    for (const kind of kinds) invariant(res.some((r) => r.kind === kind), `${where}: no ${kind} line could be measured`);
+    const bad = res.filter((r) => !r.ok || (["axis", "brackets", "corner", "cross"].includes(r.kind) && r.contrast < 3));
+    invariant(bad.length === 0, `${where}: chart lines not whole-pixel or below 3:1 ${JSON.stringify(bad.slice(0, 4))}`);
+  };
+  for (const theme of THEMES) for (const scale of [1, 2]) {
+    await withPage({ theme, route: "/simulations/traffic-simulator", scale }, async (page) => {
+      const at = `${theme} /simulations/traffic-simulator @${scale}x`;
+      const tok = {}; for (const n of ["--surface-1", "--surface-2", "--edge", "--signal", "--coolant", "--fg", "--fg-muted"]) tok[n] = await tokenRgb(page, n);
+      await page.getByLabel("Playback").selectOption("16");
+      await page.getByRole("button", { name: "Play", exact: true }).click();
+      await page.waitForFunction(() => (document.querySelector(".traffic-chart-line")?.getAttribute("d").match(/[HL]/g) ?? []).length >= 4, null, { timeout: 30000 });
+      await page.getByRole("button", { name: "Pause", exact: true }).click();
+      const svg = page.locator(".traffic-chart svg");
+      await svg.scrollIntoViewIfNeeded(); await frames(page);
+      const d = await page.locator(".traffic-chart-line").getAttribute("d");
+      invariant(/^M\d+,\d+(H\d+V\d+)+$/.test(d), `${at}: the throughput line is not sample-and-hold ${d.slice(0, 80)}`);
+      const inspecting = () => page.evaluate(() => [".traffic-chart-cross", ".traffic-chart-brackets", ".traffic-chart-node", ".traffic-chart-tooltip"].map((s) => document.querySelectorAll(s).length));
+      invariant((await inspecting()).every((n) => n === 0), `${at}: inspect marks shown at rest`);
+      await chartLines(page, scale, tok, `${at} at rest`, ["axis", "line", "demand"]);
+      // §05: the demand line is the only coolant mark (in Mono coolant becomes fg, so the check runs in hue themes).
+      if (theme !== "mono") {
+        const hued = await page.evaluate((coolant) => [...document.querySelectorAll(".traffic-container *")].filter((e) => { const c = getComputedStyle(e);
+          return [c.color, c.backgroundColor, c.borderTopColor, c.fill, c.stroke].includes(coolant) && !e.matches(".traffic-chart-demand"); })
+          .map((e) => `${e.tagName}.${e.getAttribute("class")}`), tok["--coolant"]);
+        invariant(hued.length === 0, `${at}: coolant outside the demand line ${JSON.stringify(hued.slice(0, 4))}`);
+      }
+      // Inspect: the pointer on the plot.
+      const panel = () => page.locator(".traffic-chart").evaluate((e) => [getComputedStyle(e.closest(".traffic-charts")).backgroundColor, getComputedStyle(e).backgroundColor, getComputedStyle(e.querySelector("svg")).backgroundColor]);
+      const ground = await panel();
+      const box = await svg.boundingBox();
+      await page.mouse.move(box.x + box.width * 0.55, box.y + box.height / 2); await frames(page);
+      invariant((await inspecting()).every((n) => n === 1), `${at}: inspecting shows ${JSON.stringify(await inspecting())} (measuring line, brackets, node, readout)`);
+      invariant(JSON.stringify(await panel()) === JSON.stringify(ground), `${at}: the ground changed while inspecting`);
+      const readout = await page.locator(".traffic-chart-tooltip").evaluate((e) => { const c = getComputedStyle(e);
+        return { bg: c.backgroundColor, border: `${c.borderTopStyle} ${c.borderTopColor}`, values: [...e.querySelectorAll(".df-data")].map((v) => getComputedStyle(v).fontFamily.split(",")[0]),
+          units: [...e.querySelectorAll(".df-label-sm")].map((u) => u.textContent), text: e.textContent }; });
+      invariant(readout.bg === tok["--surface-2"] && readout.border === `solid ${tok["--edge"]}` && readout.values.length === 3 &&
+        readout.values.every((f) => /IBM Plex Mono/.test(f)) && readout.units.includes("veh/h") && readout.units.includes("km/h") &&
+        /^\d+ veh\/hat \d+:\d\d · mean \d+ km\/h$/.test(readout.text), `${at}: the readout ${JSON.stringify(readout)}`);
+      await chartLines(page, scale, tok, `${at} inspecting`, ["axis", "line", "cross", "brackets", "corner"]);
+      await page.mouse.move(0, 0); await frames(page);
+      invariant((await inspecting()).every((n) => n === 0), `${at}: inspect marks stay after the pointer leaves`);
+      // A column that starts at a fractional x (the two charts share the region three to two).
+      await page.setViewportSize({ width: 1024, height: VIEW_H });
+      await svg.scrollIntoViewIfNeeded(); await frames(page);
+      await chartLines(page, scale, tok, `${at} 1024px`, ["axis", "line", "demand"]);
+      // The readout stays inside the chart's box (and so the panel and the viewport) wherever the pointer inspects, on a
+      // phone and on a wide screen; it is placed on whole pixels, without a transform.
+      for (const width of [320, 375, VIEW_W]) {
+        await page.setViewportSize({ width, height: VIEW_H });
+        await svg.evaluate((e) => e.scrollIntoView({ block: "center" })); await frames(page);
+        const plot = await svg.boundingBox();
+        const outside = [];
+        for (let f = 0; f <= 1.0001; f += 0.05) {
+          await page.mouse.move(plot.x + plot.width * Math.min(f, 0.999), plot.y + plot.height / 2); await frames(page);
+          const r = await page.evaluate(() => { const t = document.querySelector(".traffic-chart-tooltip"); if (!t) return null;
+            const a = t.getBoundingClientRect(), c = t.parentElement.getBoundingClientRect();
+            return { inChart: a.left >= c.left - 0.5 && a.right <= c.right + 0.5, inView: a.left >= -0.5 && a.right <= innerWidth + 0.5,
+              transform: getComputedStyle(t).transform, left: t.style.left }; });
+          if (r && !(r.inChart && r.inView && r.transform === "none" && /^-?\d+px$/.test(r.left))) outside.push({ f: +f.toFixed(2), ...r });
+        }
+        invariant(outside.length === 0, `${at} ${width}px: the readout leaves the chart ${JSON.stringify(outside.slice(0, 3))}`);
+        await page.mouse.move(0, 0); await frames(page);
+      }
+      await page.setViewportSize({ width: VIEW_W, height: VIEW_H });
+      // Keyboard: the chart takes no focus (no keyboard inspection existed before); its data table opens from the keyboard.
+      invariant(await svg.evaluate((e) => !e.hasAttribute("tabindex") && e.tabIndex < 0), `${at}: the chart became focusable`);
+      const summary = page.locator(".traffic-chart .traffic-table > summary");
+      await summary.focus(); await page.keyboard.press("Enter"); await frames(page);
+      const latch = await summary.evaluate((e) => ({ open: e.parentElement.open, control: e.matches(".df-control.df-control--latch.df-label"), lamp: getComputedStyle(e, "::after").backgroundColor }));
+      invariant(latch.open && latch.control && latch.lamp === tok["--signal"], `${at}: the data table's latch from the keyboard ${JSON.stringify(latch)}`);
+      // The time-space table's disclosure (creative-owned markup, styled from the page) shows the same latch.
+      const slow = page.locator(".traffic-table:has(.traffic-slow-table) > summary");
+      // Enter on it shows the Pressed inverse while the key is down, as on any control.
+      await slow.focus(); await page.keyboard.down("Enter");
+      const pressed = await slow.evaluate((e) => ({ attr: e.hasAttribute("data-df-pressed"), bg: getComputedStyle(e).backgroundColor }));
+      await page.keyboard.up("Enter");
+      await slow.evaluate((e) => new Promise((done) => { const tick = () => (e.hasAttribute("data-df-pressed") ? requestAnimationFrame(tick) : done()); tick(); }));
+      invariant(pressed.attr && pressed.bg === tok["--signal"], `${at}: Enter on the time-space table's disclosure ${JSON.stringify(pressed)}`);
+      const slowLatch = await slow.evaluate((e) => ({ open: e.parentElement.open, border: `${getComputedStyle(e).borderTopStyle} ${getComputedStyle(e).borderTopColor}`,
+        lamp: getComputedStyle(e, "::after").backgroundColor }));
+      invariant(slowLatch.open && slowLatch.border === `solid ${tok["--edge"]}` && slowLatch.lamp === tok["--signal"], `${at}: the time-space table's latch ${JSON.stringify(slowLatch)}`);
+      // Voices.
+      const voices = await page.evaluate(() => {
+        const fam = (e) => e && getComputedStyle(e).fontFamily.split(",")[0].replace(/["']/g, "");
+        const q = (s) => document.querySelector(s);
+        return { legend: fam(q(".traffic-legend-name")),
+          // The ranges keep the Machine voice's case and spacing (the label class sits on the band names only).
+          rangeCase: [...document.querySelectorAll(".traffic-legend-range")].every((e) => getComputedStyle(e).textTransform === "none" && getComputedStyle(e).letterSpacing === "normal"), range: fam(q(".traffic-legend-range")), th: fam(q(".traffic-chart th")), td: fam(q(".traffic-chart td")),
+          slowTh: fam(q(".traffic-slow-table th")), slowTd: fam(q(".traffic-slow-table td")), slowSummary: fam(q(".traffic-table:has(.traffic-slow-table) > summary")),
+          tick: fam(q(".traffic-chart-tick")), freeFlow: [...document.querySelectorAll(".traffic-metrics dd .df-label-sm")].filter((e) => /free flow/.test(e.textContent)).map(fam),
+          // Each swatch is square and shows its held ramp colour.
+          swatches: [...document.querySelectorAll(".traffic-swatch")].map((e, i) => { const r = e.getBoundingClientRect(); const p = document.createElement("i");
+            p.style.color = `var(--traffic-speed-${i})`; e.append(p); const held = getComputedStyle(p).color; p.remove();
+            return [r.width === r.height, getComputedStyle(e).backgroundColor === held]; }) };
+      });
+      invariant(voices.legend === "Archivo Narrow" && voices.range === "IBM Plex Mono" && voices.rangeCase && voices.th === "Archivo Narrow" && voices.td === "IBM Plex Mono" &&
+        voices.slowTh === "Archivo Narrow" && voices.slowTd === "IBM Plex Mono" && voices.slowSummary === "Archivo Narrow" && voices.tick === "IBM Plex Mono" &&
+        voices.freeFlow.length === 1 && voices.freeFlow[0] === "Archivo Narrow",
+        `${at}: voices ${JSON.stringify({ ...voices, swatches: undefined })}`);
+      invariant(voices.swatches.length === 5 && voices.swatches.every(([square, held]) => square && held), `${at}: legend swatches ${JSON.stringify(voices.swatches)}`);
+    });
+  }
+
   // Phase 5 Task 4 (§13 Confirmed; §12 reduced motion): a success toast (Settings → Reset) is Confirmed (the › marker) and
   // keeps no type icon (its one icon is Close). Its time-left bar reports the time left with and without reduced motion:
   // it has shrunk a while after the toast appears, and the toast is removed when its exit ends.

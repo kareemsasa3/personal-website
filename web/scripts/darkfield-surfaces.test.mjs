@@ -8,7 +8,7 @@ export const DONE5 = ["pages/NotFound/NotFound.css", "components/common/ErrorBou
   "components/common/Toast.css", "components/common/ToastContainer.css", "components/common/Modal.css", "components/common/PageLoader.css",
   "pages/ProceduralAnimations/ProceduralAnimations.css", "pages/ProceduralAnimationPiece/ProceduralAnimationPiece.css",
   "components/ProjectMedia/ProjectMedia.css", "pages/Simulations/Simulations.css", "components/SimulationCard/SimulationCard.css",
-  "pages/OrbitalSimulator/OrbitalSimulator.css"];
+  "pages/OrbitalSimulator/OrbitalSimulator.css", "pages/TrafficSimulator/TrafficSimulator.css"];
 const decls5 = async () => {
   const out = [];
   for (const file of (await governed(".css")).filter((f) => DONE5.includes(f))) {
@@ -634,4 +634,85 @@ test("P5 traffic: controls, sliders, fields, panels and readouts", async () => {
   // Controls take their colours from the control model only.
   assert.deepEqual(css.filter((d) => /(button|traffic-primary|traffic-back)(:[\w-]+)*$/.test(d.selector) &&
     /^(color|background|background-color|border|border-color|border-radius)$/.test(d.prop)).map(where), []);
+});
+
+// Traffic legends, chart and tables (Phase 5 Task 11; §15 Data visualisation; §09 Line hierarchy, Dash semantics; §12
+// Stepped or smooth; §13 Inspect; §05 Rationing the secondary hues). The throughput is sampled, so its line steps: each
+// sample holds level until the next sample's time, then the line steps to the new value, with no diagonal between
+// samples. The axes are tick rails in edge, the gridlines the grid level, and there is no chart border; throughput is
+// drawn in signal and the demand it is measured against in coolant, the only coolant mark. The measuring line, brackets, node and
+// readout exist only while a sample is inspected. The legend names its bands in the label voice with Machine ranges
+// and square swatches that keep the renderer's ramp (held). The tables put column names in the label voice and values in
+// the Machine voice under single rules; the throughput table's disclosure is a latched control.
+test("P5 traffic: the throughput chart, legend and tables are Darkfield diagrams", async () => {
+  const chart = await read("components/TrafficSimulator/ThroughputChart.tsx");
+  const page = await read("pages/TrafficSimulator/TrafficSimulator.tsx");
+  const readout = await read("components/TrafficSimulator/TrafficReadout.tsx");
+  // Sample-and-hold: the path is a move, then for every later sample a level run to its time and a step to its value.
+  assert.match(chart, /const path = points\.map\(\(p, i\) => \(i \? `H\$\{x\(p\.time\)\}V\$\{y\(p\.flow\)\}` : `M\$\{x\(p\.time\)\},\$\{y\(p\.flow\)\}`\)\)\.join\(""\);/,
+    "the line holds each sample, then steps");
+  assert.doesNotMatch(chart, /`\$\{i \? "L"|[`"]L\$\{|"L"/, "no straight segment joins two samples");
+  // Whole pixels: positions round to the pixel grid, hairlines sit half a pixel off it.
+  assert.match(chart, /const hair = \(v: number\) => Math\.round\(v\) \+ 0\.5;/);
+  assert.match(chart, /const x = \(t: number\) => Math\.round\(/); assert.match(chart, /const y = \(flow: number\) => Math\.round\(/);
+  // Tick and bracket lengths come from the grid token, never a number in the component.
+  assert.match(chart, /getPropertyValue\("--grid-unit"\)/);
+  for (const name of ["traffic-chart-grid", "traffic-chart-axis", "traffic-chart-line", "traffic-chart-demand"]) assert.match(chart, new RegExp(`className="${name}"`));
+  assert.equal((chart.match(/className="traffic-chart-tick df-annotation"/g) ?? []).length, 3, "tick values are annotations");
+  assert.match(chart, /<tspan className="df-label-sm">demand<\/tspan> <tspan className="traffic-chart-label-value df-data">\{demand\}<\/tspan>/, "the demand label keeps its words");
+  // Inspect: only while a sample is active.
+  const inspect = chart.slice(chart.indexOf("{active && ("), chart.indexOf("Hit area"));
+  for (const name of ["traffic-chart-cross", "traffic-chart-brackets", "traffic-chart-node"]) assert.ok(inspect.includes(`className="${name}"`), `${name} shows only while inspecting`);
+  assert.match(chart, /\{active && \(\s*<div ref=\{readout\} className="traffic-chart-tooltip df-body-sm" style=\{\{ left: readoutLeft \}\} role="status">/, "the readout shows only while inspecting");
+  assert.match(chart, /<span className="df-data">\{Math\.round\(active\.flow\)\}<\/span> <span className="df-label-sm">veh\/h<\/span>/, "readout value and unit");
+  // The readout is placed by its left edge alone, on a whole pixel, and clamped inside the chart's box when neither side
+  // of the measuring line holds it.
+  assert.match(chart, /style=\{\{ left: readoutLeft \}\}/); assert.doesNotMatch(chart, /right: width - ax/);
+  assert.match(chart, /const readoutLeft = Math\.round\(/); assert.match(chart, /Math\.max\(0, Math\.min\(box - readoutWidth, /);
+  // Each bracket leg is its own run from the box's outer edge, so both legs cover the corner pixel.
+  assert.match(chart, /return `M\$\{ox - sx \* 0\.5\},\$\{oy\}V\$\{oy - sy \* unit\}M\$\{ox\},\$\{oy - sy \* 0\.5\}H\$\{ox - sx \* unit\}`;/);
+  assert.doesNotMatch(chart, /tabIndex|onKeyDown|onFocus/, "no keyboard inspection was added");
+  // Tables.
+  assert.match(chart, /<summary className="df-control df-control--latch df-label">Data table<\/summary>/);
+  assert.equal((chart.match(/<th scope="col" className="df-label-sm">/g) ?? []).length, 3);
+  assert.equal((chart.match(/<td className="df-data">/g) ?? []).length, 3);
+  // Legend and readout qualifiers.
+  assert.match(page, /<ul className="traffic-legend" aria-label=/, "the list itself sets no voice, so the ranges keep theirs");
+  assert.match(page, /<span className="traffic-legend-name df-label-sm">\{bin\.label\}<\/span>/);
+  assert.match(page, /<span className="traffic-legend-range df-data">/);
+  assert.match(readout, /<span className="df-label-sm">\(free flow<\/span> \{seconds\(m\.freeFlowTripTime, true\)\}<span className="df-label-sm">\)<\/span>/, "the free-flow qualifier is a label");
+  assert.match(readout, /\{value\(m\.queued\)\} <span className="df-data">of<\/span> \{value\(m\.onRoad, undefined, true\)\}/, "\"of\" belongs to the value phrase");
+  // The time-space disclosure is acknowledged like a control; the other press targets are as before.
+  assert.match(await read("utils/pressAcknowledge.ts"), /const TARGET = "\.df-control, \.df-prose a, \.site-header__brand, \.traffic-table > summary";/);
+
+  const css = declarations(await read("pages/TrafficSimulator/TrafficSimulator.css"));
+  const rule = (sel) => Object.fromEntries(css.filter((d) => d.selector === sel).map((d) => [d.prop, d.value]));
+  const want = (sel, values) => { const r = rule(sel); for (const [p, v] of Object.entries(values)) assert.equal(r[p], v, `${sel} { ${p} }`); };
+  want(".traffic-chart-grid", { stroke: "var(--rule)", "stroke-width": "var(--stroke-hair)", "stroke-opacity": "var(--opacity-ghost)" });
+  want(".traffic-chart-axis", { stroke: "var(--edge)", "stroke-width": "var(--stroke-hair)", fill: "none" });
+  want(".traffic-chart-tick", { fill: "var(--fg-faint)" });
+  want(".traffic-chart-line", { stroke: "var(--traffic-chart-line)", "stroke-width": "var(--stroke-bold)", fill: "none" });
+  want(".traffic-chart-demand", { stroke: "var(--coolant)", "stroke-width": "var(--stroke-hair)", "stroke-dasharray": "var(--dash-provisional)" });
+  want(".traffic-chart-cross", { stroke: "var(--edge)", "stroke-width": "var(--stroke-hair)", "stroke-dasharray": "var(--dash-measure)" });
+  want(".traffic-chart-brackets", { stroke: "var(--edge)", "stroke-width": "var(--stroke-hair)", fill: "none" });
+  want(".traffic-chart-node", { fill: "var(--traffic-chart-line)", r: "var(--grid-half)" });
+  want(".traffic-chart-tooltip", { "background-color": "var(--surface-2)", border: "var(--stroke-hair) solid var(--edge)", "border-radius": "var(--radius-0)" });
+  assert.equal(rule(".traffic-chart-tooltip").transform, undefined, "the readout is laid on whole pixels, not translated");
+  // §05 rationing: coolant marks the comparison series and nothing else.
+  assert.deepEqual(css.filter((d) => /--coolant/.test(d.value)).map((d) => d.selector), [".traffic-chart-demand"]);
+  // No chart border.
+  assert.deepEqual(css.filter((d) => /traffic-chart(\s|$|,| svg)/.test(d.selector) && /^(border|outline)/.test(d.prop)).map(where), []);
+  want(".traffic-swatch", { width: "var(--cell-w)", height: "var(--cell-w)", "border-radius": "var(--radius-0)" });
+  for (let i = 0; i < 5; i++) {
+    want(`.traffic-swatch-${i}`, { background: `var(--traffic-speed-${i})` });
+    assert.ok(HOLDS5["pages/TrafficSimulator/TrafficSimulator.css"].some(([s, p]) => s === `.traffic-swatch-${i}` && p === "background"), `swatch ${i} is held`);
+  }
+  assert.equal(HOLDS5["pages/TrafficSimulator/TrafficSimulator.css"].length, 15, "ten ramp definitions and five swatches");
+  want(".traffic-table :is(th, td)", { "border-bottom": "var(--stroke-hair) solid var(--rule)" });
+  // The time-space table's creative-owned markup takes its voices from here.
+  want(".traffic-slow-table td", { "font-family": "var(--font-mono)" });
+  want(".traffic-slow-table th", { "font-family": "var(--font-narrow)", "text-transform": "uppercase" });
+  want(".traffic-table > summary:not(.df-control)", { border: "var(--stroke-hair) solid var(--edge)", "border-radius": "var(--radius-0)", "font-family": "var(--font-narrow)" });
+  want(".traffic-table[open] > summary:not(.df-control)::after", { "background-color": "var(--signal)" });
+  want(".traffic-table > summary:not(.df-control):is(:active, [data-df-pressed])", { "background-color": "var(--signal)", color: "var(--on-signal)" });
 });
