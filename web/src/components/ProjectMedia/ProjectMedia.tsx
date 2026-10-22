@@ -110,13 +110,13 @@ const ProjectMedia = ({
   return (
     <figure className={classes}>
       <div className="project-media__bar">
-        <span className="project-media__label" aria-hidden="true">
+        <span className="project-media__label df-label" aria-hidden="true">
           {label}
         </span>
         {video && (
           <button
             type="button"
-            className="project-media__control"
+            className="project-media__control df-control df-label"
             onClick={togglePlayback}
             aria-label={isPlaying ? `Pause ${label} demo` : `Play ${label} demo`}
           >
@@ -128,6 +128,7 @@ const ProjectMedia = ({
         <video
           ref={videoRef}
           className="project-media__asset"
+          data-df-region="evidence"
           width={video.width}
           height={video.height}
           poster={media.poster.src}
@@ -144,6 +145,7 @@ const ProjectMedia = ({
       ) : (
         <img
           className="project-media__asset"
+          data-df-region="evidence"
           src={still.src}
           alt={decorative ? "" : still.alt}
           width={still.width}
@@ -156,7 +158,7 @@ const ProjectMedia = ({
         <div className="project-media__actions">
           <button
             type="button"
-            className="project-media__control"
+            className="project-media__control df-control df-label"
             aria-haspopup="dialog"
             aria-label={`Inspect ${label} recording with playback controls`}
             onClick={(event) => openInspector("recording", event.currentTarget)}
@@ -166,7 +168,7 @@ const ProjectMedia = ({
           {video.textualEvidence && (
             <button
               type="button"
-              className="project-media__control"
+              className="project-media__control df-control df-label"
               aria-haspopup="dialog"
               aria-label={`Read ${label} still frame`}
               onClick={(event) => openInspector("still", event.currentTarget)}

@@ -45,6 +45,10 @@ const MediaInspector = ({
   const closeRef = useRef<HTMLButtonElement>(null);
   const playedRef = useRef(autoplay && initialView === "recording");
   const pausedBySwitchRef = useRef(false);
+  // The backdrop closes the viewer only when a press both began and ended on it: a press dragged off a control onto the
+  // backdrop, or the other way, does nothing (§13 Activation).
+  const pressOnBackdrop = useRef(false);
+  const releaseOnBackdrop = useRef(false);
   const titleId = useId();
   const captionId = useId();
 
@@ -119,10 +123,20 @@ const MediaInspector = ({
               close();
             }
           }}
-          onClick={close}
+          onPointerDown={(event) => {
+            pressOnBackdrop.current = event.target === event.currentTarget;
+          }}
+          onPointerUp={(event) => {
+            releaseOnBackdrop.current = event.target === event.currentTarget;
+          }}
+          onClick={(event) => {
+            if (event.target === event.currentTarget && pressOnBackdrop.current && releaseOnBackdrop.current) {
+              close();
+            }
+          }}
         >
           <div
-            className="media-inspector__panel"
+            className="media-inspector__panel df-cut-md"
             role="dialog"
             aria-modal="true"
             aria-labelledby={titleId}
@@ -132,7 +146,7 @@ const MediaInspector = ({
             onClick={(event) => event.stopPropagation()}
           >
             <div className="media-inspector__header">
-              <h2 id={titleId} className="media-inspector__title">
+              <h2 id={titleId} className="media-inspector__title df-label-lg">
                 {label} evidence
               </h2>
               {hasStill && (
@@ -140,7 +154,7 @@ const MediaInspector = ({
                   <div role="group" aria-label="View" className="media-inspector__view-group">
                     <button
                       type="button"
-                      className="project-media__control"
+                      className="project-media__control df-control df-label"
                       aria-pressed={view === "recording"}
                       onClick={() => showView("recording")}
                     >
@@ -148,7 +162,7 @@ const MediaInspector = ({
                     </button>
                     <button
                       type="button"
-                      className="project-media__control"
+                      className="project-media__control df-control df-label"
                       aria-pressed={view === "still"}
                       onClick={() => showView("still")}
                     >
@@ -158,7 +172,7 @@ const MediaInspector = ({
                   {view === "still" && (
                     <button
                       type="button"
-                      className="project-media__control"
+                      className="project-media__control df-control df-control--latch df-label"
                       aria-pressed={actualSize}
                       onClick={() => setActualSize((value) => !value)}
                     >
@@ -170,7 +184,7 @@ const MediaInspector = ({
               <button
                 ref={closeRef}
                 type="button"
-                className="project-media__control"
+                className="project-media__control df-control df-label"
                 onClick={close}
                 aria-label={`Close ${label} evidence viewer`}
               >
@@ -182,6 +196,7 @@ const MediaInspector = ({
               <video
                 ref={videoRef}
                 className="media-inspector__asset"
+                data-df-region="evidence"
                 hidden={view !== "recording"}
                 width={video.width}
                 height={video.height}
@@ -207,6 +222,7 @@ const MediaInspector = ({
                 >
                   <img
                     className="media-inspector__asset"
+                    data-df-region="evidence"
                     src={poster.src}
                     alt={poster.alt}
                     width={poster.width}

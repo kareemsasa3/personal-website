@@ -1,53 +1,33 @@
-/* Terminal-window frame around project stills and demo loops */
+/* Project media (§08, §09, §13): a recording or still with its title bar, caption and inspect actions. The
+   recordings and stills are evidence (data-df-region="evidence") and keep their own pixels; the frame, bar, caption,
+   actions and inspector around them are governed. */
+/* No closed frame (§09): the bar's and the actions' seams divide the figure. The border stays, transparent and outside
+   the painted ground, only so the recordings and stills keep the size they render at. */
 .project-media {
   margin: 0;
   overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--rule) 80%, transparent);
-  border-radius: 8px;
-  /* Matches the recording background so letterboxing is invisible */
-  background: #181818;
+  border: var(--stroke-hair) solid transparent;
+  /* Shows only until a still or recording has painted. */
+  background-color: var(--field-deep);
+  background-clip: padding-box;
 }
 
+/* The bar: a surface-1 band over an L1 seam, the media's name in the label voice. Its controls rise a step on hover. */
 .project-media__bar {
+  --df-ground-up: var(--surface-2);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
-  min-height: 1.9rem;
-  padding: 0.3rem 0.75rem;
-  border-bottom: 1px solid color-mix(in srgb, var(--rule) 60%, transparent);
+  gap: var(--space-4);
+  min-height: calc(2 * var(--cell-h));
+  padding: var(--space-1) var(--space-3);
+  border-bottom: var(--stroke-hair) solid var(--rule);
+  background-color: var(--surface-1);
+}
+
+.project-media__label {
+  min-width: 0;
   color: var(--fg-muted);
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  letter-spacing: 0.04em;
-}
-
-.project-media__label::before {
-  content: "▍";
-  margin-right: 0.4rem;
-  color: var(--signal-dim);
-}
-
-.project-media__control {
-  min-height: 1.6rem;
-  padding: 0 0.5rem;
-  border: 1px solid color-mix(in srgb, var(--edge) 80%, transparent);
-  border-radius: 4px;
-  background: transparent;
-  color: var(--fg-muted);
-  font: inherit;
-  cursor: pointer;
-  transition: color 0.2s ease, border-color 0.2s ease;
-}
-
-.project-media__control:hover {
-  border-color: var(--signal-dim);
-  color: var(--signal-dim);
-}
-
-.project-media__control:focus-visible {
-  outline: 2px solid var(--signal-dim);
-  outline-offset: 2px;
 }
 
 .project-media__asset {
@@ -56,66 +36,42 @@
   height: auto;
 }
 
-.project-media__control[aria-pressed="true"] {
-  border-color: var(--signal-dim);
-  color: var(--signal-dim);
-}
-
-/* Light: the bar stays #181818 (the recordings' letterbox), where no text token reaches 4.5:1.
-   Its label and controls take the field token in every state (owner-approved exception). */
-[data-theme="light"] .project-media__bar .project-media__label,
-[data-theme="light"] .project-media__bar .project-media__control {
-  color: var(--field);
-}
-
-/* Caption sits on the theme surface so it stays legible in both themes. */
+/* Caption: Narrator body in fg, each term in the label voice at the muted tier, on the same surface as the bar. */
 .project-media__caption {
   display: grid;
-  gap: 0.35rem;
-  padding: 0.6rem 0.75rem 0.75rem;
-  background: var(--surface-1);
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-3) var(--space-3);
+  background-color: var(--surface-1);
   color: var(--fg);
-  font-size: 0.85rem;
-  line-height: 1.5;
 }
 
 .project-media__caption p {
   margin: 0;
 }
 
+/* Running text keeps to the body measure (§06). */
+.project-media > .project-media__caption p {
+  max-width: var(--measure-body);
+}
+
 .project-media__caption-term {
-  margin-right: 0.35rem;
-  color: var(--signal-dim);
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  margin-inline-end: var(--space-1);
+  color: var(--fg-muted);
 }
 
 .project-media__actions {
+  --df-ground-up: var(--surface-2);
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
-  padding: 0.6rem 0.75rem 0;
-  border-top: 1px solid color-mix(in srgb, var(--rule) 60%, transparent);
-  background: var(--surface-1);
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3) 0;
+  border-top: var(--stroke-hair) solid var(--rule);
+  background-color: var(--surface-1);
 }
 
-.project-media__actions .project-media__control {
-  min-height: 2rem;
-  padding: 0 0.65rem;
-  color: var(--fg);
-}
-
-@media (max-width: 480px) {
-  .project-media__caption {
-    font-size: 0.8rem;
-  }
-}
-
-/* Larger inspection view. It covers navigation intentionally, like other modal dialogs. */
+/* Larger inspection view. It covers navigation intentionally, like other modal dialogs. It is a primary overlay (§08
+   Layers and overlays) over the shared scrim: its panel takes the second surface step, an edge outline and the cut-md
+   corner (df-cut-md in the markup). */
 .media-inspector {
   position: absolute;
   inset: 0;
@@ -133,15 +89,15 @@
 }
 
 .media-inspector__panel {
+  --df-ground-up: var(--surface-3);
   display: grid;
   grid-template-areas: "header" "stage" "caption";
   grid-template-rows: auto minmax(0, 1fr) auto;
   width: min(100%, 1400px);
   height: 100%;
   overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--rule) 80%, transparent);
-  border-radius: 8px;
-  background: var(--surface-1);
+  border: var(--stroke-hair) solid var(--edge);
+  background-color: var(--surface-2);
   color: var(--fg);
 }
 
@@ -154,43 +110,25 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.5rem 1rem;
-  padding: 0.4rem 0.75rem;
-  border-bottom: 1px solid color-mix(in srgb, var(--rule) 60%, transparent);
-  font-family: var(--font-mono);
-  font-size: 0.8rem;
+  gap: var(--space-2) var(--space-4);
+  padding: var(--space-2) var(--space-3);
+  border-bottom: var(--stroke-hair) solid var(--rule);
 }
 
 .media-inspector__title {
   margin: 0 auto 0 0;
-  font-size: inherit;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-}
-
-.media-inspector__title::before {
-  content: "▍";
-  margin-right: 0.4rem;
-  color: var(--signal-dim);
-}
-
-.media-inspector__header .project-media__control {
-  min-height: 2rem;
-  padding: 0 0.65rem;
-  color: var(--fg);
 }
 
 .media-inspector__views {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
-  font-size: 0.75rem;
+  gap: var(--space-2);
 }
 
 .media-inspector__view-group {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
 
 .media-inspector__stage {
@@ -199,8 +137,7 @@
   display: flex;
   min-height: 0;
   overflow: hidden;
-  /* Matches the recording background so letterboxing is invisible */
-  background: #181818;
+  background-color: var(--field-deep);
 }
 
 .media-inspector__stage > video,
@@ -222,7 +159,10 @@
   display: none;
 }
 
+/* At actual size the still is a focusable pan region. It stands in from the stage's edges by the focus ring's
+   extent, so the stage's clipping never hides the ring. */
 .media-inspector__still.is-actual-size {
+  margin: calc(2 * var(--stroke-bold));
   overflow: auto;
   overscroll-behavior: contain;
 }
@@ -234,14 +174,14 @@
   margin: auto;
 }
 
-.media-inspector__still:focus-visible {
-  outline: 2px solid var(--signal-dim);
-  outline-offset: -2px;
-}
-
+/* In the inspector the caption sits on the panel's own surface. Its paragraphs keep to the body measure and stand side
+   by side where the panel is wide enough, so the caption takes as little of the stage's height as it can. */
 .media-inspector__caption {
   grid-area: caption;
-  border-top: 1px solid color-mix(in srgb, var(--rule) 60%, transparent);
+  grid-template-columns: repeat(auto-fill, min(100%, var(--measure-body)));
+  column-gap: var(--space-6);
+  border-top: var(--stroke-hair) solid var(--rule);
+  background-color: transparent;
 }
 
 /* Narrow screens: give the media the whole viewport. */
@@ -252,11 +192,6 @@
 
   .media-inspector__panel {
     border: 0;
-    border-radius: 0;
-  }
-
-  .media-inspector__caption {
-    font-size: 0.8rem;
   }
 }
 
@@ -265,15 +200,6 @@
   .media-inspector__views {
     order: 1;
     flex-basis: 100%;
-    gap: 0.4rem;
-  }
-
-  .media-inspector__view-group {
-    gap: 0.4rem;
-  }
-
-  .media-inspector__header .project-media__control {
-    padding: 0 0.5rem;
   }
 }
 
@@ -288,11 +214,10 @@
     grid-template-columns: minmax(0, 1fr) clamp(9.5rem, 24%, 20rem);
     grid-template-rows: auto minmax(0, 1fr);
     border: 0;
-    border-radius: 0;
   }
 
   .media-inspector__stage {
-    border-right: 1px solid color-mix(in srgb, var(--rule) 60%, transparent);
+    border-right: var(--stroke-hair) solid var(--rule);
   }
 
   .media-inspector__caption {
@@ -300,9 +225,7 @@
     overflow-y: auto;
     overscroll-behavior: contain;
     border-top: 0;
-    font-size: 0.78rem;
   }
-
 }
 
 /* §12: state transition (create) · media inspector opened */

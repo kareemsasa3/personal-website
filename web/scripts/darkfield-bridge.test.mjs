@@ -58,9 +58,7 @@ test("literal colours appear only inside the legacy fence, and only for held var
 });
 
 // Grounds, seams and deep hues are never text colours. Exceptions: file + innermost selector, each removed by the named task.
-const ALLOW = [
-  ["components/ProjectMedia/ProjectMedia.css", '[data-theme="light"] .project-media__bar .project-media__control'],
-];
+const ALLOW = [];
 test("no text colour reads a ground token", async () => {
   const ground = /(?<![-\w])color:\s*var\(--(field|field-deep|surface-[123]|rule|signal-deep|signal-trace|[a-z]+-deep)\b/;
   for (const file of (await reachable()).filter((f) => f.endsWith(".css"))) {

@@ -6,7 +6,8 @@ import { read, governed, declarations, innermost, where, NATIVE, NATIVE_KEYFRAME
 // Stylesheets a Phase 5 task has finished; the rules below hold for these. Task 24 requires DONE5 to equal PHASE5.
 export const DONE5 = ["pages/NotFound/NotFound.css", "components/common/ErrorBoundary.css", "components/Terminal/TerminalErrorBoundary.css",
   "components/common/Toast.css", "components/common/ToastContainer.css", "components/common/Modal.css", "components/common/PageLoader.css",
-  "pages/ProceduralAnimations/ProceduralAnimations.css", "pages/ProceduralAnimationPiece/ProceduralAnimationPiece.css"];
+  "pages/ProceduralAnimations/ProceduralAnimations.css", "pages/ProceduralAnimationPiece/ProceduralAnimationPiece.css",
+  "components/ProjectMedia/ProjectMedia.css"];
 const decls5 = async () => {
   const out = [];
   for (const file of (await governed(".css")).filter((f) => DONE5.includes(f))) {
@@ -287,4 +288,87 @@ test("P5 processing: the loader says LOADING with a plain message and mm:ss; the
   const gate = g.filter((d) => /:is\(:hover, \[data-df-active\]\)|:is\(:active, \[data-df-pressed\]\)/.test(d.selector) && /:where\(:not\(:disabled/.test(d.selector));
   assert.ok(gate.length >= 4, "hover and press rules found");
   assert.deepEqual(gate.filter((d) => !/:where\(:not\([^)]*\[aria-busy="true"\]/.test(d.selector)).map(where), [], "hover or press reaches a busy control");
+});
+
+// Project media (Phase 5 Task 7; §13, §08 Layers and overlays, §06, principle 5). Recordings and stills are evidence: every
+// <video> and content <img> carries the evidence marker, and nothing that holds a site control does (the focusable still
+// wrapper stays unmarked). The chrome around them is governed: controls follow the control model in the label voice (the
+// view switch is Selected through aria-pressed; actual size is a latch with its lamp), the bar is a surface-1 band over an
+// L1 seam, the figure has seams but no closed frame, the caption is Narrator body with label-voice terms kept to the
+// measure, and the inspector is a primary overlay over the scrim: its panel one surface above the bar, outlined in edge
+// with the cut-md corner, its stage on field-deep. The bar's glyphs marked nothing and are gone.
+test("P5 project media: evidence markers, control model, bar, caption and inspector surfaces", async () => {
+  const files = { inline: await read("components/ProjectMedia/ProjectMedia.tsx"), inspector: await read("components/ProjectMedia/MediaInspector.tsx"),
+    caption: await read("components/ProjectMedia/MediaCaption.tsx") };
+  const tags = (code, tag) => [...code.matchAll(new RegExp(`<${tag}\\b[^>]*>`, "g"))].map((m) => m[0]);
+  for (const [name, code] of Object.entries({ inline: files.inline, inspector: files.inspector })) {
+    const media = [...tags(code, "video"), ...tags(code, "img")];
+    assert.ok(media.length >= (name === "inline" ? 2 : 2), `${name}: media elements not found`);
+    for (const el of media) assert.match(el, /\bdata-df-region="evidence"/, `${name}: ${el.slice(0, 60)}`);
+    assert.equal((code.match(/data-df-region=/g) ?? []).length, media.length, `${name}: a marker on something other than a video or img`);
+    // A marked element holds no site control: video and img hold only <source> children.
+    for (const m of code.matchAll(/<video\b[\s\S]*?<\/video>/g)) assert.doesNotMatch(m[0], /<(button|a|input|select|textarea)\b|tabIndex|role=/, `${name}: control inside a video`);
+  }
+  assert.doesNotMatch(/<div[^>]*media-inspector__still[^>]*>/.exec(files.inspector)?.[0] ?? "<div>", /data-df-region/, "the focusable still wrapper is marked");
+  const classLists = (code) => [...code.matchAll(/className=\{?[`"]([^`"]*)[`"]/g)].map((m) => m[1].split(/\s+/));
+  for (const [name, code] of Object.entries({ inline: files.inline, inspector: files.inspector })) {
+    const controls = classLists(code).filter((c) => c[0] === "project-media__control");
+    assert.ok(controls.length > 0 && controls.every((c) => c.includes("df-control") && c.includes("df-label")), `${name}: project-media__control df-control df-label`);
+  }
+  assert.equal((files.inspector.match(/aria-pressed=/g) ?? []).length, 3, "the view switch and actual size keep aria-pressed");
+  // The view switch picks one of two views (Selected); actual size toggles a viewing mode on or off (Latched).
+  const pressed = [...files.inspector.matchAll(/className="([^"]*)"\s+aria-pressed=\{([^}]*)\}/g)].map((m) => [m[2], m[1].split(/\s+/)]);
+  assert.deepEqual(pressed.map(([v, c]) => [v, c.includes("df-control--latch")]),
+    [['view === "recording"', false], ['view === "still"', false], ["actualSize", true]], "Selected views and a latched actual size");
+  const has = (code, first, cls, where) => assert.ok(classLists(code).some((c) => c[0] === first && c.includes(cls)), `${where}: .${first} ${cls}`);
+  has(files.inline, "project-media__label", "df-label", "ProjectMedia.tsx");
+  has(files.inspector, "media-inspector__panel", "df-cut-md", "MediaInspector.tsx");
+  has(files.inspector, "media-inspector__title", "df-label-lg", "MediaInspector.tsx");
+  assert.match(files.caption, /\["project-media__caption", "df-body-sm",/, "MediaCaption.tsx: the caption takes df-body-sm");
+  assert.ok(classLists(files.caption).filter((c) => c[0] === "project-media__caption-term").every((c) => c.includes("df-label-sm")) &&
+    classLists(files.caption).some((c) => c[0] === "project-media__caption-term"), "MediaCaption.tsx: terms take df-label-sm");
+
+  const cssText = await read("components/ProjectMedia/ProjectMedia.css");
+  assert.doesNotMatch(cssText, /▍/, "label glyphs that mark nothing");
+  const css = declarations(cssText);
+  const rule = (sel) => Object.fromEntries(css.filter((d) => d.selector === sel).map((d) => [d.prop, d.value]));
+  const want = (sel, values) => { const r = rule(sel); for (const [p, v] of Object.entries(values)) assert.equal(r[p], v, `${sel} { ${p} }`); };
+  // No closed frame around the figure: its border is transparent and outside its ground.
+  want(".project-media", { border: "var(--stroke-hair) solid transparent", "background-clip": "padding-box" });
+  want(".project-media > .project-media__caption p", { "max-width": "var(--measure-body)" });
+  want(".media-inspector__caption", { "grid-template-columns": "repeat(auto-fill, min(100%, var(--measure-body)))" });
+  want(".project-media__bar", { "background-color": "var(--surface-1)", "border-bottom": "var(--stroke-hair) solid var(--rule)", "--df-ground-up": "var(--surface-2)" });
+  want(".project-media__label", { color: "var(--fg-muted)" });
+  want(".project-media__caption", { "background-color": "var(--surface-1)", color: "var(--fg)" });
+  want(".project-media__caption-term", { color: "var(--fg-muted)" });
+  want(".media-inspector", { background: "var(--df-scrim)" });
+  want(".media-inspector__panel", { "background-color": "var(--surface-2)", border: "var(--stroke-hair) solid var(--edge)", color: "var(--fg)",
+    "--df-ground-up": "var(--surface-3)" });
+  want(".media-inspector__stage", { "background-color": "var(--field-deep)" });
+  // The controls take their colours from the control model only.
+  assert.deepEqual(css.filter((d) => /project-media__control/.test(d.selector) && /^(color|background|background-color|border|border-color|border-radius)$/.test(d.prop)).map(where), []);
+  assert.deepEqual(css.filter((d) => /\[data-theme/.test(d.selector)).map(where), [], "a theme-keyed rule");
+
+  // Every text and boundary pair the chrome renders, read from tokens.css, in all three themes.
+  const theme = {};
+  for (const d of declarations(await read("styles/darkfield/tokens.css"))) {
+    const t = /\[data-theme="(\w+)"\]/.exec(d.selector)?.[1];
+    if (t && /^#[0-9a-f]{6}$/i.test(d.value)) (theme[t] ??= {})[d.prop.slice(2)] = d.value;
+  }
+  assert.deepEqual(Object.keys(theme).sort(), ["dark", "light", "mono"]);
+  const lum = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255).map((c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4))
+    .reduce((s, c, i) => s + c * [0.2126, 0.7152, 0.0722][i], 0);
+  const ratio = (a, b) => { const [hi, lo] = [lum(a), lum(b)].sort((x, y) => y - x); return (hi + 0.05) / (lo + 0.05); };
+  const PAIRS = [
+    ["fg-muted", ["surface-1", "surface-2"], 4.5], // bar label, caption terms, idle controls on the bar, the actions row and the panel
+    ["fg", ["surface-1", "surface-2", "surface-3"], 4.5], // caption text, the title, hovered controls one step up
+    ["signal", ["signal-deep"], 4.5], ["on-signal", ["signal"], 4.5], // Selected view; the pressed inverse
+    ["edge", ["surface-1", "surface-2", "surface-3"], 3], // control and panel boundaries
+  ];
+  const bad = [];
+  for (const [t, c] of Object.entries(theme)) for (const [ink, grounds, min] of PAIRS) for (const gr of grounds) {
+    const r = ratio(c[ink], c[gr]);
+    if (!(r >= min)) bad.push(`${t}: ${ink} on ${gr} ${r.toFixed(2)} < ${min}`);
+  }
+  assert.deepEqual(bad, []);
 });

@@ -265,6 +265,13 @@ const openResetDialog = async (page) => {
   await page.mouse.move(0, 0);
   await frames(page);
 };
+// Opens the media inspector from the named opener (Phase 5 Task 7) and waits for its dialog.
+const openInspector = (name) => async (page) => {
+  await page.getByRole("button", { name, exact: true }).click();
+  await page.locator(".media-inspector__panel").waitFor();
+  await page.mouse.move(0, 0);
+  await frames(page);
+};
 // Scrolls an element to the middle of the viewport, instantly (r10). Its scroll position then depends only on
 // the element, never on where the previous step left the page, so both builds capture it alike; the site's
 // smooth scrolling would otherwise animate the scroll. An element in a fixed or sticky container is always in
@@ -1341,6 +1348,13 @@ if (MODE === "check") {
     { route: "/procedural-animations", selectors: [".procedural-animations-card"] },
     // Phase 5 Task 6: the piece bar's Back and Fullscreen controls, on the bar's surface above the framed artwork.
     { route: "/procedural-animations/mechanical-time", selectors: [".animation-piece__control"] },
+    // Phase 5 Task 7: project media chrome (the bar's play control, the inspect openers), then the media inspector's
+    // controls with the inspector open: Close on a recording-only inspector, and on one with a still frame the view
+    // switch (Selected through aria-pressed) and actual size (a latch: a two-state mode with its lamp).
+    { route: "/case-studies/aether", selectors: [".project-media__control"] },
+    { route: "/case-studies/aether", selectors: [".media-inspector .project-media__control"], prepare: openInspector("Inspect aether recording with playback controls") },
+    { route: "/case-studies/erebus", selectors: [".media-inspector__view-group .project-media__control", ".media-inspector__views > .project-media__control"],
+      prepare: openInspector("Read erebus still frame") },
     // Task 15: the two controls on Phase 5 surfaces rest directly on the Layout field.
     { route: "/simulations/spider", selectors: [".spider-button"] },
     { route: "/terminal", selectors: [".terminal-sidecar"],
@@ -2344,8 +2358,8 @@ if (MODE === "check") {
   }
   // Phase 3 Task 7 (§06): Narrator text is Archivo; uppercase text is Archivo Narrow.
   const P3_ROUTES = ["/", "/projects", "/case-studies", "/case-studies/aether", "/writing", "/writing/what-should-still-be-hard", "/experience", "/journey"];
-  // Not Phase 3's on these routes: creative regions and project media chrome (Phase 5).
-  const P3_SKIP = "[data-df-region], .project-media, .media-inspector";
+  // Not Phase 3's on these routes: creative regions. Project media chrome is governed (Phase 5 Task 7) and checked here.
+  const P3_SKIP = "[data-df-region]";
   // Phase 3 Task 16 (§03, §17): every visible governed corner is square. Native playfields and independent media
   // keep their own geometry until their assigned phase.
   for (const theme of THEMES) for (const route of P3_ROUTES) {
@@ -2653,7 +2667,7 @@ if (MODE === "check") {
   }
   // Phase 5 (§03, §06): on each listed route, governed elements outside creative regions have square corners and a
   // Darkfield family. P5_NATIVE: native elements outside any region (they host controls or governed labels).
-  const P5_ROUTES = ["/darkfield-404-probe", "/procedural-animations", "/procedural-animations/mechanical-time"];
+  const P5_ROUTES = ["/darkfield-404-probe", "/procedural-animations", "/procedural-animations/mechanical-time", "/case-studies/aether"];
   const P5_NATIVE = [];
   const P5_FAMILIES = ["Archivo", "Archivo Narrow", "IBM Plex Mono"];
   for (const theme of THEMES) {
