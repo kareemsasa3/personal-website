@@ -1,4 +1,5 @@
-import type { KeyboardEvent, ReactNode } from "react";
+import type { ReactNode } from "react";
+import { pageStepHandler } from "../../utils/sliderPageStep";
 
 interface SettingsSectionProps {
   id: string;
@@ -129,17 +130,8 @@ export const SettingSlider = ({
   disabled = false,
   onChange,
 }: SettingSliderProps) => {
-  // WAI-ARIA Authoring Practices slider pattern: Page Up and Page Down move by a larger step (here ten steps), clamped at the
-  // limits; arrows, Home and End are the input's own.
-  const pageStep = (event: KeyboardEvent<HTMLInputElement>) => {
-    if (event.key !== "PageUp" && event.key !== "PageDown") return;
-    event.preventDefault();
-    if (disabled) return;
-    const steps = Math.round((value - min) / step) + (event.key === "PageUp" ? 10 : -10);
-    const next = Math.min(max, Math.max(min, min + steps * step));
-    const decimals = (String(step).split(".")[1] ?? "").length;
-    onChange(Number(next.toFixed(decimals)));
-  };
+  // Page Up and Page Down move by ten steps (APG; shared with the Traffic sliders); arrows, Home and End are the input's own.
+  const pageStep = pageStepHandler(value, min, max, step, onChange, disabled);
 
   return (
     <div className="setting-slider">

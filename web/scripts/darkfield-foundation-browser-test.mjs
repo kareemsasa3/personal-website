@@ -1353,6 +1353,11 @@ if (MODE === "check") {
     // Phase 5 Task 9: the Orbital header's breadcrumb (a light control), Play, every button in the action rows and the
     // inspector's edit button, and Show trails (a latch: a label whose lamp follows its native checkbox).
     { route: "/simulations/orbital-simulator", selectors: [".orbital-back", ".orbital-primary", ".orbital-actions button", ".orbital-edit", "label.orbital-checkbox"] },
+    // Phase 5 Task 10: the Traffic header's breadcrumb and every button in the action row; on the ring road the row also
+    // holds Brake one car.
+    { route: "/simulations/traffic-simulator", selectors: [".traffic-back", ".traffic-actions button"] },
+    { route: "/simulations/traffic-simulator", selectors: [".traffic-actions button"],
+      prepare: async (page) => { await page.getByLabel("Scenario").selectOption({ label: "Ring road" }); await page.getByRole("button", { name: "Brake one car", exact: true }).waitFor(); } },
     // Phase 5 Task 7: project media chrome (the bar's play control, the inspect openers), then the media inspector's
     // controls with the inspector open: Close on a recording-only inspector, and on one with a still frame the view
     // switch (Selected through aria-pressed) and actual size (a latch: a two-state mode with its lamp).
@@ -1667,9 +1672,213 @@ if (MODE === "check") {
       await mass.fill("-1");
       await page.getByRole("button", { name: "Apply changes", exact: true }).click();
       const invalid = await mass.evaluate((e) => [e.getAttribute("aria-invalid"), getComputedStyle(e).borderTopWidth, getComputedStyle(e).borderTopColor]);
-      invariant(invalid[0] === "true" && invalid[1] === "2px" && invalid[2] === tok["--fault"], `${at}: rejected mass ${JSON.stringify(invalid)}`);
+      const bold = await page.evaluate(() => { const p = document.createElement("i"); p.style.border = "var(--stroke-bold) solid"; document.body.append(p);
+        const v = getComputedStyle(p).borderTopWidth; p.remove(); return v; });
+      invariant(invalid[0] === "true" && invalid[1] === bold && invalid[2] === tok["--fault"], `${at}: rejected mass ${JSON.stringify(invalid)} (stroke-bold ${bold})`);
       await mass.fill("0.000003");
       invariant((await mass.getAttribute("aria-invalid")) === null, `${at}: the mass stays marked invalid after an edit`);
+    });
+  }
+
+  // Phase 5 Task 10 (§13 Focus, Disabled, Errors, Direct manipulation; §05 Live; §08 Not a dashboard). On the Traffic
+  // route, in each theme: keyboard focus on the breadcrumb shows the focus ring; the regions form one face (only the road
+  // region is a closed box; the others draw at most one rule and leave no gap); the readouts are fg at rest and Live
+  // (signal, one weight step) while running, except the fixed ones, with the Live marker on the run state and on the
+  // Measurements and Signals headings; each slider marks every step of its control (the count comes from the control)
+  // with a crisp whole-pixel mark in edge at 1x and 2x, along an edge-coloured hairline, shows its value as the Settings
+  // sliders' solid signal-coloured square with nothing filled behind it, closes each end of its range with a heavier
+  // mark, and steps from the keyboard (Page Up and Page Down by ten steps (APG), as in Settings); after a
+  // simulation error Play is Disabled but focusable, names the alert, and a press does not start the simulation, and the
+  // alert carries the error frame. On the ring road Brake one car is a control and the vehicle slider has its own count.
+  // Step marks as drawn (§09 whole pixels; L2 boundary contrast): with the handle at the lower limit, each mark between
+  // the ends sits where the handle's centre would stop (half a handle in from each edge, then evenly by the control's
+  // count). Away from the handle, the row just above the rail must show each mark as exactly one CSS pixel of solid
+  // edge (scale device pixels), with nothing half-drawn beside it, at 3:1 or more against the ground.
+  const crispMarks = async (page, range, scale, tok) => {
+    await range.focus(); await page.keyboard.press("Home");
+    await page.mouse.move(0, 0); await range.evaluate((e) => e.blur()); await frames(page);
+    const geo = await range.evaluate((e) => { const p = document.createElement("i"); p.style.cssText = `position:absolute;width:${getComputedStyle(e).getPropertyValue("--df-range-inset")}`;
+      e.parentElement.append(p); const inset = p.getBoundingClientRect().width; p.remove();
+      return { inset, width: e.getBoundingClientRect().width, steps: Math.round((+e.max - +e.min) / +e.step) }; });
+    const png = (await range.screenshot()).toString("base64");
+    return page.evaluate(async ([b64, tk, g, scale]) => {
+      const img = new Image(); img.src = `data:image/png;base64,${b64}`; await img.decode();
+      const c = document.createElement("canvas"); [c.width, c.height] = [img.width, img.height];
+      const cx2 = c.getContext("2d"); cx2.drawImage(img, 0, 0);
+      const { data, width, height } = cx2.getImageData(0, 0, c.width, c.height);
+      const rgb = (v) => v.match(/\d+/g).map(Number);
+      const [signal, edge] = [rgb(tk["--signal"]), rgb(tk["--edge"])];
+      const px = (x, y) => [0, 1, 2].map((j) => data[(y * width + x) * 4 + j]);
+      const near = (a, b, t) => a.every((v, j) => Math.abs(v - b[j]) <= t);
+      const lum = (p) => { const l = p.map((v) => v / 255).map((v) => (v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4)); return 0.2126 * l[0] + 0.7152 * l[1] + 0.0722 * l[2]; };
+      const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((m, n) => n - m); return (x + 0.05) / (y + 0.05); };
+      const ground = px(1, 1);
+      let [x1, n] = [-1, 0];
+      for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) if (near(px(x, y), signal, 6)) { n++; x1 = Math.max(x1, x); }
+      const ink = (x, y) => !near(px(x, y), ground, 10);
+      let rail = -1, best = 0;
+      for (let y = 0; y < height; y++) { let k = 0; for (let x = x1 + 2; x < width; x++) if (ink(x, y)) k++; if (k > best) { best = k; rail = y; } }
+      const row = rail - 3 * scale;
+      const bad = []; let checked = 0, hidden = 0;
+      for (let i = 1; i < g.steps; i++) {
+        const at = (g.inset + ((g.width - 2 * g.inset) * i) / g.steps) * scale;
+        if (at <= x1 + 2 * scale) { hidden++; continue; }
+        checked++;
+        const cols = [];
+        for (let x = Math.max(0, Math.floor(at - 2 * scale)); x <= Math.min(width - 1, Math.ceil(at + 2 * scale)); x++) if (ink(x, row)) cols.push(x);
+        const solid = cols.every((x) => near(px(x, row), edge, 8)) && cols.length === scale && cols.at(-1) - cols[0] === scale - 1;
+        const contrast = cols.length ? Math.max(...cols.map((x) => ratio(px(x, row), ground))) : 0;
+        if (!solid || contrast < 3) bad.push({ i, at: +at.toFixed(1), cols: cols.map((x) => px(x, row).join(",")), contrast: +contrast.toFixed(2) });
+      }
+      return { checked, hidden, rail, bad };
+    }, [png, tok, geo, scale]);
+  };
+  for (const theme of THEMES) {
+    await withPage({ theme, route: "/simulations/traffic-simulator" }, async (page) => {
+      const at = `${theme} /simulations/traffic-simulator`;
+      const tok = {}; for (const n of ["--signal", "--fg", "--edge", "--fault", "--fg-faint", "--surface-1"]) tok[n] = await tokenRgb(page, n);
+      const ring = await page.evaluate(() => { const p = document.createElement("i"); p.style.boxShadow = "var(--focus-ring)"; document.body.append(p);
+        const v = getComputedStyle(p).boxShadow; p.remove(); return v; });
+      const tabTo = async (selector) => { for (let i = 0; i < 60; i++) { await page.keyboard.press("Tab");
+        if (await page.evaluate((s) => document.activeElement?.matches(s), selector)) return true; } return false; };
+      invariant(await tabTo(".traffic-back"), `${at}: Tab never reached the breadcrumb`);
+      invariant((await page.locator(".traffic-back").evaluate((e) => getComputedStyle(e).boxShadow)) === ring, `${at}: breadcrumb focus ring`);
+      await page.locator(".traffic-back").evaluate((e) => e.blur());
+      // One face: only the road region is closed; the other regions draw at most one line and meet without gaps.
+      const face = await page.evaluate(() => {
+        const q = (s) => document.querySelector(s); const r = (e) => e.getBoundingClientRect();
+        const sides = (e) => ["Top", "Right", "Bottom", "Left"].filter((k) => { const c = getComputedStyle(e);
+          return parseFloat(c[`border${k}Width`]) > 0 && c[`border${k}Style`] !== "none"; });
+        const regions = [".traffic-controls", ".traffic-workspace", ".traffic-readout-panel", ".traffic-charts", ".traffic-charts > section", ".traffic-context"]
+          .flatMap((s) => [...document.querySelectorAll(s)].map((e) => [s, sides(e)]));
+        return { regions, field: sides(q(".traffic-field")), fieldColor: getComputedStyle(q(".traffic-field")).borderTopColor,
+          gaps: [r(q(".traffic-workspace")).top - r(q(".traffic-controls")).bottom, r(q(".traffic-charts")).top - r(q(".traffic-workspace")).bottom,
+            r(q(".traffic-context")).top - r(q(".traffic-charts")).bottom],
+          shared: r(q(".traffic-readout-panel")).left - r(q(".traffic-field")).right };
+      });
+      invariant(face.regions.every(([, k]) => k.length <= 1) && face.field.length === 4 && face.fieldColor === tok["--edge"] &&
+        face.gaps.every((g) => g <= 0.5) && Math.abs(face.shared) <= 0.5, `${at}: the regions are not one face ${JSON.stringify(face)}`);
+      // Live readouts.
+      const values = () => page.locator(".traffic-value:not(.traffic-value--fixed)").evaluateAll((els) => els.map((e) => [getComputedStyle(e).color, getComputedStyle(e).fontWeight]));
+      const fixed = () => page.locator(".traffic-value--fixed").evaluateAll((els) => els.map((e) => [getComputedStyle(e).color, getComputedStyle(e).fontWeight]));
+      const markers = () => page.evaluate(() => [...document.querySelectorAll(".traffic-readout-panel h2, .traffic-status > :first-child")].map((e) => getComputedStyle(e, "::before").content));
+      const rest = await values();
+      invariant(rest.length >= 8 && rest.every(([c, w]) => c === tok["--fg"] && w === "400"), `${at}: paused readouts ${JSON.stringify(rest)}`);
+      invariant((await markers()).every((m) => !m.startsWith('"•"')), `${at}: a paused group carries the Live marker`);
+      await page.getByRole("button", { name: "Play", exact: true }).click();
+      await page.getByRole("button", { name: "Pause", exact: true }).waitFor();
+      const live = await values();
+      invariant(live.every(([c, w]) => c === tok["--signal"] && w === "500"), `${at}: running readouts are not Live ${JSON.stringify(live)}`);
+      const held = await fixed();
+      invariant(held.length >= 1 && held.every(([c, w]) => c === tok["--fg"] && w === "400"), `${at}: a fixed value reads as Live ${JSON.stringify(held)}`);
+      const running = await markers();
+      invariant(running.length === 3 && running.every((m) => m.startsWith('"•"')), `${at}: the Live groups have no marker ${JSON.stringify(running)}`);
+      await page.getByRole("button", { name: "Pause", exact: true }).click();
+      invariant((await markers()).every((m) => !m.startsWith('"•"')), `${at}: the paused groups keep the Live marker`);
+      // Sliders as drawn: the input's own pixels, classified against the face's ground (a slider at a fractional x is
+      // captured on whole pixels, hence one pixel of tolerance on the handle's position). At the lower limit the handle is
+      // a signal square at the left; outside it, the row just above the rail holds one tick per remaining step, and the
+      // row above the ticks holds only the heavier mark at the far end. No signal pixel lies outside the handle (no fill).
+      const drawn = async (range) => {
+        await page.mouse.move(0, 0); await range.evaluate((e) => e.blur()); await frames(page);
+        const png = (await range.screenshot()).toString("base64");
+        return page.evaluate(async ([b64, tk]) => {
+          const img = new Image(); img.src = `data:image/png;base64,${b64}`; await img.decode();
+          const c = document.createElement("canvas"); [c.width, c.height] = [img.width, img.height];
+          const g = c.getContext("2d"); g.drawImage(img, 0, 0);
+          const { data, width, height } = g.getImageData(0, 0, c.width, c.height);
+          const rgb = (v) => v.match(/\d+/g).map(Number);
+          const [signal, ground] = [rgb(tk["--signal"]), rgb(tk["--surface-1"])];
+          const px = (x, y) => [0, 1, 2].map((j) => data[(y * width + x) * 4 + j]);
+          const near = (a, b, t) => a.every((v, j) => Math.abs(v - b[j]) <= t);
+          let [x0, y0, x1, y1, n] = [width, height, -1, -1, 0];
+          for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) if (near(px(x, y), signal, 6)) { n++; x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
+          const ink = (x, y) => !near(px(x, y), ground, 10) && !(x >= x0 - 1 && x <= x1 + 1);
+          let rail = -1, best = 0;
+          for (let y = 0; y < height; y++) { let k = 0; for (let x = 0; x < width; x++) if (ink(x, y)) k++; if (k > best) { best = k; rail = y; } }
+          const runs = (y) => { let [count, prev] = [0, false]; for (let x = 0; x < width; x++) { const on = ink(x, y); if (on && !prev) count++; prev = on; } return count; };
+          return { width, handle: { n, w: x1 - x0 + 1, h: y1 - y0 + 1, cx: (x0 + x1 + 1) / 2, cy: (y0 + y1 + 1) / 2 }, rail, best, ticks: runs(rail - 3), bars: runs(rail - 6) };
+        }, [png, tok]);
+      };
+      const cellH = await page.evaluate(() => parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--cell-h")));
+      const crisp = (range, scale) => crispMarks(page, range, scale, tok);
+      const checkSliders = async (where) => {
+        const ranges = page.locator(".df-range");
+        invariant((await ranges.count()) > 0, `${at} ${where}: no slider`);
+        for (let i = 0; i < (await ranges.count()); i++) {
+          const range = ranges.nth(i);
+          const meta = await range.evaluate((e) => ({ id: e.id, min: +e.min, max: +e.max, step: +e.step, steps: getComputedStyle(e).getPropertyValue("--df-range-steps").trim() }));
+          const steps = Math.round((meta.max - meta.min) / meta.step);
+          invariant(meta.steps === String(steps), `${at} ${where}: ${meta.id} draws ${meta.steps} steps, its control has ${steps}`);
+          await range.focus(); await page.keyboard.press("Home");
+          const low = await drawn(range);
+          // The handle is the Settings sliders' square (cell-h).
+          invariant(low.handle.n === cellH * cellH && low.handle.w === cellH && low.handle.h === cellH && Math.abs(low.handle.cx - cellH / 2) <= 1 &&
+            Math.abs(low.handle.cy - low.rail - 0.5) <= 1, `${at} ${where}: ${meta.id} handle at the lower limit ${JSON.stringify(low.handle)} rail ${low.rail}`);
+          invariant(low.best >= low.width - 2 * cellH && low.bars === 1, `${at} ${where}: ${meta.id} rail ${low.best}/${low.width}, end marks ${low.bars}`);
+          const marks = await crisp(range, 1);
+          invariant(marks.checked === steps - 1 - marks.hidden && marks.checked > 0 && marks.bad.length === 0,
+            `${at} ${where}: ${meta.id} step marks at 1x ${JSON.stringify({ ...marks, bad: marks.bad.slice(0, 4) })}`);
+          await range.focus(); await page.keyboard.press("ArrowRight");
+          invariant(Math.abs(Number(await range.inputValue()) - (meta.min + meta.step)) < 1e-9, `${at} ${where}: ${meta.id} ArrowRight did not step`);
+          // Page Up and Page Down move ten steps (APG), clamped at the limits (the Settings sliders' page).
+          await range.focus(); await page.keyboard.press("Home"); await page.keyboard.press("PageUp");
+          const paged = Math.min(meta.max, meta.min + 10 * meta.step);
+          invariant(Math.abs(Number(await range.inputValue()) - paged) < 1e-9, `${at} ${where}: ${meta.id} PageUp gave ${await range.inputValue()}, want ${paged}`);
+          await page.keyboard.press("PageDown");
+          invariant(Math.abs(Number(await range.inputValue()) - meta.min) < 1e-9, `${at} ${where}: ${meta.id} PageDown gave ${await range.inputValue()}`);
+          await range.focus(); await page.keyboard.press("End"); await page.keyboard.press("PageUp");
+          invariant(Math.abs(Number(await range.inputValue()) - meta.max) < 1e-9, `${at} ${where}: ${meta.id} PageUp past the upper limit`);
+          const high = await drawn(range);
+          invariant(Math.abs(high.handle.cx - (high.width - cellH / 2)) <= 1 && high.bars === 1, `${at} ${where}: ${meta.id} handle at the upper limit ${JSON.stringify(high.handle)}`);
+        }
+        await page.getByRole("button", { name: "Restore defaults", exact: true }).click();
+      };
+      await checkSliders("signal corridor");
+      // A simulation error: Play is Disabled, focusable, names the alert, and ignores a press; the alert has the error frame.
+      await page.getByLabel("Signal coordination").evaluate((e) => e.add(new Option("probe", "darkfield-probe")));
+      await page.getByLabel("Signal coordination").selectOption("darkfield-probe");
+      const alert = page.locator("#traffic-error");
+      await alert.waitFor();
+      const frame = await alert.evaluate((e) => [getComputedStyle(e).borderTopWidth, getComputedStyle(e).borderTopColor, e.getAttribute("role")]);
+      const bold = await page.evaluate(() => { const p = document.createElement("i"); p.style.border = "var(--stroke-bold) solid"; document.body.append(p);
+        const v = getComputedStyle(p).borderTopWidth; p.remove(); return v; });
+      invariant(frame[0] === bold && frame[1] === tok["--fault"] && frame[2] === "alert", `${at}: the simulation's alert ${JSON.stringify(frame)} (stroke-bold ${bold})`);
+      const play = page.locator(".traffic-primary");
+      const seen = await play.evaluate((e) => ({ aria: e.getAttribute("aria-disabled"), native: e.disabled, style: getComputedStyle(e).borderTopStyle,
+        color: getComputedStyle(e).color, reason: (e.getAttribute("aria-describedby") ?? "").split(" ").map((id) => document.getElementById(id)?.textContent ?? "").join(" "),
+        alert: document.getElementById("traffic-error")?.textContent ?? "" }));
+      invariant(seen.aria === "true" && !seen.native && seen.style === "dashed" && seen.color === tok["--fg-faint"] && seen.reason.length > 0 && seen.reason === seen.alert,
+        `${at}: Play after an error ${JSON.stringify(seen)}`);
+      await play.focus();
+      invariant(await page.evaluate(() => document.activeElement?.matches(".traffic-primary")), `${at}: a Disabled Play is not focusable`);
+      await page.keyboard.press("Enter"); await play.click({ force: true }); await frames(page);
+      invariant((await page.locator(".traffic-status").textContent()).includes("Paused") && (await play.textContent()) === "Play", `${at}: a blocked Play started the simulation`);
+      await page.getByRole("button", { name: "Restore defaults", exact: true }).click();
+      await alert.waitFor({ state: "detached" });
+      invariant((await play.getAttribute("aria-disabled")) === null, `${at}: Play stays Disabled once the error clears`);
+      // The ring road: Brake one car is a control; the vehicle slider draws its own count.
+      await page.getByLabel("Scenario").selectOption({ label: "Ring road" });
+      const brake = page.getByRole("button", { name: "Brake one car", exact: true });
+      await brake.waitFor();
+      invariant(await brake.evaluate((e) => e.matches(".df-control.df-label")), `${at}: Brake one car is not a control`);
+      await checkSliders("ring road");
+    });
+    // The step marks stay whole and solid at 2x (the corridor's sliders and the ring's densest one).
+    await withPage({ theme, route: "/simulations/traffic-simulator", scale: 2 }, async (page) => {
+      const at = `${theme} /simulations/traffic-simulator @2x`;
+      const tok = {}; for (const n of ["--signal", "--edge"]) tok[n] = await tokenRgb(page, n);
+      for (const scenario of ["Signal corridor", "Ring road"]) {
+        await page.getByLabel("Scenario").selectOption({ label: scenario });
+        const ranges = page.locator(".df-range");
+        for (let i = 0; i < (await ranges.count()); i++) {
+          const range = ranges.nth(i);
+          const steps = await range.evaluate((e) => Math.round((+e.max - +e.min) / +e.step));
+          const marks = await crispMarks(page, range, 2, tok);
+          invariant(marks.checked === steps - 1 - marks.hidden && marks.checked > 0 && marks.bad.length === 0,
+            `${at} ${scenario}: slider ${i} step marks ${JSON.stringify({ ...marks, bad: marks.bad.slice(0, 4) })}`);
+        }
+      }
     });
   }
 
@@ -2801,7 +3010,7 @@ if (MODE === "check") {
   // Phase 5 (§03, §06): on each listed route, governed elements outside creative regions have square corners and a
   // Darkfield family. P5_NATIVE: native elements outside any region (they host controls or governed labels).
   const P5_ROUTES = ["/darkfield-404-probe", "/procedural-animations", "/procedural-animations/mechanical-time", "/case-studies/aether", "/simulations",
-    "/simulations/orbital-simulator"];
+    "/simulations/orbital-simulator", "/simulations/traffic-simulator"];
   const P5_NATIVE = [];
   const P5_FAMILIES = ["Archivo", "Archivo Narrow", "IBM Plex Mono"];
   for (const theme of THEMES) {

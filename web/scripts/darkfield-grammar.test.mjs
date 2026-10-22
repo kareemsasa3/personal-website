@@ -77,8 +77,8 @@ test("T5 D7: statuses and tags are context labels without hue; • only on Live"
 });
 
 // A phrase longer than a label is Narrator supporting text, not an Instrument label (§06; Phase 5 controller ruling):
-// the Orbital eyebrow, in sans and fg-muted, as authored.
-const NARRATOR_EYEBROWS = ["orbital-eyebrow"];
+// the Orbital and Traffic eyebrows, in sans and fg-muted, as authored.
+const NARRATOR_EYEBROWS = ["orbital-eyebrow", "traffic-eyebrow"];
 test("T6 eyebrows speak in the Instrument voice (§06 Interface label); Rhythm Lab is the named Phase 5 exclusion", async () => {
   for (const f of (await governed(".tsx")).filter((x) => !/RhythmLab/.test(x))) {
     for (const [, cls] of (await read(f)).matchAll(/className=(?:"([^"]*)"|\{`([^`]*)`\})/g).map((m) => [m[0], m[1] ?? m[2]])) {

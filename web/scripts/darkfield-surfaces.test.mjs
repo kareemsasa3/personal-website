@@ -517,3 +517,121 @@ test("P5 orbital: controls, fields, panels and readouts", async () => {
   assert.deepEqual(css.filter((d) => /(button|orbital-primary|orbital-back|orbital-checkbox)(:[\w-]+)*$/.test(d.selector) &&
     /^(color|background|background-color|border|border-color|border-radius)$/.test(d.prop)).map(where), []);
 });
+
+// Traffic simulator chrome (Phase 5 Task 10; §13 control model, Disabled, Errors, Warning, Direct manipulation; §06
+// voices; §08 Not a dashboard; §05 When bright signal appears). As on the Orbital route: the header link is an operable
+// breadcrumb, the eyebrow is Narrator supporting text, every button is a control in the label voice, Play stays
+// focusable while it cannot act and points at the alert, selects are fields, and the simulation's alert and the
+// step-budget note carry the error and warning signatures. The regions form one surface-1 face: the road region is the
+// one closed edge boundary and the others meet on single rules. Readouts pair Instrument labels with Machine values and
+// units; changing values take the shared Live value class while running and the groups' headings carry the Live
+// marker. Each slider is a direct-manipulation control: a hairline in the edge colour along its range, a mark at every
+// step (the count comes from the control), a heavier mark closing each end, and its value as a solid signal-coloured
+// square with nothing filled behind it. The signal lamps are square
+// cells that keep the renderer's colours. The canvases are native: they keep the type they inherited.
+test("P5 traffic: controls, sliders, fields, panels and readouts", async () => {
+  const page = await read("pages/TrafficSimulator/TrafficSimulator.tsx");
+  const controls = await read("components/TrafficSimulator/TrafficControls.tsx");
+  const readout = await read("components/TrafficSimulator/TrafficReadout.tsx");
+  const all = { "TrafficSimulator.tsx": page, "TrafficControls.tsx": controls, "TrafficReadout.tsx": readout };
+  const lists = (code) => [...code.matchAll(/className=\{?[`"]([^`"]*)[`"]/g)].map((m) => m[1].trim().split(/\s+/));
+  const first = (code, name) => lists(code).filter((c) => c[0] === name);
+  const one = (code, name, cls, file) => { const f = first(code, name); assert.ok(f.length === 1 && cls.every((k) => f[0].includes(k)), `${file}: .${name} ${cls.join(" ")}`); };
+  one(page, "traffic-back", ["df-control", "df-control--light", "df-label"], "TrafficSimulator.tsx");
+  assert.match(page, /<Link className="traffic-back[^"]*" to="\/simulations">← Simulations<\/Link>/, "the back link keeps its words");
+  one(page, "traffic-eyebrow", ["df-body-sm"], "TrafficSimulator.tsx");
+  assert.ok(!first(page, "traffic-eyebrow")[0].some((c) => /^df-label/.test(c)), "the eyebrow is not a label");
+  assert.match(page, /<p className="traffic-eyebrow[^"]*">Local rules \/ queues \/ emergent congestion<\/p>/, "the eyebrow keeps its words");
+  assert.match(page, /<h1 className="[^"]*\bdf-heading-1\b[^"]*">Traffic Simulator<\/h1>/);
+  for (const [file, code] of Object.entries(all)) {
+    const buttons = [...code.matchAll(/<button\b[^>]*?>/g)].map((m) => m[0]);
+    assert.ok(buttons.length > 0 || file !== "TrafficControls.tsx", `${file}: buttons not found`);
+    for (const b of buttons) assert.match(b, /className="[^"]*\bdf-control\b[^"]*\bdf-label\b[^"]*"/, `${file}: ${b.slice(0, 60)}`);
+    assert.doesNotMatch(code, /(?<![\w-])disabled=\{/, `${file}: native disabled`);
+    for (const el of [...code.matchAll(/<select\b[^>]*?>/g)].map((m) => m[0])) {
+      assert.match(el, /className="[^"]*\bdf-field\b[^"]*\bdf-data\b[^"]*"/, `${file}: ${el.slice(0, 60)}`);
+    }
+  }
+  assert.equal((controls.match(/<button\b/g) ?? []).length, 4, "TrafficControls.tsx: four buttons");
+  assert.equal((controls.match(/<select\b/g) ?? []).length, 3, "TrafficControls.tsx: three selects");
+  // Play: plain, first, and Disabled through aria-disabled with a guarded handler that names the alert.
+  one(controls, "traffic-primary", ["df-control", "df-label"], "TrafficControls.tsx");
+  assert.ok(controls.indexOf("traffic-primary") < controls.indexOf("Restart run"), "Play comes first");
+  assert.match(controls, /aria-disabled=\{blocked \|\| undefined\}/, "Play: aria-disabled");
+  assert.match(controls, /onClick=\{\(\) => \{\s*if \(!blocked\) simulation\.toggle\(\);?\s*\}\}/, "Play: the handler ignores a blocked press");
+  assert.match(controls, /aria-describedby=\{blocked \? "traffic-error" : undefined\}/, "Play: the reason is linked");
+  assert.match(page, /<p id="traffic-error" className="traffic-panel traffic-warning df-error[^"]*" role="alert">/, "the simulation's alert is an error");
+  assert.match(page, /className="traffic-note df-warning[^"]*">\s*Step budget reached/, "the step-budget note is a warning");
+  // Sliders: the range input carries df-range and its step count comes from the control's own range and step.
+  const ranges = [...controls.matchAll(/<input\b[\s\S]*?\/>/g)].map((m) => m[0]);
+  assert.equal(ranges.length, 1, "one range input per control");
+  assert.match(ranges[0], /className="df-range"/); assert.match(ranges[0], /type="range"/);
+  assert.match(controls, /const stepCount = \(control: ControlSpec\) => Math\.round\(\(control\.max - control\.min\) \/ control\.step\);/, "the tick count is the control's data");
+  assert.match(controls, /<span className="traffic-range" style=\{\{ "--df-range-steps": stepCount\(control\) \} as CSSProperties\}>\s*<RangeTicks steps=\{stepCount\(control\)\} \/>\s*<input/, "the marks and the input share the count");
+  assert.match(controls, /<span className="traffic-range-ticks" aria-hidden="true">/, "the marks are decorative");
+  assert.match(controls, /Array\.from\(\{ length: Math\.max\(0, steps - 1\) \}, \(_, i\) => \(\s*<span key=\{i\} style=\{\{ "--df-range-tick": i \+ 1 \} as CSSProperties\} \/>/, "one mark per step between the ends");
+  // Page Up and Page Down share the Settings sliders' ten-step page (one helper for both); the other keys are native.
+  assert.match(ranges[0], /onKeyDown=\{pageStepHandler\(params\[control\.key\], control\.min, control\.max, control\.step,/, "Traffic: page keys");
+  assert.match(await read("components/SettingsPanel/SettingsControls.tsx"), /const pageStep = pageStepHandler\(value, min, max, step, onChange, disabled\);/, "Settings: the same page keys");
+  assert.match(await read("utils/sliderPageStep.ts"), /\+ \(key === "PageUp" \? 10 : -10\)/, "ten steps per page");
+  assert.match(controls, /<span id=\{`traffic-\$\{control\.key\}-label`\} className="df-label-sm">/, "the slider's name is a label");
+  assert.match(controls, /<small className="df-body-sm">Changing this restarts the run\.<\/small>/);
+  // Readouts and Live.
+  assert.match(readout, /<dt className="df-label-sm">\{label\}<\/dt>/, "dt df-label-sm");
+  assert.match(readout, /const live = simulation\.playing \? " df-data--live" : "";/);
+  assert.match(page, /const live = simulation\.playing \? " df-data--live" : "";/);
+  assert.match(page, /<output className=\{`traffic-value df-data\$\{live\}`\}/, "elapsed is Live while running");
+  assert.match(readout, /fixed \? "traffic-value traffic-value--fixed df-data" : `traffic-value df-data\$\{live\}`/, "fixed values are never Live");
+  assert.match(readout, /\["Density", value\([^\]]*"veh\/km", true\)\]/, "the ring's density is fixed");
+  assert.match(readout, /const heading = `df-heading-3\$\{simulation\.playing \? " df-context--live" : ""\}`;/, "Live groups mark their headings");
+  assert.equal((readout.match(/<h2 className=\{heading\}>/g) ?? []).length, 2, "Measurements and Signals headings");
+  assert.match(page, /className=\{`df-label-sm df-context\$\{simulation\.playing \? " df-context--live" : ""\}`\}/, "the run state carries the Live marker");
+  assert.doesNotMatch(Object.values(all).join("\n"), /traffic-live/, "a local Live rule");
+  // The lamp keeps the renderer's colour inline (P5-2).
+  assert.match(readout, /<span className="traffic-signal-lamp" style=\{\{ background: SIGNAL_COLORS\[signal\.state\] \}\} aria-hidden="true" \/>/);
+
+  const css = declarations(await read("pages/TrafficSimulator/TrafficSimulator.css"));
+  const rule = (sel) => Object.fromEntries(css.filter((d) => d.selector === sel).map((d) => [d.prop, d.value]));
+  const want = (sel, values) => { const r = rule(sel); for (const [p, v] of Object.entries(values)) assert.equal(r[p], v, `${sel} { ${p} }`); };
+  // One face: surface-1 regions; only the road region is closed (edge); the others draw one rule each, without gaps.
+  want(":is(.traffic-controls, .traffic-workspace, .traffic-messages, .traffic-charts, .traffic-context)", { "background-color": "var(--surface-1)", "--df-ground-up": "var(--surface-2)" });
+  want(".traffic-field", { border: "var(--stroke-hair) solid var(--edge)", position: "relative" });
+  want(".traffic-workspace", { gap: "0" });
+  want(".traffic-controls", { "border-bottom": "var(--stroke-hair) solid var(--rule)", "margin-bottom": "calc(-1 * var(--stroke-hair))" });
+  want(".traffic-messages, .traffic-context", { "border-top": "var(--stroke-hair) solid var(--rule)", "margin-top": "calc(-1 * var(--stroke-hair))" });
+  want(".traffic-charts", { "border-top": "var(--stroke-hair) solid var(--rule)", "margin-top": "calc(-1 * var(--stroke-hair))" });
+  assert.deepEqual(css.filter((d) => /^border(-(color|style|width))?$/.test(d.prop) && !/^(0|none)$/.test(d.value) &&
+    innermost(d.selector) !== ".traffic-field" && !/traffic-(swatch|chart|table)/.test(d.selector)).map(where), [], "a closed box other than the road region");
+  assert.deepEqual(css.filter((d) => /traffic-(panel|readout-panel|workspace)/.test(d.selector) && /^border/.test(d.prop)).map(where), [], "a region line of its own");
+  // Sliders (§13 Direct manipulation).
+  const slider = '.traffic-slider input[type="range"].df-range';
+  want(slider, { appearance: "none", "background-color": "transparent", border: "0" });
+  const s = rule(slider);
+  assert.equal(s["background-image"], "var(--df-range-rail), var(--df-range-rail), var(--df-range-rail)", "end marks and hairline");
+  assert.equal(s["--df-range-rail"], "linear-gradient(var(--edge), var(--edge))", "the hairline and end marks are edge");
+  assert.match(s["background-size"], /^var\(--stroke-bold\) var\(--cell-h\), var\(--stroke-bold\) var\(--cell-h\), calc\(100% - var\(--cell-h\)\) var\(--stroke-hair\)$/, "heavier end marks and a hairline");
+  assert.deepEqual(css.filter((d) => /traffic-(slider|range)/.test(d.selector) && /gradient\(/.test(d.value) && d.prop !== "--df-range-rail").map(where), [], "no step marks from a gradient");
+  want(".traffic-range", { "--df-range-inset": "calc(var(--cell-h) / 2)", position: "relative" });
+  want(".traffic-range-ticks > span", { width: "var(--stroke-hair)", height: "var(--grid-unit)", "background-color": "var(--edge)", position: "absolute" });
+  assert.match(rule(".traffic-range-ticks > span")["inset-inline-start"], /var\(--df-range-tick\) \/ var\(--df-range-steps\)/, "each mark sits at its step");
+  // The handle is the Settings sliders' square (one slider look across the site).
+  for (const thumb of [".traffic-slider .df-range::-webkit-slider-thumb", ".traffic-slider .df-range::-moz-range-thumb"]) {
+    want(thumb, { "background-color": "var(--signal)", "border-radius": "var(--radius-0)", width: "var(--cell-h)", height: "var(--cell-h)" });
+  }
+  want(".traffic-slider .df-range::-moz-range-progress", { "background-color": "transparent" });
+  assert.deepEqual(css.filter((d) => /accent-color/.test(d.prop)).map(where), [], "no native accent fill");
+  // The lamp is a square cell.
+  want(".traffic-signal-lamp", { width: "var(--cell-w)", height: "var(--cell-w)", "border-radius": "var(--radius-0)" });
+  want(".traffic-eyebrow", { color: "var(--fg-muted)" });
+  // The canvases keep what they inherited before the chrome changed (native, D6).
+  want(".traffic-canvas, .traffic-spacetime", { "font-family": "var(--font-mono)", "font-size": "medium", "line-height": "1.55" });
+  for (const sel of [".traffic-canvas, .traffic-spacetime", ".traffic-canvas", ".traffic-spacetime"]) {
+    assert.ok(NATIVE5["pages/TrafficSimulator/TrafficSimulator.css"]?.includes(sel), `${sel} is native`);
+  }
+  // No retired variable; the only theme-keyed rule is the held speed ramp.
+  assert.deepEqual(css.filter((d) => /signal-dim|accent-color|terminal-|brand-/.test(d.value) ||
+    (/\[data-theme/.test(d.selector) && !/^--traffic-speed-/.test(d.prop))).map(where), []);
+  // Controls take their colours from the control model only.
+  assert.deepEqual(css.filter((d) => /(button|traffic-primary|traffic-back)(:[\w-]+)*$/.test(d.selector) &&
+    /^(color|background|background-color|border|border-color|border-radius)$/.test(d.prop)).map(where), []);
+});
