@@ -185,14 +185,12 @@ const coreTerminalReducer = (
 const createHistoryEntry = (
   text: string,
   type?: "error" | "success" | "info" | "command",
-  useTypewriter?: boolean,
   id?: number,
   highlightedText?: string
 ): HistoryEntry => ({
   id: id || 0,
   text,
   type,
-  useTypewriter,
   highlightedText,
 });
 
@@ -623,7 +621,6 @@ export const useTerminalCore = (
       const commandEntry = createHistoryEntry(
         trimmedCommand,
         "command",
-        false,
         state.nextHistoryId
       );
       dispatch({ type: "ADD_HISTORY_ENTRY", payload: commandEntry });
@@ -659,7 +656,6 @@ export const useTerminalCore = (
         const errorEntry = createHistoryEntry(
           parsed.ok ? `Command not found: ${commandName}` : parsed.error,
           "error",
-          false,
           state.nextHistoryId
         );
         dispatch({ type: "ADD_HISTORY_ENTRY", payload: errorEntry });
@@ -699,7 +695,6 @@ export const useTerminalCore = (
         const errorEntry = createHistoryEntry(
           `Error executing command: ${error}`,
           "error",
-          false,
           state.nextHistoryId
         );
         dispatch({ type: "ADD_HISTORY_ENTRY", payload: errorEntry });

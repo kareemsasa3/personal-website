@@ -685,7 +685,8 @@ test("T21 Terminal colour aliases use one root mapping; grep matches take the se
   }
   const matches = declarations(await read("components/Terminal/TerminalView.css"))
     .filter((d) => innermost(d.selector) === ".grep-highlight" && d.prop === "background-color");
-  assert.deepEqual(matches.map((d) => d.value), ["var(--terminal-selection-bg)"]);
+  // Phase 5 Task 12: TerminalView.css reads the selection band's token directly.
+  assert.deepEqual(matches.map((d) => d.value), ["var(--signal-deep)"]);
 });
 
 test("T22 timing: Phase 3 transitions and animations use duration and easing tokens", async () => {

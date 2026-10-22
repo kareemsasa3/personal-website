@@ -13,7 +13,6 @@ export interface HistoryEntry {
   id: number; // Unique identifier for the history entry
   text: string;
   type?: "error" | "success" | "info" | "command";
-  useTypewriter?: boolean;
   highlightedText?: string; // For grep results with highlighted matches
 }
 

@@ -4,7 +4,6 @@ import "./TerminalView.css";
 interface CommandHistoryItem {
   text: string;
   type?: string;
-  useTypewriter?: boolean;
   highlightedText?: string;
 }
 
@@ -104,13 +103,13 @@ const TerminalView: React.FC<TerminalViewProps> = ({
     <div className="terminal-body" ref={terminalRef} onScroll={handleScroll} onClick={(event) => {
       if (!window.getSelection()?.toString() && !(event.target as HTMLElement).closest("a, button")) inputRef.current?.focus();
     }}>
-      <div className="terminal-message">
+      <div className="terminal-message df-glyph">
         <span>Welcome to my terminal.</span>
       </div>
 
       <div className="command-history">
         {commandHistory.map((line, index) => (
-          <div key={index} className={`history-line ${line.type || ""}`}>
+          <div key={index} className={`history-line df-glyph ${line.type || ""}`}>
             {line.highlightedText ? (
               <span
                 dangerouslySetInnerHTML={{
@@ -133,10 +132,10 @@ const TerminalView: React.FC<TerminalViewProps> = ({
         <div className="command-prompt">
           {isReverseSearch ? (
             <div className="reverse-search-prompt">
-              <span className="reverse-search-indicator">
+              <span className="reverse-search-indicator df-glyph">
                 (reverse-i-search)`{reverseSearchTerm}&apos;:
               </span>
-              <span className="reverse-search-command">
+              <span className="reverse-search-command df-glyph">
                 {reverseSearchResults.length > 0
                   ? reverseSearchResults[reverseSearchIndex]
                   : ""}
@@ -148,19 +147,19 @@ const TerminalView: React.FC<TerminalViewProps> = ({
                 onChange={handleInputChange}
                 onKeyPress={handleKeyPress}
                 onKeyDown={onKeyDown}
-                className="command-input reverse-search-input"
+                className="command-input reverse-search-input df-glyph"
                 placeholder="Type to search command history"
                 autoFocus
               />
               {reverseSearchResults.length > 0 && (
-                <span className="reverse-search-info">
+                <span className="reverse-search-info df-glyph">
                   {reverseSearchIndex + 1}/{reverseSearchResults.length}
                 </span>
               )}
             </div>
           ) : (
             <>
-              <span className="prompt-symbol">
+              <span className="prompt-symbol df-glyph">
                 portfolio@kareem-sasa:
                 {currentDirectory === "/" ? "~" : currentDirectory}$
               </span>
@@ -171,7 +170,7 @@ const TerminalView: React.FC<TerminalViewProps> = ({
                 onChange={handleInputChange}
                 onKeyPress={handleKeyPress}
                 onKeyDown={onKeyDown}
-                className="command-input"
+                className="command-input df-glyph"
                 placeholder="Type 'help' for available commands"
                 autoFocus
               />
@@ -182,7 +181,7 @@ const TerminalView: React.FC<TerminalViewProps> = ({
 
       {/* Autocomplete Suggestions */}
       {autocompleteSuggestions.length > 1 && showPrompt && !isReverseSearch && (
-        <div className="autocomplete-suggestions">
+        <div className="autocomplete-suggestions df-data">
           <div className="suggestions-header">Multiple matches:</div>
           <div className="suggestions-list">
             {autocompleteSuggestions.map((suggestion, index) => (

@@ -17,14 +17,12 @@ import { tokenizeCommand } from "../utils/tokenizeCommand";
 const createHistoryEntry = (
   text: string,
   type?: "error" | "success" | "info" | "command",
-  useTypewriter?: boolean,
   id?: number,
   highlightedText?: string
 ): HistoryEntry => ({
   id: id || 0, // Will be set by the caller
   text,
   type,
-  useTypewriter,
   highlightedText,
 });
 
@@ -201,7 +199,6 @@ class GrepCommand implements Command {
       createHistoryEntry(
         matches.join("\n"),
         "success",
-        false,
         undefined,
         matches.map((match) => `\x1b[1;31m${match}\x1b[0m`).join("\n")
       ),

@@ -8,7 +8,8 @@ export const DONE5 = ["pages/NotFound/NotFound.css", "components/common/ErrorBou
   "components/common/Toast.css", "components/common/ToastContainer.css", "components/common/Modal.css", "components/common/PageLoader.css",
   "pages/ProceduralAnimations/ProceduralAnimations.css", "pages/ProceduralAnimationPiece/ProceduralAnimationPiece.css",
   "components/ProjectMedia/ProjectMedia.css", "pages/Simulations/Simulations.css", "components/SimulationCard/SimulationCard.css",
-  "pages/OrbitalSimulator/OrbitalSimulator.css", "pages/TrafficSimulator/TrafficSimulator.css"];
+  "pages/OrbitalSimulator/OrbitalSimulator.css", "pages/TrafficSimulator/TrafficSimulator.css",
+  "components/Terminal/TerminalView.css", "components/Terminal/TerminalWindow.css"];
 const decls5 = async () => {
   const out = [];
   for (const file of (await governed(".css")).filter((f) => DONE5.includes(f))) {
@@ -715,4 +716,93 @@ test("P5 traffic: the throughput chart, legend and tables are Darkfield diagrams
   want(".traffic-table > summary:not(.df-control)", { border: "var(--stroke-hair) solid var(--edge)", "border-radius": "var(--radius-0)", "font-family": "var(--font-narrow)" });
   want(".traffic-table[open] > summary:not(.df-control)::after", { "background-color": "var(--signal)" });
   want(".traffic-table > summary:not(.df-control):is(:active, [data-df-pressed])", { "background-color": "var(--signal)", color: "var(--on-signal)" });
+});
+
+// Terminal shell and window chrome (Phase 5 Task 12; §07 The cell; §06 voices; §05 Roles; §13 control model; §16
+// Terminal cosplay; P5-7). The transcript, the prompt and the input are text graphics on the cell grid: the glyph style
+// alone sets their metrics, so no rule here adds a size, a line height or letter-spacing, and no run inside a line takes
+// horizontal padding that would push the characters after it off their cells. The window is a field-deep region under a
+// surface-2 header band; its three controls are no longer coloured dots but labelled controls whose words are the
+// accessible names they already had. The route intro is Narrator. The three stylesheets read tokens, not the terminal
+// colour aliases (which Terminal.css still defines for the overlays until Task 14). The grep match band survives.
+test("P5 terminal: shell, cell grid and window chrome", async () => {
+  const ALIAS = /var\(--terminal-(text-primary|text-muted|text-error|text-success|text-info|window-bg|header-bg|border|selection-bg|selection-text)\)/;
+  for (const file of ["components/Terminal/Terminal.css", "components/Terminal/TerminalView.css", "components/Terminal/TerminalWindow.css"]) {
+    const dead = DEAD_RULES5[file] ?? [];
+    assert.deepEqual(declarations(await read(file)).filter((d) => !dead.includes(innermost(d.selector)) && ALIAS.test(d.value)).map((d) => where({ file, ...d })), [],
+      `${file} reads a terminal colour alias`);
+  }
+  assert.ok(DONE5.includes("components/Terminal/TerminalView.css") && DONE5.includes("components/Terminal/TerminalWindow.css"), "the two finished stylesheets are in DONE5");
+
+  const lists = (code) => [...code.matchAll(/className=\{?[`"]([^`"]*)[`"]/g)].map((m) => m[1].replace(/\$\{[^}]*\}/g, " ").trim().split(/\s+/));
+  const has = (code, first, cls, file) => { const f = lists(code).filter((c) => c[0] === first);
+    assert.ok(f.length > 0 && f.every((c) => cls.every((k) => c.includes(k))), `${file}: .${first} ${cls.join(" ")}`); };
+  const view = await read("components/Terminal/TerminalView.tsx");
+  for (const name of ["terminal-message", "history-line", "prompt-symbol", "command-input", "reverse-search-indicator", "reverse-search-command", "reverse-search-info"]) {
+    has(view, name, ["df-glyph"], "TerminalView.tsx");
+  }
+  has(view, "autocomplete-suggestions", ["df-data"], "TerminalView.tsx");
+  // Grep's escape sequences still become the match band (the Phase 3 fix).
+  assert.ok(view.includes(String.raw`/\x1b\[1;31m(.*?)\x1b\[0m/g`) && view.includes(`'<span class="grep-highlight">$1</span>'`), "grep highlight conversion");
+
+  const shell = await read("components/Terminal/Terminal.tsx");
+  assert.match(shell, /<h1 className="terminal-route-title df-heading-1">Terminal<\/h1>/);
+  has(shell, "terminal-route-description", ["df-body"], "Terminal.tsx");
+
+  const win = await read("components/Terminal/TerminalWindow.tsx");
+  // The title shows the working directory, a case-sensitive machine value: Machine voice, never the uppercase label voice.
+  has(win, "terminal-title", ["df-data"], "TerminalWindow.tsx");
+  assert.ok(lists(win).filter((c) => c[0] === "terminal-title").every((c) => !c.some((k) => /^df-label/.test(k))), "the title is not a label");
+  const buttons = [...win.matchAll(/<button\b([^>]*)>([\s\S]*?)<\/button>/g)];
+  assert.deepEqual(buttons.map((b) => b[1].match(/className="([^"]*)"/)?.[1]),
+    ["terminal-button close df-control df-label", "terminal-button minimize df-control df-label", "terminal-button maximize df-control df-label"], "close, minimise, maximise, in that order");
+  for (const [, attrs, body] of buttons) {
+    assert.doesNotMatch(attrs, /\btitle=/, "no tooltip repeats the label");
+    // The visible words are the accessible name, unchanged.
+    const name = attrs.match(/aria-label=(\{[^}]*\}|"[^"]*")/)?.[1], text = body.trim();
+    assert.ok(name && (name === `"${text}"` || name === text), `visible text ${text} is the accessible name ${name}`);
+  }
+  assert.match(win, /"Close terminal"/); assert.match(win, /"Minimize terminal"/); assert.match(win, /isMaximized \? "Restore terminal" : "Maximize terminal"/);
+
+  // The inert typewriter field is gone (Phase 2 hand-off).
+  for (const file of ["types/terminal.ts", "hooks/useTerminal.ts", "hooks/useTerminalCore.ts", "components/Terminal/TerminalView.tsx"]) {
+    assert.doesNotMatch(await read(file), /useTypewriter/, `${file}: useTypewriter`);
+  }
+
+  const rules = async (file) => { const dead = DEAD_RULES5[file] ?? []; return declarations(await read(file)).filter((d) => !dead.includes(innermost(d.selector))); };
+  const rule = (decls, sel) => Object.fromEntries(decls.filter((d) => d.selector === sel).map((d) => [d.prop, d.value]));
+  const want = (decls, sel, values) => { const r = rule(decls, sel); for (const [p, v] of Object.entries(values)) assert.equal(r[p], v, `${sel} { ${p} }`); };
+  const viewCss = await rules("components/Terminal/TerminalView.css");
+  assert.deepEqual(viewCss.filter((d) => /^(font|font-size|line-height|letter-spacing|font-weight)$/.test(d.prop)).map((d) => where({ file: "TerminalView.css", ...d })), [],
+    "the cell metrics come from the glyph style alone");
+  assert.deepEqual(viewCss.filter((d) => /(grep-highlight|reverse-search-command)/.test(d.selector) && /^padding/.test(d.prop)).map((d) => d.selector), [],
+    "no run inside a line is padded off the grid");
+  want(viewCss, ".terminal-body", { "background-color": "var(--field-deep)", color: "var(--fg)" });
+  want(viewCss, ".history-line.error", { color: "var(--fault)" });
+  want(viewCss, ".grep-highlight", { "background-color": "var(--signal-deep)" });
+  want(viewCss, ".command-input", { padding: "0", "font-family": "var(--font-mono)" });
+  const winCss = await rules("components/Terminal/TerminalWindow.css");
+  want(winCss, ".terminal-container", { "background-color": "var(--field-deep)", border: "var(--stroke-hair) solid var(--edge)" });
+  want(winCss, ".terminal-header", { "background-color": "var(--surface-2)", "--df-ground-up": "var(--surface-3)" });
+  want(winCss, ".terminal-title", { color: "var(--fg-muted)" });
+  assert.ok(!winCss.some((d) => /terminal-title/.test(d.selector) && d.prop === "text-transform"), "the title keeps its case");
+  // The window is clipped, never scrollable, so focus cannot push its header out; its controls keep one row.
+  want(winCss, ".terminal-container", { overflow: "clip" });
+  want(winCss, ".terminal-buttons", { "flex-wrap": "nowrap" });
+  // The dots are gone: the buttons take their look from the control model. Only their phone target is set here, a
+  // minimum height for a label that wraps.
+  assert.deepEqual(winCss.filter((d) => /\.terminal-button(?![\w-])/.test(d.selector)).map((d) => `${d.selector} ${d.prop}: ${d.value}`),
+    ["@media (max-width: 768px), (pointer: coarse) >> .terminal-buttons .terminal-button min-block-size: calc(3 * var(--cell-h))",
+      "@media (max-width: 768px), (pointer: coarse) >> .terminal-buttons .terminal-button padding-block: var(--space-1)"]);
+  const shellCss = await rules("components/Terminal/Terminal.css");
+  assert.deepEqual(shellCss.filter((d) => /terminal-route-(title|description)/.test(d.selector) && /^(font|font-size|line-height|letter-spacing|font-weight|text-transform)$/.test(d.prop))
+    .map((d) => where({ file: "Terminal.css", ...d })), [], "the route intro takes the Narrator styles");
+  want(shellCss, ".terminal-route-title", { color: "var(--fg)" });
+  want(shellCss, ".terminal-route-description", { color: "var(--fg-muted)" });
+  // The window keeps a floor of transcript rows (a site constant read by Terminal.tsx); below the floor it rises over the
+  // intro, which is clipped away whole.
+  assert.ok(Number(rule(shellCss, ".terminal-container")["--terminal-floor-rows"]) > 0, "a transcript floor is declared");
+  want(shellCss, ".terminal-container", { overflow: "clip" });
+  want(shellCss, ".terminal-route-intro--behind", { "clip-path": "inset(50%)" });
+  assert.match(shell, /--terminal-floor-rows/);
 });

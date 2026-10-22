@@ -1,16 +1,17 @@
 /* TerminalView.css - Styles for the terminal content component */
 
+/* The transcript and the prompt are text graphics on the cell grid (§07 The cell): the glyph style sets their metrics,
+   so nothing here adds a size, a line height or letter-spacing. Row gaps are whole cells and the space between the
+   prompt and its input is one cell, so every character keeps its column. */
 .terminal-body {
-    background: var(--terminal-window-bg);
-    color: var(--terminal-text-primary);
-    padding: 16px;
+    background-color: var(--field-deep);
+    color: var(--fg);
+    padding: var(--space-2) var(--space-4);
     flex: 1;
     min-height: 0;
     overflow-y: auto;
     overflow-x: hidden;
     font-family: var(--font-mono);
-    font-size: 14px;
-    line-height: 1.4;
 }
 
 /* Scrollbar styles for terminal body */
@@ -19,79 +20,76 @@
 }
 
 .terminal-body::-webkit-scrollbar-track {
-    background: var(--terminal-header-bg);
-    border-radius: 4px;
+    background: var(--surface-2);
 }
 
 .terminal-body::-webkit-scrollbar-thumb {
-    background: var(--terminal-text-primary);
-    border-radius: 4px;
-    transition: background 0.3s ease;
+    background: var(--fg);
+    transition: background var(--dur-fast) var(--ease-standard);
 }
 
 .terminal-body::-webkit-scrollbar-thumb:hover {
-    background: var(--terminal-text-muted);
+    background: var(--fg-muted);
 }
 
 .terminal-message {
-    margin-bottom: 16px;
-    color: var(--terminal-text-primary);
+    margin-bottom: var(--cell-h);
+    color: var(--fg);
 }
 
 .command-history {
-    margin-bottom: 8px;
+    margin-bottom: var(--cell-h);
 }
 
 .history-line {
-    margin-bottom: 4px;
+    margin-bottom: 0;
     white-space: pre-wrap;
     word-break: break-word;
 }
 
 .history-line.error {
-    color: var(--terminal-text-error);
+    color: var(--fault);
 }
 
 .history-line.success {
-    color: var(--terminal-text-success);
+    color: var(--signal);
 }
 
 .history-line.info {
-    color: var(--terminal-text-info);
+    color: var(--fg);
 }
 
+/* A grep match is a band behind its cells: no padding, so the characters after it keep their columns. */
 .grep-highlight {
-    background-color: var(--terminal-selection-bg);
-    color: var(--terminal-text-primary);
-    padding: 1px 2px;
-    border-radius: 2px;
+    background-color: var(--signal-deep);
+    color: var(--fg);
 }
 
 .command-prompt {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: 4px;
+    gap: var(--cell-h) var(--cell-w);
 }
 
 .prompt-symbol {
-    color: var(--terminal-text-primary);
+    color: var(--fg);
     white-space: nowrap;
 }
 
 .command-input {
     background: transparent;
     border: none !important;
-    color: var(--terminal-text-primary);
+    padding: 0;
+    color: var(--fg);
     font-family: var(--font-mono);
-    font-size: 14px;
     outline: none;
     flex: 1;
     min-width: 200px;
 }
 
 .command-input::placeholder {
-    color: var(--terminal-text-muted);
+    color: var(--fg-muted);
 }
 
 .cursor {
@@ -114,56 +112,50 @@
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: 4px;
+    gap: var(--cell-h) var(--cell-w);
     width: 100%;
 }
 
 .reverse-search-indicator {
-    color: var(--terminal-text-primary);
+    color: var(--fg);
     white-space: nowrap;
 }
 
 .reverse-search-command {
-    color: var(--terminal-text-primary);
-    background: var(--terminal-selection-bg);
-    padding: 1px 4px;
-    border-radius: 2px;
+    color: var(--fg);
+    background-color: var(--signal-deep);
     white-space: nowrap;
 }
 
 .reverse-search-input {
     background: transparent;
     border: none;
-    color: var(--terminal-text-primary);
+    padding: 0;
+    color: var(--fg);
     font-family: var(--font-mono);
-    font-size: 14px;
     outline: none;
     flex: 1;
     min-width: 150px;
 }
 
 .reverse-search-info {
-    color: var(--terminal-text-muted);
-    font-size: 12px;
+    color: var(--fg-muted);
     white-space: nowrap;
 }
 
-/* Autocomplete suggestions styles */
+/* Autocomplete suggestions: a list of machine values (df-data) below the prompt. */
 .autocomplete-suggestions {
-    margin-top: 8px;
-    border: 1px solid var(--terminal-text-muted);
-    border-radius: 4px;
-    background: var(--terminal-window-bg);
+    margin-top: var(--cell-h);
+    border: var(--stroke-hair) solid var(--edge);
+    background-color: var(--field-deep);
     max-width: 100%;
 }
 
 .suggestions-header {
-    background: var(--terminal-header-bg);
-    color: var(--terminal-text-primary);
-    padding: 4px 8px;
-    font-size: 12px;
-    border-bottom: 1px solid var(--terminal-text-muted);
-    font-weight: bold;
+    background-color: var(--surface-2);
+    color: var(--fg);
+    padding: var(--space-1) var(--space-2);
+    border-bottom: var(--stroke-hair) solid var(--rule);
 }
 
 .suggestions-list {
@@ -172,11 +164,11 @@
 }
 
 .suggestion-item {
-    padding: 4px 8px;
-    color: var(--terminal-text-primary);
+    padding: var(--space-1) var(--space-2);
+    color: var(--fg);
     cursor: pointer;
-    transition: background-color 0.2s ease;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    transition: background-color var(--dur-fast) var(--ease-standard);
+    border-bottom: var(--stroke-hair) solid var(--rule);
 }
 
 .suggestion-item:last-child {
@@ -184,11 +176,10 @@
 }
 
 .suggestion-item:hover {
-    background: var(--terminal-selection-bg);
+    background-color: var(--signal-deep);
 }
 
 .suggestion-item.selected {
-    background: var(--terminal-selection-bg);
-    color: var(--terminal-text-primary);
-    font-weight: bold;
+    background-color: var(--signal-deep);
+    color: var(--fg);
 }

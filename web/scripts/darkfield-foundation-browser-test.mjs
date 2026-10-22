@@ -1369,6 +1369,9 @@ if (MODE === "check") {
     { route: "/simulations/spider", selectors: [".spider-button"] },
     { route: "/terminal", selectors: [".terminal-sidecar"],
       prepare: (page) => page.getByRole("button", { name: "Minimize terminal" }).click() },
+    // Phase 5 Task 12 (P5-7): the window's close, minimise and maximise controls on the header band. Their phone check
+    // runs at 500px, where the labels fit on one line; the wrapped labels at 375 and 320px are checked in the Task 12 block.
+    { route: "/terminal", selectors: [".terminal-button"], narrow: 500 },
     // Phase 5 Task 4: the toast's Close on an error toast raised by a failed Settings import, and the reset dialog's controls.
     { route: "/", prepare: openToast, selectors: [".toast-close"] },
     { route: "/", prepare: openResetDialog, selectors: [".modal-button", ".modal-close"] },
@@ -3224,7 +3227,7 @@ if (MODE === "check") {
   // Phase 5 (§03, §06): on each listed route, governed elements outside creative regions have square corners and a
   // Darkfield family. P5_NATIVE: native elements outside any region (they host controls or governed labels).
   const P5_ROUTES = ["/darkfield-404-probe", "/procedural-animations", "/procedural-animations/mechanical-time", "/case-studies/aether", "/simulations",
-    "/simulations/orbital-simulator", "/simulations/traffic-simulator"];
+    "/simulations/orbital-simulator", "/simulations/traffic-simulator", "/terminal"];
   const P5_NATIVE = [];
   const P5_FAMILIES = ["Archivo", "Archivo Narrow", "IBM Plex Mono"];
   for (const theme of THEMES) {
@@ -3245,6 +3248,220 @@ if (MODE === "check") {
         invariant(bad.length === 0, `${theme} ${route}: ${JSON.stringify(bad)}`);
       });
     }
+  }
+  // Phase 5 Task 12 (§07 The cell; §06 Hierarchy and voices; §13 control model; P5-7). /terminal, route intro: the heading
+  // and its description lie wholly inside the viewport and nothing is drawn over them (the window, the site header), at a
+  // wide and a phone width, in every theme Mono included. The intro ignores the pointer, so it is made hit-testable while
+  // it is sampled.
+  for (const theme of [...new Set([...THEMES, "mono"])]) for (const [width, height] of [[VIEW_W, VIEW_H], [375, 812]]) {
+    await withPage({ theme, route: "/terminal" }, async (page) => {
+      await page.setViewportSize({ width, height }); await page.locator("input.command-input").waitFor();
+      await frames(page); await page.waitForTimeout(250); await frames(page);
+      const covered = await page.evaluate(() => {
+        const intro = document.querySelector(".terminal-route-intro"), out = [];
+        const win = document.querySelector(".terminal-container").getBoundingClientRect();
+        intro.style.pointerEvents = "auto";
+        for (const el of [intro.querySelector("h1"), intro.querySelector("p")]) {
+          const r = el.getBoundingClientRect();
+          if (r.top < 0 || r.left < 0 || r.bottom > innerHeight || r.right > innerWidth) out.push(`${el.tagName} outside the viewport ${JSON.stringify(r)}`);
+          if (win.left < r.right && r.left < win.right && win.top < r.bottom && r.top < win.bottom) out.push(`${el.tagName} meets the window ${JSON.stringify([r.bottom, win.top])}`);
+          const range = document.createRange(); range.selectNodeContents(el);
+          for (const box of range.getClientRects()) for (let i = 0; i <= 8; i++) for (let j = 0; j <= 2; j++) {
+            const x = box.left + 1 + ((box.width - 2) * i) / 8, y = box.top + 1 + ((box.height - 2) * j) / 2;
+            const hit = document.elementFromPoint(x, y);
+            if (!hit || !(hit === el || el.contains(hit))) out.push(`${el.tagName} at ${Math.round(x)},${Math.round(y)} under ${hit?.className}`);
+          }
+        }
+        intro.style.pointerEvents = "";
+        return out.slice(0, 6);
+      });
+      invariant(covered.length === 0, `${theme} /terminal ${width}px: the route intro is covered or cut ${JSON.stringify(covered)}`);
+    });
+  }
+  // The cell grid: after Phase 3 Task 21's command set, every run of the transcript and the prompt is set in the bundled
+  // mono face, one cell tall per row with no letter-spacing; every glyph it shows, the box-drawing set and the prompt
+  // mark advance exactly one cell; every character sits at its column's cell (so ls -l columns and help indents line
+  // up) and every row on a whole number of cells from the first; the input starts on a cell.
+  for (const theme of THEMES) for (const width of [VIEW_W, 375]) {
+    await withPage({ theme, route: "/terminal" }, async (page) => {
+      if (width !== VIEW_W) { await page.setViewportSize({ width, height: VIEW_H }); await frames(page); }
+      const input = page.locator("input.command-input"); await input.waitFor();
+      for (const command of ["help", "ls -l", "nosuchcommand", "grep terminal projects/web/README.md"]) { await input.fill(command); await input.press("Enter"); }
+      await page.locator(".grep-highlight").first().waitFor(); await frames(page);
+      const off = await page.evaluate(() => {
+        const root = getComputedStyle(document.documentElement), out = [];
+        const cellW = parseFloat(root.getPropertyValue("--cell-w")), cellH = parseFloat(root.getPropertyValue("--cell-h"));
+        const body = document.querySelector(".terminal-body");
+        const runs = [...body.querySelectorAll(".terminal-message, .history-line, .prompt-symbol, input.command-input")];
+        for (const e of runs) {
+          const c = getComputedStyle(e), family = c.fontFamily.split(",")[0].replace(/["']/g, "").trim();
+          if (family !== "IBM Plex Mono" || parseFloat(c.lineHeight) !== cellH || !(c.letterSpacing === "normal" || parseFloat(c.letterSpacing) === 0))
+            out.push(`metrics .${e.classList[0]} ${family} ${c.lineHeight} ${c.letterSpacing}`);
+        }
+        const probe = document.createElement("div"); probe.className = "history-line df-glyph";
+        probe.style.cssText = "position: absolute; visibility: hidden; white-space: pre;";
+        const span = probe.appendChild(document.createElement("span")); body.append(probe);
+        const glyphs = new Set([...body.innerText.replace(/\s/g, ""), ..."┌─┬┐│├┼┤└┴┘┏━┳┓┃┣╋┫┗┻┛╔═╦╗║╠╬╣╚╩╝┄┆╌╎›·…—"]);
+        for (const g of glyphs) {
+          span.textContent = g.repeat(40); const advance = span.getBoundingClientRect().width / 40;
+          if (Math.abs(advance - cellW) > 0.005) out.push(`advance ${g} U+${g.codePointAt(0).toString(16)} ${advance}`);
+        }
+        probe.remove();
+        const content = (e) => { const r = e.getBoundingClientRect(), c = getComputedStyle(e); return r.left + parseFloat(c.borderLeftWidth) + parseFloat(c.paddingLeft); };
+        const left = content(body), range = document.createRange();
+        let first = null;
+        for (const e of body.querySelectorAll(".terminal-message, .history-line, .prompt-symbol")) {
+          const walker = document.createTreeWalker(e, NodeFilter.SHOW_TEXT);
+          let col = 0, top = null;
+          for (let n = walker.nextNode(); n; n = walker.nextNode()) for (let i = 0; i < n.data.length; i++) {
+            if (n.data[i] === "\n") { col = 0; top = null; continue; }
+            range.setStart(n, i); range.setEnd(n, i + 1);
+            const r = range.getClientRects()[0];
+            if (!r) continue;
+            if (top !== null && Math.abs(r.top - top) > 0.5) col = 0;
+            top = r.top; first ??= r.top;
+            const rows = (r.top - first) / cellH;
+            if (Math.abs(r.left - (left + col * cellW)) > 0.05 || Math.abs(rows - Math.round(rows)) > 0.01) {
+              out.push(`cell .${e.classList[0]} "${n.data.slice(Math.max(0, i - 8), i + 8)}" col ${col} at ${r.left - left},${r.top - first}`); break;
+            }
+            col += 1;
+          }
+        }
+        const cols = (content(document.querySelector("input.command-input")) - left) / cellW;
+        if (Math.abs(cols - Math.round(cols)) > 0.01) out.push(`input starts between cells: ${cols}`);
+        return out.slice(0, 8);
+      });
+      invariant(off.length === 0, `${theme} /terminal ${width}px: off the cell grid ${JSON.stringify(off)}`);
+    });
+  }
+  // P5-7: the window controls show their accessible names as their labels, with the same words, in the order close,
+  // minimise, maximise, which is also their keyboard order; and they still restore, maximise, minimise, reopen and close.
+  for (const theme of THEMES) {
+    await withPage({ theme, route: "/terminal" }, async (page) => {
+      const input = page.locator("input.command-input"); await input.waitFor();
+      const named = () => page.evaluate(() => [...document.querySelectorAll(".terminal-header button")]
+        .map((b) => [b.classList[1], b.textContent.trim(), b.getAttribute("aria-label"), b.getAttribute("title")]));
+      const want = (max) => JSON.stringify([["close", "Close terminal", "Close terminal", null], ["minimize", "Minimize terminal", "Minimize terminal", null],
+        ["maximize", max, max, null]]);
+      invariant(JSON.stringify(await named()) === want("Maximize terminal"), `${theme} /terminal: window controls ${JSON.stringify(await named())}`);
+      await input.focus();
+      const order = [];
+      for (let i = 0; i < 3; i++) { await page.keyboard.press("Shift+Tab"); order.push(await page.evaluate(() => document.activeElement?.textContent.trim())); }
+      invariant(JSON.stringify(order) === JSON.stringify(["Maximize terminal", "Minimize terminal", "Close terminal"]), `${theme} /terminal: keyboard order ${JSON.stringify(order)}`);
+      const max = () => page.locator(".terminal-container").evaluate((e) => e.classList.contains("maximized"));
+      await page.getByRole("button", { name: "Maximize terminal", exact: true }).click(); await frames(page);
+      invariant((await max()) && JSON.stringify(await named()) === want("Restore terminal"), `${theme} /terminal: Maximize did not maximise ${JSON.stringify(await named())}`);
+      await page.getByRole("button", { name: "Restore terminal", exact: true }).click(); await frames(page);
+      invariant(!(await max()), `${theme} /terminal: Restore did not restore`);
+      await page.getByRole("button", { name: "Minimize terminal", exact: true }).click();
+      await page.locator(".terminal-sidecar").waitFor();
+      invariant((await page.locator(".terminal-container").count()) === 0, `${theme} /terminal: Minimize left the window open`);
+      await page.locator(".terminal-sidecar").click(); await page.locator(".terminal-container").waitFor();
+      await page.getByRole("button", { name: "Close terminal", exact: true }).click();
+      await page.waitForFunction(() => location.pathname === "/", null, { timeout: 5000 }).catch(() => invariant(false, `${theme} /terminal: Close did not leave the terminal`));
+    });
+  }
+  // Short and narrow viewports (Task 12 review I-1): the window always shows at least its floor of transcript rows
+  // (--terminal-floor-rows, a site constant). Its header and controls lie wholly inside it and it never scrolls, at
+  // rest, after focus and after output. The route intro is either wholly visible and uncovered, or clipped away whole
+  // (the window has risen over it) while staying in the accessibility tree: never partly covered. Drag, maximise and
+  // restore still work. Each size is a fresh load at that size.
+  const SHORT = [[1440, 900], [1024, 500], [844, 390], [667, 375], [568, 320], [640, 300], [375, 667], [320, 568], [320, 256]];
+  const windowCheck = (page) => page.evaluate(() => {
+    const out = [], box = document.querySelector(".terminal-container"), body = box.querySelector(".terminal-body"), header = box.querySelector(".terminal-header");
+    const c = getComputedStyle(box), b = getComputedStyle(body), w = box.getBoundingClientRect();
+    const floor = parseFloat(c.getPropertyValue("--terminal-floor-rows")), cell = parseFloat(c.getPropertyValue("--cell-h"));
+    const rows = (body.clientHeight - parseFloat(b.paddingTop) - parseFloat(b.paddingBottom)) / cell;
+    if (!(floor > 0) || rows < floor) out.push(`rows ${rows.toFixed(2)} below the floor ${floor}`);
+    if (box.scrollTop !== 0) out.push(`window scrolled ${box.scrollTop}`);
+    for (const e of [header, ...box.querySelectorAll(".terminal-button")]) {
+      const r = e.getBoundingClientRect();
+      if (r.top < w.top - 0.5 || r.left < w.left - 0.5 || r.bottom > w.bottom + 0.5 || r.right > w.right + 0.5 || r.bottom > innerHeight + 0.5 || r.top < -0.5)
+        out.push(`.${e.classList[0]}${e.classList[1] ? "." + e.classList[1] : ""} outside the window ${JSON.stringify([r.top, r.bottom, w.top, w.bottom])}`);
+    }
+    const intro = document.querySelector(".terminal-route-intro"), h1 = intro.querySelector("h1");
+    if (getComputedStyle(intro).clipPath === "inset(50%)") {
+      const s = getComputedStyle(h1);
+      if (s.display === "none" || s.visibility !== "visible" || h1.closest("[aria-hidden='true'], [hidden], [inert]")) out.push("hidden intro left the accessibility tree");
+    } else {
+      intro.style.pointerEvents = "auto";
+      for (const el of [h1, intro.querySelector("p")]) {
+        const r = el.getBoundingClientRect(), tag = el.tagName.toLowerCase();
+        if (r.top < 0 || r.left < 0 || r.bottom > innerHeight || r.right > innerWidth) out.push(`${tag} cut by the viewport ${JSON.stringify([r.top, r.bottom])}`);
+        if (w.left < r.right && r.left < w.right && w.top < r.bottom && r.top < w.bottom) out.push(`${tag} partly covered by the window ${JSON.stringify([r.bottom, w.top])}`);
+        const range = document.createRange(); range.selectNodeContents(el);
+        for (const t of range.getClientRects()) for (let i = 0; i <= 8; i++) for (let j = 0; j <= 2; j++) {
+          const x = t.left + 1 + ((t.width - 2) * i) / 8, y = t.top + 1 + ((t.height - 2) * j) / 2;
+          if (x < 0 || y < 0 || x > innerWidth || y > innerHeight) continue;
+          const hit = document.elementFromPoint(x, y);
+          if (!hit || !(hit === el || el.contains(hit))) { out.push(`${tag} at ${Math.round(x)},${Math.round(y)} under ${hit?.className}`); break; }
+        }
+      }
+      intro.style.pointerEvents = "";
+    }
+    return out.slice(0, 6);
+  });
+  for (const theme of THEMES) for (const [width, height] of SHORT) {
+    await withPage({ theme, route: "/terminal" }, async (page) => {
+      const at = `${theme} /terminal ${width}x${height}`;
+      await page.setViewportSize({ width, height }); await page.reload({ waitUntil: "networkidle" });
+      const input = page.locator("input.command-input"); await input.waitFor(); await frames(page); await page.waitForTimeout(250); await frames(page);
+      invariant((await windowCheck(page)).length === 0, `${at} at rest: ${JSON.stringify(await windowCheck(page))}`);
+      await input.focus(); await input.fill("help"); await input.press("Enter"); await frames(page); await page.waitForTimeout(150);
+      invariant((await windowCheck(page)).length === 0, `${at} after help: ${JSON.stringify(await windowCheck(page))}`);
+      // Dragged up as far as it goes: it stops at the clamp, header and controls still inside.
+      const title = await page.locator(".terminal-title").boundingBox();
+      await page.mouse.move(title.x + title.width / 2, title.y + title.height / 2); await page.mouse.down();
+      await page.mouse.move(title.x + title.width / 2, 1, { steps: 6 }); await page.mouse.up(); await frames(page);
+      const dragged = await windowCheck(page);
+      const top = await page.locator(".terminal-container").evaluate((e) => e.getBoundingClientRect().top);
+      const site = await page.evaluate(() => document.querySelector(".site-header").getBoundingClientRect().bottom);
+      invariant(dragged.length === 0 && top >= site - 1, `${at} dragged up: ${JSON.stringify(dragged)} top ${top} site header ${site}`);
+      await page.getByRole("button", { name: "Maximize terminal", exact: true }).click(); await frames(page);
+      invariant(await page.locator(".terminal-container").evaluate((e) => e.classList.contains("maximized")), `${at}: Maximize did not maximise`);
+      await page.getByRole("button", { name: "Restore terminal", exact: true }).click(); await frames(page);
+      invariant(!(await page.locator(".terminal-container").evaluate((e) => e.classList.contains("maximized"))), `${at}: Restore did not restore`);
+    });
+  }
+  // A live resize across the header's layout step (the site header changes height, so the page below it moves after the
+  // resize event): the window follows the intro's new place, and the checks above hold once the resize has settled, in
+  // both directions.
+  for (const theme of THEMES) for (const [from, to] of [[[844, 390], [667, 375]], [[667, 375], [844, 390]], [[800, 600], [700, 400]], [[700, 400], [800, 600]]]) {
+    await withPage({ theme, route: "/terminal" }, async (page) => {
+      await page.setViewportSize({ width: from[0], height: from[1] }); await page.reload({ waitUntil: "networkidle" });
+      await page.locator("input.command-input").waitFor(); await frames(page); await page.waitForTimeout(250);
+      await page.setViewportSize({ width: to[0], height: to[1] }); await frames(page); await page.waitForTimeout(400); await frames(page);
+      const seen = await windowCheck(page);
+      invariant(seen.length === 0, `${theme} /terminal resized ${from.join("x")} -> ${to.join("x")}: ${JSON.stringify(seen)}`);
+    });
+  }
+  // The three controls stay on one row at phone widths. A label too long for its control wraps between its words inside
+  // it, the control is at least three cells tall, and on hover the › marker ends where the label's first line begins
+  // (P3_CONTROLS checks single-line labels; its phone check runs at 500px, where the labels fit on one line).
+  for (const theme of THEMES) for (const width of [375, 320]) {
+    await withPage({ theme, route: "/terminal" }, async (page) => {
+      await page.setViewportSize({ width, height: 812 }); await page.reload({ waitUntil: "networkidle" });
+      await page.locator(".terminal-button").first().waitFor(); await frames(page);
+      const row = await page.evaluate(() => { const cell = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--cell-h"));
+        return [...document.querySelectorAll(".terminal-button")].map((e) => { const r = e.getBoundingClientRect();
+          return { top: Math.round(r.top), h: r.height, min: 3 * cell, fits: e.scrollWidth <= e.clientWidth + 0.5, words: e.textContent.trim() }; }); });
+      invariant(new Set(row.map((r) => r.top)).size === 1 && row.every((r) => r.h >= r.min - 0.5 && r.fits), `${theme} /terminal ${width}px: controls ${JSON.stringify(row)}`);
+      for (let i = 0; i < 3; i++) {
+        const el = page.locator(".terminal-button").nth(i);
+        await page.mouse.move(0, 0); await frames(page);
+        const first = () => el.evaluate((e) => { const text = [...e.childNodes].find((n) => n.nodeType === 3 && n.data.trim());
+          const r = document.createRange(); const start = text.data.search(/\S/); r.setStart(text, start); r.setEnd(text, start + 1);
+          const before = getComputedStyle(e, "::before"), c = r.getBoundingClientRect();
+          const probe = document.createElement("span"); e.prepend(probe);
+          const marker = probe.getBoundingClientRect().left - parseFloat(before.marginRight); probe.remove();
+          return { left: c.left, top: c.top, marker, content: before.content }; });
+        const rest = await first();
+        await el.hover(); await frames(page);
+        const hover = await first();
+        invariant(hover.content.startsWith('"›"') && Math.abs(hover.left - rest.left) <= 0.5 && Math.abs(hover.top - rest.top) <= 0.5 && Math.abs(hover.marker - hover.left) <= 0.5,
+          `${theme} /terminal ${width}px: control ${i} hover marker ${JSON.stringify({ rest, hover })}`);
+      }
+    });
   }
   // Phase 5 Task 6 (§13 Focus; DEV-5): keyboard entry into a framed piece shows the focus ring inside the frame's edges;
   // leaving by Shift+Tab removes it; a click into the piece shows none. The piece still receives its own keys. On a phone
