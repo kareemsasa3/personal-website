@@ -623,15 +623,11 @@ test("T19 literals: Phase 3 surfaces name colours only through tokens", async ()
 
 test("T20 Simulations chrome is page scoped; Traffic chart uses signal while native speed ramp stays mirrored", async () => {
   const sim = declarations(await read("pages/Simulations/Simulations.css"));
-  const aliases = sim.filter((d) => d.prop.startsWith("--"));
-  assert.deepEqual(aliases.map((d) => [innermost(d.selector), d.prop, d.value]), [
-    [".simulations-container", "--terminal-primary", "var(--signal-dim)"],
-    [".simulations-container", "--terminal-text-light", "var(--fg)"],
-    [".simulations-container", "--terminal-text-muted", "var(--fg-muted)"],
-  ]);
+  // Phase 5 Task 8 replaced the page-scoped aliases with token reads: none remains.
+  assert.deepEqual(sim.filter((d) => d.prop.startsWith("--")).map((d) => [innermost(d.selector), d.prop]), []);
   assert.deepEqual(sim.filter((d) => /:root\b|\[data-theme/.test(d.selector)).map(where), [], "no root or theme block");
   assert.doesNotMatch(await read("pages/Simulations/Simulations.css"), /\[data-theme/, "no empty theme block");
-  assert.deepEqual(sim.filter((d) => d.prop === "font-family" && innermost(d.selector) === ".simulations-container").map((d) => d.value), ["var(--font-mono)"]);
+  assert.deepEqual(sim.filter((d) => d.prop === "font-family" && innermost(d.selector) === ".simulations-container").map((d) => d.value), ["inherit"]);
 
   const trafficFile = "pages/TrafficSimulator/TrafficSimulator.css";
   const css = await read(trafficFile);

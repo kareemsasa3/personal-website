@@ -171,8 +171,9 @@
   color: var(--on-signal);
   transition: none;
 }
-/* Media inside a linked card keeps its own ground and text pairing while the card acknowledges the press. */
-.df-control--card.df-control--card:is(:active, [data-df-pressed]) :not(.project-media, .project-media *) { color: inherit; }
+/* Media inside a linked card keeps its own ground and text pairing while the card acknowledges the press, and so does
+   native content in a marked region (D6), which keeps its own ink. */
+.df-control--card.df-control--card:is(:active, [data-df-pressed]) :not(.project-media, .project-media *, [data-df-region], [data-df-region] *) { color: inherit; }
 .df-control--card.df-control--card:is(:active, [data-df-pressed]) .project-media { color: var(--fg); }
 
 /* Value (§13 Channels): a value inside a control reads fg at rest, takes the inverse with the label while pressed and

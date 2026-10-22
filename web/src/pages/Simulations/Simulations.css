@@ -1,12 +1,10 @@
+/* Type comes from the generated .df-* classes on each element (§06); colours are token reads. */
 .simulations-container {
-    --terminal-primary: var(--signal-dim);
-    --terminal-text-light: var(--fg);
-    --terminal-text-muted: var(--fg-muted);
     width: 100%;
     max-width: 1400px;
     margin: 0 auto;
     box-sizing: border-box;
-    font-family: var(--font-mono);
+    font-family: inherit;
 }
 
 .simulations-header {
@@ -17,26 +15,20 @@
 }
 
 .simulations-title {
-    font-size: 3rem;
-    font-weight: 700;
-    color: var(--terminal-primary, #4CAF50);
+    color: var(--fg);
     margin: 0 0 1rem 0;
 }
 
 .simulations-subtitle {
-    font-size: 1.2rem;
-    color: var(--terminal-text-light, #ffffff);
-    margin: 0;
-    line-height: 1.6;
+    color: var(--fg-muted);
     max-width: 600px;
     margin: 0 auto;
-    transition: color 0.3s ease;
 }
 
 .simulations-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-    gap: var(--spacing-xl);
+    gap: var(--space-12);
     justify-items: center;
     margin-top: 2rem;
 }
@@ -46,37 +38,28 @@
     .simulations-container {
         max-width: 1100px;
     }
-
-    .simulations-title {
-        font-size: 2.5rem;
-    }
 }
 
 @media (max-width: 768px) {
     .simulations-container {
-        width: min(100%, calc(100vw - (var(--spacing-sm) * 2)));
+        width: min(100%, calc(100vw - (var(--space-4) * 2)));
         max-width: 100%;
         padding: 0 1rem;
     }
 
     .simulations-grid {
         grid-template-columns: 1fr;
-        gap: var(--spacing-lg);
+        gap: var(--space-8);
     }
 
     .simulations-title {
-        font-size: 2rem;
-        margin-bottom: var(--spacing-md);
-    }
-
-    .simulations-subtitle {
-        font-size: 1rem;
+        margin-bottom: var(--space-6);
     }
 }
 
 @media (max-width: 480px) {
     .simulations-container {
-        width: min(100%, calc(100vw - (var(--spacing-sm) * 4)));
+        width: min(100%, calc(100vw - (var(--space-4) * 4)));
         padding: 0;
     }
 
@@ -85,15 +68,7 @@
         padding: 1rem 0;
     }
 
-    .simulations-title {
-        font-size: 1.75rem;
-    }
-
-    .simulations-subtitle {
-        font-size: 0.9rem;
-    }
-
     .simulations-grid {
-        gap: var(--spacing-md);
+        gap: var(--space-6);
     }
 }

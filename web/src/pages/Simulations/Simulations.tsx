@@ -14,8 +14,8 @@ const Simulations = () => {
     <div className="page-content">
       <div className="simulations-container">
         <div className="simulations-header prose-surface">
-          <h1 className="simulations-title">Simulations</h1>
-          <p className="simulations-subtitle">
+          <h1 className="simulations-title df-heading-1">Simulations</h1>
+          <p className="simulations-subtitle df-body-lg">
             Interactive systems exploring state, rules, feedback loops, and
             emergent behavior — built to model, visualize, and stress real
             dynamics.

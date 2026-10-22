@@ -114,13 +114,13 @@ const SimulationCard: React.FC<SimulationCardProps> = ({
 
   if (isComingSoon || !isAvailable) {
     return (
-      <div className="simulation-card coming-soon">
+      <div className="simulation-card coming-soon df-control df-control--card df-control--unavailable">
         <div className="simulation-card-content">
-          <h3>{title}</h3>
+          <h3 className="df-heading-3">{title}</h3>
           {statusLabel ? (
-            <div className="simulation-card-badge">{statusLabel}</div>
+            <div className="simulation-card-badge df-label-sm df-context">{statusLabel}</div>
           ) : null}
-          <p>{description}</p>
+          <p className="df-body-sm">{description}</p>
           <div className="simulation-preview">{renderPreview()}</div>
         </div>
       </div>
@@ -133,37 +133,37 @@ const SimulationCard: React.FC<SimulationCardProps> = ({
         href={externalUrl}
         target="_blank"
         rel="noreferrer"
-        className="simulation-card"
+        className="simulation-card df-control df-control--card"
       >
         <div className="simulation-card-content">
-          <h3>{title}</h3>
+          <h3 className="df-heading-3">{title}</h3>
           {modeLabel ? (
-            <div className="simulation-card-badge">{modeLabel}</div>
+            <div className="simulation-card-badge df-label-sm df-context">{modeLabel}</div>
           ) : null}
           {statusLabel ? (
-            <div className="simulation-card-badge">{statusLabel}</div>
+            <div className="simulation-card-badge df-label-sm df-context">{statusLabel}</div>
           ) : null}
-          <p>{description}</p>
+          <p className="df-body-sm">{description}</p>
           <div className="simulation-preview">{renderPreview()}</div>
-          <div className="launch-button">Launch</div>
+          <div className="launch-button df-label">Launch</div>
         </div>
       </a>
     );
   }
 
   return (
-    <Link to={path} className="simulation-card">
+    <Link to={path} className="simulation-card df-control df-control--card">
       <div className="simulation-card-content">
-        <h3>{title}</h3>
+        <h3 className="df-heading-3">{title}</h3>
         {modeLabel ? (
-          <div className="simulation-card-badge">{modeLabel}</div>
+          <div className="simulation-card-badge df-label-sm df-context">{modeLabel}</div>
         ) : null}
         {statusLabel ? (
-          <div className="simulation-card-badge">{statusLabel}</div>
+          <div className="simulation-card-badge df-label-sm df-context">{statusLabel}</div>
         ) : null}
-        <p>{description}</p>
+        <p className="df-body-sm">{description}</p>
         <div className="simulation-preview">{renderPreview()}</div>
-        <div className="launch-button">Launch</div>
+        <div className="launch-button df-label">Launch</div>
       </div>
     </Link>
   );

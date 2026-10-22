@@ -7,7 +7,7 @@ import { read, governed, declarations, innermost, where, NATIVE, NATIVE_KEYFRAME
 export const DONE5 = ["pages/NotFound/NotFound.css", "components/common/ErrorBoundary.css", "components/Terminal/TerminalErrorBoundary.css",
   "components/common/Toast.css", "components/common/ToastContainer.css", "components/common/Modal.css", "components/common/PageLoader.css",
   "pages/ProceduralAnimations/ProceduralAnimations.css", "pages/ProceduralAnimationPiece/ProceduralAnimationPiece.css",
-  "components/ProjectMedia/ProjectMedia.css"];
+  "components/ProjectMedia/ProjectMedia.css", "pages/Simulations/Simulations.css", "components/SimulationCard/SimulationCard.css"];
 const decls5 = async () => {
   const out = [];
   for (const file of (await governed(".css")).filter((f) => DONE5.includes(f))) {
@@ -371,4 +371,57 @@ test("P5 project media: evidence markers, control model, bar, caption and inspec
     if (!(r >= min)) bad.push(`${t}: ${ink} on ${gr} ${r.toFixed(2)} < ${min}`);
   }
   assert.deepEqual(bad, []);
+});
+
+// Simulations index and cards (Phase 5 Task 8; §13 card controls and Unavailable, §06, §08 Not a dashboard; D6 ruling). Each
+// linked card is a card control: its title is a Narrator heading that carries the hover marker, the mode and status tags
+// are context labels, Launch is an Instrument label, and the preview frame is a square field-deep well with an L1 rule
+// boundary. A card that cannot be opened is Unavailable. The previews stay native: the hold on their content is kept
+// as it is, and the snake preview's food keeps its own colour now that the bridge value it read is going away (D6 hold).
+test("P5 simulations: index and card chrome, the preview frame, and the food preview's local hold", async () => {
+  const classLists = (code) => [...code.matchAll(/className=\{?[`"]([^`"]*)[`"]/g)].map((m) => m[1].split(/\s+/));
+  const card = await read("components/SimulationCard/SimulationCard.tsx");
+  const cards = classLists(card).filter((c) => c[0] === "simulation-card");
+  assert.deepEqual(cards.map((c) => c.join(" ")), ["simulation-card coming-soon df-control df-control--card df-control--unavailable",
+    "simulation-card df-control df-control--card", "simulation-card df-control df-control--card"], "the three card forms");
+  const has = (code, first, cls, file) => { const lists = classLists(code).filter((c) => c[0] === first);
+    assert.ok(lists.length > 0 && lists.every((c) => cls.every((k) => c.includes(k))), `${file}: .${first} ${cls.join(" ")}`); };
+  has(card, "simulation-card-badge", ["df-label-sm", "df-context"], "SimulationCard.tsx");
+  has(card, "launch-button", ["df-label"], "SimulationCard.tsx");
+  assert.equal((card.match(/<h3 className="df-heading-3">/g) ?? []).length, 3, "SimulationCard.tsx: each card title is df-heading-3");
+  assert.equal((card.match(/<p className="df-body-sm">/g) ?? []).length, 3, "SimulationCard.tsx: each description is df-body-sm");
+  const index = await read("pages/Simulations/Simulations.tsx");
+  has(index, "simulations-title", ["df-heading-1"], "Simulations.tsx");
+  has(index, "simulations-subtitle", ["df-body-lg"], "Simulations.tsx");
+
+  const sim = declarations(await read("pages/Simulations/Simulations.css"));
+  assert.deepEqual(sim.filter((d) => d.prop.startsWith("--")).map(where), [], "the page-scoped variables are gone");
+  const simRule = (sel) => Object.fromEntries(sim.filter((d) => d.selector === sel).map((d) => [d.prop, d.value]));
+  assert.equal(simRule(".simulations-container")["font-family"], "inherit");
+  assert.equal(simRule(".simulations-title").color, "var(--fg)");
+  assert.equal(simRule(".simulations-subtitle").color, "var(--fg-muted)");
+
+  const css = declarations(await read("components/SimulationCard/SimulationCard.css"));
+  const rule = (sel) => Object.fromEntries(css.filter((d) => d.selector === sel).map((d) => [d.prop, d.value]));
+  const want = (sel, values) => { const r = rule(sel); for (const [p, v] of Object.entries(values)) assert.equal(r[p], v, `${sel} { ${p} }`); };
+  want(".simulation-preview", { "background-color": "var(--field-deep)", border: "var(--stroke-hair) solid var(--rule)", overflow: "hidden", color: "var(--fg)" });
+  // A pressed card does not pass its inverse ink into the preview: the frame keeps the at-rest ink.
+  want(".simulation-card.df-control--card:is(:active, [data-df-pressed]) .simulation-preview.simulation-preview", { color: "var(--fg)" });
+  assert.ok(!("border-radius" in rule(".simulation-preview")), "the preview frame is square");
+  // The preview content's hold stays exactly as Phase 1 set it (D6 ruling confirms it).
+  want(".simulation-preview > *", { "--terminal-primary": "#4CAF50" });
+  want('[data-theme="light"] .simulation-preview > *', { "--terminal-primary": "#2a7331" });
+  // The food preview keeps the value it rendered in every theme, held in its own rule.
+  const food = css.filter((d) => d.selector === ".food-preview");
+  assert.deepEqual(food.filter((d) => /var\(--accent-color/.test(d.value)).map(where), [], ".food-preview reads --accent-color");
+  want(".food-preview", { "background-color": "#FFD700", "box-shadow": "0 0 8px #FFD700" });
+  // A pressed card inverts its chrome only: native content in a marked region keeps its own ink (grammar.css).
+  assert.ok(declarations(await read("styles/darkfield/grammar.css")).some((d) => d.prop === "color" && d.value === "inherit" &&
+    /:is\(:active, \[data-df-pressed\]\) :not\([^)]*\[data-df-region\] \*\)$/.test(d.selector)), "the pressed card's colour reaches native regions");
+  // Launch is a label inside the card, not a filled button: no ground of its own and no hover fill.
+  assert.deepEqual(css.filter((d) => /launch-button/.test(d.selector) && /^(background|background-color|border|border-radius)$/.test(d.prop)).map(where), []);
+  assert.deepEqual(css.filter((d) => /launch-button::before/.test(d.selector)).map(where), []);
+  // The cards take their colours from the control model only.
+  assert.deepEqual(css.filter((d) => /^(.* >> )?(a)?\.simulation-card(:[\w-]+)?$/.test(d.selector))
+    .filter((d) => /^(color|background|background-color|border|border-color|border-radius|outline)$/.test(d.prop)).map(where), []);
 });

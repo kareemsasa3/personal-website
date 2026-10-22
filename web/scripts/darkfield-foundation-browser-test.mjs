@@ -1348,6 +1348,8 @@ if (MODE === "check") {
     { route: "/procedural-animations", selectors: [".procedural-animations-card"] },
     // Phase 5 Task 6: the piece bar's Back and Fullscreen controls, on the bar's surface above the framed artwork.
     { route: "/procedural-animations/mechanical-time", selectors: [".animation-piece__control"] },
+    // Phase 5 Task 8: the simulation cards (card controls whose titles carry the marker).
+    { route: "/simulations", selectors: ["a.simulation-card"] },
     // Phase 5 Task 7: project media chrome (the bar's play control, the inspect openers), then the media inspector's
     // controls with the inspector open: Close on a recording-only inspector, and on one with a still frame the view
     // switch (Selected through aria-pressed) and actual size (a latch: a two-state mode with its lamp).
@@ -1538,6 +1540,37 @@ if (MODE === "check") {
         if (route === "/darkfield-404-probe") invariant(wide.length > 0 && wide.every(([, , a]) => a === "centred"), `${theme} ${route}: 404 and error actions are not centred ${JSON.stringify(wide)}`);
       });
     }
+  }
+
+  // Phase 5 Task 8 (§13 Hover): every simulation card, hovered, rises one surface step from the field, and each text run
+  // in its chrome (title, tags, description, Launch) reads fg or fg-muted on that ground. The native previews are not chrome:
+  // a press leaves their ink as it is.
+  for (const theme of THEMES) {
+    await withPage({ theme, route: "/simulations" }, async (page) => {
+      const want = { ground: await tokenRgb(page, "--surface-1"), inks: [await tokenRgb(page, "--fg"), await tokenRgb(page, "--fg-muted")] };
+      const cards = page.locator("a.simulation-card");
+      invariant((await cards.count()) === 6, `${theme} /simulations: ${await cards.count()} linked cards`);
+      for (let i = 0; i < (await cards.count()); i++) {
+        const card = cards.nth(i);
+        await card.scrollIntoViewIfNeeded(); await page.mouse.move(0, 0); await frames(page);
+        await card.hover(); await frames(page);
+        const seen = await card.evaluate((e) => ({ title: e.querySelector("h3")?.textContent, ground: getComputedStyle(e).backgroundColor,
+          inks: [...e.querySelectorAll("*")].filter((el) => !el.closest("[data-df-region]") && el.getClientRects().length &&
+            [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim())).map((el) => [el.className, getComputedStyle(el).color]) }));
+        invariant(seen.ground === want.ground, `${theme} /simulations: hovered card "${seen.title}" ground ${seen.ground}, not the surface step ${want.ground}`);
+        const off = seen.inks.filter(([, c]) => !want.inks.includes(c));
+        invariant(seen.inks.length >= 3 && off.length === 0, `${theme} /simulations: hovered card "${seen.title}" text ${JSON.stringify(off.length ? off : seen.inks)}`);
+        // Pressed, the card inverts its chrome; everything in its preview keeps its own ink (D6): the colour and the four
+        // border colours of every preview descendant are what they are at rest.
+        const native = await card.evaluate((e) => {
+          const ink = () => [...e.querySelectorAll(".simulation-preview *")].map((el) => { const c = getComputedStyle(el);
+            return [el.getAttribute("class") ?? el.tagName, c.color, c.borderTopColor, c.borderRightColor, c.borderBottomColor, c.borderLeftColor].join(" "); });
+          const rest = ink(); e.setAttribute("data-df-pressed", ""); const down = ink(); e.removeAttribute("data-df-pressed");
+          return { rest, down };
+        });
+        invariant(JSON.stringify(native.rest) === JSON.stringify(native.down), `${theme} /simulations: pressing "${seen.title}" recolours its preview ${JSON.stringify(native)}`);
+      }
+    });
   }
 
   // Phase 5 Task 4 (§13 Confirmed; §12 reduced motion): a success toast (Settings → Reset) is Confirmed (the › marker) and
@@ -2667,7 +2700,7 @@ if (MODE === "check") {
   }
   // Phase 5 (§03, §06): on each listed route, governed elements outside creative regions have square corners and a
   // Darkfield family. P5_NATIVE: native elements outside any region (they host controls or governed labels).
-  const P5_ROUTES = ["/darkfield-404-probe", "/procedural-animations", "/procedural-animations/mechanical-time", "/case-studies/aether"];
+  const P5_ROUTES = ["/darkfield-404-probe", "/procedural-animations", "/procedural-animations/mechanical-time", "/case-studies/aether", "/simulations"];
   const P5_NATIVE = [];
   const P5_FAMILIES = ["Archivo", "Archivo Narrow", "IBM Plex Mono"];
   for (const theme of THEMES) {
