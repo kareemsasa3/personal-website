@@ -6,6 +6,9 @@ const ATTR = "data-df-pressed";
 const TARGET = ".df-control, .df-prose a, .site-header__brand";
 const BUTTONISH = "button, summary, [role='button'], [role='option'], [role='switch'], [role='combobox']";
 const PRESS_KEYS = ["Enter", " "];
+// A checkbox or radio is pressed by Space alone (Enter does not toggle it), whatever control it sits in.
+const isToggle = (target: EventTarget | null) =>
+  target instanceof HTMLInputElement && (target.type === "checkbox" || target.type === "radio");
 
 export const installPressAcknowledge = (doc: Document = document): (() => void) => {
   const since = new Map<Element, number>();
@@ -20,10 +23,11 @@ export const installPressAcknowledge = (doc: Document = document): (() => void) 
   const press = (event: Event) => {
     if (event instanceof KeyboardEvent) {
       if (event.repeat || !PRESS_KEYS.includes(event.key)) return;
+      if (event.key === "Enter" && isToggle(event.target)) return;
     }
     const el = (event.target as Element | null)?.closest?.(TARGET);
     if (!el || el.matches(":disabled, [aria-disabled='true'], .df-control--unavailable")) return;
-    if (event instanceof KeyboardEvent && event.key === " " && !el.matches(BUTTONISH)) return;
+    if (event instanceof KeyboardEvent && event.key === " " && !el.matches(BUTTONISH) && !isToggle(event.target)) return;
     clear(el);
     el.setAttribute(ATTR, "");
     since.set(el, performance.now());

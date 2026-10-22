@@ -1,179 +1,206 @@
+/* Orbital simulator chrome (Phase 5 Task 9). The canvas is the subject; everything around it is governed: Narrator
+   prose, Instrument labels, Machine values and the control model on one surface-1 face (§08 rail and field). */
 .orbital-container {
   max-width: 1400px;
   margin: 0 auto;
   color: var(--fg);
-  font-family: var(--font-mono);
-  line-height: 1.55;
 }
 .orbital-header {
-  margin-bottom: 1.5rem;
-}
-.orbital-header a {
-  color: var(--signal-dim);
-}
-/* Light: green falls below 4.5:1 on the background's grid lines behind the header. */
-[data-theme="light"] .orbital-header a {
-  color: var(--fg-muted);
-}
-.orbital-header h1 {
-  color: var(--signal-dim);
-  font-size: clamp(1.7rem, 4vw, 2.8rem);
-  line-height: 1.15;
-  margin: 0.4rem 0 0.75rem;
+  margin-bottom: var(--space-6);
 }
 .orbital-header p {
-  margin: 0.5rem 0;
+  margin: var(--space-2) 0;
 }
+/* An operable breadcrumb: a light control in the label voice. */
+.orbital-back {
+  display: inline-block;
+}
+/* Narrator supporting text (§06): the eyebrow reads as a phrase, so it keeps its own case. */
 .orbital-eyebrow {
   color: var(--fg-muted);
-  padding-top: 1rem;
+  padding-top: var(--space-4);
+}
+.orbital-header h1 {
+  margin: var(--space-2) 0 var(--space-3);
+  color: var(--fg);
+}
+.orbital-header .orbital-lead {
+  color: var(--fg);
+}
+/* One instrument face (§08 Not a dashboard): the regions sit edge to edge on surface-1, with no gaps and no boxes of
+   their own. The canvas region is the one closed boundary, the bounded system in edge (§09 L2). Every other region
+   meets its neighbour on a single L1 rule: the controls bar draws the rule below it, the messages and the context draw
+   the rule above them, each overlapping its neighbour's edge by the rule's width, and the canvas region (positioned,
+   so painted later) keeps its edge where the two lines coincide. The inspector has no line of its own: it shares the
+   canvas region's edge. A control on the face rises one more step on hover. */
+:is(.orbital-controls, .orbital-workspace, .orbital-messages, .orbital-context) {
+  background-color: var(--surface-1);
+  --df-ground-up: var(--surface-2);
 }
 .orbital-panel {
-  background: var(--surface-1);
-  border: 1px solid var(--rule);
-  border-radius: 8px;
-  padding: 1rem;
+  padding: var(--space-4);
   min-width: 0;
 }
 .orbital-container h2 {
-  font-size: 1rem;
-  margin: 0 0 0.8rem;
-  color: var(--signal-dim);
+  margin: 0 0 var(--space-3);
+  color: var(--fg);
 }
-.orbital-container label {
+/* Field labels: the Instrument name above its field. */
+.orbital-label {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
-  font-size: 0.8rem;
+  gap: var(--space-2);
   min-width: 0;
+  color: var(--fg-muted);
 }
-.orbital-container :is(button, select, input) {
-  font: inherit;
-  font-size: 0.8rem;
-  color: var(--fg);
-  border: 1px solid var(--edge);
-  border-radius: 4px;
-  background: var(--field);
-  min-height: 44px;
-  padding: 0.5rem 0.65rem;
-  max-width: 100%;
-}
-.orbital-container :is(select, input[type="number"]) {
+.orbital-container .df-field {
   width: 100%;
+  max-width: 100%;
+  padding: var(--space-2) var(--space-3);
 }
-.orbital-container button {
-  cursor: pointer;
-}
-.orbital-container button:hover:not(:disabled) {
-  border-color: var(--signal-dim);
-  background: var(--surface-2);
-}
-.orbital-container button:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-.orbital-container .orbital-primary {
-  border-color: var(--signal-dim);
-  color: var(--signal-dim);
-  font-weight: 700;
-  min-width: 85px;
+/* Target size: fields match the control model's three-cell height on small or coarse-pointer screens. */
+@media (max-width: 768px), (pointer: coarse) {
+  .orbital-container .df-field {
+    min-height: calc(3 * var(--cell-h));
+  }
 }
 .orbital-controls {
   display: flex;
   align-items: end;
-  gap: 1rem;
+  gap: var(--space-4);
   flex-wrap: wrap;
-  margin-bottom: 1rem;
+  border-bottom: var(--stroke-hair) solid var(--rule);
+  margin-bottom: calc(-1 * var(--stroke-hair));
+}
+.orbital-messages,
+.orbital-context {
+  border-top: var(--stroke-hair) solid var(--rule);
+  margin-top: calc(-1 * var(--stroke-hair));
+}
+.orbital-messages {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+}
+.orbital-messages > * {
+  margin: 0;
 }
 .orbital-controls > label:first-child {
   flex: 1 1 220px;
 }
-.orbital-controls .orbital-checkbox {
-  flex-direction: row;
-  align-items: center;
-  min-height: 44px;
-  gap: 0.5rem;
+/* Show trails is a latch (§13 Latched): its lamp follows the native checkbox. The checkbox stays in the document and
+   focusable, one pixel inside the label's text, and the label draws the focus ring for it. */
+.orbital-checkbox {
+  align-self: end;
 }
-.orbital-checkbox input {
-  width: 20px;
-  height: 20px;
-  min-height: 20px;
-  accent-color: var(--signal-dim);
+.orbital-checkbox > input {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-end: var(--space-3);
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  opacity: 0;
+}
+.orbital-checkbox:has(> input:checked) {
+  color: var(--fg);
+}
+.orbital-checkbox:has(> input:checked)::after {
+  background-color: var(--signal);
+  border-color: var(--signal);
+}
+.orbital-checkbox:has(:focus-visible) {
+  box-shadow: var(--focus-ring);
 }
 .orbital-actions {
   display: flex;
-  gap: 0.5rem;
+  gap: var(--space-2);
   flex-wrap: wrap;
 }
+/* No gap between the canvas region and the inspector: the inspector's column takes the former gap as its own leading
+   padding, so the canvas region keeps its width. */
 .orbital-workspace {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(260px, 310px);
-  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) minmax(calc(260px + var(--space-4)), calc(310px + var(--space-4)));
+  gap: 0;
   align-items: start;
 }
+.orbital-inspector {
+  padding-inline-start: var(--space-8);
+}
+/* The canvas region is the bounded system (§09 L2 boundary). */
 .orbital-field {
+  position: relative;
   padding: 0;
   overflow: hidden;
+  border: var(--stroke-hair) solid var(--edge);
 }
 .orbital-status {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
-  gap: 0.4rem 1rem;
-  padding: 0.7rem 1rem;
-  font-size: 0.75rem;
-  font-variant-numeric: tabular-nums;
-  border-bottom: 1px solid var(--rule);
+  align-items: baseline;
+  gap: var(--space-1) var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: var(--stroke-hair) solid var(--rule);
+  color: var(--fg-muted);
 }
-.orbital-status > span:first-child {
-  color: var(--signal-dim);
-}
+/* Native (D6): the canvas draws its own picture; it keeps the family and line height it inherited before the chrome
+   around it changed. */
 .orbital-canvas {
   display: block;
   width: 100%;
   height: clamp(350px, 48vw, 540px);
   touch-action: none;
   cursor: crosshair;
+  font-family: var(--font-mono);
+  line-height: 1.55;
 }
 .orbital-camera {
   display: flex;
   flex-direction: column;
-  gap: 0.8rem;
-  padding: 1rem;
-  border-top: 1px solid var(--rule);
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-top: var(--stroke-hair) solid var(--rule);
 }
 .orbital-camera > label {
   max-width: 260px;
 }
 .orbital-note {
-  font-size: 0.75rem;
+  margin: var(--space-3) 0;
+}
+/* Supporting notes are fg-muted; the warning keeps its message in fg. */
+.orbital-note:where(:not(.df-warning)) {
   color: var(--fg-muted);
-  margin: 0.75rem 0;
 }
 .orbital-camera .orbital-note {
   margin: 0;
 }
+/* Readouts (§06): an Instrument label over a Machine value with its unit beside it. Values read fg; while the
+   simulation runs the ones that change take the shared Live value class (grammar.css). */
 .orbital-readout {
-  margin: 1rem 0;
-  font-size: 0.8rem;
-  font-variant-numeric: tabular-nums;
+  margin: var(--space-4) 0;
 }
 .orbital-readout > div {
-  padding: 0.65rem 0;
-  border-bottom: 1px solid var(--rule);
+  padding: var(--space-2) 0;
+  border-bottom: var(--stroke-hair) solid var(--rule);
 }
 .orbital-readout dt {
   color: var(--fg-muted);
 }
 .orbital-readout dd {
-  margin: 0.2rem 0 0;
+  margin: var(--space-1) 0 0;
   overflow-wrap: anywhere;
+  color: var(--fg-muted);
+}
+.orbital-value {
+  color: var(--fg);
 }
 .orbital-editor {
   display: flex;
   flex-direction: column;
-  gap: 0.7rem;
-  font-size: 0.8rem;
+  gap: var(--space-3);
 }
 .orbital-editor p {
   margin: 0;
@@ -181,40 +208,43 @@
 .orbital-context {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 2rem;
-  margin-top: 1rem;
-  font-size: 0.85rem;
+  gap: var(--space-8);
 }
 .orbital-context p {
-  margin: 0.75rem 0 0;
+  margin: var(--space-3) 0 0;
 }
-.orbital-warning {
-  border-color: var(--signal-dim);
-  font-size: 0.85rem;
+/* States (§13): the simulation's and the editor's errors, and the degraded-playback warning. */
+.orbital-warning,
+.orbital-editor-error,
+.orbital-note.df-warning {
+  padding: var(--space-3) var(--space-4);
 }
 @media (max-width: 900px) {
   .orbital-workspace {
     grid-template-columns: minmax(0, 1fr);
   }
+  .orbital-inspector {
+    padding-inline-start: var(--space-4);
+  }
   .orbital-context {
     grid-template-columns: minmax(0, 1fr);
-    gap: 1.4rem;
+    gap: var(--space-6);
   }
 }
 @media (max-width: 480px) {
   .orbital-controls {
-    gap: 0.8rem;
+    gap: var(--space-3);
   }
-  .orbital-controls > label {
+  .orbital-controls > label:not(.orbital-checkbox) {
     flex-basis: 100%;
   }
   .orbital-canvas {
     height: 360px;
   }
   .orbital-status {
-    padding: 0.6rem;
+    padding: var(--space-2);
   }
   .orbital-camera {
-    padding: 0.75rem;
+    padding: var(--space-3);
   }
 }

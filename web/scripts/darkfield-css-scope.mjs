@@ -139,6 +139,8 @@ export const NATIVE5 = {
     ".annals-preview-line-hand", ".annals-preview-line-death"],
   // The parchment sheet and the utility-class rules (they style native regions too; never edited).
   "pages/Annals/Annals.css": [".annals-sheet", ".annals-page .annals-sheet", ...ANNALS_UTILITIES],
+  // The Orbital canvas: its size, pointer behaviour and the type it inherited before its chrome was governed (Task 9).
+  "pages/OrbitalSimulator/OrbitalSimulator.css": [".orbital-canvas"],
 };
 // Phase 5 holds: [innermost selector, property] pairs that keep a native value inside a governed rule. P5-2 palette
 // mirrors and the existing native-value holds (Spider's empty-column border, Traffic's speed ramp, the parchment shadow).

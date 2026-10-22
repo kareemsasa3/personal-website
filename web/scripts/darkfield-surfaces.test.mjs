@@ -7,7 +7,8 @@ import { read, governed, declarations, innermost, where, NATIVE, NATIVE_KEYFRAME
 export const DONE5 = ["pages/NotFound/NotFound.css", "components/common/ErrorBoundary.css", "components/Terminal/TerminalErrorBoundary.css",
   "components/common/Toast.css", "components/common/ToastContainer.css", "components/common/Modal.css", "components/common/PageLoader.css",
   "pages/ProceduralAnimations/ProceduralAnimations.css", "pages/ProceduralAnimationPiece/ProceduralAnimationPiece.css",
-  "components/ProjectMedia/ProjectMedia.css", "pages/Simulations/Simulations.css", "components/SimulationCard/SimulationCard.css"];
+  "components/ProjectMedia/ProjectMedia.css", "pages/Simulations/Simulations.css", "components/SimulationCard/SimulationCard.css",
+  "pages/OrbitalSimulator/OrbitalSimulator.css"];
 const decls5 = async () => {
   const out = [];
   for (const file of (await governed(".css")).filter((f) => DONE5.includes(f))) {
@@ -424,4 +425,95 @@ test("P5 simulations: index and card chrome, the preview frame, and the food pre
   // The cards take their colours from the control model only.
   assert.deepEqual(css.filter((d) => /^(.* >> )?(a)?\.simulation-card(:[\w-]+)?$/.test(d.selector))
     .filter((d) => /^(color|background|background-color|border|border-color|border-radius|outline)$/.test(d.prop)).map(where), []);
+});
+
+// Orbital simulator chrome (Phase 5 Task 9; §13 control model, Disabled, Errors, Warning; §06 voices; §08 rail and field;
+// §05 When bright signal appears). The header link is an operable breadcrumb (a light control); the eyebrow is Narrator
+// supporting text, not a label. Every button is a control in the label voice; Play stays focusable while it cannot act
+// (aria-disabled, guarded handler) and points at the reason. Selects and number inputs are fields; an input the browser
+// rejects on submit is marked invalid beside the editor's error message. Show trails is a latch whose lamp follows the
+// native checkbox, which stays focusable while the label draws the ring, and a keyboard press on it is Space, not Enter.
+// The regions form one surface-1 face with no boxes of their own (§08 Not a dashboard): the canvas region is the one
+// closed edge boundary, the inspector shares it, and the others meet on a single rule. Readouts pair Instrument labels
+// with Machine values and units; a value that is changing (the simulation is running) takes the shared Live value
+// class, and the inspector's heading carries the Live marker. The canvas is native: it keeps the inherited family and
+// line height it rendered with.
+test("P5 orbital: controls, fields, panels and readouts", async () => {
+  const page = await read("pages/OrbitalSimulator/OrbitalSimulator.tsx");
+  const controls = await read("components/OrbitalSimulator/SimulationControls.tsx");
+  const inspector = await read("components/OrbitalSimulator/BodyInspector.tsx");
+  const all = { "OrbitalSimulator.tsx": page, "SimulationControls.tsx": controls, "BodyInspector.tsx": inspector };
+  const lists = (code) => [...code.matchAll(/className=\{?[`"]([^`"]*)[`"]/g)].map((m) => m[1].trim().split(/\s+/));
+  const first = (code, name) => lists(code).filter((c) => c[0] === name);
+  const one = (code, name, cls, file) => { const f = first(code, name); assert.ok(f.length === 1 && cls.every((k) => f[0].includes(k)), `${file}: .${name} ${cls.join(" ")}`); };
+  one(page, "orbital-back", ["df-control", "df-control--light", "df-label"], "OrbitalSimulator.tsx");
+  assert.match(page, /<Link className="orbital-back[^"]*" to="\/simulations">← Simulations<\/Link>/, "the back link keeps its words");
+  one(page, "orbital-eyebrow", ["df-body-sm"], "OrbitalSimulator.tsx");
+  assert.ok(!first(page, "orbital-eyebrow")[0].some((c) => /^df-label/.test(c)), "the eyebrow is not a label");
+  assert.match(page, /<h1 className="[^"]*\bdf-heading-1\b[^"]*">Orbital Simulator<\/h1>/);
+  // Every button in the three files is a df-control in the label voice; none uses the native disabled attribute.
+  for (const [file, code] of Object.entries(all)) {
+    const buttons = [...code.matchAll(/<button\b[^>]*?>/g)].map((m) => m[0]);
+    assert.ok(buttons.length > 0 || file === "OrbitalSimulator.tsx", `${file}: buttons not found`);
+    for (const b of buttons) assert.match(b, /className="[^"]*\bdf-control\b[^"]*\bdf-label\b[^"]*"/, `${file}: ${b.slice(0, 60)}`);
+    assert.doesNotMatch(code, /(?<![\w-])disabled=\{/, `${file}: native disabled`);
+    for (const el of [...code.matchAll(/<(select|input)\b[^>]*?>/g)].map((m) => m[0]).filter((e) => !/type="checkbox"/.test(e))) {
+      assert.match(el, /className="[^"]*\bdf-field\b[^"]*\bdf-data\b[^"]*"/, `${file}: ${el.slice(0, 60)}`);
+    }
+  }
+  one(controls, "orbital-primary", ["df-control", "df-label"], "SimulationControls.tsx");
+  assert.match(controls, /aria-disabled=\{blocked \|\| undefined\}/, "Play: aria-disabled");
+  assert.match(controls, /onClick=\{\(\) => \{\s*if \(!blocked\) simulation\.toggle\(\);?\s*\}\}/, "Play: the handler ignores a blocked press");
+  assert.match(controls, /aria-describedby=\{reasons \|\| undefined\}/, "Play: the reason is linked");
+  assert.match(page, /id="orbital-error"/); assert.match(page, /id="orbital-editing-note"/);
+  one(controls, "orbital-checkbox", ["df-control", "df-control--latch", "df-label"], "SimulationControls.tsx");
+  // States and readouts.
+  const warning = first(page, "orbital-panel").filter((c) => c.includes("orbital-warning"));
+  assert.ok(warning.length === 1 && warning[0].includes("df-error"), "OrbitalSimulator.tsx: the simulation's alert is an error");
+  assert.match(page, /className="orbital-note df-warning[^"]*"[^>]*>\s*Step budget reached/, "the step-budget note is a warning");
+  assert.match(inspector, /<p className="orbital-editor-error df-error[^"]*" role="alert">\{error\}<\/p>/, "the editor's message is an error");
+  assert.match(inspector, /aria-invalid=\{invalid\.has\(field\.key\) \|\| undefined\}/, "a rejected field is marked invalid");
+  assert.match(inspector, /onInvalid=/, "fields are marked when the browser rejects them on submit");
+  assert.ok((inspector.match(/<dt className="df-label-sm">/g) ?? []).length === 4, "BodyInspector.tsx: dt df-label-sm");
+  // Speed, position and velocity change while running; mass does not, so it is never Live.
+  assert.ok((inspector.match(/<span className=\{`orbital-value df-data\$\{live\}`\}>/g) ?? []).length === 3, "BodyInspector.tsx: values df-data");
+  assert.match(inspector, /<span className="orbital-value orbital-value--fixed df-data">\s*\{format\(body\.mass\)\}/, "BodyInspector.tsx: mass is a fixed value");
+  // Live: the shared grammar class while running, on every changing value (elapsed, energy change, speed, position, velocity).
+  for (const [file, code, n] of [["OrbitalSimulator.tsx", page, 2], ["BodyInspector.tsx", inspector, 3]]) {
+    assert.match(code, /const live = simulation\.playing \? " df-data--live" : "";/, `${file}: the Live class follows the running state`);
+    assert.equal((code.match(/className=\{`orbital-value df-data\$\{live\}`\}/g) ?? []).length, n, `${file}: Live values`);
+    assert.doesNotMatch(code, /orbital-live/, `${file}: a local Live rule`);
+  }
+  assert.match(inspector, /className=\{`df-heading-3\$\{simulation\.playing \? " df-context--live" : ""\}`\}/, "the inspector heading carries the Live marker");
+  const g = declarations(await read("styles/darkfield/grammar.css"));
+  const liveRule = Object.fromEntries(g.filter((d) => d.selector === ".df-data.df-data--live").map((d) => [d.prop, d.value]));
+  assert.deepEqual(liveRule, { color: "var(--signal)", "font-weight": "500" }, "grammar.css: the shared Live value class");
+  // A checkbox or radio is pressed from the keyboard by Space, never Enter (pressAcknowledge.ts).
+  const press = await read("utils/pressAcknowledge.ts");
+  assert.match(press, /if \(event\.key === "Enter" && isToggle\(event\.target\)\) return;/, "Enter on a checkbox shows no press");
+  assert.match(press, /event\.key === " " && !el\.matches\(BUTTONISH\) && !isToggle\(event\.target\)/, "Space on a checkbox presses its control");
+
+  const css = declarations(await read("pages/OrbitalSimulator/OrbitalSimulator.css"));
+  const rule = (sel) => Object.fromEntries(css.filter((d) => d.selector === sel).map((d) => [d.prop, d.value]));
+  const want = (sel, values) => { const r = rule(sel); for (const [p, v] of Object.entries(values)) assert.equal(r[p], v, `${sel} { ${p} }`); };
+  // One face: surface-1 regions with no gap; only the canvas region is closed (edge); the others draw one rule each.
+  want(":is(.orbital-controls, .orbital-workspace, .orbital-messages, .orbital-context)", { "background-color": "var(--surface-1)", "--df-ground-up": "var(--surface-2)" });
+  want(".orbital-field", { border: "var(--stroke-hair) solid var(--edge)", position: "relative" });
+  want(".orbital-workspace", { gap: "0" });
+  want(".orbital-controls", { "border-bottom": "var(--stroke-hair) solid var(--rule)", "margin-bottom": "calc(-1 * var(--stroke-hair))" });
+  want(".orbital-messages, .orbital-context", { "border-top": "var(--stroke-hair) solid var(--rule)", "margin-top": "calc(-1 * var(--stroke-hair))" });
+  assert.deepEqual(css.filter((d) => /^border(-(color|style|width))?$/.test(d.prop) && innermost(d.selector) !== ".orbital-field" &&
+    !/orbital-checkbox.*::after$/.test(d.selector)).map(where), [], "a closed box other than the canvas region (the latch lamp aside)");
+  assert.deepEqual(css.filter((d) => /orbital-(panel|inspector|workspace)/.test(d.selector) && /^border/.test(d.prop)).map(where), [], "a region line of its own");
+  want(".orbital-checkbox:has(> input:checked)", { color: "var(--fg)" });
+  want(".orbital-checkbox:has(> input:checked)::after", { "background-color": "var(--signal)", "border-color": "var(--signal)" });
+  want(".orbital-checkbox:has(:focus-visible)", { "box-shadow": "var(--focus-ring)" });
+  want(".orbital-eyebrow", { color: "var(--fg-muted)" });
+  // The canvas keeps what it inherited before the chrome changed (native, D6).
+  want(".orbital-canvas", { "font-family": "var(--font-mono)", "line-height": "1.55" });
+  assert.ok(NATIVE5["pages/OrbitalSimulator/OrbitalSimulator.css"]?.includes(".orbital-canvas"), "the canvas rule is native");
+  assert.deepEqual(css.filter((d) => /signal-dim|accent-color|terminal-/.test(d.value) || /\[data-theme/.test(d.selector)).map(where), []);
+  // Controls take their colours from the control model only.
+  assert.deepEqual(css.filter((d) => /(button|orbital-primary|orbital-back|orbital-checkbox)(:[\w-]+)*$/.test(d.selector) &&
+    /^(color|background|background-color|border|border-color|border-radius)$/.test(d.prop)).map(where), []);
 });

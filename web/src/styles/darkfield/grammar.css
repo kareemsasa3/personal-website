@@ -194,6 +194,10 @@
   margin-inline-end: var(--space-1);
 }
 
+/* Live value (§05 Semantic prominence, When bright signal appears; §06 Rules, weights): a data value that is changing
+   now reads signal, one weight step above its data style at rest. No generated class carries that weight. */
+.df-data.df-data--live { color: var(--signal); font-weight: 500; }
+
 /* Narrator prose (§06): running text keeps to measure-body. Inline links are operable (§13 Hover). .df-prose-links
    gives the same link treatment to a full-width container (tables stay outside the measure). */
 .df-prose { max-width: var(--measure-body); }

@@ -50,6 +50,8 @@ export default function OrbitalSimulator() {
         y: Math.max(-1e6, Math.min(1e6, c.offset.y + y)),
       },
     }));
+  // §05: a value that is changing now is Live (the shared grammar's signal and weight step).
+  const live = simulation.playing ? " df-data--live" : "";
   const energyChange =
     ((simulation.state.energy - simulation.state.referenceEnergy) /
       Math.max(1e-12, Math.abs(simulation.state.referenceEnergy))) *
@@ -58,12 +60,12 @@ export default function OrbitalSimulator() {
     <div className="page-content orbital-page">
       <div className="orbital-container">
         <header className="orbital-header prose-surface">
-          <Link to="/simulations">← Simulations</Link>
-          <p className="orbital-eyebrow df-label">
+          <Link className="orbital-back df-control df-control--light df-label" to="/simulations">← Simulations</Link>
+          <p className="orbital-eyebrow df-body-sm">
             Gravity / initial conditions / emergence
           </p>
-          <h1>Orbital Simulator</h1>
-          <p>
+          <h1 className="df-heading-1">Orbital Simulator</h1>
+          <p className="orbital-lead df-prose df-body-lg">
             Set a system in motion. Change one body. See what gravity makes of
             it.
           </p>
@@ -80,17 +82,22 @@ export default function OrbitalSimulator() {
             className="orbital-panel orbital-field"
             aria-label="Orbital field"
           >
+            {/* §06: Instrument labels and units beside Machine values; §05: the values are Live while running. */}
             <div className="orbital-status">
-              <span>{simulation.playing ? "Running" : "Paused"}</span>
+              <span className={`df-label-sm df-context${simulation.playing ? " df-context--live" : ""}`}>
+                {simulation.playing ? "Running" : "Paused"}
+              </span>
               <span>
-                Elapsed{" "}
-                <output aria-label="Elapsed years" aria-live="off">
+                <span className="df-label-sm">Elapsed</span>{" "}
+                <output className={`orbital-value df-data${live}`} aria-label="Elapsed years" aria-live="off">
                   {simulation.state.time.toFixed(3)}
                 </output>{" "}
-                yr
+                <span className="df-label-sm">yr</span>
               </span>
               <span title="Relative change in total softened kinetic + potential energy since reset or edit.">
-                Δ energy {energyChange.toFixed(4)}%
+                <span className="df-label-sm">Δ energy</span>{" "}
+                <span className={`orbital-value df-data${live}`}>{energyChange.toFixed(4)}</span>
+                <span className="df-label-sm">%</span>
               </span>
             </div>
             <OrbitalCanvas
@@ -103,9 +110,14 @@ export default function OrbitalSimulator() {
             />
             <div className="orbital-camera" aria-label="Camera controls">
               <div className="orbital-actions">
-                <button onClick={() => zoom(0.8)}>Zoom in</button>
-                <button onClick={() => zoom(1.25)}>Zoom out</button>
+                <button className="df-control df-label" onClick={() => zoom(0.8)}>
+                  Zoom in
+                </button>
+                <button className="df-control df-label" onClick={() => zoom(1.25)}>
+                  Zoom out
+                </button>
                 <button
+                  className="df-control df-label"
                   onClick={() =>
                     setCamera({
                       extent: fitExtent(simulation.engine.current),
@@ -117,6 +129,7 @@ export default function OrbitalSimulator() {
                   Fit all
                 </button>
                 <button
+                  className="df-control df-label"
                   onClick={() =>
                     setCamera({
                       extent: preset.extent,
@@ -128,9 +141,10 @@ export default function OrbitalSimulator() {
                   Reset camera
                 </button>
               </div>
-              <label>
+              <label className="orbital-label df-label-sm">
                 <span id="orbital-camera-label">Camera follows</span>
                 <select
+                  className="df-field df-data"
                   aria-labelledby="orbital-camera-label"
                   value={camera.target}
                   onChange={(e) =>
@@ -150,20 +164,20 @@ export default function OrbitalSimulator() {
                 role="group"
                 aria-label="Pan camera"
               >
-                <button onClick={() => pan(-camera.extent * 0.25, 0)}>
+                <button className="df-control df-label" onClick={() => pan(-camera.extent * 0.25, 0)}>
                   Pan left
                 </button>
-                <button onClick={() => pan(camera.extent * 0.25, 0)}>
+                <button className="df-control df-label" onClick={() => pan(camera.extent * 0.25, 0)}>
                   Pan right
                 </button>
-                <button onClick={() => pan(0, camera.extent * 0.25)}>
+                <button className="df-control df-label" onClick={() => pan(0, camera.extent * 0.25)}>
                   Pan up
                 </button>
-                <button onClick={() => pan(0, -camera.extent * 0.25)}>
+                <button className="df-control df-label" onClick={() => pan(0, -camera.extent * 0.25)}>
                   Pan down
                 </button>
               </div>
-              <p className="orbital-note">
+              <p className="orbital-note df-body-sm">
                 Drag the field to pan; tap a body to inspect it. Trails show
                 past positions in the inertial frame.
               </p>
@@ -177,34 +191,40 @@ export default function OrbitalSimulator() {
             setEditing={setEditing}
           />
         </div>
-        {simulation.error && (
-          <p className="orbital-panel orbital-warning" role="alert">
-            {simulation.error}
-          </p>
-        )}
-        {simulation.limited && (
-          <p role="status" className="orbital-note">
-            Step budget reached: simulated time is advancing slower than
-            requested. Lower the speed for smoother playback.
-          </p>
-        )}
-        {editing && (
-          <p role="status" className="orbital-note">
-            Paused for editing. Apply or cancel your changes before pressing
-            Play.
-          </p>
+        {(simulation.error || simulation.limited || editing) && (
+          <div className="orbital-messages">
+            {simulation.error && (
+              <p id="orbital-error" className="orbital-panel orbital-warning df-error df-body-sm" role="alert">
+                {simulation.error}
+              </p>
+            )}
+            {simulation.limited && (
+              <p role="status" className="orbital-note df-warning df-body-sm">
+                Step budget reached: simulated time is advancing slower than
+                requested. Lower the speed for smoother playback.
+              </p>
+            )}
+            {editing && (
+              <p id="orbital-editing-note" role="status" className="orbital-note df-body-sm">
+                Paused for editing. Apply or cancel your changes before pressing
+                Play.
+              </p>
+            )}
+          </div>
         )}
         <section
-          className="orbital-panel orbital-context"
+          className="orbital-panel orbital-context df-body"
           aria-labelledby="orbital-experiment-title"
         >
           <div>
-            <h2 id="orbital-experiment-title">Try an experiment</h2>
+            <h2 id="orbital-experiment-title" className="df-heading-3">
+              Try an experiment
+            </h2>
             <p>{preset.description}</p>
             <p>{preset.experiment}</p>
           </div>
           <div>
-            <h2>About the model</h2>
+            <h2 className="df-heading-3">About the model</h2>
             <p>
               Every body attracts every other body. Distances are in
               astronomical units (AU), masses in solar masses (M☉), and time in

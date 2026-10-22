@@ -42,6 +42,16 @@ function Editor({
     vy: String(body.velocity.y),
   });
   const [error, setError] = useState("");
+  // §13 Errors: a field the browser rejects on submit is marked invalid until it is changed.
+  const [invalid, setInvalid] = useState<ReadonlySet<string>>(new Set());
+  const mark = (key: string, on: boolean) =>
+    setInvalid((current) => {
+      if (current.has(key) === on) return current;
+      const next = new Set(current);
+      if (on) next.add(key);
+      else next.delete(key);
+      return next;
+    });
   const submit = (event: FormEvent) => {
     event.preventDefault();
     try {
@@ -59,30 +69,38 @@ function Editor({
   };
   return (
     <form className="orbital-editor" onSubmit={submit}>
-      <p>
+      <p className="df-body-sm">
         Editing {body.name}. Changes apply together; trails and the energy
         baseline restart.
       </p>
       {fields.map((field) => (
-        <label key={field.key}>
+        <label key={field.key} className="orbital-label df-label-sm">
           {field.label}
           <input
+            className="df-field df-data"
             type="number"
             required
             min={field.bounds[0]}
             max={field.bounds[1]}
             step={field.step}
             value={draft[field.key]}
-            onChange={(e) =>
-              setDraft({ ...draft, [field.key]: e.target.value })
-            }
+            aria-invalid={invalid.has(field.key) || undefined}
+            onInvalid={() => mark(field.key, true)}
+            onChange={(e) => {
+              mark(field.key, false);
+              setDraft({ ...draft, [field.key]: e.target.value });
+            }}
           />
         </label>
       ))}
-      {error && <p role="alert">{error}</p>}
+      {error && (
+        <p className="orbital-editor-error df-error df-body-sm" role="alert">{error}</p>
+      )}
       <div className="orbital-actions">
-        <button type="submit">Apply changes</button>
-        <button type="button" onClick={onClose}>
+        <button className="df-control df-label" type="submit">
+          Apply changes
+        </button>
+        <button className="df-control df-label" type="button" onClick={onClose}>
           Cancel edit
         </button>
       </div>
@@ -102,6 +120,7 @@ export default function BodyInspector({
   editing: boolean;
   setEditing: (value: boolean) => void;
 }) {
+  const live = simulation.playing ? " df-data--live" : "";
   const body =
     simulation.state.bodies.find((b) => b.id === selected) ??
     simulation.state.bodies[0];
@@ -110,10 +129,17 @@ export default function BodyInspector({
       className="orbital-panel orbital-inspector"
       aria-labelledby="orbital-inspector-title"
     >
-      <h2 id="orbital-inspector-title">Body inspector</h2>
-      <label>
+      {/* §05: while the simulation runs the readout group is Live; its heading carries the shared • marker. */}
+      <h2
+        id="orbital-inspector-title"
+        className={`df-heading-3${simulation.playing ? " df-context--live" : ""}`}
+      >
+        Body inspector
+      </h2>
+      <label className="orbital-label df-label-sm">
         <span id="orbital-body-label">Selected body</span>
         <select
+          className="df-field df-data"
           aria-labelledby="orbital-body-label"
           value={body.id}
           onChange={(e) => onSelect(e.target.value)}
@@ -125,29 +151,47 @@ export default function BodyInspector({
           ))}
         </select>
       </label>
-      <p className="orbital-note">
+      <p className="orbital-note df-body-sm">
         The outlined body is selected. All values use the system’s inertial
         frame.
       </p>
+      {/* §06: each value is Machine with its unit as a label beside it; §05: a value is Live while it changes. */}
       <dl className="orbital-readout">
         <div>
-          <dt>Mass</dt>
-          <dd>{format(body.mass)} M☉</dd>
-        </div>
-        <div>
-          <dt>Speed</dt>
-          <dd>{format(Math.hypot(body.velocity.x, body.velocity.y))} AU/yr</dd>
-        </div>
-        <div>
-          <dt>Position X / Y</dt>
+          <dt className="df-label-sm">Mass</dt>
           <dd>
-            {format(body.position.x)} / {format(body.position.y)} AU
+            {/* Mass is fixed while the simulation runs, so it is never Live. */}
+            <span className="orbital-value orbital-value--fixed df-data">
+              {format(body.mass)}
+            </span>{" "}
+            <span className="df-label-sm">M☉</span>
           </dd>
         </div>
         <div>
-          <dt>Velocity X / Y</dt>
+          <dt className="df-label-sm">Speed</dt>
           <dd>
-            {format(body.velocity.x)} / {format(body.velocity.y)} AU/yr
+            <span className={`orbital-value df-data${live}`}>
+              {format(Math.hypot(body.velocity.x, body.velocity.y))}
+            </span>{" "}
+            <span className="df-label-sm">AU/yr</span>
+          </dd>
+        </div>
+        <div>
+          <dt className="df-label-sm">Position X / Y</dt>
+          <dd>
+            <span className={`orbital-value df-data${live}`}>
+              {format(body.position.x)} / {format(body.position.y)}
+            </span>{" "}
+            <span className="df-label-sm">AU</span>
+          </dd>
+        </div>
+        <div>
+          <dt className="df-label-sm">Velocity X / Y</dt>
+          <dd>
+            <span className={`orbital-value df-data${live}`}>
+              {format(body.velocity.x)} / {format(body.velocity.y)}
+            </span>{" "}
+            <span className="df-label-sm">AU/yr</span>
           </dd>
         </div>
       </dl>
@@ -160,6 +204,7 @@ export default function BodyInspector({
         />
       ) : (
         <button
+          className="orbital-edit df-control df-label"
           onClick={() => {
             simulation.pause();
             setEditing(true);

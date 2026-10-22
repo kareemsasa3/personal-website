@@ -1350,6 +1350,9 @@ if (MODE === "check") {
     { route: "/procedural-animations/mechanical-time", selectors: [".animation-piece__control"] },
     // Phase 5 Task 8: the simulation cards (card controls whose titles carry the marker).
     { route: "/simulations", selectors: ["a.simulation-card"] },
+    // Phase 5 Task 9: the Orbital header's breadcrumb (a light control), Play, every button in the action rows and the
+    // inspector's edit button, and Show trails (a latch: a label whose lamp follows its native checkbox).
+    { route: "/simulations/orbital-simulator", selectors: [".orbital-back", ".orbital-primary", ".orbital-actions button", ".orbital-edit", "label.orbital-checkbox"] },
     // Phase 5 Task 7: project media chrome (the bar's play control, the inspect openers), then the media inspector's
     // controls with the inspector open: Close on a recording-only inspector, and on one with a still frame the view
     // switch (Selected through aria-pressed) and actual size (a latch: a two-state mode with its lamp).
@@ -1381,7 +1384,7 @@ if (MODE === "check") {
     fg: c.color, r: c.borderTopLeftRadius, marker: getComputedStyle(title ?? e, "::before").content, card: e.matches(".df-control--card"),
     light: e.matches(".df-control--light"),
     sel: e.matches('[aria-current]:not([aria-current="false"]), [aria-selected="true"], [aria-pressed="true"]:not(.df-control--latch)'),
-    on: e.matches('.df-control--latch:is([aria-pressed="true"], [aria-checked="true"], [aria-expanded="true"]), details[open] > .df-control--latch'),
+    on: e.matches('.df-control--latch:is([aria-pressed="true"], [aria-checked="true"], [aria-expanded="true"], :has(> input:checked)), details[open] > .df-control--latch'),
     off: e.matches(':disabled, [aria-disabled="true"], .df-control--unavailable') }; });
   // Where the label starts, and where the ::before marker's box ends. A pseudo-element has no rect: an absolute marker
   // is located from its offsets; an in-flow marker ends where an empty probe placed right after it begins, less the
@@ -1570,6 +1573,103 @@ if (MODE === "check") {
         });
         invariant(JSON.stringify(native.rest) === JSON.stringify(native.down), `${theme} /simulations: pressing "${seen.title}" recolours its preview ${JSON.stringify(native)}`);
       }
+    });
+  }
+
+  // Phase 5 Task 9 (§13 Focus, Latched, Disabled, Errors; §05 Live). On the Orbital route, in each theme: keyboard focus on
+  // the breadcrumb shows the focus ring; Show trails lights its lamp only while checked, and keyboard focus on its native
+  // checkbox draws the ring on the label, and from the keyboard Space presses it while Enter does not (other controls keep
+  // Enter, and Space where it activates them); the readouts are fg at rest and Live (signal, one weight step) while running,
+  // with the Live marker on the inspector's heading; the regions form one face: only the canvas region is a closed box,
+  // the others draw at most one rule each and leave no gap between them (§08 Not a dashboard);
+  // while editing, Play is Disabled but still focusable and names its reason, and a press does not start the simulation;
+  // a value the browser rejects on submit marks its field invalid with the fault frame.
+  for (const theme of THEMES) {
+    await withPage({ theme, route: "/simulations/orbital-simulator" }, async (page) => {
+      const at = `${theme} /simulations/orbital-simulator`;
+      const tok = {}; for (const n of ["--signal", "--fg", "--edge", "--fault", "--fg-faint"]) tok[n] = await tokenRgb(page, n);
+      const ring = await page.evaluate(() => { const p = document.createElement("i"); p.style.boxShadow = "var(--focus-ring)"; document.body.append(p);
+        const v = getComputedStyle(p).boxShadow; p.remove(); return v; });
+      const tabTo = async (selector) => { for (let i = 0; i < 60; i++) { await page.keyboard.press("Tab");
+        if (await page.evaluate((s) => document.activeElement?.matches(s), selector)) return true; } return false; };
+      invariant(await tabTo(".orbital-back"), `${at}: Tab never reached the breadcrumb`);
+      invariant((await page.locator(".orbital-back").evaluate((e) => getComputedStyle(e).boxShadow)) === ring, `${at}: breadcrumb focus ring`);
+      const trails = page.locator("label.orbital-checkbox");
+      const lamp = () => trails.evaluate((e) => [getComputedStyle(e, "::after").backgroundColor, getComputedStyle(e, "::after").borderTopColor]);
+      invariant(JSON.stringify(await lamp()) === JSON.stringify([tok["--signal"], tok["--signal"]]), `${at}: Show trails lamp not lit while checked ${await lamp()}`);
+      await page.getByLabel("Show trails").uncheck();
+      const off = await lamp();
+      invariant(off[0] !== tok["--signal"] && off[1] === tok["--edge"], `${at}: Show trails lamp lit while unchecked ${off}`);
+      await page.getByLabel("Show trails").check();
+      invariant(await tabTo("label.orbital-checkbox input"), `${at}: Tab never reached Show trails`);
+      invariant((await trails.evaluate((e) => getComputedStyle(e).boxShadow)) === ring, `${at}: Show trails focus ring is not on its label`);
+      const instant = await page.evaluate(() => parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--dur-instant")));
+      const box = page.getByLabel("Show trails");
+      const isPressed = (loc) => loc.evaluate((e) => e.hasAttribute("data-df-pressed"));
+      await page.keyboard.down("Enter"); await frames(page);
+      invariant(!(await isPressed(trails)), `${at}: Enter on Show trails shows a press it does not make`);
+      await page.keyboard.up("Enter"); await page.waitForTimeout(instant * 2);
+      invariant(await box.isChecked(), `${at}: Enter toggled Show trails`);
+      await page.keyboard.down(" "); await frames(page);
+      invariant(await isPressed(trails), `${at}: Space on Show trails shows no press`);
+      await page.keyboard.up(" "); await page.waitForTimeout(instant * 2);
+      invariant(!(await box.isChecked()) && !(await isPressed(trails)), `${at}: Space did not toggle Show trails, or its press never released`);
+      await page.keyboard.press(" ");
+      // Other controls are unchanged: a button acknowledges Enter and Space; a link acknowledges Enter only.
+      const reset = page.getByRole("button", { name: "Reset scenario", exact: true });
+      for (const key of ["Enter", " "]) {
+        await reset.focus(); await page.keyboard.down(key); await frames(page);
+        invariant(await isPressed(reset), `${at}: ${JSON.stringify(key)} on Reset scenario shows no press`);
+        await page.keyboard.up(key); await page.waitForTimeout(instant * 2);
+      }
+      const back = page.locator(".orbital-back");
+      const keyPress = (key) => back.evaluate((e, k) => { e.dispatchEvent(new KeyboardEvent("keydown", { key: k, bubbles: true }));
+        const on = e.hasAttribute("data-df-pressed"); e.dispatchEvent(new KeyboardEvent("keyup", { key: k, bubbles: true })); return on; }, key);
+      const linkEnter = await keyPress("Enter");
+      await page.waitForTimeout(instant * 2); // the Enter press is held for dur-instant after its release
+      const linkSpace = await keyPress(" ");
+      invariant(linkEnter && !linkSpace, `${at}: the breadcrumb's keyboard acknowledgement changed (Enter ${linkEnter}, Space ${linkSpace})`);
+      await page.waitForTimeout(instant * 2);
+      // One face: only the canvas region is closed; the other regions draw at most one line and meet without gaps.
+      const face = await page.evaluate(() => {
+        const q = (s) => document.querySelector(s); const r = (e) => e.getBoundingClientRect();
+        const sides = (e) => ["Top", "Right", "Bottom", "Left"].filter((k) => { const c = getComputedStyle(e);
+          return parseFloat(c[`border${k}Width`]) > 0 && c[`border${k}Style`] !== "none"; });
+        const regions = [".orbital-controls", ".orbital-workspace", ".orbital-inspector", ".orbital-context"].map((s) => [s, sides(q(s))]);
+        return { regions, field: sides(q(".orbital-field")), fieldColor: getComputedStyle(q(".orbital-field")).borderTopColor,
+          gaps: [r(q(".orbital-workspace")).top - r(q(".orbital-controls")).bottom, r(q(".orbital-context")).top - r(q(".orbital-workspace")).bottom],
+          shared: r(q(".orbital-inspector")).left - r(q(".orbital-field")).right };
+      });
+      invariant(face.regions.every(([, k]) => k.length <= 1) && face.field.length === 4 && face.fieldColor === tok["--edge"] &&
+        face.gaps.every((g) => g <= 0.5) && Math.abs(face.shared) <= 0.5, `${at}: the regions are not one face ${JSON.stringify(face)}`);
+      const values = () => page.locator(".orbital-value:not(.orbital-value--fixed)").evaluateAll((els) => els.map((e) => [getComputedStyle(e).color, getComputedStyle(e).fontWeight]));
+      const rest = await values();
+      invariant(rest.length === 5 && rest.every(([c, w]) => c === tok["--fg"] && w === "400"), `${at}: paused readouts ${JSON.stringify(rest)}`);
+      await page.getByRole("button", { name: "Play", exact: true }).click();
+      await page.getByRole("button", { name: "Pause", exact: true }).waitFor();
+      const live = await values();
+      invariant(live.every(([c, w]) => c === tok["--signal"] && w === "500"), `${at}: running readouts are not Live ${JSON.stringify(live)}`);
+      const marker = () => page.locator("#orbital-inspector-title").evaluate((e) => getComputedStyle(e, "::before").content);
+      invariant((await marker()).startsWith('"•"'), `${at}: the Live inspector group has no marker (${await marker()})`);
+      const fixed = await page.locator(".orbital-value--fixed").evaluate((e) => [getComputedStyle(e).color, getComputedStyle(e).fontWeight]);
+      invariant(fixed[0] === tok["--fg"] && fixed[1] === "400", `${at}: the fixed mass reads as Live ${fixed}`);
+      await page.getByRole("button", { name: "Pause", exact: true }).click();
+      invariant(!(await marker()).startsWith('"•"'), `${at}: the paused inspector keeps the Live marker`);
+      await page.getByRole("button", { name: "Pause & edit body", exact: true }).click();
+      const play = page.locator(".orbital-primary");
+      const seen = await play.evaluate((e) => ({ aria: e.getAttribute("aria-disabled"), native: e.disabled, style: getComputedStyle(e).borderTopStyle,
+        color: getComputedStyle(e).color, reason: (e.getAttribute("aria-describedby") ?? "").split(" ").map((id) => document.getElementById(id)?.textContent ?? "").join(" ") }));
+      invariant(seen.aria === "true" && !seen.native && seen.style === "dashed" && seen.color === tok["--fg-faint"] && /Paused for editing/.test(seen.reason),
+        `${at}: Play while editing ${JSON.stringify(seen)}`);
+      await play.focus(); await page.keyboard.press("Enter"); await play.click({ force: true }); await frames(page);
+      invariant((await page.locator(".orbital-status").textContent()).includes("Paused") && (await play.textContent()) === "Play", `${at}: a blocked Play started the simulation`);
+      const mass = page.getByLabel("Mass (solar masses)", { exact: true });
+      await mass.fill("-1");
+      await page.getByRole("button", { name: "Apply changes", exact: true }).click();
+      const invalid = await mass.evaluate((e) => [e.getAttribute("aria-invalid"), getComputedStyle(e).borderTopWidth, getComputedStyle(e).borderTopColor]);
+      invariant(invalid[0] === "true" && invalid[1] === "2px" && invalid[2] === tok["--fault"], `${at}: rejected mass ${JSON.stringify(invalid)}`);
+      await mass.fill("0.000003");
+      invariant((await mass.getAttribute("aria-invalid")) === null, `${at}: the mass stays marked invalid after an edit`);
     });
   }
 
@@ -2700,7 +2800,8 @@ if (MODE === "check") {
   }
   // Phase 5 (§03, §06): on each listed route, governed elements outside creative regions have square corners and a
   // Darkfield family. P5_NATIVE: native elements outside any region (they host controls or governed labels).
-  const P5_ROUTES = ["/darkfield-404-probe", "/procedural-animations", "/procedural-animations/mechanical-time", "/case-studies/aether", "/simulations"];
+  const P5_ROUTES = ["/darkfield-404-probe", "/procedural-animations", "/procedural-animations/mechanical-time", "/case-studies/aether", "/simulations",
+    "/simulations/orbital-simulator"];
   const P5_NATIVE = [];
   const P5_FAMILIES = ["Archivo", "Archivo Narrow", "IBM Plex Mono"];
   for (const theme of THEMES) {

@@ -76,10 +76,16 @@ test("T5 D7: statuses and tags are context labels without hue; • only on Live"
   }
 });
 
+// A phrase longer than a label is Narrator supporting text, not an Instrument label (§06; Phase 5 controller ruling):
+// the Orbital eyebrow, in sans and fg-muted, as authored.
+const NARRATOR_EYEBROWS = ["orbital-eyebrow"];
 test("T6 eyebrows speak in the Instrument voice (§06 Interface label); Rhythm Lab is the named Phase 5 exclusion", async () => {
   for (const f of (await governed(".tsx")).filter((x) => !/RhythmLab/.test(x))) {
     for (const [, cls] of (await read(f)).matchAll(/className=(?:"([^"]*)"|\{`([^`]*)`\})/g).map((m) => [m[0], m[1] ?? m[2]])) {
-      if (/eyebrow/.test(cls) && !/rhythm-lab-eyebrow/.test(cls)) assert.match(cls, /(^|\s)df-label(\s|$)/, `${f}: ${cls}`);
+      if (NARRATOR_EYEBROWS.includes(cls.split(/\s+/)[0])) {
+        assert.match(cls, /(^|\s)df-body-sm(\s|$)/, `${f}: ${cls}`);
+        assert.doesNotMatch(cls, /(^|\s)df-label/, `${f}: ${cls}`);
+      } else if (/eyebrow/.test(cls) && !/rhythm-lab-eyebrow/.test(cls)) assert.match(cls, /(^|\s)df-label(\s|$)/, `${f}: ${cls}`);
     }
   }
   const bad = [];
@@ -546,6 +552,8 @@ test("T14 type: Phase 3 text gets size, line, weight and tracking from generated
     const key = `${d.file}|${innermost(d.selector)}`;
     if (GENERATED_TYPE.has(key)) return false;
     if (RESET_HOLD.get(`${key}|${d.prop}`) === d.value) return false;
+    // §06 Rules (weights): a Live data value is one weight step above its data style; no generated class carries it.
+    if (key === "styles/darkfield/grammar.css|.df-data.df-data--live" && d.prop === "font-weight" && d.value === "500") return false;
     // The alarm tile's word takes the label class's weight; generated content cannot carry the class.
     if (key === "styles/darkfield/grammar.css|.df-error--alarm::before" && d.prop === "font-weight" && d.value === "600") return false;
     return !(d.prop === "font-size" && ICON_SIZES.has(key));
