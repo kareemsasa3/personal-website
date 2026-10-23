@@ -9,8 +9,8 @@
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   gap: clamp(0.75rem, 1.6vw, 1.25rem);
-  color: var(--text-color, #ffffff);
-  font-family: "Courier New", Monaco, monospace;
+  color: var(--fg);
+  font-family: inherit;
   outline: none;
   overflow: hidden;
 }
@@ -36,7 +36,7 @@
 
 .rhythm-lab-eyebrow {
   margin: 0 0 0.25rem;
-  color: var(--terminal-primary, #4caf50);
+  color: var(--fg-muted);
   font-size: 0.8rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -56,7 +56,7 @@
   border: 1px solid rgba(76, 175, 80, 0.5);
   border-radius: 0.35rem;
   background: rgba(0, 0, 0, 0.48);
-  color: var(--terminal-primary, #4caf50);
+  color: var(--fg-muted);
   font-size: 0.78rem;
   font-weight: 800;
   line-height: 1;
@@ -72,7 +72,7 @@
 
 .rhythm-lab h1 {
   margin: 0;
-  color: var(--terminal-primary, #4caf50);
+  color: var(--fg);
   font-size: clamp(1.6rem, 3vw, 2.6rem);
   line-height: 1;
 }
@@ -105,7 +105,7 @@
   border-radius: 0.4rem;
   background: rgba(0, 0, 0, 0.52);
   box-sizing: border-box;
-  color: var(--terminal-primary, #4caf50);
+  color: var(--fg-muted);
   cursor: pointer;
   font-size: 0.78rem;
   font-weight: 800;
@@ -133,7 +133,7 @@
   border: 1px solid rgba(76, 175, 80, 0.52);
   border-radius: 0.32rem;
   background: rgba(76, 175, 80, 0.14);
-  color: var(--terminal-primary, #4caf50);
+  color: var(--fg-muted);
   cursor: pointer;
   font: inherit;
   font-size: 0.72rem;
@@ -149,7 +149,7 @@
   border-radius: 0.32rem;
   padding: 0.25rem 0.45rem;
   background: rgba(76, 175, 80, 0.14);
-  color: var(--terminal-primary, #4caf50);
+  color: var(--fg-muted);
   font-size: 0.72rem;
   font-weight: 800;
   line-height: 1;
@@ -199,7 +199,7 @@
   border: 1px solid rgba(76, 175, 80, 0.32);
   border-radius: 0.28rem;
   background: transparent;
-  color: var(--terminal-primary, #4caf50);
+  color: var(--fg-muted);
   cursor: pointer;
   font-family: inherit;
   font-size: 0.65rem;
@@ -249,7 +249,7 @@
 }
 
 .rhythm-lab-song-selector-label {
-  color: var(--terminal-primary, #4caf50);
+  color: var(--fg-muted);
   white-space: nowrap;
 }
 
@@ -324,7 +324,7 @@
 }
 
 .rhythm-lab-song-option-active {
-  color: var(--terminal-primary, #4caf50);
+  color: var(--fg-muted);
 }
 
 .rhythm-lab-song-option-active::before {
@@ -394,7 +394,7 @@
 .rhythm-lab-chart-mode-button[aria-pressed="true"] {
   border-color: rgba(76, 175, 80, 0.78);
   background: rgba(76, 175, 80, 0.18);
-  color: var(--terminal-primary, #4caf50);
+  color: var(--fg-muted);
 }
 
 .rhythm-lab-chart-mode-button:disabled {
@@ -423,7 +423,7 @@
 }
 
 .rhythm-lab-chart-selector span {
-  color: var(--terminal-primary, #4caf50);
+  color: var(--fg-muted);
   white-space: nowrap;
 }
 
@@ -550,7 +550,7 @@
   border: 1px solid rgba(76, 175, 80, 0.45);
   border-radius: 0.36rem;
   background: rgba(0, 0, 0, 0.65);
-  color: var(--terminal-primary, #4caf50);
+  color: var(--fg-muted);
   cursor: pointer;
   font-family: inherit;
   font-size: 0.72rem;
@@ -676,7 +676,7 @@
 
 .rhythm-lab-run-history-entry-badge-complete {
   background: rgba(76, 175, 80, 0.18);
-  color: var(--terminal-primary, #4caf50);
+  color: var(--fg-muted);
 }
 
 .rhythm-lab-run-history-clear {
@@ -802,7 +802,7 @@
 }
 
 .rhythm-lab-analytics-positive {
-  color: var(--terminal-primary, #4caf50);
+  color: var(--fg-muted);
 }
 
 .rhythm-lab-analytics-negative {
@@ -823,7 +823,7 @@
   border: 1px solid rgba(76, 175, 80, 0.45);
   border-radius: 0.4rem;
   background: rgba(0, 0, 0, 0.55);
-  color: var(--terminal-primary, #4caf50);
+  color: var(--fg-muted);
   text-align: center;
   font-weight: 700;
 }
@@ -886,7 +886,7 @@
   justify-content: center;
   flex: 0 0 auto;
   padding: 0.35rem 0.5rem;
-  color: var(--terminal-primary, #4caf50);
+  color: var(--fg-muted);
 }
 
 .rhythm-lab-active-chip-recording {
@@ -903,7 +903,7 @@
 
 .rhythm-lab-compact-action {
   padding: 0.35rem 0.55rem;
-  color: var(--terminal-primary, #4caf50);
+  color: var(--fg-muted);
   cursor: pointer;
   font-family: inherit;
 }
@@ -933,10 +933,13 @@
   justify-content: center;
 }
 
+/* The native highway keeps the colour and type it inherited before the root was lifted (D6 ruling). */
 .rhythm-lab-highway {
   --rhythm-note-width: min(58%, 6.25rem);
   --rhythm-note-height: clamp(2.2rem, 6vh, 3.3rem);
   position: relative;
+  color: #ffffff;
+  font-family: "Courier New", Monaco, monospace;
   width: min(86vw, 760px);
   height: min(74vh, 760px);
   height: min(74dvh, 760px);
@@ -1026,10 +1029,7 @@
   top: 0.85rem;
   left: 50%;
   transform: translateX(-50%);
-  color: rgba(255, 255, 255, 0.42);
-  font-size: 0.8rem;
-  font-weight: 700;
-  text-transform: uppercase;
+  color: var(--fg-muted);
   pointer-events: none;
 }
 
@@ -1171,6 +1171,7 @@
   min-width: 9rem;
   transform: translateX(-50%);
   color: rgba(255, 255, 255, 0.76);
+  font-family: "Courier New", Monaco, monospace;
   text-align: center;
   pointer-events: none;
 }
@@ -1266,8 +1267,9 @@
   border-left: 1px solid rgba(76, 175, 80, 0.16);
   border-radius: 0;
   background: transparent;
-  color: var(--terminal-primary, #4caf50);
+  color: #4caf50;
   cursor: pointer;
+  font-family: "Courier New", Monaco, monospace;
   font-weight: 800;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
@@ -1334,7 +1336,7 @@
 
 .rhythm-lab-overlay-panel h2 {
   margin: 0.35rem 0 1rem;
-  color: var(--terminal-primary, #4caf50);
+  color: var(--fg);
   font-size: clamp(1.6rem, 4vw, 2.4rem);
 }
 
@@ -1385,7 +1387,7 @@
 
 .rhythm-lab-tutorial-headline {
   margin: 0;
-  color: var(--terminal-primary, #4caf50);
+  color: var(--fg);
   font-size: clamp(1.1rem, 3.6vw, 1.6rem);
   font-weight: 700;
   line-height: 1.25;
@@ -1411,9 +1413,9 @@
   min-width: 9rem;
   min-height: 2.75rem;
   margin: 0 0 1rem;
-  border: 1px solid var(--terminal-primary, #4caf50);
+  border: 1px solid var(--fg-muted);
   border-radius: 0.45rem;
-  background: var(--terminal-primary, #4caf50);
+  background: var(--fg-muted);
   color: #000000;
   cursor: pointer;
   font-weight: 900;
@@ -1429,7 +1431,7 @@
   border: 1px solid rgba(76, 175, 80, 0.52);
   border-radius: 0.45rem;
   background: rgba(0, 0, 0, 0.52);
-  color: var(--terminal-primary, #4caf50);
+  color: var(--fg-muted);
   cursor: pointer;
   font-family: inherit;
   font-weight: 900;
@@ -1521,7 +1523,7 @@
 }
 
 .rhythm-lab-summary-score strong {
-  color: var(--terminal-primary, #4caf50);
+  color: var(--fg-muted);
   font-size: clamp(1.5rem, 4vw, 2.3rem);
   line-height: 1;
 }
@@ -1853,7 +1855,6 @@
 
   .rhythm-lab-lane-label {
     top: 0.55rem;
-    font-size: 0.68rem;
   }
 
   .rhythm-lab-note {

@@ -65,7 +65,7 @@ const RhythmHighway = ({
                 : ""
             }`}
           >
-            <span className="rhythm-lab-lane-label">{lane.label}</span>
+            <span className="rhythm-lab-lane-label df-label-sm">{lane.label}</span>
             {visibleNotes
               .filter((note) => note.lane === lane.index)
               .map((note) => (
@@ -81,14 +81,14 @@ const RhythmHighway = ({
                     } as CSSProperties
                   }
                 >
-                  <span className="rhythm-lab-note" />
+                  <span className="rhythm-lab-note" data-df-region="native" />
                 </span>
               ))}
           </div>
         ))}
       </div>
 
-      <div className="rhythm-lab-target-windows" aria-hidden="true">
+      <div className="rhythm-lab-target-windows" aria-hidden="true" data-df-region="native">
         {lanes.map((lane) => (
           <span
             key={lane.index}

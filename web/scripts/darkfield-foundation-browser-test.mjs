@@ -1219,7 +1219,10 @@ if (MODE === "check") {
     const HELD_FONTS = [
       { route: "/simulations", selector: ".spider-preview-card-face", stack: '"Courier New", Monaco, Menlo, monospace' },
       { route: "/simulations/spider", selector: ".spider-card", stack: '"Courier New", Monaco, monospace' },
-      { route: "/simulations/rhythm-lab", selector: ".rhythm-lab", stack: '"Courier New", Monaco, monospace' },
+      // Rhythm Lab (Task 18): the root is lifted; the native highway, its hit zones and its status keep their stack.
+      { route: "/simulations/rhythm-lab", selector: ".rhythm-lab-highway", stack: '"Courier New", Monaco, monospace' },
+      { route: "/simulations/rhythm-lab", selector: ".rhythm-lab-hit-zone", stack: '"Courier New", Monaco, monospace' },
+      { route: "/simulations/rhythm-lab", selector: ".rhythm-lab-status", stack: '"Courier New", Monaco, monospace' },
     ];
     const click = async (page, href) => {
       await page.locator(`a[href="${href}"]:visible`).first().click();
@@ -1236,7 +1239,8 @@ if (MODE === "check") {
         if (route === "/simulations" && path.go) continue;
         await withPage({ theme: "dark", route: path.start(route) }, async (page) => {
           if (path.go) await path.go(page, route);
-          await page.locator(selector).first().waitFor();
+          // Attached, not visible: the Rhythm Lab status box is empty (zero height) until a judgement shows.
+          await page.locator(selector).first().waitFor({ state: "attached" });
           const family = await page.evaluate((s) => getComputedStyle(document.querySelector(s)).fontFamily, selector);
           invariant(family === stack, `${selector} via ${path.name} is set in ${family}, not its held stack ${stack}`);
         });
@@ -1257,7 +1261,9 @@ if (MODE === "check") {
           const el = document.activeElement;
           if (!el || el === document.body || el.tagName === "IFRAME") return null;
           const c = getComputedStyle(el);
-          return { label: `${el.tagName} ${(el.getAttribute("aria-label") || el.textContent || "").trim().slice(0, 30)}`, boxShadow: c.boxShadow, outlineStyle: c.outlineStyle, outlineWidth: c.outlineWidth };
+          // The ring is the one of the token set the control renders in: its nearest [data-theme] (P5-1 scopes Rhythm Lab).
+          return { label: `${el.tagName} ${(el.getAttribute("aria-label") || el.textContent || "").trim().slice(0, 30)}`, boxShadow: c.boxShadow, outlineStyle: c.outlineStyle, outlineWidth: c.outlineWidth,
+            set: el.closest("[data-theme]")?.getAttribute("data-theme") };
         });
         if (state) states.push(state);
       }
@@ -1267,7 +1273,8 @@ if (MODE === "check") {
       for (const route of FOCUS_ROUTES) {
         await withPage({ theme, route }, async (page) => {
           for (const state of await focusStates(page)) {
-            invariant(state.boxShadow.includes(`${RING[theme]} 0px 0px 0px 4px`), `${theme} ${route}: ${state.label} lacks focus-ring (${state.boxShadow})`);
+            const set = route === "/simulations/rhythm-lab" && theme === "light" ? "dark" : theme;
+            invariant(state.set === set && state.boxShadow.includes(`${RING[set]} 0px 0px 0px 4px`), `${theme} ${route}: ${state.label} lacks the ${set} focus-ring (${state.set}: ${state.boxShadow})`);
           }
         });
       }
@@ -3351,27 +3358,60 @@ if (MODE === "check") {
   // Darkfield family. P5_NATIVE: native elements outside any region (they host controls or governed labels).
   const P5_ROUTES = ["/darkfield-404-probe", "/procedural-animations", "/procedural-animations/mechanical-time", "/case-studies/aether", "/simulations",
     "/simulations/orbital-simulator", "/simulations/traffic-simulator", "/terminal", "/simulations/snake",
-    "/simulations/spider"];
-  const P5_NATIVE = [];
+    "/simulations/spider", "/simulations/rhythm-lab"];
+  // The Rhythm Lab highway is native (D6 ruling) but unmarked: its lanes host governed labels and its hit zones are buttons.
+  const P5_NATIVE = [".rhythm-lab-highway"];
+  // Routes whose governed corners a later task squares (Rhythm Lab: Tasks 19 and 20); their families are checked now.
+  const P5_CORNERS_LATER = ["/simulations/rhythm-lab"];
   const P5_FAMILIES = ["Archivo", "Archivo Narrow", "IBM Plex Mono"];
   for (const theme of THEMES) {
     for (const route of P5_ROUTES) {
       await withPage({ theme, route }, async (page) => {
-        const bad = await page.evaluate(([skip, families]) => {
+        const bad = await page.evaluate(([skip, families, corners]) => {
           const out = new Set();
           for (const el of document.querySelectorAll("body *")) {
             if (!el.getClientRects().length || el.closest("[data-df-region], svg") || el.matches("img, video, canvas, iframe") || (skip && el.closest(skip))) continue;
             const c = getComputedStyle(el);
-            if ([c.borderTopLeftRadius, c.borderTopRightRadius, c.borderBottomRightRadius, c.borderBottomLeftRadius].some((r) => r !== "0px")) out.add(`radius ${el.tagName}.${el.classList[0] ?? ""}`);
+            if (corners && [c.borderTopLeftRadius, c.borderTopRightRadius, c.borderBottomRightRadius, c.borderBottomLeftRadius].some((r) => r !== "0px")) out.add(`radius ${el.tagName}.${el.classList[0] ?? ""}`);
             const own = [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim());
             const family = c.fontFamily.split(",")[0].replace(/["']/g, "").trim();
             if (own && !families.includes(family)) out.add(`family ${el.tagName}.${el.classList[0] ?? ""} ${family}`);
           }
           return [...out].slice(0, 12);
-        }, [P5_NATIVE.join(", "), P5_FAMILIES]);
+        }, [P5_NATIVE.join(", "), P5_FAMILIES, !P5_CORNERS_LATER.includes(route)]);
         invariant(bad.length === 0, `${theme} ${route}: ${JSON.stringify(bad)}`);
       });
     }
+  }
+  // Phase 5 Task 18 (P5-1; §05 Roles; §10 Atmosphere by context). Rhythm Lab's held rain is always dark, so in Light its
+  // page renders the Dark token set: every variable declared on a [data-theme] rule (the theme tokens and the variables
+  // derived from them, such as --df-scrim) resolves inside the page exactly as inside a Dark element, and a ground
+  // probe painted with the scrim matches, while the document and everything outside the page stay Light. In Dark and
+  // Mono the page follows the site. Every Rhythm Lab element sits inside the page (no overlay leaves the scope).
+  for (const theme of [...new Set([...THEMES, "mono"])]) {
+    await withPage({ theme, route: "/simulations/rhythm-lab" }, async (page) => {
+      await page.locator(".rhythm-lab-highway").waitFor();
+      const seen = await page.evaluate(() => {
+        const names = new Set();
+        const walk = (rules) => { for (const r of rules) { if (r.cssRules) walk(r.cssRules);
+          if (r.selectorText && /\[data-theme(="dark")?\]/.test(r.selectorText)) for (const p of r.style) if (p.startsWith("--")) names.add(p); } };
+        for (const sheet of document.styleSheets) { try { walk(sheet.cssRules); } catch { /* cross-origin sheet */ } }
+        const probe = (parent) => { const p = document.createElement("i"); p.style.backgroundColor = "var(--df-scrim)"; parent.append(p);
+          const c = getComputedStyle(p); const out = { scrim: c.backgroundColor, vars: Object.fromEntries([...names].sort().map((n) => [n, c.getPropertyValue(n).trim()])) };
+          p.remove(); return out; };
+        const ref = (t) => { const d = document.createElement("div"); d.setAttribute("data-theme", t); document.body.append(d); const out = probe(d); d.remove(); return out; };
+        return { html: document.documentElement.getAttribute("data-theme"), attr: document.querySelector(".rhythm-lab-page").getAttribute("data-theme"),
+          names: [...names], inside: probe(document.querySelector(".rhythm-lab")), outside: probe(document.body), dark: ref("dark"), own: ref(document.documentElement.getAttribute("data-theme")),
+          strays: [...document.querySelectorAll('[class*="rhythm-lab"]')].filter((e) => !e.closest(".rhythm-lab-page")).map((e) => e.className) };
+      });
+      const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+      invariant(seen.html === theme, `${theme} rhythm lab: <html> data-theme is ${seen.html}`);
+      invariant(seen.names.includes("--field") && seen.names.includes("--df-scrim") && seen.names.length > 20, `${theme} rhythm lab: themed variables not found ${JSON.stringify(seen.names)}`);
+      invariant(seen.attr === (theme === "light" ? "dark" : null), `${theme} rhythm lab: page data-theme is ${seen.attr}`);
+      invariant(same(seen.inside, theme === "light" ? seen.dark : seen.own), `${theme} rhythm lab: the page does not render the ${theme === "light" ? "Dark" : theme} set ${JSON.stringify([seen.inside, seen.dark])}`);
+      invariant(same(seen.outside, seen.own), `${theme} rhythm lab: outside the page is not the site's ${theme} set`);
+      invariant(seen.strays.length === 0, `${theme} rhythm lab: elements outside the scoped page ${JSON.stringify(seen.strays)}`);
+    });
   }
   // Phase 5 Task 12 (§07 The cell; §06 Hierarchy and voices; §13 control model; P5-7). /terminal, route intro: the heading
   // and its description lie wholly inside the viewport and nothing is drawn over them (the window, the site header), at a

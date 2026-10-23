@@ -10,10 +10,9 @@
   align-items: stretch;
   justify-content: stretch;
   overflow: hidden;
+  /* Every rendering of this page is on a dark ground: the held rain is always dark (P5-1). */
   color-scheme: dark;
-  background: #0d0d0d;
-  --terminal-primary: #4caf50;
-  --text-color: #ffffff;
+  background: var(--field-deep);
 }
 
 .rhythm-lab-background {

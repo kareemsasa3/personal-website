@@ -12,7 +12,7 @@ export const DONE5 = ["pages/NotFound/NotFound.css", "components/common/ErrorBou
   "components/Terminal/TerminalView.css", "components/Terminal/TerminalWindow.css", "components/Terminal/Terminal.css",
   "components/Terminal/TopUI.css", "components/Terminal/VimUI.css", "components/Terminal/ManPageUI.css",
   "components/SnakeGame/SnakeGame.css", "pages/SnakeGame/SnakeGame.css",
-  "components/SpiderSolitaire/SpiderSolitaire.css", "pages/SpiderSolitaire/SpiderSolitaire.css"];
+  "components/SpiderSolitaire/SpiderSolitaire.css", "pages/SpiderSolitaire/SpiderSolitaire.css", "pages/RhythmLab/RhythmLab.css"];
 const decls5 = async () => {
   const out = [];
   for (const file of (await governed(".css")).filter((f) => DONE5.includes(f))) {
@@ -1106,4 +1106,55 @@ test("P5 spider: the container, the stats, the win banner and the native board",
     assert.ok(NATIVE5["components/SpiderSolitaire/SpiderSolitaire.css"].includes(sel), `${sel} is native`);
   }
   assert.equal(rule(".spider-column:empty").border, "1px dashed var(--spider-empty-column-border)");
+});
+
+// Rhythm Lab ground, root and native gameplay (Phase 5 Task 18; P5-1, P5-5; §05 Roles; §10 Atmosphere by context; D6
+// ruling; P2-3). The held rain is always dark, so the page renders the Dark token set when the site theme is Light and
+// follows the site otherwise; its ground is a token under the rain, whose host rules stay as they were. The root takes
+// the site's family and fg; the highway, its hit zones and its status keep the type and colours they had (pinned), its
+// notes and target windows carry the native region marker, and the governed readers of the retired page variables read
+// role tokens. No Rhythm Lab overlay or dialog leaves the page through a portal, so all of them render in its token set.
+test("P5 rhythm lab: the scoped ground, the lifted root and the pinned native highway", async () => {
+  assert.ok(DONE5.includes("pages/RhythmLab/RhythmLab.css"), "pages/RhythmLab/RhythmLab.css is in DONE5");
+  const page = await read("pages/RhythmLab/RhythmLab.tsx");
+  assert.match(page, /<div className="rhythm-lab-page" data-theme=\{theme === "light" \? "dark" : undefined\}>/,
+    "RhythmLab.tsx: .rhythm-lab-page carries data-theme=\"dark\" only in Light");
+  assert.match(page, /<MatrixRain3DBackground\n\s+theme="dark"\n\s+paused=\{isAnimationPaused\}\n\s+motionSpeed=\{backgroundMotionSpeed\}\n\s+reducedMotion=\{reducedMotion\}\n\s+\/>/,
+    "RhythmLab.tsx: the rain keeps its props");
+  const pageCss = declarations(await read("pages/RhythmLab/RhythmLab.css"));
+  const pageRule = (sel) => Object.fromEntries(pageCss.filter((d) => d.selector === sel).map((d) => [d.prop, d.value]));
+  assert.equal(pageRule(".rhythm-lab-page").background, "var(--field-deep)", ".rhythm-lab-page { background }");
+  assert.equal(pageRule(".rhythm-lab-page")["color-scheme"], "dark", ".rhythm-lab-page { color-scheme }");
+  assert.deepEqual(pageCss.filter((d) => d.prop.startsWith("--")).map((d) => `${d.selector} ${d.prop}`), [], "the page declares no variables");
+  assert.deepEqual(pageRule(".rhythm-lab-background"), { position: "fixed", inset: "0", "z-index": "0", "pointer-events": "none" }, "the rain host is unchanged");
+  assert.deepEqual(pageRule(".rhythm-lab-page .matrix-rain-3d-background"), { "z-index": "0" }, "the rain layer is unchanged");
+
+  const comp = await read("components/RhythmLab/RhythmLab.css");
+  const decls = declarations(comp);
+  const rule = (sel) => Object.fromEntries(decls.filter((d) => d.selector === sel).map((d) => [d.prop, d.value]));
+  assert.equal(rule(".rhythm-lab").color, "var(--fg)", ".rhythm-lab { color }");
+  assert.equal(rule(".rhythm-lab")["font-family"], "inherit", ".rhythm-lab { font-family }");
+  assert.doesNotMatch(comp, /var\(--(terminal-primary|text-color)\b/, "RhythmLab.css reads a retired page variable");
+  // Native pins: the values the highway, its hit zones and its status had before the lift.
+  const stack = '"Courier New", Monaco, monospace';
+  assert.deepEqual([rule(".rhythm-lab-highway").color, rule(".rhythm-lab-highway")["font-family"]], ["#ffffff", stack], ".rhythm-lab-highway pins");
+  assert.deepEqual([rule(".rhythm-lab-hit-zone").color, rule(".rhythm-lab-hit-zone")["font-family"]], ["#4caf50", stack], ".rhythm-lab-hit-zone pins");
+  assert.equal(rule(".rhythm-lab-status")["font-family"], stack, ".rhythm-lab-status pin");
+  for (const sel of [".rhythm-lab-highway", ".rhythm-lab-hit-zone", ".rhythm-lab-status", ".rhythm-lab-note", ".rhythm-lab-target-windows"]) {
+    assert.ok(NATIVE5["components/RhythmLab/RhythmLab.css"].includes(sel), `${sel} is native`);
+  }
+  // The lane labels are governed: the small label voice at the muted tier.
+  assert.equal(rule(".rhythm-lab-lane-label").color, "var(--fg-muted)", ".rhythm-lab-lane-label { color }");
+  assert.deepEqual(decls.filter((d) => innermost(d.selector) === ".rhythm-lab-lane-label" && /^(font|font-size|font-weight|font-family|text-transform|letter-spacing)$/.test(d.prop))
+    .map((d) => where({ file: "RhythmLab.css", ...d })), [], "the lane labels take their type from the voice");
+
+  const highway = await read("components/RhythmLab/RhythmHighway.tsx");
+  assert.match(highway, /<span className="rhythm-lab-lane-label df-label-sm">\{lane\.label\}<\/span>/, "RhythmHighway.tsx: lane labels in df-label-sm");
+  assert.match(highway, /<span className="rhythm-lab-note" data-df-region="native" \/>/, "RhythmHighway.tsx: each note carries the native region marker");
+  assert.match(highway, /<div className="rhythm-lab-target-windows" aria-hidden="true" data-df-region="native">/,
+    "RhythmHighway.tsx: the target windows carry the native region marker");
+  // P5-1: every Rhythm Lab overlay and dialog renders inside the scoped page; none is portalled out of it.
+  for (const file of (await governed(".tsx")).filter((f) => /^(components|pages)\/RhythmLab\//.test(f))) {
+    assert.doesNotMatch(await read(file), /createPortal|ViewportPortal/, `${file} portals out of the scoped page`);
+  }
 });

@@ -29,8 +29,6 @@ test("theme switching only selects a theme; it never writes token values", async
   }
 });
 
-// Rhythm Lab's page-local --text-color (definition and its reader) is not the bridge alias; Phase 5 retires both.
-const LOCAL_TEXT_COLOR = ["pages/RhythmLab/RhythmLab.css", "components/RhythmLab/RhythmLab.css"];
 test("retired aliases are defined nowhere and read nowhere", async () => {
   const bridge = await read("src/styles/darkfield/bridge.css");
   const files = [...(await reachable()).filter((f) => /\.(css|tsx?)$/.test(f) && !DEAD.includes(f)), "../index.html"];
@@ -38,13 +36,11 @@ test("retired aliases are defined nowhere and read nowhere", async () => {
     assert.doesNotMatch(bridge, new RegExp(`--${name}\\s*:`), `bridge.css still defines --${name}`);
   }
   for (const file of files) {
-    let text = await read(file.startsWith("..") ? file.slice(3) : `src/${file}`);
-    if (LOCAL_TEXT_COLOR.includes(file)) text = text.replace(/--text-color\b/g, "--local-text-color");
+    const text = await read(file.startsWith("..") ? file.slice(3) : `src/${file}`);
     for (const name of RETIRED) {
       assert.doesNotMatch(text, new RegExp(`var\\(--${name}[,)]|--${name}\\s*:`), `${file} still uses --${name}`);
     }
   }
-  assert.match(await read("src/pages/RhythmLab/RhythmLab.css"), /--text-color:\s*#ffffff/);
 });
 
 test("literal colours appear only inside the legacy fence, and only for held variables", async () => {
@@ -87,7 +83,9 @@ test("boot-shell fallbacks equal the Dark token values", async () => {
 // Held for D6 (native-visual or preview typography) and Annals (creative): file → selector.
 const FONT_HOLDS = [
   ["components/SpiderSolitaire/SpiderSolitaire.css", ".spider-board"],
-  ["components/RhythmLab/RhythmLab.css", ".rhythm-lab"],
+  ["components/RhythmLab/RhythmLab.css", ".rhythm-lab-highway"],
+  ["components/RhythmLab/RhythmLab.css", ".rhythm-lab-hit-zone"],
+  ["components/RhythmLab/RhythmLab.css", ".rhythm-lab-status"],
   ["components/SimulationCard/SimulationCard.css", ".spider-preview-card-face"],
 ];
 test("site CSS names fonts only through the Darkfield families, except recorded holds", async () => {
