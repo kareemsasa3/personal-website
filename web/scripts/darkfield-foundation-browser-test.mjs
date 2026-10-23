@@ -1218,7 +1218,7 @@ if (MODE === "check") {
   {
     const HELD_FONTS = [
       { route: "/simulations", selector: ".spider-preview-card-face", stack: '"Courier New", Monaco, Menlo, monospace' },
-      { route: "/simulations/spider", selector: ".spider-solitaire", stack: '"Courier New", Monaco, monospace' },
+      { route: "/simulations/spider", selector: ".spider-card", stack: '"Courier New", Monaco, monospace' },
       { route: "/simulations/rhythm-lab", selector: ".rhythm-lab", stack: '"Courier New", Monaco, monospace' },
     ];
     const click = async (page, href) => {
@@ -2382,6 +2382,18 @@ if (MODE === "check") {
   // Task 15 (§13 Disabled): Deal stays in keyboard order with a visible, associated reason. Once the five stock deals
   // are exhausted, hover and activation do nothing. This state is not exercised by the generic first-control pass.
   for (const theme of THEMES) {
+    // Task 17 (§06 Rules): each stat is a label in the narrow label voice at the muted tier beside a number in mono in fg,
+    // and its text is still the one string it was.
+    await withPage({ theme, route: "/simulations/spider", reducedMotion: "reduce" }, async (page) => {
+      await page.locator(".spider-stats").waitFor();
+      const t = {}; for (const n of ["--fg", "--fg-muted"]) t[n] = await tokenRgb(page, n);
+      const stats = await page.locator(".spider-stats > span").evaluateAll((spans) => spans.map((s) => ({ text: s.textContent,
+        k: [...s.children].map((e) => { const c = getComputedStyle(e); return [e.className, c.fontFamily.split(",")[0].replace(/"/g, "").trim(), c.textTransform]; }),
+        ink: [...s.children].map((e) => getComputedStyle(e).color) })));
+      invariant(JSON.stringify(stats.map((x) => x.text)) === JSON.stringify(["Moves: 0", "Completed: 0/8", "Stock: 5"]) &&
+        stats.every((x) => JSON.stringify(x.k) === JSON.stringify([["df-label-sm", "Archivo Narrow", "uppercase"], ["df-data", "IBM Plex Mono", "none"]]) &&
+          JSON.stringify(x.ink) === JSON.stringify([t["--fg-muted"], t["--fg"]])), `${theme} spider: stat label and value ${JSON.stringify(stats)}`);
+    });
     await withPage({ theme, route: "/simulations/spider", reducedMotion: "reduce" }, async (page) => {
       const deal = page.getByRole("button", { name: "Deal", exact: true });
       for (let stock = 5; stock > 0; stock--) await deal.click();
@@ -3338,7 +3350,8 @@ if (MODE === "check") {
   // Phase 5 (§03, §06): on each listed route, governed elements outside creative regions have square corners and a
   // Darkfield family. P5_NATIVE: native elements outside any region (they host controls or governed labels).
   const P5_ROUTES = ["/darkfield-404-probe", "/procedural-animations", "/procedural-animations/mechanical-time", "/case-studies/aether", "/simulations",
-    "/simulations/orbital-simulator", "/simulations/traffic-simulator", "/terminal", "/simulations/snake"];
+    "/simulations/orbital-simulator", "/simulations/traffic-simulator", "/terminal", "/simulations/snake",
+    "/simulations/spider"];
   const P5_NATIVE = [];
   const P5_FAMILIES = ["Archivo", "Archivo Narrow", "IBM Plex Mono"];
   for (const theme of THEMES) {

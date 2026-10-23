@@ -168,9 +168,9 @@ const SpiderSolitaire = () => {
     <div className="spider-solitaire">
       <div className="spider-header">
         <div className="spider-stats">
-          <span>Moves: {moveCount}</span>
-          <span>Completed: {completedSuits}/8</span>
-          <span>Stock: {Math.floor(stock.length / 10)}</span>
+          <span className="df-data"><span className="df-label-sm">Moves:</span> <span className="df-data">{moveCount}</span></span>
+          <span className="df-data"><span className="df-label-sm">Completed:</span> <span className="df-data">{completedSuits}/8</span></span>
+          <span className="df-data"><span className="df-label-sm">Stock:</span> <span className="df-data">{Math.floor(stock.length / 10)}</span></span>
         </div>
         <div className="spider-actions">
           <button className="spider-button df-control df-label" onClick={newGame}>
@@ -190,10 +190,11 @@ const SpiderSolitaire = () => {
       </div>
 
       {isWon && (
-        <div className="spider-win-banner">You cleared the tableau!</div>
+        <div className="spider-win-banner df-confirmed df-body">You cleared the tableau!</div>
       )}
 
-      <div className="spider-board">
+      {/* Native playfield (D6; P5-5): only the columns and the cards are drawn in it. */}
+      <div className="spider-board" data-df-region="native">
         {tableau.map((column, columnIndex) => {
 
           return (

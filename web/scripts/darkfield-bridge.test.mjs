@@ -86,7 +86,7 @@ test("boot-shell fallbacks equal the Dark token values", async () => {
 
 // Held for D6 (native-visual or preview typography) and Annals (creative): file → selector.
 const FONT_HOLDS = [
-  ["components/SpiderSolitaire/SpiderSolitaire.css", ".spider-solitaire"],
+  ["components/SpiderSolitaire/SpiderSolitaire.css", ".spider-board"],
   ["components/RhythmLab/RhythmLab.css", ".rhythm-lab"],
   ["components/SimulationCard/SimulationCard.css", ".spider-preview-card-face"],
 ];

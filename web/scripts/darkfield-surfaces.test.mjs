@@ -11,7 +11,8 @@ export const DONE5 = ["pages/NotFound/NotFound.css", "components/common/ErrorBou
   "pages/OrbitalSimulator/OrbitalSimulator.css", "pages/TrafficSimulator/TrafficSimulator.css",
   "components/Terminal/TerminalView.css", "components/Terminal/TerminalWindow.css", "components/Terminal/Terminal.css",
   "components/Terminal/TopUI.css", "components/Terminal/VimUI.css", "components/Terminal/ManPageUI.css",
-  "components/SnakeGame/SnakeGame.css", "pages/SnakeGame/SnakeGame.css"];
+  "components/SnakeGame/SnakeGame.css", "pages/SnakeGame/SnakeGame.css",
+  "components/SpiderSolitaire/SpiderSolitaire.css", "pages/SpiderSolitaire/SpiderSolitaire.css"];
 const decls5 = async () => {
   const out = [];
   for (const file of (await governed(".css")).filter((f) => DONE5.includes(f))) {
@@ -1063,4 +1064,46 @@ test("P5 snake: HUD label and value in their own voices", async () => {
   assert.deepEqual(color(".game-score .df-label"), ["var(--fg-muted)"], "SnakeGame.css: the score label reads fg-muted");
   assert.deepEqual(color(".game-score"), ["var(--fg)"], "SnakeGame.css: the score value reads fg");
   assert.deepEqual(color(".game-high-score"), ["var(--fg-muted)"], "SnakeGame.css: the high score reads fg-muted");
+});
+
+// Spider chrome (Phase 5 Task 17; §06 Rules; §13 Confirmed; D6 ruling; P5-5). The container takes the site's family; the
+// board is the native playfield: it carries the native region marker, holds no site control, and keeps the type its
+// cards inherited before the lift. Each stat pairs its label words (df-label-sm, fg-muted at rest) with its number
+// (df-data, fg); the text and spacing stay those of the single string each stat was. The win banner reports a result
+// with the Confirmed signature and no fills of its own.
+test("P5 spider: the container, the stats, the win banner and the native board", async () => {
+  for (const file of ["components/SpiderSolitaire/SpiderSolitaire.css", "pages/SpiderSolitaire/SpiderSolitaire.css"]) assert.ok(DONE5.includes(file), `${file} is in DONE5`);
+  const tsx = await read("components/SpiderSolitaire/SpiderSolitaire.tsx");
+  const stats = /<div className="spider-stats">([\s\S]*?)\n {8}<\/div>/.exec(tsx)?.[1];
+  assert.ok(stats, "SpiderSolitaire.tsx: .spider-stats");
+  const lines = stats.split("\n").map((l) => l.trim()).filter(Boolean);
+  const want = [["Moves:", "{moveCount}"], ["Completed:", "{completedSuits}/8"], ["Stock:", "{Math.floor(stock.length / 10)}"]];
+  assert.equal(lines.length, want.length, "SpiderSolitaire.tsx: three stats");
+  for (const [i, [label, value]] of want.entries()) {
+    assert.equal(lines[i], `<span className="df-data"><span className="df-label-sm">${label}</span> <span className="df-data">${value}</span></span>`,
+      `SpiderSolitaire.tsx: the ${label} stat sets its label in df-label-sm and its number in df-data`);
+    assert.equal(lines[i].replace(/<[^>]*>/g, ""), `${label} ${value}`, `SpiderSolitaire.tsx: the ${label} stat keeps its text and spacing`);
+  }
+  assert.match(tsx, /<div className="spider-win-banner df-confirmed df-body">You cleared the tableau!<\/div>/, "SpiderSolitaire.tsx: the win banner is Confirmed");
+  // The board is marked native and holds only columns and cards.
+  const board = /<div className="spider-board"[^>]*>([\s\S]*?)\n {6}<\/div>/.exec(tsx);
+  assert.ok(board && /data-df-region="native"/.test(board[0].split(">")[0]), "SpiderSolitaire.tsx: .spider-board carries data-df-region=\"native\"");
+  assert.doesNotMatch(board[1], /<(button|a|input|h[1-6]|p)\b|role=|tabIndex/, "SpiderSolitaire.tsx: the board holds no site control or text block");
+
+  const comp = declarations(await read("components/SpiderSolitaire/SpiderSolitaire.css"));
+  const rule = (sel) => Object.fromEntries(comp.filter((d) => d.selector === sel).map((d) => [d.prop, d.value]));
+  assert.equal(rule(".spider-solitaire")["font-family"], "inherit", ".spider-solitaire { font-family }");
+  assert.equal(rule(".spider-solitaire").color, "var(--fg)", ".spider-solitaire { color }");
+  assert.equal(rule(".spider-board")["font-family"], '"Courier New", Monaco, monospace', ".spider-board keeps the stack its cards inherited");
+  assert.deepEqual(comp.filter((d) => d.selector === ".spider-stats .df-label-sm").map((d) => `${d.prop}: ${d.value}`), ["color: var(--fg-muted)"],
+    "the stat labels read fg-muted at rest");
+  assert.deepEqual(comp.filter((d) => /spider-stats/.test(d.selector) && /^(font|font-size|font-family|color)$/.test(d.prop) && d.selector !== ".spider-stats .df-label-sm")
+    .map((d) => where({ file: "SpiderSolitaire.css", ...d })), [], "the stats take their type and colours from the voices");
+  assert.deepEqual(comp.filter((d) => /spider-win-banner/.test(d.selector) && /^(background|background-color|border|border-color|border-radius|font-weight|color)$/.test(d.prop))
+    .map((d) => where({ file: "SpiderSolitaire.css", ...d })), [], "the win banner has no fills, frame or weight of its own");
+  // The native rules stay native, and the empty-column hold keeps its value.
+  for (const sel of [".spider-board", ".spider-column", ".spider-column:empty", ".spider-card", ".spider-card-rank"]) {
+    assert.ok(NATIVE5["components/SpiderSolitaire/SpiderSolitaire.css"].includes(sel), `${sel} is native`);
+  }
+  assert.equal(rule(".spider-column:empty").border, "1px dashed var(--spider-empty-column-border)");
 });

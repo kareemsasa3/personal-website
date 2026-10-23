@@ -14,7 +14,7 @@
   flex-direction: column;
   gap: 1rem;
   color: var(--fg);
-  font-family: "Courier New", Monaco, monospace;
+  font-family: inherit;
 }
 
 .spider-header {
@@ -28,7 +28,11 @@
 .spider-stats {
   display: flex;
   gap: 1.5rem;
-  font-size: 0.95rem;
+}
+
+/* Interface labels sit at the muted tier at rest (§06); each stat's number keeps fg. */
+.spider-stats .df-label-sm {
+  color: var(--fg-muted);
 }
 
 .spider-actions {
@@ -38,17 +42,16 @@
 
 .spider-button__reason { display: block; }
 
+/* A result just happened: the banner takes the Confirmed signature (§13; .df-confirmed in grammar.css). */
 .spider-win-banner {
-  padding: 0.75rem 1rem;
-  background: rgba(76, 175, 80, 0.15);
-  border: 1px solid rgba(76, 175, 80, 0.6);
-  border-radius: 0.5rem;
+  padding: var(--space-3) var(--space-4);
   text-align: center;
-  font-weight: 600;
 }
 
+/* The native playfield keeps the type its cards inherited before the container was lifted (D6 ruling). */
 .spider-board {
   flex: 1;
+  font-family: "Courier New", Monaco, monospace;
   display: grid;
   grid-template-columns: repeat(10, minmax(0, 1fr));
   gap: clamp(3px, 1vw, 12px);
