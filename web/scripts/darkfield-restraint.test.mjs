@@ -105,13 +105,13 @@ test("T9 framer: no springs, overshoot, hover scale, parallax or literal timing;
   assert.deepEqual(bad, []);
 });
 
-// Top-row motion: the Phase 5 terminal overlays task (the cursor blinks are governed since Task 13). Native keyframes: D6 ruling.
-const KEYFRAME_HANDOFF = { "components/Terminal/TopUI.css": ["processUpdate"] };
+// Native keyframes are excluded by name (D6 ruling). Every other keyframes rule is governed: the terminal's hand-offs
+// (the cursor blinks, Task 13; the top rows' afterglow, Task 14) are covered here like the rest.
 test("T10 keyframes: each governed @keyframes is annotated and timed by tokens", async () => {
   const bad = [];
   for (const f of await governed(".css")) {
     const css = await read(f);
-    const skip = [...(KEYFRAME_HANDOFF[f] ?? []), ...(NATIVE_KEYFRAMES[f] ?? [])];
+    const skip = NATIVE_KEYFRAMES[f] ?? [];
     for (const m of css.matchAll(/@keyframes\s+([\w-]+)/g)) {
       if (skip.includes(m[1])) continue;
       if (!/§12:[^*]*\*\/\s*$/.test(css.slice(Math.max(0, m.index - 240), m.index))) bad.push(`${f}: @keyframes ${m[1]} lacks a §12 annotation`);

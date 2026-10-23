@@ -974,8 +974,8 @@ if (MODE === "check") {
     await page.waitForLoadState("networkidle");
   };
   // Project styles remain attached after client navigation. They must not leave page-level terminal
-  // colours on <html>. Terminal.css is eagerly loaded by the route table, so compare each arrival
-  // with its direct load: the terminal header alias is present even on /journey.
+  // colours on <html>. Compare each arrival with its direct load. Since Phase 5 Task 14 no stylesheet
+  // defines a terminal colour alias on <html>, so a direct load has neither name.
   for (const route of ["/journey", "/terminal"]) {
     const readTerminalAliases = (page) => page.evaluate(() => {
       const style = getComputedStyle(document.documentElement);
@@ -985,7 +985,7 @@ if (MODE === "check") {
     await withPage({ theme: "light", route }, async (page) => {
       direct = await readTerminalAliases(page);
     });
-    invariant(direct[0] === "" && direct[1] !== "", `Light direct ${route}: terminal aliases ${JSON.stringify(direct)}`);
+    invariant(direct[0] === "" && direct[1] === "", `Light direct ${route}: terminal aliases ${JSON.stringify(direct)}`);
     await withPage({ theme: "light", route: "/projects" }, async (page) => {
       await follow(page, route);
       const seen = await readTerminalAliases(page);

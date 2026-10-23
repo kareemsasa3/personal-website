@@ -284,7 +284,7 @@ const VimUI: React.FC<VimUIProps> = ({
           <div className="vim-container">
             {/* Vim Header */}
             <div className="vim-header">
-              <div className="vim-title">VIM - {filePath}</div>
+              <div className="vim-title df-data">VIM - {filePath}</div>
               <div className="vim-controls">
                 <button className="vim-close-btn" onClick={onClose}>
                   ×
@@ -310,7 +310,7 @@ const VimUI: React.FC<VimUIProps> = ({
 
             {/* Command Line */}
             {showCommandLine && (
-              <div className="vim-command-line">
+              <div className="vim-command-line df-glyph">
                 <span className="vim-command-prompt">:</span>
                 <input
                   type="text"
@@ -323,7 +323,7 @@ const VimUI: React.FC<VimUIProps> = ({
             )}
 
             {/* Status Bar */}
-            <div className="vim-status-bar">
+            <div className="vim-status-bar df-data">
               <span className="vim-status-text">{getStatusBarText()}</span>
             </div>
           </div>

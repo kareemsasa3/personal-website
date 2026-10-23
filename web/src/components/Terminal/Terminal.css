@@ -1,19 +1,7 @@
 /* Terminal.css - Refactored for Theming and Maintainability */
 
-/* Terminal colour roles; Phase 5 retires these aliases with their readers. The terminal's own stylesheets read the
-   tokens directly; the overlays (TopUI, VimUI, ManPageUI) still read these until Task 14. */
-:root {
-  --terminal-text-primary: var(--fg);
-  --terminal-text-muted: var(--fg-muted);
-  --terminal-text-error: var(--fault);
-  --terminal-text-success: var(--signal);
-  --terminal-text-info: var(--fg);
-  --terminal-window-bg: var(--field-deep);
-  --terminal-header-bg: var(--surface-2);
-  --terminal-border: var(--edge);
-  --terminal-selection-bg: var(--signal-deep);
-  --terminal-selection-text: var(--fg);
-}
+/* Every terminal stylesheet, the overlays included, reads the Darkfield tokens directly: no terminal colour alias is
+   defined. The --terminal-* variables below are the window's layout, not colours. */
 
 .terminal-screen {
   position: relative;
@@ -91,8 +79,9 @@
   overflow: hidden;
   overflow: clip;
   /* Position follows the safe viewport immediately, including during resize. */
-  transition: width 0.3s ease, height 0.3s ease, opacity 0.3s ease,
-    background 0.3s ease, border-color 0.3s ease;
+  transition: width var(--dur-base) var(--ease-standard), height var(--dur-base) var(--ease-standard),
+    opacity var(--dur-base) var(--ease-standard), background var(--dur-base) var(--ease-standard),
+    border-color var(--dur-base) var(--ease-standard);
   will-change: transform, opacity, background, border-color;
   /* Allow text selection in terminal content */
   user-select: text;

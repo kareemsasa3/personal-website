@@ -1,10 +1,13 @@
+/* A terminal region over the dimmed page (§08 Layers and overlays; §05 Roles): the editor is field-deep under a
+   surface-2 header band, with the command and mode lines as surface-2 bands at the foot. The lines are text graphics
+   on the cell grid (df-glyph); the title and the mode line are Machine (df-data). */
 .vim-overlay {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(0, 0, 0, 0.9);
+    background-color: var(--df-scrim);
     z-index: 10000;
     display: flex;
     align-items: center;
@@ -14,61 +17,59 @@
 .vim-container {
     width: 90vw;
     height: 90vh;
-    background-color: #1e1e1e;
-    border: 1px solid #333;
-    border-radius: 4px;
+    background-color: var(--field-deep);
+    border: var(--stroke-hair) solid var(--edge);
     display: flex;
     flex-direction: column;
     overflow: hidden;
     font-family: var(--font-mono);
-    font-size: 14px;
-    line-height: 1.4;
+    color: var(--fg);
 }
 
 .vim-header {
-    background-color: #2d2d2d;
-    border-bottom: 1px solid #333;
-    padding: 8px 16px;
+    background-color: var(--surface-2);
+    border-bottom: var(--stroke-hair) solid var(--edge);
+    padding: var(--space-2) var(--space-4);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    color: #fff;
+    color: var(--fg);
 }
 
 .vim-title {
-    font-weight: 500;
-    color: #e6e6e6;
+    color: var(--fg);
 }
 
 .vim-close-btn {
     background: none;
     border: none;
-    color: #fff;
-    font-size: 18px;
+    color: var(--fg-muted);
+    font: inherit;
     cursor: pointer;
     padding: 0;
-    width: 24px;
-    height: 24px;
+    width: calc(3 * var(--cell-w));
+    height: calc(3 * var(--cell-w));
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 3px;
+    border-radius: var(--radius-0);
 }
 
 .vim-close-btn:hover {
-    background-color: #404040;
+    background-color: var(--surface-3);
+    color: var(--fg);
 }
 
 .vim-editor {
     flex: 1;
     position: relative;
     overflow: hidden;
-    background-color: #1e1e1e;
-    color: #e6e6e6;
+    background-color: var(--field-deep);
+    color: var(--fg);
 }
 
 .vim-content {
-    padding: 16px;
+    padding: var(--space-4);
     height: 100%;
     overflow-y: auto;
     position: relative;
@@ -79,19 +80,21 @@
     align-items: center;
     height: var(--cell-h);
     position: relative;
-    transition: background-color 0.1s ease;
+    transition: background-color var(--dur-fast) var(--ease-standard);
 }
 
+/* The cursor's line is a surface-1 band on the field; the block cursor (flare) sits on it in every theme. */
 .vim-current-line {
-    background-color: #2d2d2d;
+    background-color: var(--surface-1);
 }
 
+/* Line numbers are annotation in the margin: four cells of digits, then two empty cells before the text. */
 .vim-line-number {
-    width: 40px;
-    color: #666;
-    font-size: 12px;
+    box-sizing: border-box;
+    width: calc(6 * var(--cell-w));
+    color: var(--fg-faint);
     text-align: right;
-    padding-right: 16px;
+    padding-right: calc(2 * var(--cell-w));
     user-select: none;
     flex-shrink: 0;
 }
@@ -106,7 +109,7 @@
 .vim-line-input {
     background: none;
     border: none;
-    color: #e6e6e6;
+    color: var(--fg);
     font-family: inherit;
     font-size: inherit;
     line-height: inherit;
@@ -117,11 +120,15 @@
     caret-color: transparent;
 }
 
-/* A read-only file's line keeps the same cells instead of the syntax theme's face, size, padding and wrapping. */
+/* A read-only file's line keeps the same cells instead of the syntax theme's face, size, padding and wrapping, and
+   none of its inline-code ground or rounded corners: the line is part of the editor's field, square like it. */
 .vim-line-content code[class*="language-"] {
     font: inherit;
     padding: 0;
     white-space: pre;
+    background: none;
+    border-radius: var(--radius-0);
+    color: var(--fg);
 }
 
 .vim-line-input:focus {
@@ -160,90 +167,53 @@
 }
 
 .vim-command-line {
-    background-color: #2d2d2d;
-    border-top: 1px solid #333;
-    padding: 8px 16px;
+    background-color: var(--surface-2);
+    border-top: var(--stroke-hair) solid var(--edge);
+    padding: var(--space-2) var(--space-4);
     display: flex;
     align-items: center;
-    color: #fff;
+    color: var(--fg);
 }
 
+/* The prompt and the typed command share one cell row: one empty cell between them. */
 .vim-command-prompt {
-    color: #4CAF50;
-    font-weight: bold;
-    margin-right: 8px;
+    color: var(--fg-muted);
+    margin-right: var(--cell-w);
 }
 
 .vim-command-input {
     background: none;
     border: none;
-    color: #fff;
-    font-family: inherit;
-    font-size: inherit;
+    color: var(--fg);
+    font: inherit;
+    padding: 0;
     flex: 1;
     outline: none;
 }
 
+/* The mode line: a surface-2 band at the foot, Machine text at rest. */
 .vim-status-bar {
-    background-color: #2d2d2d;
-    border-top: 1px solid #333;
-    padding: 4px 16px;
-    color: #999;
-    font-size: 12px;
+    background-color: var(--surface-2);
+    border-top: var(--stroke-hair) solid var(--edge);
+    padding: var(--space-1) var(--space-4);
+    color: var(--fg-muted);
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
 .vim-status-text {
-    color: #999;
+    color: var(--fg-muted);
 }
 
-/* Prism.js syntax highlighting overrides */
-.vim-editor .token {
-    font-family: inherit;
-    font-size: inherit;
+/* Syntax runs keep the line's voice and ink (no hue without a state, §05); comments read as annotation. */
+.vim-editor code .token {
+    font: inherit;
+    color: inherit;
 }
 
-.vim-editor .token.keyword {
-    color: #569cd6;
-}
-
-.vim-editor .token.string {
-    color: #ce9178;
-}
-
-.vim-editor .token.comment {
-    color: #6a9955;
-    font-style: italic;
-}
-
-.vim-editor .token.function {
-    color: #dcdcaa;
-}
-
-.vim-editor .token.number {
-    color: #b5cea8;
-}
-
-.vim-editor .token.operator {
-    color: #d4d4d4;
-}
-
-.vim-editor .token.punctuation {
-    color: #d4d4d4;
-}
-
-.vim-editor .token.class-name {
-    color: #4ec9b0;
-}
-
-.vim-editor .token.variable {
-    color: #9cdcfe;
-}
-
-.vim-editor .token.property {
-    color: #9cdcfe;
+.vim-editor code .token.comment {
+    color: var(--fg-faint);
 }
 
 /* Scrollbar styling */
@@ -252,16 +222,15 @@
 }
 
 .vim-content::-webkit-scrollbar-track {
-    background: #1e1e1e;
+    background: var(--surface-2);
 }
 
 .vim-content::-webkit-scrollbar-thumb {
-    background: #404040;
-    border-radius: 4px;
+    background: var(--fg);
 }
 
 .vim-content::-webkit-scrollbar-thumb:hover {
-    background: #555;
+    background: var(--fg-muted);
 }
 
 /* Responsive design */
@@ -272,12 +241,11 @@
     }
 
     .vim-content {
-        padding: 8px;
+        padding: var(--space-2);
     }
 
     .vim-line-number {
-        width: 30px;
-        padding-right: 8px;
-        font-size: 11px;
+        width: calc(5 * var(--cell-w));
+        padding-right: var(--cell-w);
     }
 }

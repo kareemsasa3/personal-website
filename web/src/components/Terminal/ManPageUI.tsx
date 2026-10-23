@@ -75,29 +75,29 @@ const ManPageUI: React.FC<ManPageUIProps> = ({
     <div className="man-page-overlay">
       <div className="man-page-container" ref={containerRef}>
         <div className="man-page-header">
-          <div className="man-page-title">{manPage.name}</div>
-          <div className="man-page-controls">
+          <div className="man-page-title df-data">{manPage.name}</div>
+          <div className="man-page-controls df-data">
             <span className="man-page-control">q: quit</span>
             <span className="man-page-control">↑↓: scroll</span>
             <span className="man-page-control">Home/End: top/bottom</span>
           </div>
         </div>
 
-        <div className="man-page-content">
+        <div className="man-page-content df-glyph">
           <div className="man-section">
-            <div className="man-section-title">NAME</div>
+            <div className="man-section-title df-label">NAME</div>
             <div className="man-section-content">{manPage.name}</div>
           </div>
 
           <div className="man-section">
-            <div className="man-section-title">SYNOPSIS</div>
+            <div className="man-section-title df-label">SYNOPSIS</div>
             <div className="man-section-content">
               <code>{manPage.synopsis}</code>
             </div>
           </div>
 
           <div className="man-section">
-            <div className="man-section-title">DESCRIPTION</div>
+            <div className="man-section-title df-label">DESCRIPTION</div>
             <div className="man-section-content">
               {manPage.description.split("\n").map((line, index) => (
                 <div key={index} className="man-description-line">
@@ -109,7 +109,7 @@ const ManPageUI: React.FC<ManPageUIProps> = ({
 
           {manPage.options.length > 0 && (
             <div className="man-section">
-              <div className="man-section-title">OPTIONS</div>
+              <div className="man-section-title df-label">OPTIONS</div>
               <div className="man-section-content">
                 {manPage.options.map((option, index) => (
                   <div key={index} className="man-option">
@@ -124,7 +124,7 @@ const ManPageUI: React.FC<ManPageUIProps> = ({
           )}
 
           <div className="man-section">
-            <div className="man-section-title">EXAMPLES</div>
+            <div className="man-section-title df-label">EXAMPLES</div>
             <div className="man-section-content">
               {manPage.examples.map((example, index) => (
                 <div key={index} className="man-example">
@@ -140,7 +140,7 @@ const ManPageUI: React.FC<ManPageUIProps> = ({
           </div>
 
           <div className="man-section">
-            <div className="man-section-title">SEE ALSO</div>
+            <div className="man-section-title df-label">SEE ALSO</div>
             <div className="man-section-content">
               {manPage.seeAlso.map((command, index) => (
                 <span key={index} className="man-see-also">
@@ -153,7 +153,7 @@ const ManPageUI: React.FC<ManPageUIProps> = ({
         </div>
 
         <div className="man-page-footer">
-          <div className="man-page-info">
+          <div className="man-page-info df-data">
             Press <kbd>q</kbd> to exit
           </div>
         </div>

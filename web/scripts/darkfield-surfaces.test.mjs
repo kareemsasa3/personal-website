@@ -9,7 +9,8 @@ export const DONE5 = ["pages/NotFound/NotFound.css", "components/common/ErrorBou
   "pages/ProceduralAnimations/ProceduralAnimations.css", "pages/ProceduralAnimationPiece/ProceduralAnimationPiece.css",
   "components/ProjectMedia/ProjectMedia.css", "pages/Simulations/Simulations.css", "components/SimulationCard/SimulationCard.css",
   "pages/OrbitalSimulator/OrbitalSimulator.css", "pages/TrafficSimulator/TrafficSimulator.css",
-  "components/Terminal/TerminalView.css", "components/Terminal/TerminalWindow.css"];
+  "components/Terminal/TerminalView.css", "components/Terminal/TerminalWindow.css", "components/Terminal/Terminal.css",
+  "components/Terminal/TopUI.css", "components/Terminal/VimUI.css", "components/Terminal/ManPageUI.css"];
 const decls5 = async () => {
   const out = [];
   for (const file of (await governed(".css")).filter((f) => DONE5.includes(f))) {
@@ -24,7 +25,9 @@ const decls5 = async () => {
 };
 const held = (d) => (HOLDS5[d.file] ?? []).some(([s, p]) => s === innermost(d.selector) && p === d.prop);
 const LITERAL = /#[0-9a-f]{3,8}\b|\b(rgba?|hsla?|hwb|lab|lch|oklch|oklab)\(|\b(white|black|red|green|blue|gray|grey|silver|gold|yellow)\b/i;
-const RETIRED = /var\(--(terminal-|text-color|accent-color|hover-color|spacing-|border-radius-|transition-)/;
+// The terminal colour aliases (and the preview hold's --terminal-primary) are retired; the terminal window's layout
+// variables (--terminal-window-width, --terminal-safe-top, --terminal-floor-rows and the like) are not colours and stay.
+const RETIRED = /var\(--(terminal-(text-|window-bg|header-bg|border|selection-|primary\b)|text-color|accent-color|hover-color|spacing-|border-radius-|transition-)/;
 const UNTOKENED_TIME = /(?<![\w-])\d*\.?\d+m?s\b|\b(ease|ease-in|ease-out|ease-in-out|linear|cubic-bezier|steps)\b(?![\w-])/;
 
 test("P5 scope: NATIVE5 covers Phase 2's NATIVE, every listed selector exists, DONE5 is within PHASE5", async () => {
@@ -876,4 +879,101 @@ test("P5 terminal: one block cursor, present only while the prompt or editor hol
   const vimCss = await all("components/Terminal/VimUI.css");
   want(vimCss, ".vim-line", { height: "var(--cell-h)" }, "VimUI.css");
   want(vimCss, ".vim-line-input", { "caret-color": "transparent" }, "VimUI.css");
+});
+
+// Terminal overlays: top, vim and man pages (Phase 5 Task 14; §07 The cell; §06 voices; §05 Roles; §08 Layers and
+// overlays; §12 Traces, Reduced motion by class; §17 Composite recipes, Selected row). Each overlay dims the page with
+// the shared scrim and is a field-deep terminal region under a surface-2 header band; its words are Machine text, the
+// top table's column headers and the man page's section headings are Instrument labels. Nothing here is rounded or
+// names a literal colour (the DONE5 rules above), and no Terminal stylesheet defines or reads a colour alias any more.
+// The top rows' update flash becomes an afterglow timed by tokens, with no animation under reduced motion. A vim
+// read-only line drops the syntax theme's inline-code ground and rounded corners.
+test("P5 terminal overlays: top, vim and man pages", async () => {
+  const OVERLAYS = ["Terminal", "TopUI", "VimUI", "ManPageUI"].map((n) => `components/Terminal/${n}.css`);
+  for (const file of OVERLAYS) assert.ok(DONE5.includes(file), `${file} is in DONE5`);
+  const ALIAS = /--terminal-(text-|window-bg|header-bg|border|selection-)/;
+  const terminalCss = (await governed(".css")).filter((f) => /^components\/Terminal\/[^/]+\.css$/.test(f));
+  assert.ok(terminalCss.length >= 7, "the Terminal stylesheets are found");
+  for (const file of terminalCss) {
+    assert.deepEqual(declarations(await read(file)).filter((d) => ALIAS.test(d.prop) || ALIAS.test(d.value)).map((d) => where({ file, ...d })), [],
+      `${file} defines or reads a terminal colour alias`);
+  }
+
+  const lists = (code) => [...code.matchAll(/className=\{?[`"]([^`"]*)[`"]/g)].map((m) => m[1].replace(/\$\{[^}]*\}/g, " ").trim().split(/\s+/));
+  const has = (code, first, cls, file) => { const f = lists(code).filter((c) => c[0] === first);
+    assert.ok(f.length > 0 && f.every((c) => cls.every((k) => c.includes(k))), `${file}: .${first} ${cls.join(" ")}`); };
+  const top = await read("components/Terminal/TopUI.tsx");
+  for (const name of ["top-title", "top-controls", "top-system-info", "top-summary", "top-footer"]) has(top, name, ["df-data"], "TopUI.tsx");
+  has(top, "top-table-header", ["df-label-sm"], "TopUI.tsx");
+  assert.match(top, /className=\{`top-process-row df-glyph\$\{\s*selectedPid === process\.pid \? " selected" : ""\s*\}`\}/, "TopUI.tsx: rows are df-glyph");
+  const man = await read("components/Terminal/ManPageUI.tsx");
+  for (const name of ["man-page-title", "man-page-controls", "man-page-info"]) has(man, name, ["df-data"], "ManPageUI.tsx");
+  has(man, "man-page-content", ["df-glyph"], "ManPageUI.tsx");
+  has(man, "man-section-title", ["df-label"], "ManPageUI.tsx");
+  const vim = await read("components/Terminal/VimUI.tsx");
+  for (const name of ["vim-title", "vim-status-bar"]) has(vim, name, ["df-data"], "VimUI.tsx");
+  has(vim, "vim-command-line", ["df-glyph"], "VimUI.tsx");
+
+  const all = async (file) => declarations(await read(file));
+  const rule = (decls, sel) => Object.fromEntries(decls.filter((d) => d.selector === sel).map((d) => [d.prop, d.value]));
+  const want = (decls, sel, values, file) => { const r = rule(decls, sel); for (const [p, v] of Object.entries(values)) assert.equal(r[p], v, `${file} ${sel} { ${p} }`); };
+  const frame = { "background-color": "var(--field-deep)", border: "var(--stroke-hair) solid var(--edge)" };
+  const band = { "background-color": "var(--surface-2)" };
+  const topCss = await all("components/Terminal/TopUI.css"), vimCss = await all("components/Terminal/VimUI.css"), manCss = await all("components/Terminal/ManPageUI.css");
+  want(topCss, ".top-overlay", { background: "var(--df-scrim)" }, "TopUI.css");
+  want(topCss, ".top-container", frame, "TopUI.css");
+  for (const sel of [".top-header", ".top-footer"]) want(topCss, sel, band, "TopUI.css");
+  want(vimCss, ".vim-overlay", { "background-color": "var(--df-scrim)" }, "VimUI.css");
+  want(vimCss, ".vim-container", frame, "VimUI.css");
+  want(vimCss, ".vim-editor", { "background-color": "var(--field-deep)", color: "var(--fg)" }, "VimUI.css");
+  for (const sel of [".vim-header", ".vim-command-line", ".vim-status-bar"]) want(vimCss, sel, band, "VimUI.css");
+  want(manCss, ".man-page-overlay", { background: "var(--df-scrim)" }, "ManPageUI.css");
+  want(manCss, ".man-page-container", frame, "ManPageUI.css");
+  for (const sel of [".man-page-header", ".man-page-footer"]) want(manCss, sel, band, "ManPageUI.css");
+
+  // Selected process row: the signal-deep band, fg text, the key column in signal and a square signal node.
+  want(topCss, ".top-process-row.selected", { "background-color": "var(--signal-deep)", color: "var(--fg)" }, "TopUI.css");
+  want(topCss, ".top-process-row.selected .top-col-pid", { color: "var(--signal)" }, "TopUI.css");
+  // Every other cell of the selected row reads fg: a muted cell colour elsewhere must be overridden on that row.
+  const muted = topCss.filter((d) => d.prop === "color" && d.value === "var(--fg-muted)" && /^\.top-process-row \.top-col-/.test(d.selector))
+    .flatMap((d) => d.selector.split(/\s*,\s*/).map((s) => s.replace(".top-process-row ", "")));
+  assert.ok(muted.length > 0, "muted row cells found");
+  for (const cell of muted.filter((c) => c !== ".top-col-pid")) {
+    assert.ok(topCss.some((d) => d.prop === "color" && d.value === "var(--fg)" && d.selector.startsWith(".top-process-row.selected ") && d.selector.includes(cell)),
+      `TopUI.css: ${cell} reads fg on the selected row`);
+  }
+  want(topCss, ".top-process-row.selected::before", { width: "var(--grid-half)", height: "var(--grid-half)", "border-radius": "var(--radius-0)",
+    "background-color": "var(--signal)" }, "TopUI.css");
+  // The rows' columns are whole cells; the header uses the same columns.
+  for (const sel of [".top-table-header", ".top-process-row"]) want(topCss, sel, { "grid-template-columns": "var(--top-columns)", gap: "var(--cell-w)" }, "TopUI.css");
+  for (const d of topCss.filter((x) => x.prop === "--top-columns")) {
+    const tracks = d.value.match(/calc\(\d+ \* var\(--cell-w\)\)|\S+/g);
+    assert.equal(tracks.length, 8, `${d.selector}: eight columns`);
+    assert.deepEqual(tracks.filter((t) => !/^\d+fr$/.test(t) && !/^calc\(\d+ \* var\(--cell-w\)\)$/.test(t)), [], `${d.selector}: whole-cell columns`);
+  }
+
+  // Afterglow (§12 Traces) on a changed row: from signal through signal-dim, timed by tokens; none under reduced motion.
+  const topText = await read("components/Terminal/TopUI.css");
+  assert.doesNotMatch(topText, /processUpdate/, "the old update flash");
+  assert.deepEqual(topCss.filter((d) => d.selector.startsWith("@keyframes top-afterglow >> ")).map((d) => `${innermost(d.selector)} ${d.prop}: ${d.value}`),
+    ["from color: var(--signal)", "50% color: var(--signal-dim)"]);
+  assert.match(topText, /\/\* §12: accumulation \(afterglow\) · a row's values changed \*\/\s*@keyframes top-afterglow\b/);
+  want(topCss, ".top-process-row.updating > *", { animation: "top-afterglow var(--dur-decay) var(--ease-standard)" }, "TopUI.css");
+  want(topCss, "@media (prefers-reduced-motion: reduce) >> .top-process-row.updating > *", { animation: "none" }, "TopUI.css");
+
+  // Vim: a read-only line is part of the editor's square field (no inline-code ground or rounding); syntax runs keep the
+  // line's voice; the current line is a band the flare cursor stands out on in every theme.
+  want(vimCss, '.vim-line-content code[class*="language-"]', { font: "inherit", padding: "0", background: "none", "border-radius": "var(--radius-0)",
+    color: "var(--fg)" }, "VimUI.css");
+  want(vimCss, ".vim-editor code .token", { font: "inherit", color: "inherit" }, "VimUI.css");
+  want(vimCss, ".vim-current-line", { "background-color": "var(--surface-1)" }, "VimUI.css");
+
+  // Man: section headings take the label style (no own case or weight); commands keep the body's cells; no justified
+  // lines, which would stretch the spaces off the cell grid.
+  assert.deepEqual(manCss.filter((d) => /man-section-title/.test(d.selector) && /^(text-transform|font-weight|font-size)$/.test(d.prop)).map((d) => where({ file: "ManPageUI.css", ...d })), []);
+  want(manCss, ".man-section-content code", { font: "inherit" }, "ManPageUI.css");
+  for (const [file, decls] of [["TopUI.css", topCss], ["VimUI.css", vimCss], ["ManPageUI.css", manCss]]) {
+    assert.deepEqual(decls.filter((d) => (d.prop === "text-align" && d.value === "justify") || (d.prop === "font-style" && d.value !== "normal")).map((d) => where({ file, ...d })), [],
+      `${file}: no justified or italic runs`);
+  }
 });
