@@ -109,8 +109,8 @@ const SnakeGame: React.FC = () => {
   return (
     <div className="snake-game-container" ref={containerRef}>
       <div className="game-scores">
-        <p className="game-score df-data">Score: {score}</p>
-        <p className="game-high-score df-data">High: {highScore}</p>
+        <p className="game-score df-data"><span className="df-label">Score:</span> <span className="df-data">{score}</span></p>
+        <p className="game-high-score df-data"><span className="df-label">High:</span> <span className="df-data">{highScore}</span></p>
       </div>
 
       {/* Native playfield (D6; P5-5): only the snake and the food are drawn in it. */}

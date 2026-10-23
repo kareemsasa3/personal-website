@@ -37,6 +37,11 @@
   color: var(--fg);
 }
 
+/* Interface labels sit at the muted tier at rest (§06); the score value keeps fg. */
+.game-score .df-label {
+  color: var(--fg-muted);
+}
+
 .game-high-score {
   color: var(--fg-muted);
 }

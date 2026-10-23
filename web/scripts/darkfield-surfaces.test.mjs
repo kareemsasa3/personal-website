@@ -1042,3 +1042,25 @@ test("P5 snake: the HUD band, the overlays and the controls", async () => {
     assert.ok(NATIVE5["components/SnakeGame/SnakeGame.css"].includes(sel), `${sel} is native`);
   }
 });
+
+// Snake HUD pairs (Phase 5 Task 16, P5-12; §06 Rules). Each score line splits into two voices: its label words in
+// df-label and its number in df-data. The line's text and spacing stay those of the single string it was ("Score: N",
+// "High: N"), so its text content and accessible text do not change. The game-over line stays one string (owner item).
+test("P5 snake: HUD label and value in their own voices", async () => {
+  const tsx = await read("components/SnakeGame/SnakeGame.tsx");
+  const line = (first) => new RegExp(`<p className="${first}[ "][^>]*>([^\\n]*?)</p>`).exec(tsx)?.[1];
+  for (const [first, label, value] of [["game-score", "Score:", "{score}"], ["game-high-score", "High:", "{highScore}"]]) {
+    const inner = line(first);
+    assert.ok(inner !== undefined, `SnakeGame.tsx: .${first} is one line`);
+    assert.equal(inner, `<span className="df-label">${label}</span> <span className="df-data">${value}</span>`,
+      `SnakeGame.tsx: .${first} sets its label in df-label and its number in df-data`);
+    assert.equal(inner.replace(/<[^>]*>/g, ""), `${label} ${value}`, `SnakeGame.tsx: .${first} keeps its text and spacing`);
+  }
+  assert.match(tsx, /<p className="df-body">Final Score: \{score\}<\/p>/, "SnakeGame.tsx: the game-over line stays one string");
+  // Colours: the labels are at the muted tier at rest; the score value stays fg and the high score value fg-muted.
+  const css = declarations(await read("components/SnakeGame/SnakeGame.css"));
+  const color = (sel) => css.filter((d) => d.selector === sel && d.prop === "color").map((d) => d.value);
+  assert.deepEqual(color(".game-score .df-label"), ["var(--fg-muted)"], "SnakeGame.css: the score label reads fg-muted");
+  assert.deepEqual(color(".game-score"), ["var(--fg)"], "SnakeGame.css: the score value reads fg");
+  assert.deepEqual(color(".game-high-score"), ["var(--fg-muted)"], "SnakeGame.css: the high score reads fg-muted");
+});

@@ -1602,6 +1602,15 @@ if (MODE === "check") {
           buttons: [...document.querySelectorAll(".touch-btn")].map((e) => { const c = getComputedStyle(e); const r = e.getBoundingClientRect();
             return { control: e.matches(".df-control"), w: r.width, h: r.height, radius: c.borderTopLeftRadius, bg: c.backgroundColor, fg: c.color, b: c.borderTopColor }; }) };
       });
+      // Phase 5 Task 16 (P5-12; §06 Rules): each HUD line is a label in the narrow label voice beside a number in mono,
+      // and its text is still the one string it was. Both labels read fg-muted at rest; the score value fg, the high score fg-muted.
+      const hud = await page.evaluate(() => [".game-score", ".game-high-score"].map((s) => { const p = document.querySelector(s);
+        const k = [...p.children].map((e) => { const c = getComputedStyle(e); return [e.className, c.fontFamily.split(",")[0].replace(/"/g, "").trim(), c.textTransform]; });
+        return { text: p.textContent, k, ink: [...p.children].map((e) => getComputedStyle(e).color) }; }));
+      invariant(/^Score: \d+$/.test(hud[0].text) && /^High: \d+$/.test(hud[1].text) &&
+        hud.every((h) => JSON.stringify(h.k) === JSON.stringify([["df-label", "Archivo Narrow", "uppercase"], ["df-data", "IBM Plex Mono", "none"]])) &&
+        JSON.stringify(hud.map((h) => h.ink)) === JSON.stringify([[t["--fg-muted"], t["--fg"]], [t["--fg-muted"], t["--fg-muted"]]]),
+        `${at}: HUD label and value ${JSON.stringify(hud)}`);
       invariant(seen.opacity === "1", `${at}: touch controls at opacity ${seen.opacity}`);
       invariant(seen.board[0] === "native" && seen.board[1] === 0, `${at}: board region ${JSON.stringify(seen.board)}`);
       invariant(seen.buttons.length === 4, `${at}: ${seen.buttons.length} touch buttons`);
