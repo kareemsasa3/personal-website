@@ -77,7 +77,7 @@
 .vim-line {
     display: flex;
     align-items: center;
-    height: 20px;
+    height: var(--cell-h);
     position: relative;
     transition: background-color 0.1s ease;
 }
@@ -101,40 +101,62 @@
     position: relative;
 }
 
+/* The line's text takes the glyph metrics from the line, so each column is one cell; the block cursor replaces the
+   browser's caret. */
 .vim-line-input {
     background: none;
     border: none;
     color: #e6e6e6;
     font-family: inherit;
     font-size: inherit;
+    line-height: inherit;
     width: 100%;
     outline: none;
     padding: 0;
     margin: 0;
+    caret-color: transparent;
+}
+
+/* A read-only file's line keeps the same cells instead of the syntax theme's face, size, padding and wrapping. */
+.vim-line-content code[class*="language-"] {
+    font: inherit;
+    padding: 0;
+    white-space: pre;
 }
 
 .vim-line-input:focus {
     background-color: transparent;
 }
 
+/* The same block as the terminal prompt's (§17 Composite recipes, Cursor), on the current line's column. It exists
+   only while the editor has focus (§16 Terminal cosplay). */
 .vim-cursor {
     position: absolute;
-    width: 2px;
-    height: 18px;
-    background-color: #fff;
-    animation: blink 1s infinite;
+    top: 0;
+    width: var(--cell-w);
+    height: var(--cell-h);
+    overflow: hidden;
+    white-space: pre;
+    background-color: var(--flare);
+    color: var(--on-flare);
     pointer-events: none;
-    z-index: 10;
+    z-index: var(--layer-focus);
+    animation: vim-cursor-blink calc(var(--dur-blink) * 2) var(--ease-snap) infinite;
 }
 
-@keyframes blink {
-    0%, 50% {
-        opacity: 1;
-    }
+/* Dark only (§11, §17): the component adds this class only in Dark. */
+.vim-cursor--glow {
+    box-shadow: var(--glow-flare);
+}
 
-    51%, 100% {
-        opacity: 0;
-    }
+/* §12: liveness (cursor) · the editor takes input */
+@keyframes vim-cursor-blink {
+    50% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    /* §12 Reduced motion, by class (liveness): the cursor stops blinking and stays on. */
+    .vim-cursor { animation: none; }
 }
 
 .vim-command-line {

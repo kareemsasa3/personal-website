@@ -41,9 +41,13 @@ test("T3 loader: a row scan; no circular spinner, glow or glass", async () => {
 });
 
 const isFocusRing = (v) => /^var\(--focus-ring\)(\s*!important)?$/.test(v);
-test("T4 emission: no text-shadow; box-shadow only the focus ring", async () => {
+// The one emitter on the site's own interface (Phase 5 Task 13; §11 Rules, §17 Composite recipes, Cursor): the block
+// cursor's flare glow, on a modifier its component adds only in Dark and only while the cursor exists (input focused).
+const CURSOR_GLOW = ["components/Terminal/TerminalView.css .terminal-cursor--glow", "components/Terminal/VimUI.css .vim-cursor--glow"];
+const isCursorGlow = (d) => d.value === "var(--glow-flare)" && CURSOR_GLOW.includes(`${d.file} ${d.selector}`);
+test("T4 emission: no text-shadow; box-shadow limited to the focus-ring token plus two cursor glow modifiers", async () => {
   const bad = (await governedDecls()).filter((d) =>
-    (d.prop === "text-shadow" && d.value !== "none") || (d.prop === "box-shadow" && d.value !== "none" && !isFocusRing(d.value)));
+    (d.prop === "text-shadow" && d.value !== "none") || (d.prop === "box-shadow" && d.value !== "none" && !isFocusRing(d.value) && !isCursorGlow(d)));
   assert.deepEqual(bad.map(where), []);
 });
 
@@ -101,8 +105,8 @@ test("T9 framer: no springs, overshoot, hover scale, parallax or literal timing;
   assert.deepEqual(bad, []);
 });
 
-// Terminal cursor and top-row motion: the Phase 5 terminal task. Native keyframes: D6 ruling.
-const KEYFRAME_HANDOFF = { "components/Terminal/TerminalView.css": ["blink"], "components/Terminal/VimUI.css": ["blink"], "components/Terminal/TopUI.css": ["processUpdate"] };
+// Top-row motion: the Phase 5 terminal overlays task (the cursor blinks are governed since Task 13). Native keyframes: D6 ruling.
+const KEYFRAME_HANDOFF = { "components/Terminal/TopUI.css": ["processUpdate"] };
 test("T10 keyframes: each governed @keyframes is annotated and timed by tokens", async () => {
   const bad = [];
   for (const f of await governed(".css")) {

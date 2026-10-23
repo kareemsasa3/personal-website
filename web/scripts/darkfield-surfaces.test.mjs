@@ -806,3 +806,74 @@ test("P5 terminal: shell, cell grid and window chrome", async () => {
   want(shellCss, ".terminal-route-intro--behind", { "clip-path": "inset(50%)" });
   assert.match(shell, /--terminal-floor-rows/);
 });
+
+// Terminal block cursor (Phase 5 Task 13; P5-8; §17 Composite recipes, Cursor; §12 What may repeat, Reduced motion by
+// class; §16 Terminal cosplay; §11 Rules). The prompt hides the browser's caret and draws a flare block on the caret's
+// cell, with the character under it knocked out in on-flare; it exists while the prompt is shown and its input is
+// focused, and at no other time. The Vim cursor is the same block, present while the editor holds focus. Its blink is
+// the one repeating liveness motion, token-timed, and stops under reduced motion. The unrendered .cursor rule and the
+// two `blink` keyframes are gone.
+test("P5 terminal: one block cursor, present only while the prompt or editor holds focus", async () => {
+  const all = async (file) => declarations(await read(file));
+  const rule = (decls, sel) => Object.fromEntries(decls.filter((d) => d.selector === sel).map((d) => [d.prop, d.value]));
+  const want = (decls, sel, values, file) => { const r = rule(decls, sel); for (const [p, v] of Object.entries(values)) assert.equal(r[p], v, `${file} ${sel} { ${p} }`); };
+  const block = { "background-color": "var(--flare)", width: "var(--cell-w)", height: "var(--cell-h)", "pointer-events": "none", "z-index": "var(--layer-focus)" };
+  for (const [file, sel, frames] of [["components/Terminal/TerminalView.css", ".terminal-cursor", "terminal-cursor-blink"],
+    ["components/Terminal/VimUI.css", ".vim-cursor", "vim-cursor-blink"]]) {
+    const css = await read(file), decls = await all(file);
+    assert.doesNotMatch(css, /@keyframes\s+blink\b/, `${file}: the old blink keyframes`);
+    assert.ok(!decls.some((d) => innermost(d.selector) === ".cursor"), `${file}: the unrendered .cursor rule`);
+    want(decls, sel, { ...block, color: "var(--on-flare)", animation: `${frames} calc(var(--dur-blink) * 2) var(--ease-snap) infinite` }, file);
+    // The block blinks on and off in halves of the period; the step easing switches it, never fades it.
+    assert.deepEqual(decls.filter((d) => d.selector.startsWith(`@keyframes ${frames} >> `)).map((d) => `${innermost(d.selector)} ${d.prop}: ${d.value}`),
+      ["50% opacity: 0"], `${file}: ${frames}`);
+    assert.match(css, new RegExp(`/\\* §12: liveness \\(cursor\\)[^*]*\\*/\\s*@keyframes ${frames}\\b`), `${file}: ${frames} is annotated`);
+    assert.ok(decls.some((d) => /prefers-reduced-motion: reduce/.test(d.selector) && innermost(d.selector) === sel && d.prop === "animation" && d.value === "none"),
+      `${file}: ${sel} is steady under reduced motion`);
+    // The glow is a modifier the component adds for the Dark theme; the element itself exists only while focused.
+    want(decls, `${sel}--glow`, { "box-shadow": "var(--glow-flare)" }, file);
+  }
+  // The prompt: no native caret; the block sits on the input's cell row. The end cell is padding inside each input's
+  // own box, so a block there stays inside the input's focus ring.
+  const view = await all("components/Terminal/TerminalView.css");
+  want(view, ".command-input", { "caret-color": "transparent", "padding-inline-end": "var(--cell-w)" }, "TerminalView.css");
+  want(view, ".reverse-search-input", { "padding-inline-end": "var(--cell-w)" }, "TerminalView.css");
+  want(view, ".command-input-field", { position: "relative" }, "TerminalView.css");
+  assert.equal(rule(view, ".command-input-field")["padding-inline-end"], undefined, "no end cell outside the input");
+  want(view, ".terminal-cursor", { position: "absolute", top: "0", overflow: "hidden" }, "TerminalView.css");
+  const tsx = await read("components/Terminal/TerminalView.tsx");
+  // One block, hidden from assistive technology, rendered only while focused; both inputs (command and reverse search)
+  // go through the same field.
+  assert.equal((tsx.match(/className=\{`terminal-cursor df-glyph/g) ?? []).length, 1, "one cursor element");
+  assert.match(tsx, /<span[^>]*className=\{`terminal-cursor df-glyph[^`]*`\}[^>]*aria-hidden="true"/);
+  assert.match(tsx, /const cursor = focused && !composing && caret &&/);
+  assert.equal((tsx.match(/\{\.\.\.cursorEvents\}/g) ?? []).length, 2, "the command and reverse-search inputs report to the one cursor");
+  assert.equal((tsx.match(/^\s*\{cursor\}$/gm) ?? []).length, 2, "each input's field holds the cursor");
+  // Offset: the caret's index times the cell width, less the input's horizontal scroll.
+  assert.match(tsx, /const at = start \* cellW;/);
+  assert.match(tsx, /const left = at - input\.scrollLeft;/);
+  assert.match(tsx, /getPropertyValue\("--cell-w"\)/);
+  for (const ev of ["onFocus", "onBlur", "onSelect", "onKeyUp", "onScroll", "onCompositionStart", "onCompositionEnd"]) assert.match(tsx, new RegExp(`\\b${ev}: `), ev);
+  // Caret moves before keyup (a held key) and size changes re-place the block too.
+  assert.match(tsx, /document\.addEventListener\("selectionchange", placeCursor\)/);
+  assert.match(tsx, /new ResizeObserver\(\(\) => place\(true\)\)/);
+  // Only a resize scrolls the input to reveal the caret; the user's own scrolling is never undone.
+  assert.match(tsx, /onScroll: placeCursor,/);
+  assert.match(tsx, /const placeCursor = useCallback\(\(\) => place\(false\), \[place\]\);/);
+  assert.equal((tsx.match(/input\.scrollLeft = /g) ?? []).length, 2, "two reveal assignments");
+  assert.equal((tsx.match(/if \(reveal && [^)]*\) input\.scrollLeft = /g) ?? []).length, 2, "both gated on reveal");
+  // Vim: the same block on the current line, only while the editor has focus; no pixel literals for its position.
+  const vim = await read("components/Terminal/VimUI.tsx");
+  assert.doesNotMatch(vim, /\*\s*(8|20)\b|\+\s*40\b/, "numeric pixel literals for the cursor or the line scroll");
+  assert.match(vim, /getComputedStyle\(document\.documentElement\)/);
+  assert.match(vim, /getPropertyValue\("--cell-w"\)/);
+  assert.match(vim, /getPropertyValue\("--cell-h"\)/);
+  assert.match(vim, /editorFocused && isCurrentLine &&/);
+  assert.match(vim, /className=\{`vim-cursor df-glyph[^`]*`\}[^>]*aria-hidden="true"/);
+  assert.match(vim, /left: cursorPosition\.column \* cell\.w/);
+  assert.match(vim, /translateY\(-\$\{scrollPosition \* cell\.h\}px\)/);
+  assert.match(vim, /className=\{`vim-line df-glyph /);
+  const vimCss = await all("components/Terminal/VimUI.css");
+  want(vimCss, ".vim-line", { height: "var(--cell-h)" }, "VimUI.css");
+  want(vimCss, ".vim-line-input", { "caret-color": "transparent" }, "VimUI.css");
+});

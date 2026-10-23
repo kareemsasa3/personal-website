@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import React, { useEffect, useLayoutEffect, useRef, useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import Prism from "prismjs";
 import "prismjs/themes/prism-tomorrow.css";
@@ -14,6 +14,7 @@ import "prismjs/components/prism-bash";
 import "prismjs/components/prism-markup";
 // Removed sourceFileSystem dependency
 import { INSTANT, motionToken } from "../../utils/motionTokens";
+import { useTheme } from "../../contexts/useTheme";
 import "./VimUI.css";
 
 interface VimUIProps {
@@ -41,6 +42,20 @@ const VimUI: React.FC<VimUIProps> = ({
   const [commandLine, setCommandLine] = useState("");
   const [showCommandLine, setShowCommandLine] = useState(false);
   const editorRef = useRef<HTMLDivElement>(null);
+  const cursorRef = useRef<HTMLSpanElement>(null);
+  const { theme } = useTheme();
+  // The block cursor (§17 Composite recipes, Cursor) shows only while the editor, or a line inside it, has focus.
+  const [editorFocused, setEditorFocused] = useState(false);
+  // The editor's lines are on the cell grid (the glyph style): a column is one cell wide and a line one cell tall.
+  const cell = useMemo(() => {
+    const root = getComputedStyle(document.documentElement);
+    return { w: parseFloat(root.getPropertyValue("--cell-w")), h: parseFloat(root.getPropertyValue("--cell-h")) };
+  }, []);
+
+  // Each move restarts the blink, so the block is on while the cursor moves.
+  useLayoutEffect(() => {
+    for (const animation of cursorRef.current?.getAnimations() ?? []) animation.currentTime = 0;
+  }, [cursorPosition]);
 
   // Simple syntax language detection
   const getSyntaxLanguage = (path: string): string => {
@@ -210,8 +225,8 @@ const VimUI: React.FC<VimUIProps> = ({
     return (
       <div
         key={lineIndex}
-        className={`vim-line ${isCurrentLine ? "vim-current-line" : ""}`}
-        style={{ transform: `translateY(-${scrollPosition * 20}px)` }}
+        className={`vim-line df-glyph ${isCurrentLine ? "vim-current-line" : ""}`}
+        style={{ transform: `translateY(-${scrollPosition * cell.h}px)` }}
       >
         <span className="vim-line-number">
           {lineNumber.toString().padStart(4)}
@@ -227,6 +242,18 @@ const VimUI: React.FC<VimUIProps> = ({
               className={`vim-line-input language-${language}`}
               disabled={isReadOnly}
             />
+          )}
+          {/* The cursor sits on the current line, on its column's cell, with the character under it knocked out. */}
+          {editorFocused && isCurrentLine && (
+            <span
+              ref={cursorRef}
+              // The glow follows the site theme; inside a scoped [data-theme] wrapper (P5-1) it would need that theme.
+              className={`vim-cursor df-glyph${theme === "dark" ? " vim-cursor--glow" : ""}`}
+              style={{ left: cursorPosition.column * cell.w }}
+              aria-hidden="true"
+            >
+              {line[cursorPosition.column] ?? ""}
+            </span>
           )}
         </span>
       </div>
@@ -270,20 +297,15 @@ const VimUI: React.FC<VimUIProps> = ({
               className="vim-editor"
               ref={editorRef}
               onKeyDown={handleKeyDown}
+              onFocus={() => setEditorFocused(true)}
+              onBlur={(e) => {
+                if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setEditorFocused(false);
+              }}
               tabIndex={0}
             >
               <div className="vim-content">
                 {editedContent.map((line, index) => renderLine(line, index))}
               </div>
-
-              {/* Cursor */}
-              <div
-                className="vim-cursor"
-                style={{
-                  left: `${cursorPosition.column * 8 + 40}px`,
-                  top: `${cursorPosition.line * 20 - scrollPosition * 20}px`,
-                }}
-              />
             </div>
 
             {/* Command Line */}

@@ -3463,6 +3463,123 @@ if (MODE === "check") {
       }
     });
   }
+  // Phase 5 Task 13 (P5-8; §17 Composite recipes, Cursor; §12 What may repeat, Reduced motion by class; §16 Terminal
+  // cosplay). While the command input has focus there is exactly one block cursor: a flare cell with the character under
+  // it in on-flare, on the caret's cell (its column measured from the text itself, not from the formula the component
+  // uses), on the input's row, and inside the input's field. The browser caret is transparent; the focus ring stays.
+  // A selected range shows no block. Blurred, there is none. Reverse search uses the same block. Under reduced motion it
+  // does not animate; otherwise it blinks on the blink token with the step easing. Glow only in Dark.
+  for (const theme of THEMES) for (const width of [VIEW_W, 375]) {
+    await withPage({ theme, route: "/terminal" }, async (page) => {
+      const at = `${theme} /terminal ${width}px cursor`;
+      if (width !== VIEW_W) { await page.setViewportSize({ width, height: VIEW_H }); await frames(page); }
+      const input = page.locator("input.command-input"); await input.waitFor(); await frames(page);
+      const state = () => page.evaluate(() => {
+        const probe = (prop, token) => { const p = document.createElement("i"); p.style[prop] = `var(${token})`; document.body.append(p); const v = getComputedStyle(p)[prop]; p.remove(); return v; };
+        const cursors = [...document.querySelectorAll(".terminal-cursor")].filter((e) => e.getClientRects().length);
+        const field = document.activeElement;
+        if (!cursors.length) return { count: 0, focused: field?.classList.contains("command-input") ?? false };
+        const el = cursors[0], c = getComputedStyle(el), r = el.getBoundingClientRect(), f = field.getBoundingClientRect();
+        const cellW = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--cell-w"));
+        // The caret's x, measured: the text before it set in the input's own font, less the input's scroll.
+        const m = document.createElement("span"); m.className = "df-glyph"; m.style.cssText = "position: absolute; visibility: hidden; white-space: pre;";
+        m.textContent = field.value.slice(0, field.selectionStart); document.body.append(m);
+        const caretX = f.left + parseFloat(getComputedStyle(field).paddingLeft) + m.getBoundingClientRect().width - field.scrollLeft; m.remove();
+        return { count: cursors.length, bg: c.backgroundColor, fg: c.color, flare: probe("backgroundColor", "--flare"), onFlare: probe("color", "--on-flare"),
+          glow: c.boxShadow, glowToken: probe("boxShadow", "--glow-flare"), w: r.width, h: r.height, cellW, cellH: parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--cell-h")),
+          // Inside the input's border box, so never over its focus ring.
+          left: r.left, caretX, top: r.top, fieldTop: f.top, fieldH: f.height, inField: r.left >= f.left - 0.5 && r.right <= f.right + 0.5 && r.bottom <= f.bottom + 0.5,
+          glyph: el.textContent, under: field.value ? (field.value[field.selectionStart] ?? "") : field.placeholder[0], caret: getComputedStyle(field).caretColor,
+          ring: getComputedStyle(field).boxShadow, ringToken: probe("boxShadow", "--focus-ring"), animations: el.getAnimations().length,
+          start: field.selectionStart, scroll: field.scrollLeft, aria: el.getAttribute("aria-hidden") };
+      });
+      const placed = async (where) => {
+        const s = await state();
+        invariant(s.count === 1, `${at} ${where}: ${s.count} visible cursors`);
+        if (s.count !== 1) return s;
+        invariant(s.bg === s.flare && s.fg === s.onFlare && Math.abs(s.w - s.cellW) < 0.01 && Math.abs(s.h - s.cellH) < 0.01 && s.aria === "true",
+          `${at} ${where}: block fill, ink, size or aria-hidden wrong ${JSON.stringify(s)}`);
+        invariant(Math.abs(s.left - s.caretX) <= 0.5 && Math.abs(s.top - s.fieldTop) <= 0.5 && s.inField && s.glyph === s.under,
+          `${at} ${where}: block off the caret's cell ${JSON.stringify(s)}`);
+        invariant(s.caret === "rgba(0, 0, 0, 0)" && s.ring === s.ringToken && s.animations === 0 && s.glow === (theme === "dark" ? s.glowToken : "none"),
+          `${at} ${where}: caret, focus ring, animation or glow ${JSON.stringify(s)}`);
+        return s;
+      };
+      await input.focus();
+      await placed("empty (placeholder)");
+      // A long command that scrolls the input: end, start, a middle column, then Home and End.
+      const long = `echo ${"0123456789abcdef".repeat(12)}`;
+      await input.fill(long); await frames(page);
+      const end = await placed("end of a long input");
+      invariant(end.start === long.length && end.scroll > 0, `${at}: the long input did not scroll ${JSON.stringify([end.start, end.scroll])}`);
+      await page.keyboard.press("Home"); await frames(page);
+      const home = await placed("Home");
+      invariant(home.start === 0 && home.scroll === 0, `${at}: Home ${JSON.stringify([home.start, home.scroll])}`);
+      for (let i = 0; i < 40; i++) await page.keyboard.press("ArrowRight");
+      await frames(page); await placed("middle");
+      await page.keyboard.press("End"); await frames(page); await placed("End");
+      // The block follows the caret while a key is still down (between keydown and keyup), including a held repeat.
+      const held = async (key, where, repeats = 0) => {
+        await page.keyboard.down(key); for (let i = 0; i < repeats; i++) await page.keyboard.down(key);
+        await frames(page); const s = await placed(`${where} (key still down)`); await page.keyboard.up(key); await frames(page); return s;
+      };
+      await held("ArrowLeft", "ArrowLeft");
+      await held("Home", "Home");
+      await held("ArrowRight", "ArrowRight held", 5);
+      await held("End", "End");
+      // A resize re-places the block (the input's scroll changes with its width).
+      await page.setViewportSize({ width: width - 40, height: VIEW_H }); await frames(page); await frames(page);
+      await placed("after a resize");
+      await page.setViewportSize({ width, height: VIEW_H }); await frames(page); await frames(page);
+      await placed("after resizing back");
+      // The user's own horizontal scroll (a wheel over the focused input) is kept, never snapped back to the caret; the
+      // block is hidden while its cell is out of view and returns on the next caret move.
+      {
+        const box = await input.boundingBox(); await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+        const before = await input.evaluate((e) => e.scrollLeft);
+        await page.mouse.wheel(-200, 0); await frames(page); await page.waitForTimeout(100); await frames(page);
+        const after = await input.evaluate((e) => e.scrollLeft); await page.waitForTimeout(200); await frames(page);
+        const kept = await input.evaluate((e) => e.scrollLeft);
+        invariant(after < before && kept === after, `${at}: the user's scroll was undone ${JSON.stringify([before, after, kept])}`);
+        invariant((await state()).count === 0, `${at}: a block while its cell is scrolled out of view`);
+        await page.keyboard.press("ArrowLeft"); await frames(page); await placed("caret move after the user's scroll");
+        await page.keyboard.press("End"); await frames(page);
+      }
+      // A 155-character command, at its end: the block stays inside the input's box.
+      await input.fill(`echo ${"x".repeat(150)}`); await page.keyboard.press("End"); await frames(page);
+      await placed("end of a 155-character command");
+      // A selected range: the selection band shows, no block; collapsing it brings the block back.
+      await page.keyboard.press("Shift+Home"); await frames(page);
+      invariant((await state()).count === 0, `${at}: a block while a range is selected`);
+      await page.keyboard.press("End"); await frames(page); await placed("after the selection collapsed");
+      await input.evaluate((e) => e.blur()); await frames(page);
+      invariant((await state()).count === 0, `${at}: a block while blurred`);
+      await input.focus(); await frames(page); await placed("refocused");
+      // Reverse search: the same block in the search input.
+      await input.fill("help"); await input.press("Enter"); await frames(page);
+      await page.keyboard.press("Control+r"); await page.locator("input.reverse-search-input").waitFor(); await frames(page);
+      await placed("reverse search, empty");
+      await page.keyboard.type("he"); await frames(page);
+      const rs = await placed("reverse search, typed");
+      invariant(rs.start === 2, `${at}: reverse search caret ${rs.start}`);
+    });
+  }
+  // Without reduced motion the block blinks: one animation on the blink token, on for its first half and off for its
+  // second, switched by the step easing.
+  await withPage({ theme: "dark", route: "/terminal", reducedMotion: "no-preference" }, async (page) => {
+    const input = page.locator("input.command-input"); await input.waitFor(); await input.focus(); await frames(page);
+    const blink = await page.evaluate(() => {
+      const el = document.querySelector(".terminal-cursor"), [a] = el.getAnimations();
+      if (!a) return { animations: 0 };
+      const token = getComputedStyle(document.documentElement).getPropertyValue("--dur-blink").trim();
+      const half = parseFloat(token) * (/ms$/.test(token) ? 1 : 1000);
+      a.pause(); const at = (t) => { a.currentTime = t; return getComputedStyle(el).opacity; };
+      return { animations: el.getAnimations().length, name: a.animationName, duration: a.effect.getTiming().duration, half,
+        easing: getComputedStyle(el).animationTimingFunction, on: [at(1), at(half - 1)], off: [at(half + 1), at(2 * half - 1)] };
+    });
+    invariant(blink.animations === 1 && blink.name === "terminal-cursor-blink" && blink.duration === 2 * blink.half && /steps\(1(, end)?\)/.test(blink.easing) &&
+      blink.on.every((o) => o === "1") && blink.off.every((o) => o === "0"), `dark /terminal: the cursor blink ${JSON.stringify(blink)}`);
+  });
   // Phase 5 Task 6 (§13 Focus; DEV-5): keyboard entry into a framed piece shows the focus ring inside the frame's edges;
   // leaving by Shift+Tab removes it; a click into the piece shows none. The piece still receives its own keys. On a phone
   // the bar's controls keep their ring inside the viewport, icon-only Fullscreen is at least three cells wide, and the

@@ -77,34 +77,67 @@
     white-space: nowrap;
 }
 
+/* The input and its block cursor share one field; the block is positioned from the input's start edge. */
+.command-input-field {
+    position: relative;
+    display: flex;
+    flex: 1;
+}
+
+/* The browser's caret is hidden; the block cursor marks the insertion point (§17 Composite recipes, Cursor). The input
+   keeps its focus ring (§13 Focus, §17): the block marks where text goes, the ring marks keyboard focus. */
 .command-input {
     background: transparent;
     border: none !important;
     padding: 0;
+    /* One cell after the text, inside the input's box and its focus ring: the block's room at the end of a line. */
+    padding-inline-end: var(--cell-w);
     color: var(--fg);
     font-family: var(--font-mono);
     outline: none;
     flex: 1;
     min-width: 200px;
+    caret-color: transparent;
+}
+
+/* Whenever the block is not drawn (composition, a caret scrolled out of view) the browser's caret shows instead. */
+.command-input-field:not(:has(.terminal-cursor)) .command-input {
+    caret-color: auto;
 }
 
 .command-input::placeholder {
     color: var(--fg-muted);
 }
 
-.cursor {
-    color: var(--terminal-text-primary);
-    animation: blink 1s infinite;
+/* One cell on the caret's column, the character under it knocked out (Focal rank, §05). It exists only while the
+   input has focus and the prompt is shown, so it never blinks where nothing is accepted (§16 Terminal cosplay). */
+.terminal-cursor {
+    position: absolute;
+    top: 0;
+    width: var(--cell-w);
+    height: var(--cell-h);
+    overflow: hidden;
+    white-space: pre;
+    background-color: var(--flare);
+    color: var(--on-flare);
+    pointer-events: none;
+    z-index: var(--layer-focus);
+    animation: terminal-cursor-blink calc(var(--dur-blink) * 2) var(--ease-snap) infinite;
 }
 
-@keyframes blink {
-    0%, 50% {
-        opacity: 1;
-    }
+/* Dark only (§11, §17): the token is none in Light; the component adds this class only in Dark, so Mono has none. */
+.terminal-cursor--glow {
+    box-shadow: var(--glow-flare);
+}
 
-    51%, 100% {
-        opacity: 0;
-    }
+/* §12: liveness (cursor) · the prompt takes input */
+@keyframes terminal-cursor-blink {
+    50% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    /* §12 Reduced motion, by class (liveness): the cursor stops blinking and stays on. */
+    .terminal-cursor { animation: none; }
 }
 
 /* Reverse search styles */
@@ -131,6 +164,7 @@
     background: transparent;
     border: none;
     padding: 0;
+    padding-inline-end: var(--cell-w);
     color: var(--fg);
     font-family: var(--font-mono);
     outline: none;

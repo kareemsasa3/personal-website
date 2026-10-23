@@ -157,8 +157,10 @@ export const HOLDS5 = {
     ...trafficSwatches],
   "pages/Annals/Annals.css": [[".annals-page", "--annals-sheet-shadow"], ['[data-theme="light"] .annals-page', "--annals-sheet-shadow"]],
 };
-// Phase 5 rules nothing renders (dead-code ruling): excluded by exact innermost selector or at-rule, never deleted.
-export const DEAD_RULES5 = { "components/Terminal/TerminalView.css": [".cursor", "@keyframes blink"] };
+// Phase 5 rules nothing renders (dead-code ruling): excluded by exact innermost selector or at-rule. Empty since Task 13,
+// which removed the terminal's unrendered .cursor rule together with the `blink` keyframes VimUI.css also defined, so
+// no cursor can fall back to a same-named excluded animation. Kept for later dead rules.
+export const DEAD_RULES5 = {};
 // Code already unreachable from src/index.tsx before Phase 2 (P2-4, delegated ruling): not deleted, not
 // governed, left for an owner cleanup decision. The scope test fails if this list and the walk disagree.
 export const DEAD = [
