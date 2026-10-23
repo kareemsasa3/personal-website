@@ -28,31 +28,30 @@ const formatPlayTime = (ms: number): string => {
 const ChartGroupRow = ({ group }: { group: ChartGroupAnalytics }) => (
   <div className="rhythm-lab-analytics-song">
     <div className="rhythm-lab-analytics-song-header">
-      <span className="rhythm-lab-analytics-song-title">
+      <span className="rhythm-lab-analytics-song-title df-body-sm">
         {group.songTitle} — {group.chartLabel}
       </span>
-      <span className="rhythm-lab-analytics-song-attempts">
+      <span className="rhythm-lab-analytics-song-attempts df-data">
         {group.completedAttempts}/{group.attempts} completed
       </span>
     </div>
     <div className="rhythm-lab-analytics-song-stats">
       {group.bestCompletedScore !== null && (
-        <span>Best {formatScore(group.bestCompletedScore)}</span>
+        <span>
+          <span className="rhythm-lab-analytics-label df-label-sm">Best</span>{" "}
+          <span className="df-data">{formatScore(group.bestCompletedScore)}</span>
+        </span>
       )}
       {group.bestCompletedAccuracy !== null && (
-        <span>{formatPercent(group.bestCompletedAccuracy)}</span>
+        <span className="df-data">{formatPercent(group.bestCompletedAccuracy)}</span>
       )}
-      <span>Avg {formatPercent(group.averageAccuracy)}</span>
+      <span>
+        <span className="rhythm-lab-analytics-label df-label-sm">Avg</span>{" "}
+        <span className="df-data">{formatPercent(group.averageAccuracy)}</span>
+      </span>
+      {/* The change carries its sign in its text (§05): a plus added here, a minus from the formatted number. */}
       {group.improvement !== null && (
-        <span
-          className={
-            group.improvement > 0
-              ? "rhythm-lab-analytics-positive"
-              : group.improvement < 0
-                ? "rhythm-lab-analytics-negative"
-                : ""
-          }
-        >
+        <span className="df-data">
           {group.improvement > 0 ? "+" : ""}
           {formatScore(group.improvement)}
         </span>
@@ -82,7 +81,7 @@ const RunAnalyticsPanel = ({
   if (history.length === 0) {
     return (
       <div className="rhythm-lab-analytics">
-        <p className="rhythm-lab-analytics-empty">No runs yet</p>
+        <p className="rhythm-lab-analytics-empty df-body-sm">No runs yet</p>
       </div>
     );
   }
@@ -91,32 +90,32 @@ const RunAnalyticsPanel = ({
     <div className="rhythm-lab-analytics">
       <div className="rhythm-lab-analytics-cards">
         <div className="rhythm-lab-analytics-card">
-          <dt>Total runs</dt>
-          <dd>{analytics.totalRuns}</dd>
+          <dt className="df-label-sm">Total runs</dt>
+          <dd className="df-data">{analytics.totalRuns}</dd>
         </div>
         <div className="rhythm-lab-analytics-card">
-          <dt>Completed</dt>
-          <dd>{analytics.completedRuns}</dd>
+          <dt className="df-label-sm">Completed</dt>
+          <dd className="df-data">{analytics.completedRuns}</dd>
         </div>
         <div className="rhythm-lab-analytics-card">
-          <dt>Ended early</dt>
-          <dd>{analytics.earlyEndedRuns}</dd>
+          <dt className="df-label-sm">Ended early</dt>
+          <dd className="df-data">{analytics.earlyEndedRuns}</dd>
         </div>
         <div className="rhythm-lab-analytics-card">
-          <dt>Avg accuracy</dt>
-          <dd>{formatPercent(analytics.averageAccuracyPercent)}</dd>
+          <dt className="df-label-sm">Avg accuracy</dt>
+          <dd className="df-data">{formatPercent(analytics.averageAccuracyPercent)}</dd>
         </div>
         <div className="rhythm-lab-analytics-card">
-          <dt>Best score</dt>
-          <dd>
+          <dt className="df-label-sm">Best score</dt>
+          <dd className="df-data">
             {analytics.bestCompletedScore
               ? formatScore(analytics.bestCompletedScore.score)
               : "N/A"}
           </dd>
         </div>
         <div className="rhythm-lab-analytics-card">
-          <dt>Best accuracy</dt>
-          <dd>
+          <dt className="df-label-sm">Best accuracy</dt>
+          <dd className="df-data">
             {analytics.bestCompletedAccuracy
               ? formatPercent(
                   analytics.bestCompletedAccuracy.accuracyPercent
@@ -125,14 +124,14 @@ const RunAnalyticsPanel = ({
           </dd>
         </div>
         <div className="rhythm-lab-analytics-card">
-          <dt>Play time</dt>
-          <dd>{formatPlayTime(analytics.totalPlayTimeMs)}</dd>
+          <dt className="df-label-sm">Play time</dt>
+          <dd className="df-data">{formatPlayTime(analytics.totalPlayTimeMs)}</dd>
         </div>
       </div>
 
       {chartGroups.length > 0 && (
         <div className="rhythm-lab-analytics-songs">
-          <h3 className="rhythm-lab-analytics-section-title">
+          <h3 className="rhythm-lab-analytics-section-title df-label-sm">
             Per-chart stats
           </h3>
           {chartGroups.map((group) => (

@@ -27,29 +27,31 @@ const ActiveSessionHeader = ({
   onStopRecording,
 }: ActiveSessionHeaderProps) => {
   const activeAudioLabel = fileName ?? "Local audio";
+  // Live (§05): the run is advancing, so the status label carries the Live marker.
+  const isLive = phase === "playing" && !isPausedAfterVisibilityChange && !isRecording;
 
   return (
     <div
       className="rhythm-lab-active-bar"
       aria-label="Active session controls"
     >
-      <Link className="rhythm-lab-back-link" to="/simulations">
+      <Link className="rhythm-lab-back-link df-control df-control--light df-label" to="/simulations">
         Simulations
       </Link>
       <div className="rhythm-lab-active-context" aria-live="polite">
         <span
-          className="rhythm-lab-active-filename"
+          className="rhythm-lab-active-filename df-data"
           title={activeAudioLabel}
           aria-label={activeAudioLabel}
         >
           {activeAudioLabel}
         </span>
-        <span className="rhythm-lab-active-chip rhythm-lab-active-chart">
+        <span className="rhythm-lab-active-chip rhythm-lab-active-chart df-label-sm df-context">
           {activeChartModeLabel}
         </span>
         <span
-          className={`rhythm-lab-active-chip rhythm-lab-active-status ${
-            isRecording ? "rhythm-lab-active-chip-recording" : ""
+          className={`rhythm-lab-active-chip rhythm-lab-active-status df-label-sm df-context${
+            isLive ? " df-context--live" : ""
           }`}
         >
           {isRecording ? `${recordingCount} taps` : "Playing"}
@@ -58,7 +60,7 @@ const ActiveSessionHeader = ({
       <div className="rhythm-lab-active-actions">
         {isPausedAfterVisibilityChange && phase === "playing" && (
           <button
-            className="rhythm-lab-compact-action"
+            className="rhythm-lab-compact-action df-control df-label"
             type="button"
             onClick={onResume}
           >
@@ -67,7 +69,7 @@ const ActiveSessionHeader = ({
         )}
         {isRecording ? (
           <button
-            className="rhythm-lab-compact-action rhythm-lab-compact-action-danger"
+            className="rhythm-lab-compact-action df-control df-label"
             type="button"
             onClick={onStopRecording}
           >
@@ -77,7 +79,7 @@ const ActiveSessionHeader = ({
           <>
             {phase === "playing" && !isPausedAfterVisibilityChange && (
               <button
-                className="rhythm-lab-compact-action"
+                className="rhythm-lab-compact-action df-control df-label"
                 type="button"
                 onClick={onPause}
               >
@@ -85,7 +87,7 @@ const ActiveSessionHeader = ({
               </button>
             )}
             <button
-              className="rhythm-lab-compact-action"
+              className="rhythm-lab-compact-action df-control df-label"
               type="button"
               onClick={onRestart}
             >

@@ -39,7 +39,7 @@ const RunHistoryPanel = ({
   if (history.length === 0) {
     return (
       <div className="rhythm-lab-run-history">
-        <p className="rhythm-lab-run-history-empty">No runs yet</p>
+        <p className="rhythm-lab-run-history-empty df-body-sm">No runs yet</p>
       </div>
     );
   }
@@ -65,37 +65,36 @@ const RunHistoryPanel = ({
           return (
             <div
               key={entry.runId}
-              className={`rhythm-lab-run-history-entry${
-                isPartial
-                  ? " rhythm-lab-run-history-entry-partial"
-                  : ""
-              }`}
+              className="rhythm-lab-run-history-entry"
               role="listitem"
             >
               <div className="rhythm-lab-run-history-entry-header">
-                <span className="rhythm-lab-run-history-entry-song">
+                <span className="rhythm-lab-run-history-entry-song df-body-sm">
                   {songTitle}
                 </span>
-                <span className="rhythm-lab-run-history-entry-time">
+                <span className="rhythm-lab-run-history-entry-time df-annotation">
                   {formatTimestamp(entry.playedAtMs)}
                 </span>
               </div>
               <div className="rhythm-lab-run-history-entry-chart">
-                <span>{chartLabel}</span>
-                <span className="rhythm-lab-run-history-entry-notes">
+                <span className="df-body-sm">{chartLabel}</span>
+                <span className="rhythm-lab-run-history-entry-notes df-data">
                   {noteCount} notes
                 </span>
               </div>
               <div className="rhythm-lab-run-history-entry-stats">
-                <span>{formatScore(entry.score)}</span>
-                <span>{formatPercent(entry.accuracyPercent)}</span>
-                <span>Combo {entry.maxCombo}</span>
+                <span className="df-data">{formatScore(entry.score)}</span>
+                <span className="df-data">{formatPercent(entry.accuracyPercent)}</span>
+                <span>
+                  <span className="rhythm-lab-run-history-label df-label-sm">Combo</span>{" "}
+                  <span className="df-data">{entry.maxCombo}</span>
+                </span>
                 {isPartial ? (
-                  <span className="rhythm-lab-run-history-entry-badge">
+                  <span className="rhythm-lab-run-history-entry-badge df-label-sm df-context">
                     Ended Early &middot; {entry.completionPercent}%
                   </span>
                 ) : (
-                  <span className="rhythm-lab-run-history-entry-badge rhythm-lab-run-history-entry-badge-complete">
+                  <span className="rhythm-lab-run-history-entry-badge df-label-sm df-context">
                     Full
                   </span>
                 )}
@@ -105,7 +104,7 @@ const RunHistoryPanel = ({
         })}
       </div>
       <button
-        className="rhythm-lab-run-history-clear"
+        className="rhythm-lab-run-history-clear df-control df-label"
         type="button"
         onClick={() => setIsClearDialogOpen(true)}
       >

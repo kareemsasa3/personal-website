@@ -15,16 +15,40 @@
   overflow: hidden;
 }
 
+/* Rhythm Lab chrome (Phase 5 Task 19). The header is one surface-1 face on the held rain; following §08 Not a dashboard,
+   the regions inside it meet on single L1 rules and hold no boxes of their own, so only controls and fields draw a boundary (§09 L2).
+   Names speak in the Instrument voice, values in the Machine voice and supporting text in the Narrator voice (§06); the
+   voices and the control states come from the generated classes and the control model (§13). A control on the face
+   rises one surface step on hover. */
 .rhythm-lab-header {
+  /* Phones, before a run (layout values, not tokens): the height the highway keeps below the bounded setup face, and the
+     least the face keeps for itself on a short screen. */
+  --rhythm-lab-stage-floor: 22rem;
+  --rhythm-lab-setup-floor: 12rem;
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 1rem;
-  width: min(100%, 1040px);
+  gap: var(--space-4);
+  width: min(86vw, 760px);
   min-width: 0;
   max-width: 100%;
   box-sizing: border-box;
   margin: 0 auto;
+  padding: var(--space-3);
+  border: var(--stroke-hair) solid var(--rule);
+  background-color: var(--surface-1);
+  --df-ground-up: var(--surface-2);
+}
+
+/* §08 Layers and overlays: while the saved-songs menu is open, what lies behind it dims to the scrim. The scrim is the
+   header's own layer, so a press on it lands outside the menu and closes it; the open selector rises above it. */
+.rhythm-lab-header:has(.rhythm-lab-song-selector-trigger[aria-expanded="true"])::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: var(--layer-overlay);
+  background-color: var(--df-scrim);
 }
 
 .rhythm-lab-header-copy {
@@ -34,47 +58,27 @@
   max-width: 100%;
 }
 
+/* Narrator supporting text (§06): the eyebrow reads as a phrase, so it keeps its own case. */
 .rhythm-lab-eyebrow {
-  margin: 0 0 0.25rem;
+  margin: 0 0 var(--space-1);
   color: var(--fg-muted);
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
 }
 
 .rhythm-lab-title-row {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: var(--space-3);
   min-width: 0;
 }
 
+/* An operable breadcrumb: a light control in the label voice. */
 .rhythm-lab-back-link {
   flex: 0 0 auto;
-  padding: 0.3rem 0.5rem;
-  border: 1px solid rgba(76, 175, 80, 0.5);
-  border-radius: 0.35rem;
-  background: rgba(0, 0, 0, 0.48);
-  color: var(--fg-muted);
-  font-size: 0.78rem;
-  font-weight: 800;
-  line-height: 1;
-  text-decoration: none;
-  text-transform: uppercase;
-}
-
-.rhythm-lab-back-link:hover,
-.rhythm-lab-back-link:focus-visible {
-  border-color: rgba(76, 175, 80, 0.8);
-  background: rgba(76, 175, 80, 0.12);
 }
 
 .rhythm-lab h1 {
   margin: 0;
   color: var(--fg);
-  font-size: clamp(1.6rem, 3vw, 2.6rem);
-  line-height: 1;
 }
 
 .rhythm-lab audio {
@@ -85,35 +89,24 @@
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 0.55rem;
+  gap: var(--space-2) var(--space-3);
   width: 100%;
   min-width: 0;
-  max-width: min(100%, 34rem);
-  margin-top: 0.65rem;
+  max-width: 100%;
+  margin-top: var(--space-3);
 }
 
+/* Local audio: the Instrument name beside the native file input. The input and its button speak in the name's voice;
+   the button takes the control model's idle and hover signatures (a pseudo-element cannot carry the class). */
 .rhythm-lab-audio-picker {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--space-2);
   position: relative;
   flex: 0 0 auto;
   max-width: 100%;
-  min-height: 2.2rem;
-  padding: 0.35rem 0.5rem;
-  border: 1px solid rgba(76, 175, 80, 0.42);
-  border-radius: 0.4rem;
-  background: rgba(0, 0, 0, 0.52);
-  box-sizing: border-box;
   color: var(--fg-muted);
   cursor: pointer;
-  font-size: 0.78rem;
-  font-weight: 800;
-  text-transform: uppercase;
-}
-
-.rhythm-lab-audio-picker:focus-within {
-  border-color: rgba(76, 175, 80, 0.8);
 }
 
 .rhythm-lab-audio-picker span {
@@ -123,129 +116,101 @@
 .rhythm-lab-audio-input {
   min-width: 0;
   max-width: 13rem;
-  color: rgba(255, 255, 255, 0.78);
-  font-family: inherit;
-  font-size: 0.75rem;
+  color: var(--fg-muted);
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
 }
 
 .rhythm-lab-audio-input::file-selector-button {
-  margin-right: 0.55rem;
-  border: 1px solid rgba(76, 175, 80, 0.52);
-  border-radius: 0.32rem;
-  background: rgba(76, 175, 80, 0.14);
+  margin-inline-end: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  border: var(--stroke-hair) solid var(--edge);
+  border-radius: var(--radius-0);
+  background-color: transparent;
   color: var(--fg-muted);
   cursor: pointer;
   font: inherit;
-  font-size: 0.72rem;
-  font-weight: 800;
-  text-transform: uppercase;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  transition: background-color var(--dur-fast) var(--ease-standard), border-color var(--dur-fast) var(--ease-standard),
+    color var(--dur-fast) var(--ease-standard);
 }
 
+.rhythm-lab-audio-input::file-selector-button:hover {
+  border-color: var(--fg-muted);
+  background-color: var(--surface-2);
+  color: var(--fg);
+}
+
+/* The proxy control that stands in for the native button where the input is visually hidden (narrow widths). */
 .rhythm-lab-audio-picker-button {
   display: none;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(76, 175, 80, 0.52);
-  border-radius: 0.32rem;
-  padding: 0.25rem 0.45rem;
-  background: rgba(76, 175, 80, 0.14);
-  color: var(--fg-muted);
-  font-size: 0.72rem;
-  font-weight: 800;
-  line-height: 1;
-  text-transform: uppercase;
 }
 
 .rhythm-lab-audio-details {
   display: flex;
   flex-direction: column;
+  gap: var(--space-1);
   flex: 1 1 11rem;
   min-width: 0;
   max-width: min(100%, 20rem);
   box-sizing: border-box;
-  color: rgba(255, 255, 255, 0.72);
-  font-size: 0.78rem;
-  line-height: 1.35;
+  color: var(--fg-muted);
 }
 
 .rhythm-lab-audio-details-row {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: var(--space-2);
   min-width: 0;
 }
 
+/* The loaded file is a Machine value; a long name ends in an ellipsis in its own box and keeps its accessible name. */
 .rhythm-lab-audio-filename {
   display: block;
   min-width: 0;
   overflow: hidden;
-  color: rgba(255, 255, 255, 0.86);
-  font-weight: 800;
+  color: var(--fg);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.rhythm-lab-audio-details small {
-  color: rgba(255, 255, 255, 0.58);
+.rhythm-lab-audio-details small:not(.rhythm-lab-audio-error) {
+  color: var(--fg-muted);
 }
 
+/* Errors (§13): the shared error signature; the message is its own words in fg. */
 .rhythm-lab-audio-details .rhythm-lab-audio-error {
-  color: #ff8a96;
+  padding: var(--space-2) var(--space-3);
 }
 
+/* Preview: a control whose own words say what it will do next; it carries no pressed state of its own. */
 .rhythm-lab-preview-button {
   flex: 0 0 auto;
-  padding: 0.15rem 0.4rem;
-  border: 1px solid rgba(76, 175, 80, 0.32);
-  border-radius: 0.28rem;
-  background: transparent;
-  color: var(--fg-muted);
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 0.65rem;
-  font-weight: 800;
-  letter-spacing: 0.03em;
-  line-height: 1.3;
-  text-transform: uppercase;
   white-space: nowrap;
 }
 
-.rhythm-lab-preview-button:hover,
-.rhythm-lab-preview-button:focus-visible {
-  border-color: rgba(76, 175, 80, 0.62);
-  background: rgba(76, 175, 80, 0.1);
-}
-
-.rhythm-lab-preview-button-active {
-  border-color: rgba(255, 215, 0, 0.42);
-  color: #ffe58a;
-}
-
-.rhythm-lab-preview-button-active:hover,
-.rhythm-lab-preview-button-active:focus-visible {
-  border-color: rgba(255, 215, 0, 0.62);
-  background: rgba(255, 215, 0, 0.1);
-}
-
+/* Saved songs: the Instrument name beside its trigger. Song titles are the person's own content, so the trigger and the
+   options set them as supporting text in their own case and the import date as an annotation (§06). The menu is an
+   overlay on surface-2 bounded in edge (§08 Layers and overlays); its options are controls, the current song Selected
+   (§13), and none is wider than the menu: a long title ends in an ellipsis and the date stays shown. */
 .rhythm-lab-song-selector {
   position: relative;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   flex: 1 1 16rem;
-  gap: 0.4rem;
+  gap: var(--space-2);
   min-width: min(100%, 14rem);
   max-width: min(100%, 22rem);
-  min-height: 2.2rem;
-  padding: 0.35rem 0.5rem;
-  border: 1px solid rgba(76, 175, 80, 0.42);
-  border-radius: 0.4rem;
-  background: rgba(0, 0, 0, 0.52);
   box-sizing: border-box;
-  color: rgba(255, 255, 255, 0.74);
-  font-size: 0.72rem;
-  font-weight: 900;
-  text-transform: uppercase;
+}
+
+.rhythm-lab-song-selector:has([aria-expanded="true"]) {
+  z-index: calc(var(--layer-overlay) + 1);
 }
 
 .rhythm-lab-song-selector-label {
@@ -256,82 +221,43 @@
 .rhythm-lab-song-selector-trigger {
   min-width: 0;
   width: 100%;
-  padding: 0.18rem 0.35rem;
-  border: 1px solid rgba(76, 175, 80, 0.32);
-  border-radius: 0.28rem;
-  background: rgba(0, 0, 0, 0.56);
-  color: rgba(255, 255, 255, 0.86);
-  cursor: pointer;
-  font: inherit;
-  font-size: 0.68rem;
-  line-height: 1.2;
-  text-align: left;
-  text-transform: none;
   overflow: hidden;
+  text-align: start;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.rhythm-lab-song-selector-trigger:hover,
-.rhythm-lab-song-selector-trigger:focus-visible {
-  border-color: rgba(76, 175, 80, 0.62);
-}
-
-.rhythm-lab-song-selector-trigger[aria-expanded="true"] {
-  border-color: rgba(76, 175, 80, 0.72);
-  background: rgba(76, 175, 80, 0.08);
-}
-
 .rhythm-lab-song-list {
   position: absolute;
-  top: calc(100% + 0.3rem);
-  left: -1px;
-  right: -1px;
-  z-index: 20;
+  top: calc(100% + var(--space-1));
+  left: 0;
+  right: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-1);
   max-height: 14rem;
   margin: 0;
-  padding: 0.25rem;
-  border: 1px solid rgba(76, 175, 80, 0.48);
-  border-radius: 0.36rem;
-  background: rgba(8, 8, 8, 0.96);
+  padding: var(--space-1);
+  border: var(--stroke-hair) solid var(--edge);
+  background-color: var(--surface-2);
+  --df-ground-up: var(--surface-3);
   overflow-y: auto;
   overscroll-behavior: contain;
 }
 
+/* Title and date at either end of a flex row; there the in-flow marker is an item and cancels the gap after it, so it
+   still ends where the title begins. */
 .rhythm-lab-song-option {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.5rem;
+  gap: var(--space-2);
   width: 100%;
-  padding: 0.38rem 0.4rem;
-  border: none;
-  border-radius: 0.24rem;
-  background: transparent;
-  color: rgba(255, 255, 255, 0.78);
-  cursor: pointer;
-  font: inherit;
-  font-size: 0.68rem;
-  font-weight: 600;
-  line-height: 1.25;
-  text-align: left;
-  text-transform: none;
+  text-align: start;
 }
 
-.rhythm-lab-song-option:hover,
-.rhythm-lab-song-option:focus-visible {
-  background: rgba(76, 175, 80, 0.14);
-}
-
-.rhythm-lab-song-option-active {
-  color: var(--fg-muted);
-}
-
-.rhythm-lab-song-option-active::before {
-  content: "\25B8";
-  flex: 0 0 auto;
-  margin-right: -0.2rem;
-  font-size: 0.58rem;
+.rhythm-lab-song-option::before {
+  margin-inline-end: calc(-1 * var(--space-2));
 }
 
 .rhythm-lab-song-option-title {
@@ -344,12 +270,10 @@
 
 .rhythm-lab-song-option-meta {
   flex: 0 0 auto;
-  color: rgba(255, 255, 255, 0.42);
-  font-size: 0.6rem;
-  font-weight: 800;
   white-space: nowrap;
 }
 
+/* Already dead (never rendered); kept as found and excluded from the Task 19 checks by name. */
 .rhythm-lab-audio-resume {
   min-height: 2.15rem;
   padding: 0.35rem 0.55rem;
@@ -370,56 +294,21 @@
   align-items: center;
   flex: 1 1 100%;
   flex-wrap: wrap;
-  gap: 0.4rem;
+  gap: var(--space-2);
   min-width: 0;
   max-width: 100%;
 }
 
-.rhythm-lab-chart-mode-button,
-.rhythm-lab-record-button,
-.rhythm-lab-chart-management-button {
-  min-height: 2rem;
-  padding: 0.35rem 0.5rem;
-  border: 1px solid rgba(76, 175, 80, 0.42);
-  border-radius: 0.36rem;
-  background: rgba(0, 0, 0, 0.48);
-  color: rgba(255, 255, 255, 0.74);
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 0.7rem;
-  font-weight: 900;
-  text-transform: uppercase;
-}
-
-.rhythm-lab-chart-mode-button[aria-pressed="true"] {
-  border-color: rgba(76, 175, 80, 0.78);
-  background: rgba(76, 175, 80, 0.18);
-  color: var(--fg-muted);
-}
-
-.rhythm-lab-chart-mode-button:disabled {
-  cursor: not-allowed;
-  opacity: 0.58;
-}
-
+/* Recorded chart: the Instrument name beside its select, a field (§13 Idle; §06 Machine). */
 .rhythm-lab-chart-selector {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   flex: 1 1 18rem;
-  gap: 0.4rem;
+  gap: var(--space-2);
   min-width: min(100%, 14rem);
-  min-height: 2rem;
   max-width: 100%;
-  padding: 0.28rem 0.45rem;
-  border: 1px solid rgba(76, 175, 80, 0.42);
-  border-radius: 0.36rem;
-  background: rgba(0, 0, 0, 0.48);
   box-sizing: border-box;
-  color: rgba(255, 255, 255, 0.74);
-  font-size: 0.7rem;
-  font-weight: 900;
-  text-transform: uppercase;
 }
 
 .rhythm-lab-chart-selector span {
@@ -430,62 +319,28 @@
 .rhythm-lab-chart-selector select {
   min-width: 0;
   width: 100%;
-  border: 1px solid rgba(76, 175, 80, 0.32);
-  border-radius: 0.28rem;
-  background: rgba(0, 0, 0, 0.56);
-  color: rgba(255, 255, 255, 0.86);
+  padding: var(--space-2) var(--space-3);
   cursor: pointer;
-  font: inherit;
-  font-size: 0.68rem;
-  line-height: 1.2;
-  text-transform: none;
-}
-
-.rhythm-lab-chart-selector select:disabled {
-  cursor: not-allowed;
-  opacity: 0.58;
 }
 
 .rhythm-lab-chart-empty {
   display: inline-flex;
   align-items: center;
-  min-height: 2rem;
-  padding: 0.35rem 0.5rem;
-  border: 1px dashed rgba(76, 175, 80, 0.32);
-  border-radius: 0.36rem;
-  background: rgba(0, 0, 0, 0.28);
-  box-sizing: border-box;
-  color: rgba(255, 255, 255, 0.58);
-  font-size: 0.7rem;
-  font-weight: 900;
-  text-transform: uppercase;
+  color: var(--fg-muted);
 }
 
+/* The chart's best run: a Machine readout, context at the muted tier. */
 .rhythm-lab-chart-best {
   display: inline-flex;
   align-items: center;
   flex: 1 1 14rem;
   min-width: min(100%, 10rem);
   max-width: 100%;
-  min-height: 2rem;
-  padding: 0.35rem 0.5rem;
-  border: 1px solid rgba(255, 215, 0, 0.26);
-  border-radius: 0.36rem;
-  background: rgba(255, 215, 0, 0.08);
-  box-sizing: border-box;
-  color: #ffe58a;
-  font-size: 0.7rem;
-  font-weight: 900;
-  line-height: 1.25;
+  color: var(--fg-muted);
   overflow-wrap: anywhere;
-  text-transform: uppercase;
 }
 
-.rhythm-lab-record-button {
-  border-color: rgba(255, 215, 0, 0.62);
-  color: #ffe58a;
-}
-
+/* Already dead (never rendered); kept as found and excluded from the Task 19 checks by name. */
 .rhythm-lab-record-button-active {
   border-color: rgba(255, 111, 125, 0.8);
   background: rgba(255, 111, 125, 0.16);
@@ -496,83 +351,70 @@
   display: inline-flex;
   align-items: center;
   flex: 0 1 auto;
-  gap: 0.35rem;
+  gap: var(--space-2);
   min-width: 0;
   max-width: 100%;
-}
-
-.rhythm-lab-chart-management-button {
-  color: rgba(255, 255, 255, 0.68);
-}
-
-.rhythm-lab-chart-management-button:disabled {
-  cursor: not-allowed;
-  opacity: 0.58;
-}
-
-.rhythm-lab-chart-management-danger {
-  border-color: rgba(255, 111, 125, 0.6);
-  color: #ffb8c0;
 }
 
 .rhythm-lab-chart-name-input {
   min-width: 7rem;
   max-width: min(100%, 14rem);
-  min-height: 2rem;
-  padding: 0.35rem 0.5rem;
-  border: 1px solid rgba(76, 175, 80, 0.42);
-  border-radius: 0.36rem;
-  background: rgba(0, 0, 0, 0.56);
-  box-sizing: border-box;
-  color: rgba(255, 255, 255, 0.86);
-  font: inherit;
-  font-size: 0.7rem;
-  font-weight: 900;
-  line-height: 1.2;
+  padding: var(--space-2) var(--space-3);
 }
 
-.rhythm-lab-chart-name-input:focus {
-  border-color: rgba(76, 175, 80, 0.8);
+/* Target size: fields match the control model's three-cell height on small or coarse-pointer screens. There the native
+   file input is visually hidden and its proxy control, which takes the control model's target size, stands in for it. */
+@media (max-width: 768px), (pointer: coarse) {
+  .rhythm-lab-chart-selector select,
+  .rhythm-lab-chart-name-input {
+    min-height: calc(3 * var(--cell-h));
+  }
+
+  /* The file input is clipped here, so the picker carries the focus ring for it. */
+  .rhythm-lab-audio-picker:has(:focus-visible) {
+    box-shadow: var(--focus-ring);
+  }
+
+  .rhythm-lab-audio-input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .rhythm-lab-audio-picker-button {
+    display: inline-flex;
+  }
 }
 
-/* Panel Tabs */
+.rhythm-lab-import-status {
+  margin: var(--space-1) 0 0;
+  color: var(--fg-muted);
+}
 
+/* Panel tabs: controls, the open panel's tab Selected by aria-selected (§13). */
 .rhythm-lab-panel-tabs {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.35rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-1);
   flex: 1 1 100%;
   min-width: 0;
   max-width: 100%;
 }
 
+/* Each tab keeps its name and the hover marker on one line at the narrowest widths; the inline padding still holds the
+   marker's cell. */
 .rhythm-lab-panel-tabs button {
-  border: 1px solid rgba(76, 175, 80, 0.45);
-  border-radius: 0.36rem;
-  background: rgba(0, 0, 0, 0.65);
-  color: var(--fg-muted);
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 0.72rem;
-  font-weight: 900;
-  letter-spacing: 0.03em;
-  padding: 0.45rem 0.5rem;
-  text-transform: uppercase;
+  padding-inline: var(--space-2);
+  white-space: nowrap;
 }
 
-.rhythm-lab-panel-tabs button:hover,
-.rhythm-lab-panel-tabs button:focus-visible {
-  border-color: rgba(76, 175, 80, 0.72);
-  background: rgba(76, 175, 80, 0.1);
-}
-
-.rhythm-lab-panel-tabs button.is-active {
-  border-color: rgba(76, 175, 80, 0.9);
-  background: rgba(76, 175, 80, 0.18);
-}
-
-/* Run History */
-
+/* Run history: one region of rows between L1 rules. The song is Narrator text, the time an annotation, the scores
+   Machine values beside their Instrument names, and the outcome a context label (D7). */
 .rhythm-lab-run-history {
   flex: 1 1 100%;
   min-width: 0;
@@ -582,128 +424,79 @@
 .rhythm-lab-run-history-empty,
 .rhythm-lab-analytics-empty {
   margin: 0;
-  padding: 0.65rem 0.5rem;
-  color: rgba(255, 255, 255, 0.42);
-  font-size: 0.72rem;
-  font-weight: 700;
-  text-transform: uppercase;
+  padding: var(--space-2) 0;
+  color: var(--fg-muted);
 }
 
 .rhythm-lab-run-history-list {
   max-height: 16rem;
-  padding: 0.25rem;
-  border: 1px solid rgba(76, 175, 80, 0.28);
-  border-radius: 0.36rem;
-  background: rgba(0, 0, 0, 0.52);
+  border-top: var(--stroke-hair) solid var(--rule);
+  border-bottom: var(--stroke-hair) solid var(--rule);
   overflow-y: auto;
   overscroll-behavior: contain;
 }
 
 .rhythm-lab-run-history-entry {
-  padding: 0.5rem;
-  border-bottom: 1px solid rgba(76, 175, 80, 0.12);
+  padding: var(--space-2) 0;
+  border-bottom: var(--stroke-hair) solid var(--rule);
 }
 
 .rhythm-lab-run-history-entry:last-child {
   border-bottom: none;
 }
 
-.rhythm-lab-run-history-entry-partial {
-  opacity: 0.82;
-}
-
 .rhythm-lab-run-history-entry-header {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
-  gap: 0.5rem;
-  margin-bottom: 0.25rem;
+  gap: var(--space-2);
+  margin-bottom: var(--space-1);
 }
 
 .rhythm-lab-run-history-entry-song {
   flex: 1 1 auto;
   min-width: 0;
   overflow: hidden;
-  color: rgba(255, 255, 255, 0.86);
-  font-size: 0.72rem;
-  font-weight: 800;
+  color: var(--fg);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .rhythm-lab-run-history-entry-time {
   flex: 0 0 auto;
-  color: rgba(255, 255, 255, 0.42);
-  font-size: 0.6rem;
-  font-weight: 700;
+  color: var(--fg-faint);
   white-space: nowrap;
 }
 
 .rhythm-lab-run-history-entry-chart {
   display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  margin-bottom: 0.2rem;
-  color: rgba(255, 255, 255, 0.56);
-  font-size: 0.65rem;
-  font-weight: 700;
-}
-
-.rhythm-lab-run-history-entry-notes {
-  color: rgba(255, 255, 255, 0.38);
-  font-size: 0.6rem;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin-bottom: var(--space-1);
+  color: var(--fg-muted);
 }
 
 .rhythm-lab-run-history-entry-stats {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   flex-wrap: wrap;
-  gap: 0.5rem;
-  color: rgba(255, 255, 255, 0.68);
-  font-size: 0.68rem;
-  font-weight: 700;
+  gap: var(--space-1) var(--space-3);
+  color: var(--fg);
 }
 
-.rhythm-lab-run-history-entry-badge {
-  padding: 0.08rem 0.3rem;
-  border-radius: 0.2rem;
-  background: rgba(255, 183, 77, 0.18);
-  color: #ffcc80;
-  font-size: 0.58rem;
-  font-weight: 900;
-  text-transform: uppercase;
-}
-
-.rhythm-lab-run-history-entry-badge-complete {
-  background: rgba(76, 175, 80, 0.18);
+.rhythm-lab-run-history-label {
   color: var(--fg-muted);
 }
 
 .rhythm-lab-run-history-clear {
   display: block;
   width: 100%;
-  margin-top: 0.35rem;
-  padding: 0.3rem 0.5rem;
-  border: 1px solid rgba(255, 111, 125, 0.32);
-  border-radius: 0.36rem;
-  background: transparent;
-  color: #ffb8c0;
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 0.62rem;
-  font-weight: 900;
+  margin-top: var(--space-2);
   text-align: center;
-  text-transform: uppercase;
 }
 
-.rhythm-lab-run-history-clear:hover,
-.rhythm-lab-run-history-clear:focus-visible {
-  border-color: rgba(255, 111, 125, 0.62);
-  background: rgba(255, 111, 125, 0.08);
-}
-
-/* Run Analytics */
-
+/* Run analytics: the totals are name and value pairs in one region between L1 rules, not tiles (§08 Not a dashboard);
+   the per-chart rows follow on rules of their own. A change carries its sign in its text, never a hue alone (§05). */
 .rhythm-lab-analytics {
   flex: 1 1 100%;
   min-width: 0;
@@ -713,119 +506,101 @@
 .rhythm-lab-analytics-cards {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(7rem, 1fr));
-  gap: 0.4rem;
+  gap: var(--space-2) var(--space-3);
+  padding: var(--space-2) 0;
+  border-top: var(--stroke-hair) solid var(--rule);
+  border-bottom: var(--stroke-hair) solid var(--rule);
 }
 
 .rhythm-lab-analytics-card {
-  padding: 0.5rem 0.55rem;
-  border: 1px solid rgba(76, 175, 80, 0.28);
-  border-radius: 0.36rem;
-  background: rgba(0, 0, 0, 0.52);
+  min-width: 0;
 }
 
 .rhythm-lab-analytics-card dt {
-  margin: 0 0 0.2rem;
-  color: rgba(255, 255, 255, 0.52);
-  font-size: 0.6rem;
-  font-weight: 900;
-  text-transform: uppercase;
+  margin: 0 0 var(--space-1);
+  color: var(--fg-muted);
 }
 
 .rhythm-lab-analytics-card dd {
   margin: 0;
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 0.92rem;
-  font-weight: 900;
+  color: var(--fg);
 }
 
 .rhythm-lab-analytics-songs {
-  margin-top: 0.5rem;
-  padding: 0.35rem;
-  border: 1px solid rgba(76, 175, 80, 0.28);
-  border-radius: 0.36rem;
-  background: rgba(0, 0, 0, 0.52);
+  margin-top: var(--space-3);
 }
 
 .rhythm-lab-analytics-section-title {
-  margin: 0 0 0.35rem;
-  padding: 0 0.15rem;
-  color: rgba(255, 255, 255, 0.52);
-  font-size: 0.6rem;
-  font-weight: 900;
-  text-transform: uppercase;
+  margin: 0 0 var(--space-1);
+  color: var(--fg-muted);
 }
 
 .rhythm-lab-analytics-song {
-  padding: 0.45rem 0.4rem;
-  border-bottom: 1px solid rgba(76, 175, 80, 0.12);
-}
-
-.rhythm-lab-analytics-song:last-child {
-  border-bottom: none;
+  padding: var(--space-2) 0;
+  border-top: var(--stroke-hair) solid var(--rule);
 }
 
 .rhythm-lab-analytics-song-header {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
-  gap: 0.5rem;
-  margin-bottom: 0.2rem;
+  gap: var(--space-2);
+  margin-bottom: var(--space-1);
 }
 
 .rhythm-lab-analytics-song-title {
   flex: 1 1 auto;
   min-width: 0;
   overflow: hidden;
-  color: rgba(255, 255, 255, 0.86);
-  font-size: 0.72rem;
-  font-weight: 800;
+  color: var(--fg);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .rhythm-lab-analytics-song-attempts {
   flex: 0 0 auto;
-  color: rgba(255, 255, 255, 0.42);
-  font-size: 0.6rem;
-  font-weight: 700;
+  color: var(--fg-muted);
   white-space: nowrap;
 }
 
 .rhythm-lab-analytics-song-stats {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   flex-wrap: wrap;
-  gap: 0.5rem;
-  color: rgba(255, 255, 255, 0.68);
-  font-size: 0.68rem;
-  font-weight: 700;
+  gap: var(--space-1) var(--space-3);
+  color: var(--fg);
 }
 
-.rhythm-lab-analytics-positive {
+.rhythm-lab-analytics-label {
   color: var(--fg-muted);
 }
 
-.rhythm-lab-analytics-negative {
-  color: #ffb8c0;
-}
-
+/* The HUD: readouts below the face's L1 rule, each an Instrument name beside its Machine value (§06). The values are
+   Live only while the run plays (§05). */
 .rhythm-lab-hud {
   display: flex;
   flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 0.5rem;
-  max-width: 28rem;
+  justify-content: flex-start;
+  gap: var(--space-2) var(--space-6);
+  width: 100%;
+  max-width: none;
+  padding-top: var(--space-3);
+  border-top: var(--stroke-hair) solid var(--rule);
 }
 
-.rhythm-lab-hud span {
-  min-width: 6.75rem;
-  padding: 0.45rem 0.65rem;
-  border: 1px solid rgba(76, 175, 80, 0.45);
-  border-radius: 0.4rem;
-  background: rgba(0, 0, 0, 0.55);
+.rhythm-lab-hud > span {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.rhythm-lab-hud-label {
   color: var(--fg-muted);
-  text-align: center;
-  font-weight: 700;
+}
+
+.rhythm-lab-hud-value {
+  color: var(--fg);
 }
 
 .rhythm-lab-active-session {
@@ -836,10 +611,13 @@
   align-items: center;
 }
 
+/* The active session bar: the breadcrumb, the session's context and its actions. The context holds the file (a Machine
+   value that ends in an ellipsis in its own box, its accessible name whole) and two context labels (D7) that never
+   shrink; the context is never narrower than its labels, so nothing in it is clipped or drawn under the actions. */
 .rhythm-lab-active-bar {
   display: flex;
   align-items: center;
-  gap: 0.55rem;
+  gap: var(--space-2);
   width: 100%;
   min-width: 0;
 }
@@ -848,81 +626,35 @@
   display: flex;
   align-items: center;
   flex: 1 1 auto;
-  gap: 0.35rem;
-  min-width: 0;
+  gap: var(--space-3);
   max-width: 100%;
-  overflow: hidden;
-}
-
-.rhythm-lab-active-filename,
-.rhythm-lab-active-chip,
-.rhythm-lab-compact-action {
-  min-height: 1.9rem;
-  border: 1px solid rgba(76, 175, 80, 0.42);
-  border-radius: 0.36rem;
-  background: rgba(0, 0, 0, 0.48);
-  box-sizing: border-box;
-  font-size: 0.72rem;
-  font-weight: 900;
-  line-height: 1;
-  text-transform: uppercase;
 }
 
 .rhythm-lab-active-filename {
   display: block;
-  flex: 1 1 auto;
-  min-width: 4rem;
+  flex: 0 1 auto;
+  min-width: 0;
   max-width: 16rem;
   overflow: hidden;
-  padding: 0.58rem 0.55rem 0.35rem;
-  color: rgba(255, 255, 255, 0.78);
+  color: var(--fg);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .rhythm-lab-active-chip {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
   flex: 0 0 auto;
-  padding: 0.35rem 0.5rem;
-  color: var(--fg-muted);
-}
-
-.rhythm-lab-active-chip-recording {
-  border-color: rgba(255, 111, 125, 0.6);
-  color: #ffb8c0;
+  white-space: nowrap;
 }
 
 .rhythm-lab-active-actions {
   display: flex;
   align-items: center;
   flex: 0 0 auto;
-  gap: 0.35rem;
+  gap: var(--space-2);
 }
 
 .rhythm-lab-compact-action {
-  padding: 0.35rem 0.55rem;
-  color: var(--fg-muted);
-  cursor: pointer;
-  font-family: inherit;
-}
-
-.rhythm-lab-compact-action:hover,
-.rhythm-lab-compact-action:focus-visible {
-  border-color: rgba(76, 175, 80, 0.78);
-  background: rgba(76, 175, 80, 0.13);
-}
-
-.rhythm-lab-compact-action-danger {
-  border-color: rgba(255, 111, 125, 0.68);
-  color: #ffb8c0;
-}
-
-.rhythm-lab-compact-action-danger:hover,
-.rhythm-lab-compact-action-danger:focus-visible {
-  border-color: rgba(255, 111, 125, 0.86);
-  background: rgba(255, 111, 125, 0.14);
+  white-space: nowrap;
 }
 
 .rhythm-lab-stage {
@@ -1625,7 +1357,7 @@
   .rhythm-lab-header {
     align-items: stretch;
     flex-direction: column;
-    gap: 0.65rem;
+    gap: var(--space-3);
   }
 
   .rhythm-lab-active-session {
@@ -1634,62 +1366,36 @@
   }
 
   .rhythm-lab-active-session .rhythm-lab-header {
-    gap: 0.45rem;
+    gap: var(--space-2);
   }
 
   .rhythm-lab-active-bar {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto;
-    gap: 0.4rem;
+    gap: var(--space-2);
   }
 
   .rhythm-lab-active-context {
-    gap: 0.28rem;
-  }
-
-  .rhythm-lab-active-filename,
-  .rhythm-lab-active-chip,
-  .rhythm-lab-compact-action {
-    min-height: 1.75rem;
-    font-size: 0.64rem;
+    gap: var(--space-2);
   }
 
   .rhythm-lab-active-filename {
-    min-width: 0;
     max-width: none;
-    padding: 0.53rem 0.45rem 0.32rem;
-  }
-
-  .rhythm-lab-active-chip,
-  .rhythm-lab-compact-action {
-    padding: 0.3rem 0.42rem;
   }
 
   .rhythm-lab-active-actions {
-    gap: 0.28rem;
-  }
-
-  .rhythm-lab-eyebrow {
-    font-size: 0.7rem;
+    gap: var(--space-1);
   }
 
   .rhythm-lab-title-row {
-    gap: 0.55rem;
-  }
-
-  .rhythm-lab-back-link {
-    padding: 0.28rem 0.45rem;
-    font-size: 0.7rem;
+    gap: var(--space-2);
   }
 
   .rhythm-lab-audio-panel {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     align-items: stretch;
-    gap: 0.45rem;
-    width: 100%;
-    min-width: 0;
-    max-width: 100%;
+    gap: var(--space-2);
   }
 
   .rhythm-lab-audio-picker,
@@ -1702,26 +1408,6 @@
     justify-content: space-between;
   }
 
-  /* The file input is clipped here, so the picker carries the focus ring for it. */
-  .rhythm-lab-audio-picker:has(:focus-visible) {
-    box-shadow: var(--focus-ring);
-  }
-
-  .rhythm-lab-audio-input {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-    clip-path: inset(50%);
-    white-space: nowrap;
-  }
-
-  .rhythm-lab-audio-picker-button {
-    display: inline-flex;
-  }
-
   .rhythm-lab-audio-details {
     width: 100%;
     max-width: 100%;
@@ -1731,10 +1417,6 @@
     max-width: 100%;
     grid-template-columns: minmax(0, 1fr);
     align-items: stretch;
-  }
-
-  .rhythm-lab-song-selector-label {
-    margin-bottom: 0.1rem;
   }
 
   .rhythm-lab-recording-controls {
@@ -1776,11 +1458,6 @@
     grid-column: 1 / -1;
   }
 
-  .rhythm-lab-panel-tabs button {
-    font-size: 0.66rem;
-    padding: 0.4rem 0.35rem;
-  }
-
   .rhythm-lab-run-history {
     grid-column: 1 / -1;
     width: 100%;
@@ -1800,25 +1477,9 @@
   }
 
   .rhythm-lab-hud {
-    justify-content: stretch;
-    width: 100%;
-    min-width: 0;
-    max-width: none;
-    box-sizing: border-box;
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0.4rem;
-  }
-
-  .rhythm-lab-hud span {
-    min-width: 0;
-    padding: 0.42rem 0.35rem;
-    font-size: 0.78rem;
-  }
-
-  .rhythm-lab-active-session .rhythm-lab-hud span {
-    padding: 0.32rem 0.25rem;
-    font-size: 0.7rem;
+    gap: var(--space-2);
   }
 
   .rhythm-lab-stage {
@@ -1923,22 +1584,48 @@
   }
 }
 
+/* Phones, before a run: the setup face scrolls inside a bounded height, so the highway below it keeps a floor that holds
+   the ready check and its Start whatever the setup panel holds. A run's header is not bounded: the playfield and its
+   hit zones keep their size. While the saved-songs menu is open the face is not bounded, so the menu is never cut by
+   it; the page behind is under the scrim then. */
+@media (max-width: 600px) {
+  .rhythm-lab:not(.rhythm-lab-active-session) .rhythm-lab-header:not(:has([aria-expanded="true"])) {
+    max-height: max(var(--rhythm-lab-setup-floor), calc(100dvh - var(--rhythm-lab-stage-floor)));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+}
+
+/* Phones: the active session bar takes two rows, the breadcrumb and the actions above and the session's context below,
+   so the context labels always have room and are never drawn under the actions. The tutorial bar has no context. */
+@media (max-width: 600px) {
+  .rhythm-lab-active-bar {
+    grid-template-areas:
+      "back . actions"
+      "context context context";
+  }
+
+  .rhythm-lab-active-bar > .rhythm-lab-back-link {
+    grid-area: back;
+  }
+
+  .rhythm-lab-active-context {
+    grid-area: context;
+  }
+
+  .rhythm-lab-active-context:empty {
+    display: none;
+  }
+
+  .rhythm-lab-active-actions {
+    grid-area: actions;
+  }
+}
+
 @media (max-width: 380px) {
   .rhythm-lab-highway {
     height: 100%;
     min-height: 0;
-  }
-
-  .rhythm-lab-active-bar {
-    gap: 0.32rem;
-  }
-
-  .rhythm-lab-active-status {
-    display: none;
-  }
-
-  .rhythm-lab-active-chip-recording {
-    display: inline-flex;
   }
 
   .rhythm-lab-active-session .rhythm-lab-highway {
@@ -2081,16 +1768,5 @@
   border: 0;
 }
 
-.rhythm-lab-import-status {
-  margin: 0.35rem 0 0;
-  color: rgba(255, 183, 77, 0.85);
-  font-size: 0.82rem;
-  line-height: 1.4;
-}
-
-.rhythm-lab-header { width: min(86vw, 760px); flex-wrap: wrap; padding: .75rem; border: 1px solid rgba(76,175,80,.3); border-radius: .65rem; background: rgba(0,0,0,.65); }
-.rhythm-lab-hud { max-width: none; width: 100%; justify-content: flex-start; border-top: 1px solid rgba(76,175,80,.25); padding-top: .6rem; }
-.rhythm-lab-hud span { flex: 1 1 auto; }
-.rhythm-lab-audio-panel { max-width: 100%; }
 .rhythm-lab-stage { align-items: flex-start; }
 .rhythm-lab-note { box-shadow: 0 0 8px rgba(255,215,0,.4), inset 0 0 6px rgba(255,255,255,.25); }

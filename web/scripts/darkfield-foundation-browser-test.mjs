@@ -1343,6 +1343,33 @@ if (MODE === "check") {
   // Phase 3 (§13): every listed control is a df-control and renders Idle, Hover, Pressed and its hold.
   // Tasks 9–13 and 15 add entries; prepare(page) brings controls on screen (Settings open, dock mode). Token colours are read from the page,
   // or from inside `scope` (a selector) when the controls sit under a scoped token set (Phase 5, P5-1).
+  // Phase 5 Task 19: Rhythm Lab's setup controls render once a local file is chosen and a chart imported. The fixtures
+  // are made here (a silent WAV and a chart export with three notes). The controls sit in the header, outside the
+  // highway, so the ready check does not cover them; that is checked rather than assumed, so none is measured through it.
+  // A silent 8 kHz, 8-bit mono WAV of the given length in seconds.
+  const rhythmWav = (seconds = 2) => {
+    const samples = 8000 * seconds; const wav = Buffer.alloc(44 + samples, 128);
+    wav.write("RIFF", 0); wav.writeUInt32LE(36 + samples, 4); wav.write("WAVEfmt ", 8); wav.writeUInt32LE(16, 16); wav.writeUInt16LE(1, 20);
+    wav.writeUInt16LE(1, 22); wav.writeUInt32LE(8000, 24); wav.writeUInt32LE(8000, 28); wav.writeUInt16LE(1, 32); wav.writeUInt16LE(8, 34);
+    wav.write("data", 36); wav.writeUInt32LE(samples, 40);
+    return wav;
+  };
+  const rhythmFile = async (page, name = "probe-track.wav", seconds = 2) => {
+    await page.locator(".rhythm-lab-audio-input").setInputFiles({ name, mimeType: "audio/wav", buffer: rhythmWav(seconds) });
+    await page.waitForFunction((n) => document.querySelector(".rhythm-lab-audio-filename")?.textContent === n, name);
+  };
+  const rhythmSetup = async (page) => {
+    await rhythmFile(page);
+    await page.locator(".rhythm-lab-song-selector-trigger").waitFor();
+    const chart = { kind: "rhythm-lab-chart", schemaVersion: 1, song: null, chart: { label: "Probe chart", notes: [0, 1, 2].map((lane) => ({ lane, timeMs: 900 + 500 * lane })) } };
+    await page.locator(".rhythm-lab-hidden-file-input").setInputFiles({ name: "probe.rhythm-chart.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify(chart)) });
+    await page.locator(".rhythm-lab-chart-management-button").first().waitFor(); await frames(page);
+    const covered = await page.evaluate((sels) => [...document.querySelectorAll(sels)].filter((e) => {
+      const r = e.getBoundingClientRect(); const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+      return hit && hit.closest(".rhythm-lab-overlay"); }).map((e) => e.textContent.trim()),
+    ".rhythm-lab-song-selector-trigger, .rhythm-lab-panel-tabs button, .rhythm-lab-preview-button, .rhythm-lab-chart-management-button");
+    invariant(covered.length === 0, `/simulations/rhythm-lab: setup controls under the ready check ${JSON.stringify(covered)}`);
+  };
   const P3_CONTROLS = [
     { route: "/", selectors: [".btn", ".hero-text-link", "a.featured-project-link", ".contact-strip-link", ".exploration-pill"] },
     { route: "/projects", selectors: [".stat-card", ".terminal-dropdown-trigger", ".project-roster__toggle", ".project-roster__action"] },
@@ -1398,6 +1425,10 @@ if (MODE === "check") {
     { route: "/case-studies/aether", selectors: [".media-inspector .project-media__control"], prepare: openInspector("Inspect aether recording with playback controls") },
     { route: "/case-studies/erebus", selectors: [".media-inspector__view-group .project-media__control", ".media-inspector__views > .project-media__control"],
       prepare: openInspector("Read erebus still frame") },
+    // Phase 5 Task 19: Rhythm Lab's saved-song trigger, panel tabs (Setup Selected), preview latch and chart management
+    // controls, on the header's face inside the page's scoped token set (P5-1).
+    { route: "/simulations/rhythm-lab", scope: ".rhythm-lab-page", prepare: rhythmSetup,
+      selectors: [".rhythm-lab-song-selector-trigger", ".rhythm-lab-panel-tabs button", ".rhythm-lab-preview-button", ".rhythm-lab-chart-management-button"] },
     // Task 15: the two controls on Phase 5 surfaces rest directly on the Layout field.
     { route: "/simulations/spider", selectors: [".spider-button"] },
     { route: "/terminal", selectors: [".terminal-sidecar"],
@@ -3411,6 +3442,98 @@ if (MODE === "check") {
       invariant(same(seen.inside, theme === "light" ? seen.dark : seen.own), `${theme} rhythm lab: the page does not render the ${theme === "light" ? "Dark" : theme} set ${JSON.stringify([seen.inside, seen.dark])}`);
       invariant(same(seen.outside, seen.own), `${theme} rhythm lab: outside the page is not the site's ${theme} set`);
       invariant(seen.strays.length === 0, `${theme} rhythm lab: elements outside the scoped page ${JSON.stringify(seen.strays)}`);
+    });
+  }
+  // Phase 5 Task 19 (§13 control model; §06 voices; D7 context labels). Rhythm Lab's active session bar at phone widths,
+  // while the run plays and while it is paused, in every theme Mono included: each item of the session's context (the
+  // file and the two context labels) lies whole inside the viewport, inside every clipping ancestor and clear of the
+  // breadcrumb and the actions, and nothing is drawn over its text. Only the file may end in an ellipsis, inside its own
+  // box, and then its accessible name holds the whole name.
+  const sessionContext = () => {
+    const bar = document.querySelector(".rhythm-lab-active-bar");
+    const blockers = [...bar.querySelectorAll(".rhythm-lab-active-actions > *, .rhythm-lab-back-link")].filter((e) => e.getClientRects().length)
+      .map((e) => [e.textContent.trim(), e.getBoundingClientRect()]);
+    const meets = (a, q) => a.left < q.right - 0.5 && a.right > q.left + 0.5 && a.top < q.bottom - 0.5 && a.bottom > q.top + 0.5;
+    const out = [];
+    for (const el of bar.querySelector(".rhythm-lab-active-context").children) {
+      if (!el.getClientRects().length) continue;
+      const name = el.textContent.trim(); const r = el.getBoundingClientRect(); const c = getComputedStyle(el);
+      if (el.scrollWidth > el.clientWidth + 0.5 && !(el.matches(".rhythm-lab-active-filename") && c.textOverflow === "ellipsis" && el.getAttribute("aria-label") === name)) {
+        out.push(`"${name}" truncated (${el.scrollWidth} > ${el.clientWidth})`);
+      }
+      if (r.width < 1 || r.left < -0.5 || r.right > innerWidth + 0.5) out.push(`"${name}" not wholly in the viewport (${r.left.toFixed(1)}..${r.right.toFixed(1)})`);
+      for (let a = el.parentElement; a && a !== document.documentElement; a = a.parentElement) {
+        const ac = getComputedStyle(a); if (ac.overflowX === "visible" && ac.overflowY === "visible") continue;
+        const q = a.getBoundingClientRect();
+        if (r.left < q.left - 0.5 || r.right > q.right + 0.5 || r.top < q.top - 0.5 || r.bottom > q.bottom + 0.5) out.push(`"${name}" clipped by ${a.className.split(" ")[0]}`);
+      }
+      for (const [t, q] of blockers) if (meets(r, q)) out.push(`"${name}" under "${t}"`);
+      // A truncated file name's text runs past its box: sample the part shown.
+      const range = document.createRange(); range.selectNodeContents(el); const t = range.getBoundingClientRect();
+      const left = Math.max(t.left, r.left); const width = Math.min(t.right, r.right) - left;
+      for (let i = 1; i < 6; i++) {
+        const hit = document.elementFromPoint(left + (width * i) / 6, t.top + t.height / 2);
+        if (!hit || (hit !== el && !el.contains(hit))) { out.push(`"${name}" covered by ${hit ? hit.className || hit.tagName : "nothing"}`); break; }
+      }
+    }
+    return out;
+  };
+  // Three sessions: the silent starter run, a run of a local file with a long name, and a chart recording (no pause).
+  const LONG_FILE = "a-rather-long-local-audio-file-name-for-the-session-bar.wav";
+  for (const theme of [...new Set([...THEMES, "mono"])]) for (const width of [320, 343, 375, 390, 430]) for (const session of ["starter", "long file", "recording"]) {
+    await withPage({ theme, route: "/simulations/rhythm-lab" }, async (page) => {
+      await page.setViewportSize({ width, height: 812 }); await frames(page);
+      const start = page.getByRole("button", { name: "Start", exact: true }); await start.waitFor();
+      if (session !== "starter") await rhythmFile(page, LONG_FILE, 20);
+      if (session === "recording") await page.getByRole("button", { name: "Record chart", exact: true }).click();
+      else await page.evaluate(() => [...document.querySelectorAll("button")].find((b) => b.textContent.trim() === "Start").click());
+      await page.locator(".rhythm-lab-active-bar").waitFor(); await frames(page);
+      const playing = await page.evaluate(sessionContext);
+      let paused = [];
+      if (session !== "recording") {
+        await page.keyboard.press("Escape"); await page.locator(".rhythm-lab-overlay").waitFor(); await frames(page);
+        paused = await page.evaluate(sessionContext);
+      }
+      invariant(playing.length === 0 && paused.length === 0, `${theme} /simulations/rhythm-lab ${width}px ${session}: active session context ${JSON.stringify({ playing, paused })}`);
+    });
+  }
+  // Before a run on a phone, with a file loaded, the ready check's Start is on screen and takes the pointer: the setup face
+  // scrolls inside its own bound and never pushes the highway away. The panel tabs keep one line each, and in the
+  // saved-songs menu every option is on screen and no wider than the menu: a long title ends in an ellipsis and its date
+  // stays shown.
+  for (const theme of [...new Set([...THEMES, "mono"])]) for (const [width, height] of [[320, 568], [320, 640], [343, 600], [375, 667]]) {
+    await withPage({ theme, route: "/simulations/rhythm-lab" }, async (page) => {
+      await page.setViewportSize({ width, height }); await frames(page);
+      await page.getByRole("button", { name: "Start", exact: true }).waitFor();
+      await rhythmFile(page, "Daft Punk - Harder Better Faster Stronger (Alive 2007).wav");
+      await rhythmFile(page, "probe-track.wav"); await frames(page);
+      const seen = await page.evaluate(() => {
+        const start = [...document.querySelectorAll(".rhythm-lab-overlay button")].find((b) => b.textContent.trim() === "Start");
+        const r = start.getBoundingClientRect(); const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+        const tabs = [...document.querySelectorAll(".rhythm-lab-panel-tabs [role=tab]")].map((t) => { const range = document.createRange(); range.selectNodeContents(t);
+          return [t.textContent.trim(), new Set([...range.getClientRects()].filter((q) => q.width > 0).map((q) => Math.round(q.top))).size, Math.round(t.getBoundingClientRect().height)]; });
+        const cell = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--cell-h"));
+        return { start: !!hit && (hit === start || start.contains(hit)), at: [Math.round(r.top), Math.round(r.bottom)], hit: hit ? String(hit.className || hit.tagName) : "none", tabs, cell };
+      });
+      invariant(seen.start, `${theme} /simulations/rhythm-lab ${width}x${height} file loaded: Start unreachable ${JSON.stringify(seen)}`);
+      // One line each: no tab is taller than the control model's phone target (a wrapped name or marker adds a line).
+      invariant(seen.tabs.every(([, lines, h]) => lines === 1 && h <= 3 * seen.cell + 0.5), `${theme} /simulations/rhythm-lab ${width}x${height}: tabs ${JSON.stringify(seen.tabs)}`);
+      await page.locator(".rhythm-lab-song-selector-trigger").click(); await page.locator(".rhythm-lab-song-list").waitFor(); await frames(page);
+      const menu = await page.evaluate(() => {
+        const list = document.querySelector(".rhythm-lab-song-list"); const l = list.getBoundingClientRect(); const out = [];
+        if (list.scrollWidth > list.clientWidth + 0.5) out.push(`list scrolls sideways ${list.scrollWidth} > ${list.clientWidth}`);
+        for (const o of list.querySelectorAll(".rhythm-lab-song-option")) {
+          const r = o.getBoundingClientRect(); const title = o.querySelector(".rhythm-lab-song-option-title"); const date = o.querySelector(".rhythm-lab-song-option-meta").getBoundingClientRect();
+          if (r.left < l.left - 0.5 || r.right > l.right + 0.5) out.push(`option ${r.left.toFixed(1)}..${r.right.toFixed(1)} outside the menu ${l.left.toFixed(1)}..${l.right.toFixed(1)}`);
+          const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+          if (!hit || (hit !== o && !o.contains(hit))) out.push(`option "${title.textContent}" not on screen (hit ${hit ? String(hit.className || hit.tagName) : "none"})`);
+          if (date.width < 1 || date.right > r.right + 0.5) out.push(`date not shown in "${title.textContent}"`);
+          if (title.scrollWidth > title.clientWidth + 0.5 && getComputedStyle(title).textOverflow !== "ellipsis") out.push(`"${title.textContent}" cut without an ellipsis`);
+          if (getComputedStyle(title).textTransform !== "none") out.push(`"${title.textContent}" recased`);
+        }
+        return out;
+      });
+      invariant(menu.length === 0, `${theme} /simulations/rhythm-lab ${width}x${height}: saved-songs menu ${JSON.stringify(menu)}`);
     });
   }
   // Phase 5 Task 12 (§07 The cell; §06 Hierarchy and voices; §13 control model; P5-7). /terminal, route intro: the heading

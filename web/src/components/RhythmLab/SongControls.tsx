@@ -77,7 +77,7 @@ const SongControls = ({
 
   return (
     <>
-      <label className="rhythm-lab-audio-picker">
+      <label className="rhythm-lab-audio-picker df-label">
         <span>Local audio</span>
         <input
           className="rhythm-lab-audio-input"
@@ -86,15 +86,15 @@ const SongControls = ({
           aria-label="Choose local audio file"
           onChange={onFileChange}
         />
-        <span className="rhythm-lab-audio-picker-button" aria-hidden="true">
+        <span className="rhythm-lab-audio-picker-button df-control df-label" aria-hidden="true">
           Choose file
         </span>
       </label>
       {importedSongs.length > 0 && (
         <div className="rhythm-lab-song-selector" ref={pickerRef}>
-          <span className="rhythm-lab-song-selector-label">Saved songs</span>
+          <span className="rhythm-lab-song-selector-label df-label">Saved songs</span>
           <button
-            className="rhythm-lab-song-selector-trigger"
+            className="rhythm-lab-song-selector-trigger df-control df-body-sm"
             type="button"
             aria-expanded={isPickerOpen}
             aria-haspopup="listbox"
@@ -113,7 +113,7 @@ const SongControls = ({
               {importedSongs.map((song) => (
                 <button
                   key={song.id}
-                  className={`rhythm-lab-song-option${song.id === activeSongId ? " rhythm-lab-song-option-active" : ""}`}
+                  className="rhythm-lab-song-option df-control df-body-sm"
                   role="option"
                   aria-selected={song.id === activeSongId}
                   type="button"
@@ -125,7 +125,7 @@ const SongControls = ({
                   <span className="rhythm-lab-song-option-title">
                     {song.title || song.filename}
                   </span>
-                  <span className="rhythm-lab-song-option-meta">
+                  <span className="rhythm-lab-song-option-meta df-annotation">
                     {formatSongTimestamp(song.importedAt)}
                   </span>
                 </button>
@@ -137,7 +137,7 @@ const SongControls = ({
       <div className="rhythm-lab-audio-details" aria-live="polite">
         <span className="rhythm-lab-audio-details-row">
           <span
-            className="rhythm-lab-audio-filename"
+            className="rhythm-lab-audio-filename df-data"
             title={fileName ?? "No audio selected"}
             aria-label={fileName ?? "No audio selected"}
           >
@@ -145,7 +145,7 @@ const SongControls = ({
           </span>
           {hasSelectedFile && (
             <button
-              className={`rhythm-lab-preview-button${isPreviewing ? " rhythm-lab-preview-button-active" : ""}`}
+              className="rhythm-lab-preview-button df-control df-label"
               type="button"
               onClick={isPreviewing ? onStopPreview : onStartPreview}
             >
@@ -153,15 +153,15 @@ const SongControls = ({
             </button>
           )}
         </span>
-        <small>Stored locally in this browser. Not uploaded.</small>
+        <small className="df-body-sm">Stored locally in this browser. Not uploaded.</small>
         {audioError && (
-          <small className="rhythm-lab-audio-error">{audioError}</small>
+          <small className="rhythm-lab-audio-error df-error df-body-sm">{audioError}</small>
         )}
         {chartStorageError && (
-          <small className="rhythm-lab-audio-error">{chartStorageError}</small>
+          <small className="rhythm-lab-audio-error df-error df-body-sm">{chartStorageError}</small>
         )}
         {runStorageError && phase !== "complete" && (
-          <small className="rhythm-lab-audio-error">{runStorageError}</small>
+          <small className="rhythm-lab-audio-error df-error df-body-sm">{runStorageError}</small>
         )}
       </div>
     </>

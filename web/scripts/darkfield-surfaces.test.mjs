@@ -40,23 +40,27 @@ test("P5 scope: NATIVE5 covers Phase 2's NATIVE, every listed selector exists, D
   }
   assert.deepEqual(DONE5.filter((f) => !PHASE5.includes(f)), []);
 });
+// The P5 rules, one predicate each: a declaration they return true for breaks the rule.
+const P5_RULE = {
+  colour: (d) => LITERAL.test(d.value) && !held(d) && !/^(content|font-family|grid-template-areas)$/.test(d.prop),
+  geometry: (d) => /radius$/.test(d.prop) && !/^(0|var\(--radius-0\))$/.test(d.value),
+  type: (d) => (d.prop === "font-family" && !/^(inherit|var\(--font-(sans|narrow|mono)\))$/.test(d.value)) ||
+    (/^(font|font-size|line-height|letter-spacing|font-weight)$/.test(d.prop) && !/^(inherit|var\(--[a-z0-9-]+\))$/.test(d.value)),
+  timing: (d) => (/^(transition|animation)(-duration|-timing-function|-delay)?$/.test(d.prop) && d.value !== "none" &&
+    (UNTOKENED_TIME.test(d.value.replace(/var\([^)]*\)/g, "")) || /\ball\b/.test(d.value))) || RETIRED.test(d.value) ||
+    (/\[data-theme/.test(d.selector) && !held(d)),
+};
 test("P5 colour: finished files name colours through tokens only, except holds", async () => {
-  assert.deepEqual((await decls5()).filter((d) => LITERAL.test(d.value) && !held(d) && !/^(content|font-family|grid-template-areas)$/.test(d.prop)).map(where), []);
+  assert.deepEqual((await decls5()).filter(P5_RULE.colour).map(where), []);
 });
 test("P5 geometry: square corners", async () => {
-  assert.deepEqual((await decls5()).filter((d) => /radius$/.test(d.prop) && !/^(0|var\(--radius-0\))$/.test(d.value)).map(where), []);
+  assert.deepEqual((await decls5()).filter(P5_RULE.geometry).map(where), []);
 });
 test("P5 type: families and type metrics only through tokens or the generated classes", async () => {
-  const bad = (await decls5()).filter((d) => (d.prop === "font-family" && !/^(inherit|var\(--font-(sans|narrow|mono)\))$/.test(d.value)) ||
-    (/^(font|font-size|line-height|letter-spacing|font-weight)$/.test(d.prop) && !/^(inherit|var\(--[a-z0-9-]+\))$/.test(d.value)));
-  assert.deepEqual(bad.map(where), []);
+  assert.deepEqual((await decls5()).filter(P5_RULE.type).map(where), []);
 });
 test("P5 timing and variables: token-timed motion; no retired variable read; no theme-keyed rule", async () => {
-  const d5 = await decls5();
-  const bad = d5.filter((d) => (/^(transition|animation)(-duration|-timing-function|-delay)?$/.test(d.prop) && d.value !== "none" &&
-    (UNTOKENED_TIME.test(d.value.replace(/var\([^)]*\)/g, "")) || /\ball\b/.test(d.value))) || RETIRED.test(d.value) ||
-    (/\[data-theme/.test(d.selector) && !held(d)));
-  assert.deepEqual(bad.map(where), []);
+  assert.deepEqual((await decls5()).filter(P5_RULE.timing).map(where), []);
 });
 test("P5 parser: custom property names with digits and escapes are parsed; standard properties as before", () => {
   const css = ":root { --space-0\\.5: 2px; --surface-3: var(--x); }\n@media (min-width: 1px) { .a:hover { color: red; --traffic-speed-4: #000; } }";
@@ -1157,4 +1161,107 @@ test("P5 rhythm lab: the scoped ground, the lifted root and the pinned native hi
   for (const file of (await governed(".tsx")).filter((f) => /^(components|pages)\/RhythmLab\//.test(f))) {
     assert.doesNotMatch(await read(file), /createPortal|ViewportPortal/, `${file} portals out of the scoped page`);
   }
+});
+
+// Rhythm Lab chrome (Phase 5 Task 19; §13 control model, Selected, Latched, Disabled; §06 voices; §08 Not a dashboard;
+// §05 When bright signal appears; P3-5). The families below (the header, audio panel, song selector, chart controls,
+// panel tabs, run history, analytics, HUD and active session bar, with their @media forms) obey the P5 rules before the
+// whole stylesheet joins DONE5 (Task 20). A rule belongs to them when the subject of each of its selectors does; no rule
+// mixes them with the native gameplay or the in-highway overlays. Two rules there are already dead (never rendered) and
+// are excluded by name.
+export const RHYTHM_GOVERNED = [".rhythm-lab-header", ".rhythm-lab-eyebrow", ".rhythm-lab-title-row", ".rhythm-lab-back-link",
+  ".rhythm-lab-audio-", ".rhythm-lab-preview-button", ".rhythm-lab-song-", ".rhythm-lab-recording-controls", ".rhythm-lab-chart-",
+  ".rhythm-lab-record-button", ".rhythm-lab-import-status", ".rhythm-lab-panel-tabs", ".rhythm-lab-run-history", ".rhythm-lab-analytics",
+  ".rhythm-lab-hud", ".rhythm-lab-active-", ".rhythm-lab-compact-action"];
+const RHYTHM_DEAD = [".rhythm-lab-audio-resume", ".rhythm-lab-record-button-active"];
+const RHYTHM_CSS = "components/RhythmLab/RhythmLab.css";
+// The class that owns a selector: its last compound that names a class (`.rhythm-lab-analytics-card dt` is the card's).
+const owner = (item) => flat(item).trim().split(/\s*[\s>+~]\s*/).reverse().find((c) => c.includes(".")) ?? "";
+const inRhythm = (item) => item === ".rhythm-lab h1" || RHYTHM_GOVERNED.some((p) => owner(item).startsWith(p));
+const rhythmDecls = async () => declarations(await read(RHYTHM_CSS)).map((d) => ({ file: RHYTHM_CSS, ...d }))
+  .filter((d) => topLevel(innermost(d.selector)).every(inRhythm) && !RHYTHM_DEAD.includes(innermost(d.selector)));
+test("P5 rhythm lab chrome: the governed families obey the P5 rules", async () => {
+  const all = declarations(await read(RHYTHM_CSS));
+  assert.deepEqual(all.filter((d) => { const items = topLevel(innermost(d.selector)); return items.some(inRhythm) && !items.every(inRhythm); })
+    .map((d) => where({ file: RHYTHM_CSS, ...d })), [], "a rule mixes the chrome families with other selectors");
+  const decls = await rhythmDecls();
+  assert.ok(decls.length > 150, `the families were not found (${decls.length} declarations)`);
+  for (const [name, broken] of Object.entries(P5_RULE)) assert.deepEqual(decls.filter(broken).map(where), [], `P5 ${name}`);
+  assert.deepEqual(derivedOnAncestors(decls, await colourTokens()).map(where), [], "P5 derived variables");
+  // P3-5: no danger action keeps the fault hue; the chrome names no fault colour of its own.
+  assert.deepEqual(decls.filter((d) => /var\(--fault/.test(d.value)).map(where), []);
+  for (const dead of RHYTHM_DEAD) assert.ok(all.some((d) => innermost(d.selector) === dead), `${dead} is listed as dead but not found`);
+});
+test("P5 rhythm lab chrome: one face, control model, voices and Live", async () => {
+  const files = ["RhythmLab", "SongControls", "ChartControls", "RunHistoryPanel", "RunAnalyticsPanel", "ActiveSessionHeader"];
+  const code = Object.fromEntries(await Promise.all(files.map(async (f) => [f, await read(`components/RhythmLab/${f}.tsx`)])));
+  // Every button is a control in the label voice, except the saved-song trigger and options, which carry song titles
+  // (below); none uses the native disabled attribute (§13 Disabled keeps focus).
+  for (const [file, src] of Object.entries(code)) {
+    for (const b of [...src.matchAll(/<button\b[^>]*?>/g)].map((m) => m[0])) {
+      const voice = /rhythm-lab-song-(selector-trigger|option)\b/.test(b) ? "df-body-sm" : "df-label";
+      assert.match(b, new RegExp(`className="[^"]*\\bdf-control\\b[^"]*\\b${voice}\\b[^"]*"`), `${file}: ${b.slice(0, 70)}`);
+    }
+    assert.doesNotMatch(src, /(?<![\w-])disabled=\{/, `${file}: native disabled`);
+    for (const el of [...src.matchAll(/<(select|input)\b[^>]*?>/g)].map((m) => m[0]).filter((e) => !/type="file"/.test(e))) {
+      assert.match(el, /className="[^"]*\bdf-field\b[^"]*\bdf-data\b[^"]*"/, `${file}: ${el.slice(0, 70)}`);
+    }
+  }
+  const { RhythmLab: lab, SongControls: song, ChartControls: chart, ActiveSessionHeader: bar, RunHistoryPanel: hist, RunAnalyticsPanel: ana } = code;
+  // Selected: the open panel's tab and the current saved song, by aria-selected. Latched: the starter mode, by aria-pressed.
+  // Preview says what it will do in its own words (Preview or Stop), so it carries no pressed state as well.
+  assert.equal((lab.match(/role="tab"\s+aria-selected=\{setupTab === "\w+"\}\s+className="df-control df-label"/g) ?? []).length, 3, "tabs");
+  // Song titles are the person's own content: supporting text in their own case, the date an annotation (§06).
+  assert.match(song, /className="rhythm-lab-song-option df-control df-body-sm"\s+role="option"\s+aria-selected=\{song\.id === activeSongId\}/, "song options");
+  assert.match(song, /className="rhythm-lab-song-selector-trigger df-control df-body-sm"/, "the saved-song trigger");
+  assert.match(song, /<span className="rhythm-lab-song-option-meta df-annotation">/, "the import date");
+  assert.match(song, /className="rhythm-lab-preview-button df-control df-label"\s+type="button"\s+onClick=/, "preview");
+  assert.doesNotMatch(song, /aria-pressed=\{isPreviewing\}|rhythm-lab-preview-button[^"]*df-control--latch/, "preview encodes its state twice");
+  assert.match(chart, /className="rhythm-lab-chart-mode-button df-control df-control--latch df-label"\s+type="button"\s+aria-pressed=\{activeChartMode === "starter"\}\s+aria-disabled=\{isRecording \|\| undefined\}\s+onClick=\{unless\(isRecording, onSelectStarterMode\)\}/, "starter latch");
+  assert.match(chart, /const unless = \(blocked: boolean, action: \(\) => void\) => \(\) => \{\s*if \(!blocked\) action\(\);\s*\};/, "a blocked press does nothing");
+  assert.equal((chart.match(/aria-disabled=\{isPending \|\| undefined\}/g) ?? []).length, 6, "the rename field and the five management buttons");
+  assert.match(chart, /if \(!isRecording\) onSelectRecordedChart\(/, "the chart select ignores a change while blocked");
+  assert.match(song, /<span className="rhythm-lab-audio-picker-button df-control df-label" aria-hidden="true">/, "the picker's proxy control");
+  assert.equal((song.match(/className="rhythm-lab-audio-error df-error df-body-sm"/g) ?? []).length, 3, "errors take the error signature");
+  // Voices: values Machine, names Instrument, outcomes context labels (D7).
+  assert.equal((ana.match(/<dt className="df-label-sm">/g) ?? []).length, 7, "analytics names");
+  assert.equal((ana.match(/<dd className="df-data">/g) ?? []).length, 7, "analytics values");
+  assert.equal((hist.match(/className="rhythm-lab-run-history-entry-badge df-label-sm df-context"/g) ?? []).length, 2, "history outcomes");
+  assert.doesNotMatch(ana, /analytics-(positive|negative)/, "a change is not told by hue");
+  // HUD: an Instrument name beside a Machine value; Live only while the run plays, with the • on the status label.
+  for (const name of ["Score", "Combo", "Best"]) {
+    assert.match(lab, new RegExp(`<span className="rhythm-lab-hud-label df-label-sm">${name}</span>\\{" "\\}\\s*<span className=\\{\`rhythm-lab-hud-value df-data\\$\\{hudLive\\}\`\\}>`), `HUD ${name}`);
+  }
+  assert.match(lab, /const hudLive =\s*phase === "playing" && !isPausedAfterVisibilityChange && !isRecording\s*\?\s*" df-data--live"\s*:\s*"";/, "HUD Live");
+  assert.match(bar, /const isLive = phase === "playing" && !isPausedAfterVisibilityChange && !isRecording;/, "the bar's Live state");
+  assert.match(bar, /rhythm-lab-active-status df-label-sm df-context\$\{\s*isLive \? " df-context--live" : ""\s*\}/, "the status label carries the Live marker");
+  assert.match(bar, /className="rhythm-lab-active-filename df-data"/, "the file is a value");
+  assert.equal((bar.match(/className="rhythm-lab-active-chip [^"]*df-label-sm df-context/g) ?? []).length + (bar.match(/rhythm-lab-active-chip rhythm-lab-active-status df-label-sm df-context/g) ?? []).length, 2, "two context labels");
+
+  const css = declarations(await read(RHYTHM_CSS));
+  const rule = (sel) => Object.fromEntries(css.filter((d) => d.selector === sel).map((d) => [d.prop, d.value]));
+  const want = (sel, values) => { const r = rule(sel); for (const [p, v] of Object.entries(values)) assert.equal(r[p], v, `${sel} { ${p} }`); };
+  // One surface-1 face with an L1 seam; regions inside share single rules; the menu is an overlay over the scrim.
+  want(".rhythm-lab-header", { "background-color": "var(--surface-1)", border: "var(--stroke-hair) solid var(--rule)", "--df-ground-up": "var(--surface-2)" });
+  want('.rhythm-lab-header:has(.rhythm-lab-song-selector-trigger[aria-expanded="true"])::before', { position: "fixed", "background-color": "var(--df-scrim)" });
+  want(".rhythm-lab-song-list", { "background-color": "var(--surface-2)", border: "var(--stroke-hair) solid var(--edge)", "--df-ground-up": "var(--surface-3)",
+    "grid-template-columns": "minmax(0, 1fr)" });
+  want(".rhythm-lab-panel-tabs button", { "white-space": "nowrap" });
+  // Phones, before a run: the setup face scrolls inside a bounded height so the ready check keeps its floor (not while
+  // the saved-songs menu is open, so the menu is never cut by the face).
+  want('@media (max-width: 600px) >> .rhythm-lab:not(.rhythm-lab-active-session) .rhythm-lab-header:not(:has([aria-expanded="true"]))',
+    { "max-height": "max(var(--rhythm-lab-setup-floor), calc(100dvh - var(--rhythm-lab-stage-floor)))", "overflow-y": "auto" });
+  // Small or coarse-pointer screens: the native file input gives way to its proxy control, which takes the target size.
+  want("@media (max-width: 768px), (pointer: coarse) >> .rhythm-lab-audio-picker-button", { display: "inline-flex" });
+  want("@media (max-width: 768px), (pointer: coarse) >> .rhythm-lab-audio-input", { position: "absolute", "clip-path": "inset(50%)" });
+  want(".rhythm-lab-hud", { "border-top": "var(--stroke-hair) solid var(--rule)" });
+  const closed = (await rhythmDecls()).filter((d) => /^border(-(style|width))?$/.test(d.prop));
+  assert.deepEqual(closed.map((d) => d.selector), [".rhythm-lab-header", ".rhythm-lab-audio-input::file-selector-button", ".rhythm-lab-song-list"],
+    "a closed box other than the face, the native picker's button and the menu");
+  // The active session bar never lets its context labels slide under the actions: the context keeps its own minimum
+  // width (no clipping), and on phones the bar takes two rows.
+  assert.ok(!(await rhythmDecls()).some((d) => innermost(d.selector) === ".rhythm-lab-active-context" && /^(overflow|min-width)$/.test(d.prop)), "the context clips or shrinks below its labels");
+  want("@media (max-width: 600px) >> .rhythm-lab-active-bar", { "grid-template-areas": '"back . actions" "context context context"' });
+  want("@media (max-width: 600px) >> .rhythm-lab-active-context", { "grid-area": "context" });
+  want(".rhythm-lab-active-chip", { flex: "0 0 auto", "white-space": "nowrap" });
 });
