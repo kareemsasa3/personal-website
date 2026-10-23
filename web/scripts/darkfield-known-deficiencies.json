@@ -854,22 +854,6 @@
       "baseline": 2.01
     },
     {
-      "id": "contrast|light|/simulations/snake|main p|Score: 0|\"Score:\"",
-      "check": "contrast",
-      "theme": "light",
-      "route": "/simulations/snake",
-      "detail": "3.59:1 [Score:]",
-      "baseline": 3.59
-    },
-    {
-      "id": "contrast|light|/simulations/snake|main p|Score: 0|\"0\"",
-      "check": "contrast",
-      "theme": "light",
-      "route": "/simulations/snake",
-      "detail": "3.59:1 [0]",
-      "baseline": 3.59
-    },
-    {
       "id": "state|light|/simulations/annals|Your Hand · available:prepared|span.text-yellow-700>\"· available\"",
       "check": "state",
       "theme": "light",

@@ -265,6 +265,29 @@ const openResetDialog = async (page) => {
   await page.mouse.move(0, 0);
   await frames(page);
 };
+// Ends a Snake game (Phase 5 Task 15). The board wraps at its edges, so only running into itself ends a game. From the
+// first food on, each new food is placed one cell past the one being eaten, on its row (the reducer places it while the
+// eaten one is still drawn), so the snake grows every tick; at five points it turns up, left and down into its own body.
+// The placement replaces Math.random once the page's own start-up scripts have run, before the game mounts.
+const endSnakeGame = async (page) => {
+  await page.addInitScript(() => setTimeout(() => {
+    const prev = Math.random; let row = null;
+    Math.random = () => {
+      const board = document.querySelector(".game-board"); const food = board?.querySelector(".food");
+      if (!food) return prev();
+      const w = Math.round(parseFloat(board.style.width) / 20), h = Math.round(parseFloat(board.style.height) / 20);
+      if (row !== null) { const r = (row + 0.5) / h; row = null; return r; }
+      row = Math.round(parseFloat(food.style.top) / 20);
+      return ((Math.round(parseFloat(food.style.left) / 20) + 1) % w + 0.5) / w;
+    };
+  }, 0));
+  await page.reload({ waitUntil: "networkidle" });
+  await page.waitForFunction(() => /Score: ([5-9]|\d\d)/.test(document.querySelector(".game-score")?.textContent ?? ""), null, { timeout: 30000 });
+  for (const key of ["ArrowUp", "ArrowLeft", "ArrowDown"]) await page.keyboard.press(key);
+  await page.locator(".play-again-button").waitFor();
+  await page.mouse.move(0, 0);
+  await frames(page);
+};
 // Opens the media inspector from the named opener (Phase 5 Task 7) and waits for its dialog.
 const openInspector = (name) => async (page) => {
   await page.getByRole("button", { name, exact: true }).click();
@@ -1358,6 +1381,9 @@ if (MODE === "check") {
     { route: "/simulations/traffic-simulator", selectors: [".traffic-back", ".traffic-actions button"] },
     { route: "/simulations/traffic-simulator", selectors: [".traffic-actions button"],
       prepare: async (page) => { await page.getByLabel("Scenario").selectOption({ label: "Ring road" }); await page.getByRole("button", { name: "Brake one car", exact: true }).waitFor(); } },
+    // Phase 5 Task 15: Snake's Play again, on the game-over panel (surface-2). The touch buttons render only on touch
+    // screens and are checked in their own block below.
+    { route: "/simulations/snake", selectors: [".play-again-button"], prepare: endSnakeGame },
     // Phase 5 Task 7: project media chrome (the bar's play control, the inspect openers), then the media inspector's
     // controls with the inspector open: Close on a recording-only inspector, and on one with a still frame the view
     // switch (Selected through aria-pressed) and actual size (a latch: a two-state mode with its lamp).
@@ -1550,6 +1576,82 @@ if (MODE === "check") {
         invariant(JSON.stringify(wide) === JSON.stringify(phone), `${theme} ${route}: label alignment differs at ${narrow}px ${JSON.stringify(wide)} vs ${JSON.stringify(phone)}`);
         if (route === "/darkfield-404-probe") invariant(wide.length > 0 && wide.every(([, , a]) => a === "centred"), `${theme} ${route}: 404 and error actions are not centred ${JSON.stringify(wide)}`);
       });
+    }
+  }
+
+  // Phase 5 Task 15 (§13 control model, Pressed; §08 Layers and overlays). /simulations/snake on a touch screen at 375×812,
+  // in each theme: the four touch buttons are square controls of the model, at least three cells in each direction, on an
+  // opaque ground, idle in fg-muted inside an edge boundary, inverted on contact; the touch controls are not translucent.
+  // At rest the board (native region) holds only pieces; paused, the overlay beside it dims the well with the scrim and
+  // its panel is surface-2, outlined in edge, with a heading in its own words, uncased.
+  for (const theme of THEMES) {
+    const context = await browser.newContext({ viewport: { width: 375, height: 812 }, reducedMotion: "reduce", hasTouch: true, isMobile: true });
+    await context.addInitScript((t) => localStorage.setItem("theme", t), theme);
+    const page = await context.newPage();
+    page.on("pageerror", (error) => errors.push(`snake touch: ${error.message}`));
+    const at = `${theme} /simulations/snake 375px touch`;
+    try {
+      await page.goto(`${base}/simulations/snake`, { waitUntil: "networkidle" });
+      await page.locator(".touch-btn").first().waitFor();
+      const t = {}; for (const n of ["--edge", "--fg-muted", "--signal", "--on-signal", "--field-deep", "--surface-2", "--fg"]) t[n] = await tokenRgb(page, n);
+      const seen = await page.evaluate(() => {
+        const cell = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--cell-h"));
+        const board = document.querySelector(".game-board");
+        return { cell, opacity: getComputedStyle(document.querySelector(".touch-controls")).opacity,
+          board: [board.getAttribute("data-df-region"), [...board.querySelectorAll("*")].filter((e) => !e.matches(".snake-segment, .food")).length],
+          buttons: [...document.querySelectorAll(".touch-btn")].map((e) => { const c = getComputedStyle(e); const r = e.getBoundingClientRect();
+            return { control: e.matches(".df-control"), w: r.width, h: r.height, radius: c.borderTopLeftRadius, bg: c.backgroundColor, fg: c.color, b: c.borderTopColor }; }) };
+      });
+      invariant(seen.opacity === "1", `${at}: touch controls at opacity ${seen.opacity}`);
+      invariant(seen.board[0] === "native" && seen.board[1] === 0, `${at}: board region ${JSON.stringify(seen.board)}`);
+      invariant(seen.buttons.length === 4, `${at}: ${seen.buttons.length} touch buttons`);
+      for (const b of seen.buttons) {
+        invariant(b.control && b.radius === "0px" && b.w >= 3 * seen.cell - 0.5 && b.h >= 3 * seen.cell - 0.5, `${at}: touch button ${JSON.stringify(b)}`);
+        invariant(b.bg === t["--field-deep"] && b.fg === t["--fg-muted"] && b.b === t["--edge"], `${at}: idle touch button ${JSON.stringify(b)}`);
+      }
+      const down = await page.locator(".touch-btn").first().evaluate((e) => { e.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
+        const c = getComputedStyle(e); const out = [e.hasAttribute("data-df-pressed"), c.backgroundColor, c.color];
+        e.dispatchEvent(new PointerEvent("pointerup", { bubbles: true })); return out; });
+      invariant(down[0] && down[1] === t["--signal"] && down[2] === t["--on-signal"], `${at}: touch button pressed ${down}`);
+      // A press the control acknowledges moves the snake, and only once. Moves are queued while the game is paused; on resume
+      // the head's first two steps show them. Enter on a focused Move up turns the snake up; a tap on Move left and then on
+      // Move down gives one step left and then one down (a tap that acted twice would queue left twice). The board draws the
+      // head one frame after the game moves it, so a pause can land between the two: that last move is then drawn just
+      // after resume. One leading step in the direction held before the pause (`before`) is that move and is set aside.
+      const firstSteps = async (press, before) => {
+        await page.keyboard.press(" "); await page.locator(".game-overlay").waitFor();
+        await press();
+        await page.evaluate(() => document.activeElement?.blur());
+        return page.evaluate(() => new Promise((done) => {
+          const board = document.querySelector(".game-board");
+          const w = Math.round(parseFloat(board.style.width) / 20), h = Math.round(parseFloat(board.style.height) / 20);
+          const cell = () => { const m = /translate\((-?[\d.]+)px, (-?[\d.]+)px\)/.exec(document.querySelector(".snake-head").style.transform);
+            return [Math.round(m[1] / 20), Math.round(m[2] / 20)]; };
+          const delta = (a, b, n) => ((a - b + n + 1) % n) - 1;
+          let last = cell(); const out = [];
+          const watch = () => { const now = cell();
+            if (now[0] !== last[0] || now[1] !== last[1]) { out.push(`${delta(now[0], last[0], w)},${delta(now[1], last[1], h)}`); last = now; }
+            if (out.length < 3) requestAnimationFrame(watch); else done(out); };
+          window.dispatchEvent(new KeyboardEvent("keydown", { key: " " }));
+          requestAnimationFrame(watch);
+        })).then((steps) => (steps[0] === before ? steps.slice(1) : steps.slice(0, 2)));
+      };
+      const keyed = await firstSteps(async () => { await page.locator(".touch-up").focus(); await page.keyboard.press("Enter"); }, "1,0");
+      invariant(keyed[0] === "0,-1", `${at}: Enter on Move up, first steps ${keyed}`);
+      const tapped = await firstSteps(async () => { await page.locator(".touch-left").tap(); await page.locator(".touch-down").tap(); }, "0,-1");
+      invariant(tapped.join(" ") === "-1,0 0,1", `${at}: taps on Move left then Move down, first steps ${tapped}`);
+      await page.keyboard.press(" ");
+      await page.locator(".game-overlay").waitFor();
+      const paused = await page.evaluate(() => { const o = document.querySelector(".game-overlay"); const p = o.querySelector(".game-over-content"); const h = p.querySelector("h2");
+        const c = getComputedStyle(p); const hc = getComputedStyle(h);
+        return { inBoard: Boolean(o.closest(".game-board")), scrim: getComputedStyle(o).backgroundColor, bg: c.backgroundColor, b: c.borderTopColor, radius: c.borderTopLeftRadius,
+          case: hc.textTransform, h: hc.color }; });
+      const scrim = await page.evaluate(() => { const p = document.createElement("i"); p.style.backgroundColor = "var(--df-scrim)"; document.body.append(p);
+        const v = getComputedStyle(p).backgroundColor; p.remove(); return v; });
+      invariant(!paused.inBoard && paused.scrim === scrim && paused.bg === t["--surface-2"] && paused.b === t["--edge"] && paused.radius === "0px" &&
+        paused.case === "none" && paused.h === t["--fg"], `${at}: paused overlay ${JSON.stringify(paused)}`);
+    } finally {
+      await context.close();
     }
   }
 
@@ -3227,7 +3329,7 @@ if (MODE === "check") {
   // Phase 5 (§03, §06): on each listed route, governed elements outside creative regions have square corners and a
   // Darkfield family. P5_NATIVE: native elements outside any region (they host controls or governed labels).
   const P5_ROUTES = ["/darkfield-404-probe", "/procedural-animations", "/procedural-animations/mechanical-time", "/case-studies/aether", "/simulations",
-    "/simulations/orbital-simulator", "/simulations/traffic-simulator", "/terminal"];
+    "/simulations/orbital-simulator", "/simulations/traffic-simulator", "/terminal", "/simulations/snake"];
   const P5_NATIVE = [];
   const P5_FAMILIES = ["Archivo", "Archivo Narrow", "IBM Plex Mono"];
   for (const theme of THEMES) {

@@ -10,7 +10,8 @@ export const DONE5 = ["pages/NotFound/NotFound.css", "components/common/ErrorBou
   "components/ProjectMedia/ProjectMedia.css", "pages/Simulations/Simulations.css", "components/SimulationCard/SimulationCard.css",
   "pages/OrbitalSimulator/OrbitalSimulator.css", "pages/TrafficSimulator/TrafficSimulator.css",
   "components/Terminal/TerminalView.css", "components/Terminal/TerminalWindow.css", "components/Terminal/Terminal.css",
-  "components/Terminal/TopUI.css", "components/Terminal/VimUI.css", "components/Terminal/ManPageUI.css"];
+  "components/Terminal/TopUI.css", "components/Terminal/VimUI.css", "components/Terminal/ManPageUI.css",
+  "components/SnakeGame/SnakeGame.css", "pages/SnakeGame/SnakeGame.css"];
 const decls5 = async () => {
   const out = [];
   for (const file of (await governed(".css")).filter((f) => DONE5.includes(f))) {
@@ -975,5 +976,69 @@ test("P5 terminal overlays: top, vim and man pages", async () => {
   for (const [file, decls] of [["TopUI.css", topCss], ["VimUI.css", vimCss], ["ManPageUI.css", manCss]]) {
     assert.deepEqual(decls.filter((d) => (d.prop === "text-align" && d.value === "justify") || (d.prop === "font-style" && d.value !== "normal")).map((d) => where({ file, ...d })), [],
       `${file}: no justified or italic runs`);
+  }
+});
+
+// Snake chrome (Phase 5 Task 15; §08 Layers and overlays, Not a dashboard; §13 control model; §06 voices; D6 and C2
+// rulings; P5-5). The board and its pieces are native: the board carries the native region marker and holds nothing
+// else, so the overlays sit beside it in the game container. The container is a field-deep well; the scores are a
+// surface-1 band in the well's corner that meets the board on rule seams, set in the site's family with the Machine
+// voice (the score in fg, the high score in fg-muted). The paused and game-over overlays dim what lies behind with the
+// shared scrim and hold a square panel on surface-2, outlined in edge; its heading keeps the words as written, with no
+// case or tracking of its own. Play again and the touch buttons are controls: their colours, fills and press response
+// come from the control model, and the touch controls are never made translucent.
+test("P5 snake: the HUD band, the overlays and the controls", async () => {
+  for (const file of ["components/SnakeGame/SnakeGame.css", "pages/SnakeGame/SnakeGame.css"]) assert.ok(DONE5.includes(file), `${file} is in DONE5`);
+  const tsx = await read("components/SnakeGame/SnakeGame.tsx");
+  const lists = (code) => [...code.matchAll(/className=\{?[`"]([^`"]*)[`"]/g)].map((m) => m[1].replace(/\$\{[^}]*\}/g, " ").trim().split(/\s+/));
+  const has = (first, cls) => { const f = lists(tsx).filter((c) => c[0] === first);
+    assert.ok(f.length > 0 && f.every((c) => cls.every((k) => c.includes(k))), `SnakeGame.tsx: .${first} ${cls.join(" ")}`); };
+  has("game-score", ["df-data"]);
+  has("game-high-score", ["df-data"]);
+  has("play-again-button", ["df-control", "df-label"]);
+  has("touch-btn", ["df-control"]);
+  // The shared paused and game-over panel is the view's one blocking overlay and holds its one action: a primary panel.
+  has("game-over-content", ["df-cut-md"]);
+  // Each touch button acts on the click a key press (or a mouse) sends, not only on touch contact.
+  assert.equal((tsx.match(/onClick=\{\(e\) => handleTouchClick\(e, '(up|down|left|right)'\)\}/g) ?? []).length, 4, "SnakeGame.tsx: touch buttons act on click");
+  // A mouse contact clears the touched flag, so a touch that ended without its click never swallows a mouse click.
+  assert.equal((tsx.match(/onPointerDown=\{\(e\) => \{ if \(e\.pointerType === "mouse"\) touchedRef\.current = false; \}\}/g) ?? []).length, 4,
+    "SnakeGame.tsx: a mouse contact clears the touch flag");
+  assert.equal((tsx.match(/<h2 className="df-heading-2">/g) ?? []).length, 2, "SnakeGame.tsx: each overlay heading is df-heading-2");
+  assert.equal((tsx.match(/<p className="df-body">/g) ?? []).length, 2, "SnakeGame.tsx: each overlay line is df-body");
+  // The board is marked native and closes before the overlays open: no site control or text inside it.
+  const board = /<div className="game-board"[^>]*>([\s\S]*?)\n {6}<\/div>/.exec(tsx);
+  assert.ok(board && /data-df-region="native"/.test(board[0].split(">")[0]), "SnakeGame.tsx: .game-board carries data-df-region=\"native\"");
+  assert.doesNotMatch(board[1], /<(button|h2|p)\b|game-over|game-overlay/, "SnakeGame.tsx: the board holds only the snake and the food");
+  assert.match(tsx, /className="game-over-overlay"/);
+  assert.match(tsx, /className="game-overlay"/);
+
+  const comp = declarations(await read("components/SnakeGame/SnakeGame.css")), page = declarations(await read("pages/SnakeGame/SnakeGame.css"));
+  const both = [...comp, ...page];
+  const rule = (sel) => Object.fromEntries(both.filter((d) => d.selector === sel).map((d) => [d.prop, d.value]));
+  const want = (sel, values) => { const r = rule(sel); for (const [p, v] of Object.entries(values)) assert.equal(r[p], v, `${sel} { ${p} }`); };
+  want(".snake-game-container", { "background-color": "var(--field-deep)" });
+  assert.deepEqual(both.filter((d) => d.selector === ".snake-game-container" && /^(background|backdrop-filter|filter|opacity)$/.test(d.prop)).map(where), [],
+    "the container's translucent dim");
+  want(".game-scores", { "background-color": "var(--surface-1)", "border-block-end": "var(--stroke-hair) solid var(--rule)",
+    "border-inline-start": "var(--stroke-hair) solid var(--rule)", "font-family": "inherit" });
+  want(".game-score", { color: "var(--fg)" });
+  want(".game-high-score", { color: "var(--fg-muted)" });
+  for (const sel of [".game-over-overlay", ".game-overlay"]) {
+    assert.ok(both.some((d) => d.selector.split(/\s*,\s*/).includes(sel) && d.prop === "background-color" && d.value === "var(--df-scrim)"), `${sel} dims with the scrim`);
+  }
+  want(".game-over-content", { "background-color": "var(--surface-2)", border: "var(--stroke-hair) solid var(--edge)", "font-family": "inherit",
+    "--df-ground-up": "var(--surface-3)" });
+  assert.deepEqual(both.filter((d) => /game-over-content h2/.test(d.selector) && /^(text-transform|letter-spacing|font-size|font-weight)$/.test(d.prop)).map(where), [],
+    "the overlay heading's own case, tracking and size");
+  // Controls take their colours, fills and press from the model.
+  assert.deepEqual(both.filter((d) => /play-again-button|touch-btn/.test(d.selector) &&
+    /^(color|background|background-color|border|border-color|border-radius|transition)$/.test(d.prop)).map(where), []);
+  assert.deepEqual(both.filter((d) => /:active/.test(d.selector)).map(where), [], "no :active rule of their own");
+  assert.deepEqual(both.filter((d) => /touch-(controls|btn)/.test(d.selector) && d.prop === "opacity").map(where), [], "translucent touch controls");
+  want(".touch-btn", { "--df-ground": "var(--field-deep)" });
+  // The board and the pieces keep their own rules (NATIVE5).
+  for (const sel of [".game-board", ".snake-segment", ".snake-segment.snake-head", ".food"]) {
+    assert.ok(NATIVE5["components/SnakeGame/SnakeGame.css"].includes(sel), `${sel} is native`);
   }
 });
