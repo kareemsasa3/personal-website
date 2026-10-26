@@ -32,97 +32,97 @@ const RunSummaryPanel = ({
   return (
     <div className="rhythm-lab-overlay">
       <div className="rhythm-lab-overlay-panel rhythm-lab-summary-panel">
-        <p>{runSummary.chartLabel}</p>
-        <h2>{isEarlyExit ? "Ended Early" : "Run Summary"}</h2>
+        <p className="df-body-sm">{runSummary.chartLabel}</p>
+        <h2 className="df-heading-2">{isEarlyExit ? "Ended Early" : "Run Summary"}</h2>
         {isEarlyExit && (
           <dl className="rhythm-lab-summary-progress">
             <div>
-              <dt>Played</dt>
-              <dd>
+              <dt className="df-label-sm">Played</dt>
+              <dd className="df-data">
                 {formatDurationMs(runSummary.endedAtMs)} /{" "}
                 {formatDurationMs(runSummary.chartDurationMs)}
               </dd>
             </div>
             <div>
-              <dt>Completion</dt>
-              <dd>{completionPercent}%</dd>
+              <dt className="df-label-sm">Completion</dt>
+              <dd className="df-data">{completionPercent}%</dd>
             </div>
           </dl>
         )}
         <div className="rhythm-lab-summary-score">
-          <span>{isEarlyExit ? "Score" : "Final score"}</span>
-          <strong>{runSummary.score}</strong>
+          <span className="df-label">{isEarlyExit ? "Score" : "Final score"}</span>
+          <strong className="df-readout-xl">{runSummary.score}</strong>
         </div>
       <dl className="rhythm-lab-summary-best">
         <div>
-          <dt>Best score</dt>
-          <dd>{bestRun ? bestRun.score : "N/A"}</dd>
+          <dt className="df-label-sm">Best score</dt>
+          <dd className="df-data">{bestRun ? bestRun.score : "N/A"}</dd>
         </div>
         <div>
-          <dt>Best accuracy</dt>
-          <dd>{bestRun ? formatPercent(bestRun.accuracy) : "N/A"}</dd>
+          <dt className="df-label-sm">Best accuracy</dt>
+          <dd className="df-data">{bestRun ? formatPercent(bestRun.accuracy) : "N/A"}</dd>
         </div>
         <div>
-          <dt>Best combo</dt>
-          <dd>{bestRun ? bestRun.maxCombo : "N/A"}</dd>
+          <dt className="df-label-sm">Best combo</dt>
+          <dd className="df-data">{bestRun ? bestRun.maxCombo : "N/A"}</dd>
         </div>
       </dl>
       {runStorageError && (
-        <p className="rhythm-lab-summary-warning">{runStorageError}</p>
+        <p className="rhythm-lab-summary-warning df-error df-body-sm">{runStorageError}</p>
       )}
       <dl className="rhythm-lab-summary-metrics">
         <div>
-          <dt>Max combo</dt>
-          <dd>{runSummary.maxCombo}</dd>
+          <dt className="df-label-sm">Max combo</dt>
+          <dd className="df-data">{runSummary.maxCombo}</dd>
         </div>
         <div>
-          <dt>Accuracy</dt>
-          <dd>{formatPercent(runSummary.accuracyPercent)}</dd>
+          <dt className="df-label-sm">Accuracy</dt>
+          <dd className="df-data">{formatPercent(runSummary.accuracyPercent)}</dd>
         </div>
         <div>
-          <dt>Perfect</dt>
-          <dd>{runSummary.perfectCount}</dd>
+          <dt className="df-label-sm">Perfect</dt>
+          <dd className="df-data">{runSummary.perfectCount}</dd>
         </div>
         <div>
-          <dt>Good</dt>
-          <dd>{runSummary.goodCount}</dd>
+          <dt className="df-label-sm">Good</dt>
+          <dd className="df-data">{runSummary.goodCount}</dd>
         </div>
         <div>
-          <dt>Miss</dt>
-          <dd>{runSummary.missCount}</dd>
+          <dt className="df-label-sm">Miss</dt>
+          <dd className="df-data">{runSummary.missCount}</dd>
         </div>
         <div>
-          <dt>Empty miss</dt>
-          <dd>{runSummary.emptyInputMissCount}</dd>
+          <dt className="df-label-sm">Empty miss</dt>
+          <dd className="df-data">{runSummary.emptyInputMissCount}</dd>
         </div>
         <div>
-          <dt>Mean |delta|</dt>
-          <dd>{formatDelta(runSummary.meanAbsoluteDeltaMs)}</dd>
+          <dt className="df-label-sm">Mean |delta|</dt>
+          <dd className="df-data">{formatDelta(runSummary.meanAbsoluteDeltaMs)}</dd>
         </div>
         <div>
-          <dt>Early / Late</dt>
-          <dd>
+          <dt className="df-label-sm">Early / Late</dt>
+          <dd className="df-data">
             {runSummary.earlyCount} / {runSummary.lateCount}
           </dd>
         </div>
       </dl>
       <div className="rhythm-lab-summary-actions">
         <button
-          className="rhythm-lab-primary-action"
+          className="rhythm-lab-primary-action df-control df-label"
           type="button"
           onClick={onRestart}
         >
           Play again
         </button>
         <button
-          className="rhythm-lab-secondary-action"
+          className="rhythm-lab-secondary-action df-control df-label"
           type="button"
           onClick={onReturnToSetup}
         >
           Back to setup
         </button>
       </div>
-      <span>A/S/D | J/K/L | Arrow keys | tap zones</span>
+      <span className="df-body-sm">A/S/D | J/K/L | Arrow keys | tap zones</span>
     </div>
   </div>
   );

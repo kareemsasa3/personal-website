@@ -39,8 +39,14 @@ const SongControls = ({
 }: SongControlsProps) => {
   const [isPickerOpen, setIsPickerOpen] = useState(false);
   const pickerRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
-  const closePicker = useCallback(() => setIsPickerOpen(false), []);
+  // Closing the list from inside it (choosing a song, or Escape) returns focus to the trigger, which stays on the page;
+  // the option that held focus is removed with the list.
+  const closePicker = useCallback((returnFocus: boolean) => {
+    setIsPickerOpen(false);
+    if (returnFocus) triggerRef.current?.focus();
+  }, []);
 
   useEffect(() => {
     if (!isPickerOpen) return;
@@ -56,7 +62,10 @@ const SongControls = ({
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        setIsPickerOpen(false);
+        closePicker(
+          !!pickerRef.current?.contains(document.activeElement) &&
+            document.activeElement !== triggerRef.current
+        );
       }
     };
 
@@ -66,7 +75,7 @@ const SongControls = ({
       document.removeEventListener("pointerdown", handlePointerDown);
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [isPickerOpen]);
+  }, [closePicker, isPickerOpen]);
 
   const activeSong = activeSongId
     ? importedSongs.find((song) => song.id === activeSongId)
@@ -94,6 +103,7 @@ const SongControls = ({
         <div className="rhythm-lab-song-selector" ref={pickerRef}>
           <span className="rhythm-lab-song-selector-label df-label">Saved songs</span>
           <button
+            ref={triggerRef}
             className="rhythm-lab-song-selector-trigger df-control df-body-sm"
             type="button"
             aria-expanded={isPickerOpen}
@@ -119,7 +129,7 @@ const SongControls = ({
                   type="button"
                   onClick={() => {
                     onSongSelect(song.id);
-                    closePicker();
+                    closePicker(true);
                   }}
                 >
                   <span className="rhythm-lab-song-option-title">

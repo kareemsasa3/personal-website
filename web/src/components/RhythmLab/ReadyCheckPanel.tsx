@@ -15,13 +15,13 @@ const ReadyCheckPanel = ({
 }: ReadyCheckPanelProps) => (
   <div className="rhythm-lab-overlay">
     <div className="rhythm-lab-overlay-panel">
-      <p>
+      <p className="df-body-sm">
         {chartTitle} - {chartModeLabel}
       </p>
-      <h2>Ready Check</h2>
+      <h2 className="df-heading-2">Ready Check</h2>
       <div className="rhythm-lab-summary-actions">
         <button
-          className="rhythm-lab-primary-action"
+          className="rhythm-lab-primary-action df-control df-label"
           type="button"
           onClick={onStart}
         >
@@ -29,7 +29,7 @@ const ReadyCheckPanel = ({
         </button>
         {onStartTutorial && tutorialActionLabel && (
           <button
-            className="rhythm-lab-secondary-action"
+            className="rhythm-lab-secondary-action df-control df-label"
             type="button"
             onClick={onStartTutorial}
           >
@@ -37,7 +37,7 @@ const ReadyCheckPanel = ({
           </button>
         )}
       </div>
-      <span>A/S/D | J/K/L | Arrow keys | tap zones</span>
+      <span className="df-body-sm">A/S/D | J/K/L | Arrow keys | tap zones</span>
     </div>
   </div>
 );

@@ -12,11 +12,15 @@ export const DONE5 = ["pages/NotFound/NotFound.css", "components/common/ErrorBou
   "components/Terminal/TerminalView.css", "components/Terminal/TerminalWindow.css", "components/Terminal/Terminal.css",
   "components/Terminal/TopUI.css", "components/Terminal/VimUI.css", "components/Terminal/ManPageUI.css",
   "components/SnakeGame/SnakeGame.css", "pages/SnakeGame/SnakeGame.css",
-  "components/SpiderSolitaire/SpiderSolitaire.css", "pages/SpiderSolitaire/SpiderSolitaire.css", "pages/RhythmLab/RhythmLab.css"];
+  "components/SpiderSolitaire/SpiderSolitaire.css", "pages/SpiderSolitaire/SpiderSolitaire.css", "pages/RhythmLab/RhythmLab.css",
+  "components/RhythmLab/RhythmLab.css"];
+// Rhythm Lab rules that were already dead (never rendered) when Task 19 found them: kept as found, excluded by name.
+const RHYTHM_CSS = "components/RhythmLab/RhythmLab.css";
+const RHYTHM_DEAD = [".rhythm-lab-audio-resume", ".rhythm-lab-record-button-active"];
 const decls5 = async () => {
   const out = [];
   for (const file of (await governed(".css")).filter((f) => DONE5.includes(f))) {
-    const skip = [...(NATIVE5[file] ?? []), ...(DEAD_RULES5[file] ?? [])];
+    const skip = [...(NATIVE5[file] ?? []), ...(DEAD_RULES5[file] ?? []), ...(file === RHYTHM_CSS ? RHYTHM_DEAD : [])];
     // Native keyframes, and dead ones named by their at-rule in DEAD_RULES5.
     const frames = [...(NATIVE_KEYFRAMES[file] ?? []).map((k) => `@keyframes ${k}`), ...skip.filter((s) => s.startsWith("@keyframes "))];
     for (const d of declarations(await read(file))) {
@@ -1173,8 +1177,6 @@ export const RHYTHM_GOVERNED = [".rhythm-lab-header", ".rhythm-lab-eyebrow", ".r
   ".rhythm-lab-audio-", ".rhythm-lab-preview-button", ".rhythm-lab-song-", ".rhythm-lab-recording-controls", ".rhythm-lab-chart-",
   ".rhythm-lab-record-button", ".rhythm-lab-import-status", ".rhythm-lab-panel-tabs", ".rhythm-lab-run-history", ".rhythm-lab-analytics",
   ".rhythm-lab-hud", ".rhythm-lab-active-", ".rhythm-lab-compact-action"];
-const RHYTHM_DEAD = [".rhythm-lab-audio-resume", ".rhythm-lab-record-button-active"];
-const RHYTHM_CSS = "components/RhythmLab/RhythmLab.css";
 // The class that owns a selector: its last compound that names a class (`.rhythm-lab-analytics-card dt` is the card's).
 const owner = (item) => flat(item).trim().split(/\s*[\s>+~]\s*/).reverse().find((c) => c.includes(".")) ?? "";
 const inRhythm = (item) => item === ".rhythm-lab h1" || RHYTHM_GOVERNED.some((p) => owner(item).startsWith(p));
@@ -1264,4 +1266,87 @@ test("P5 rhythm lab chrome: one face, control model, voices and Live", async () 
   want("@media (max-width: 600px) >> .rhythm-lab-active-bar", { "grid-template-areas": '"back . actions" "context context context"' });
   want("@media (max-width: 600px) >> .rhythm-lab-active-context", { "grid-area": "context" });
   want(".rhythm-lab-active-chip", { flex: "0 0 auto", "white-space": "nowrap" });
+});
+
+// Rhythm Lab overlays, tutorial, results and dialogs (Phase 5 Task 20; §08 Layers and overlays; §13 control model,
+// Errors, Focus, Avoid; §06 voices; C2 ruling; D8; P3-5). The whole stylesheet is finished (DONE5 above). The in-highway
+// overlays and the tutorial prompt set the site's family and colour themselves, so none inherits the native highway's
+// pins; overlay panels and dialogs are opaque surface-2 faces in an edge boundary over the scrim, and only the dialogs
+// take the chamfer (the overlay and panel class lists are identities other records name, so they never change). Every
+// action is a control in the label voice with no fill and no fault hue. Results are name and value pairs, the score a
+// settled readout (never Live: it does not count). The bounded setup face keeps focus rings clear of its edge, and
+// focus returns to the saved-songs trigger after a song is chosen and to a dialog's opener when the dialog closes.
+test("P5 rhythm lab overlays and dialogs: re-grounded faces, governed type and the control model", async () => {
+  const names = ["RhythmLab", "ReadyCheckPanel", "PauseMenu", "RunSummaryPanel", "RhythmLabTutorial", "RhythmLabDialogShell",
+    "DeleteChartDialog", "ClearRunHistoryDialog", "ImportChartMismatchDialog", "SongControls"];
+  const code = Object.fromEntries(await Promise.all(names.map(async (f) => [f, await read(`components/RhythmLab/${f}.tsx`)])));
+  const classLists = (src) => [...src.matchAll(/className=(?:"([^"]*)"|\{`([^`]*)`\})/g)].map((m) => m[1] ?? m[2]);
+  // The overlay and its panel keep their exact class lists.
+  const overlayLists = new Set(Object.values(code).flatMap(classLists).filter((c) => /\brhythm-lab-overlay/.test(c)));
+  assert.deepEqual([...overlayLists].sort(), ["rhythm-lab-overlay", "rhythm-lab-overlay-panel", "rhythm-lab-overlay-panel rhythm-lab-pause-panel",
+    "rhythm-lab-overlay-panel rhythm-lab-summary-panel"], "overlay class lists");
+  // Actions: controls in the label voice (D8: no filled primary).
+  let actions = 0;
+  for (const [file, src] of Object.entries(code)) {
+    for (const list of classLists(src).filter((c) => /\brhythm-lab-(primary-action|secondary-action|danger-button)\b/.test(c))) {
+      actions += 1;
+      assert.match(list, /\bdf-control df-label\b/, `${file}: ${list}`);
+    }
+  }
+  assert.equal(actions, 17, "overlay, tutorial and dialog actions");
+  for (const f of ["DeleteChartDialog", "ClearRunHistoryDialog", "ImportChartMismatchDialog"]) {
+    assert.match(code[f], /<span className="rhythm-lab-modal-kicker df-label">/, `${f}: kicker`);
+    assert.match(code[f], /<h2 id=\{?[^ ]+ className="df-heading-3">/, `${f}: heading`);
+  }
+  // Voices: overlay headings and the tutorial headline in the heading voice; supporting lines Narrator.
+  for (const f of ["ReadyCheckPanel", "PauseMenu", "RunSummaryPanel", "RhythmLabTutorial"]) {
+    assert.ok((code[f].match(/<h2[^>]*>/g) ?? []).every((h) => h === '<h2 className="df-heading-2">'), `${f}: overlay heading`);
+    assert.ok((code[f].match(/<span>|<p>/g) ?? []).length === 0, `${f}: an unvoiced line`);
+  }
+  assert.match(code.RhythmLabTutorial, /className="rhythm-lab-tutorial-headline df-heading-2"/);
+  assert.match(code.RhythmLabTutorial, /className="rhythm-lab-tutorial-detail df-body"/);
+  assert.match(code.RhythmLabTutorial, /className="rhythm-lab-tutorial-step df-label"/);
+  // Results: names Instrument, values Machine; the score a readout that is never Live; a failed save is an Error.
+  const summary = code.RunSummaryPanel;
+  assert.equal((summary.match(/<dt className="df-label-sm">/g) ?? []).length, 13, "result names");
+  assert.equal((summary.match(/<dd className="df-data">/g) ?? []).length, 13, "result values");
+  assert.match(summary, /<span className="df-label">\{isEarlyExit \? "Score" : "Final score"\}<\/span>\s*<strong className="df-readout-xl">\{runSummary\.score\}<\/strong>/);
+  assert.doesNotMatch(summary, /df-data--live|df-context--live/, "the settled score is not Live");
+  assert.match(summary, /className="rhythm-lab-summary-warning df-error df-body-sm"/);
+  // Dialogs: the chamfer on the dialog; focus moves in on open and back to the opener on close; Escape unchanged.
+  const shell = code.RhythmLabDialogShell;
+  assert.match(shell, /`rhythm-lab-delete-dialog \$\{className\} df-cut-md`\s*:\s*"rhythm-lab-delete-dialog df-cut-md"/);
+  assert.match(shell, /role="dialog"\s+aria-modal="true"\s+aria-labelledby=\{titleId\}\s+aria-describedby=\{descriptionId\}/);
+  assert.match(shell, /const opener =[\s\S]*?initialFocusRef\.current\?\.focus\(\);\s*return \(\) => \{\s*if \(opener\?\.isConnected\) opener\.focus\(\);/);
+  assert.match(shell, /if \(event\.key === "Escape"\) \{\s*event\.preventDefault\(\);\s*event\.stopPropagation\(\);\s*onCancel\(\);/);
+  // Saved songs: choosing a song returns focus to the trigger; the page does not take it to the game root instead.
+  assert.match(code.SongControls, /onSongSelect\(song\.id\);\s*closePicker\(true\);/);
+  assert.match(code.SongControls, /if \(returnFocus\) triggerRef\.current\?\.focus\(\);/);
+  assert.doesNotMatch(code.RhythmLab.match(/const handleSongSelect = useCallback\([\s\S]*?\n {2}\);/)[0], /focusGame\(\)/, "handleSongSelect moves focus");
+
+  const css = declarations(await read(RHYTHM_CSS));
+  const rule = (sel) => Object.fromEntries(css.filter((d) => d.selector === sel).map((d) => [d.prop, d.value]));
+  const want = (sel, values) => { const r = rule(sel); for (const [p, v] of Object.entries(values)) assert.equal(r[p], v, `${sel} { ${p} }`); };
+  const face = { "background-color": "var(--surface-2)", border: "var(--stroke-hair) solid var(--edge)", "border-radius": "var(--radius-0)", "--df-ground-up": "var(--surface-3)" };
+  // The overlays set their own family and colour (the highway pins its own); the faces are opaque surface-2.
+  want(".rhythm-lab-overlay", { "background-color": "var(--df-scrim)", color: "var(--fg)", "font-family": "var(--font-sans)" });
+  want(".rhythm-lab-tutorial-prompt", { color: "var(--fg)", "font-family": "var(--font-sans)" });
+  want(".rhythm-lab-overlay-panel", face);
+  want(".rhythm-lab-delete-dialog", face);
+  want(".rhythm-lab-modal-backdrop", { "background-color": "var(--df-scrim)" });
+  want(".rhythm-lab-overlay-panel h2", { color: "var(--fg)", "text-transform": "lowercase" });
+  want(".rhythm-lab-overlay-panel h2::first-letter", { "text-transform": "uppercase" });
+  // The actions set layout only: the control model owns boundary, ground and label in every state.
+  const own = css.filter((d) => topLevel(innermost(d.selector)).some((i) => /rhythm-lab-(primary-action|secondary-action|danger-button)/.test(owner(i))));
+  assert.deepEqual(own.filter((d) => /^(background|background-color|color|border|border-color|outline|box-shadow)$/.test(d.prop)).map((d) => where({ file: RHYTHM_CSS, ...d })), []);
+  assert.ok(!css.some((d) => /var\(--(fault|caution)/.test(d.value) && !NATIVE5[RHYTHM_CSS].includes(innermost(d.selector))), "a state hue on the chrome");
+  assert.ok(!css.some((d) => /rhythm-lab-tutorial-step:focus-visible/.test(d.selector)), "the tutorial step draws its own focus");
+  // The bounded setup face scrolls a focused control clear of its edge by more than the ring.
+  want('@media (max-width: 600px) >> .rhythm-lab:not(.rhythm-lab-active-session) .rhythm-lab-header:not(:has([aria-expanded="true"]))',
+    { "overflow-y": "auto", "scroll-padding-block": "var(--space-2)" });
+  want(".rhythm-lab-summary-panel", { overflow: "auto", "scroll-padding-block": "var(--space-2)" });
+  // The dialog actions wrap rather than cross the chamfered face's edge on a narrow screen, and no action is wider than
+  // its container.
+  want(".rhythm-lab-delete-dialog-actions", { display: "flex", "flex-wrap": "wrap" });
+  want(".rhythm-lab-primary-action, .rhythm-lab-secondary-action, .rhythm-lab-danger-button", { "min-width": "min(9rem, 100%)" });
 });

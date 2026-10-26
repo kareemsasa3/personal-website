@@ -1358,12 +1358,18 @@ if (MODE === "check") {
     await page.locator(".rhythm-lab-audio-input").setInputFiles({ name, mimeType: "audio/wav", buffer: rhythmWav(seconds) });
     await page.waitForFunction((n) => document.querySelector(".rhythm-lab-audio-filename")?.textContent === n, name);
   };
-  const rhythmSetup = async (page) => {
+  // A chart export with three notes; with `song` set, it names a song other than the current one (the import asks first).
+  const rhythmChart = (page, song = null) => page.locator(".rhythm-lab-hidden-file-input").setInputFiles({ name: "probe.rhythm-chart.json", mimeType: "application/json",
+    buffer: Buffer.from(JSON.stringify({ kind: "rhythm-lab-chart", schemaVersion: 1, song, chart: { label: "Probe chart", notes: [0, 1, 2].map((lane) => ({ lane, timeMs: 900 + 500 * lane })) } })) });
+  // A local file and an imported chart: the setup face holds every control it can show.
+  const rhythmLoad = async (page) => {
     await rhythmFile(page);
     await page.locator(".rhythm-lab-song-selector-trigger").waitFor();
-    const chart = { kind: "rhythm-lab-chart", schemaVersion: 1, song: null, chart: { label: "Probe chart", notes: [0, 1, 2].map((lane) => ({ lane, timeMs: 900 + 500 * lane })) } };
-    await page.locator(".rhythm-lab-hidden-file-input").setInputFiles({ name: "probe.rhythm-chart.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify(chart)) });
+    await rhythmChart(page);
     await page.locator(".rhythm-lab-chart-management-button").first().waitFor(); await frames(page);
+  };
+  const rhythmSetup = async (page) => {
+    await rhythmLoad(page);
     const covered = await page.evaluate((sels) => [...document.querySelectorAll(sels)].filter((e) => {
       const r = e.getBoundingClientRect(); const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
       return hit && hit.closest(".rhythm-lab-overlay"); }).map((e) => e.textContent.trim()),
@@ -1429,6 +1435,8 @@ if (MODE === "check") {
     // controls, on the header's face inside the page's scoped token set (P5-1).
     { route: "/simulations/rhythm-lab", scope: ".rhythm-lab-page", prepare: rhythmSetup,
       selectors: [".rhythm-lab-song-selector-trigger", ".rhythm-lab-panel-tabs button", ".rhythm-lab-preview-button", ".rhythm-lab-chart-management-button"] },
+    // Phase 5 Task 20: the ready check's Start, on the overlay panel's face inside the highway (no fill, D8).
+    { route: "/simulations/rhythm-lab", scope: ".rhythm-lab-page", selectors: [".rhythm-lab-primary-action"] },
     // Task 15: the two controls on Phase 5 surfaces rest directly on the Layout field.
     { route: "/simulations/spider", selectors: [".spider-button"] },
     { route: "/terminal", selectors: [".terminal-sidecar"],
@@ -3392,24 +3400,27 @@ if (MODE === "check") {
     "/simulations/spider", "/simulations/rhythm-lab"];
   // The Rhythm Lab highway is native (D6 ruling) but unmarked: its lanes host governed labels and its hit zones are buttons.
   const P5_NATIVE = [".rhythm-lab-highway"];
-  // Routes whose governed corners a later task squares (Rhythm Lab: Tasks 19 and 20); their families are checked now.
-  const P5_CORNERS_LATER = ["/simulations/rhythm-lab"];
+  // Governed chrome inside a P5_NATIVE element (Task 20): the in-highway overlays (ready check, pause, run summary,
+  // tutorial complete) with their controls, the tutorial prompt and the lane labels are swept like the rest of the page.
+  const P5_GOVERNED_IN_NATIVE = [".rhythm-lab-overlay", ".rhythm-lab-tutorial-prompt", ".rhythm-lab-lane-label"];
   const P5_FAMILIES = ["Archivo", "Archivo Narrow", "IBM Plex Mono"];
+  const p5Sweep = (page) => page.evaluate(([skip, governedIn, families]) => {
+    const out = new Set();
+    for (const el of document.querySelectorAll("body *")) {
+      if (!el.getClientRects().length || el.closest("[data-df-region], svg") || el.matches("img, video, canvas, iframe")) continue;
+      if (el.closest(skip) && !el.closest(governedIn)) continue;
+      const c = getComputedStyle(el);
+      if ([c.borderTopLeftRadius, c.borderTopRightRadius, c.borderBottomRightRadius, c.borderBottomLeftRadius].some((r) => r !== "0px")) out.add(`radius ${el.tagName}.${el.classList[0] ?? ""}`);
+      const own = [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim());
+      const family = c.fontFamily.split(",")[0].replace(/["']/g, "").trim();
+      if (own && !families.includes(family)) out.add(`family ${el.tagName}.${el.classList[0] ?? ""} ${family}`);
+    }
+    return [...out].slice(0, 12);
+  }, [P5_NATIVE.join(", "), P5_GOVERNED_IN_NATIVE.join(", "), P5_FAMILIES]);
   for (const theme of THEMES) {
     for (const route of P5_ROUTES) {
       await withPage({ theme, route }, async (page) => {
-        const bad = await page.evaluate(([skip, families, corners]) => {
-          const out = new Set();
-          for (const el of document.querySelectorAll("body *")) {
-            if (!el.getClientRects().length || el.closest("[data-df-region], svg") || el.matches("img, video, canvas, iframe") || (skip && el.closest(skip))) continue;
-            const c = getComputedStyle(el);
-            if (corners && [c.borderTopLeftRadius, c.borderTopRightRadius, c.borderBottomRightRadius, c.borderBottomLeftRadius].some((r) => r !== "0px")) out.add(`radius ${el.tagName}.${el.classList[0] ?? ""}`);
-            const own = [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim());
-            const family = c.fontFamily.split(",")[0].replace(/["']/g, "").trim();
-            if (own && !families.includes(family)) out.add(`family ${el.tagName}.${el.classList[0] ?? ""} ${family}`);
-          }
-          return [...out].slice(0, 12);
-        }, [P5_NATIVE.join(", "), P5_FAMILIES, !P5_CORNERS_LATER.includes(route)]);
+        const bad = await p5Sweep(page);
         invariant(bad.length === 0, `${theme} ${route}: ${JSON.stringify(bad)}`);
       });
     }
@@ -3534,6 +3545,205 @@ if (MODE === "check") {
         return out;
       });
       invariant(menu.length === 0, `${theme} /simulations/rhythm-lab ${width}x${height}: saved-songs menu ${JSON.stringify(menu)}`);
+    });
+  }
+  // Phase 5 Task 20 (§08 Layers and overlays; §06 voices; §13 control model, Focus; D8; P3-5). Rhythm Lab's overlays and
+  // dialogs in each state they take, in every theme Mono included: the ready check (at load), the tutorial prompt, the
+  // pause menu, the run summary, and the delete and import dialogs. Each is swept like the rest of the page (square
+  // corners, a Darkfield family); a panel or dialog is an opaque surface-2 face in an edge boundary over the scrim; every
+  // run of text in it reads fg or fg-muted of the page's token set, never the highway's pinned ink; every action is a
+  // control, none is filled and all take one height. A dialog takes focus on open, keeps Escape, and gives focus back to
+  // its opener on close.
+  const rhythmInk = (page) => page.evaluate(() => {
+    const host = document.querySelector(".rhythm-lab"); const p = document.createElement("i"); host.append(p);
+    const read = (prop, v) => { p.style[prop] = v; return getComputedStyle(p)[prop]; };
+    const out = { fg: read("color", "var(--fg)"), muted: read("color", "var(--fg-muted)"), surface: read("backgroundColor", "var(--surface-2)"),
+      scrim: read("backgroundColor", "var(--df-scrim)") };
+    p.style.border = "var(--stroke-hair) solid var(--edge)"; const b = getComputedStyle(p); out.border = `${b.borderTopStyle} ${b.borderTopWidth} ${b.borderTopColor}`;
+    p.remove(); return out;
+  });
+  const rhythmFace = (page, face, ground) => page.evaluate(([f, g]) => {
+    const el = document.querySelector(f); if (!el) return { missing: f };
+    const c = getComputedStyle(el); const inks = new Set();
+    for (const e of [el, ...el.querySelectorAll("*")]) {
+      if (e.getClientRects().length && !e.closest("button") && [...e.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim())) inks.add(getComputedStyle(e).color);
+    }
+    const buttons = [...el.querySelectorAll("button")];
+    return { bg: c.backgroundColor, border: `${c.borderTopStyle} ${c.borderTopWidth} ${c.borderTopColor}`, inks: [...inks],
+      ground: g ? getComputedStyle(document.querySelector(g)).backgroundColor : null,
+      heights: [...new Set(buttons.filter((b) => b.getClientRects().length).map((b) => Math.round(b.getBoundingClientRect().height)))],
+      plain: buttons.filter((b) => !b.matches(".df-control.df-label")).map((b) => b.textContent.trim()),
+      filled: buttons.filter((b) => getComputedStyle(b).backgroundColor !== "rgba(0, 0, 0, 0)").map((b) => b.textContent.trim()) };
+  }, [face, ground]);
+  const checkFace = (where, seen, ink, { face = true, ground = true } = {}) => {
+    if (seen.missing) { invariant(false, `${where}: ${seen.missing} not rendered`); return; }
+    if (face) {
+      invariant(seen.bg === ink.surface, `${where}: face ${seen.bg}, not opaque surface-2 ${ink.surface}`);
+      invariant(seen.border === ink.border, `${where}: boundary ${seen.border}, not ${ink.border}`);
+    }
+    if (ground) invariant(seen.ground === ink.scrim, `${where}: ground ${seen.ground}, not the scrim ${ink.scrim}`);
+    invariant(seen.inks.length > 0 && seen.inks.every((c) => c === ink.fg || c === ink.muted), `${where}: text inks ${JSON.stringify(seen.inks)} (fg ${ink.fg}, fg-muted ${ink.muted})`);
+    invariant(seen.plain.length === 0 && seen.filled.length === 0, `${where}: actions ${JSON.stringify({ plain: seen.plain, filled: seen.filled })}`);
+    // Actions side by side or stacked keep one control height: none is stretched by a neighbour's margin.
+    invariant(seen.heights.length <= 1, `${where}: action heights ${JSON.stringify(seen.heights)}`);
+  };
+  const rhythmButton = (page, name) => page.locator(".rhythm-lab").getByRole("button", { name, exact: true });
+  for (const theme of [...new Set([...THEMES, "mono"])]) {
+    // Ready check, tutorial prompt, pause menu, run summary.
+    await withPage({ theme, route: "/simulations/rhythm-lab" }, async (page) => {
+      await rhythmButton(page, "Start").waitFor(); await frames(page);
+      const ink = await rhythmInk(page);
+      const states = [["ready check", async () => {}],
+        ["pause menu", async () => { await rhythmButton(page, "Start").click(); await page.locator(".rhythm-lab-active-bar").waitFor();
+          await page.keyboard.press("Escape"); await page.locator(".rhythm-lab-pause-panel").waitFor(); }],
+        ["run summary", async () => { await rhythmButton(page, "End Song").click(); await page.locator(".rhythm-lab-summary-panel").waitFor(); }]];
+      for (const [state, reach] of states) {
+        await reach(); await page.mouse.move(0, 0); await frames(page);
+        const where = `${theme} /simulations/rhythm-lab ${state}`;
+        invariant((await page.locator(".rhythm-lab-overlay").count()) === 1, `${where}: no overlay`);
+        const bad = await p5Sweep(page);
+        invariant(bad.length === 0, `${where}: ${JSON.stringify(bad)}`);
+        checkFace(where, await rhythmFace(page, ".rhythm-lab-overlay-panel", ".rhythm-lab-overlay"), ink);
+      }
+    });
+    await withPage({ theme, route: "/simulations/rhythm-lab" }, async (page) => {
+      await rhythmButton(page, "New here? Start tutorial").click(); await page.locator(".rhythm-lab-tutorial-prompt").waitFor();
+      await page.mouse.move(0, 0); await frames(page);
+      const where = `${theme} /simulations/rhythm-lab tutorial prompt`;
+      const bad = await p5Sweep(page);
+      invariant(bad.length === 0, `${where}: ${JSON.stringify(bad)}`);
+      checkFace(where, await rhythmFace(page, ".rhythm-lab-tutorial-prompt", null), await rhythmInk(page), { face: false, ground: false });
+    });
+    // The delete dialog, opened from the keyboard, and the import dialog for a chart exported for another song.
+    await withPage({ theme, route: "/simulations/rhythm-lab" }, async (page) => {
+      await rhythmLoad(page);
+      const ink = await rhythmInk(page);
+      const opener = rhythmButton(page, "Delete");
+      await opener.focus(); await page.keyboard.press("Enter");
+      await page.locator(".rhythm-lab-delete-dialog").waitFor(); await page.mouse.move(0, 0); await frames(page);
+      let where = `${theme} /simulations/rhythm-lab delete dialog`;
+      const open = await page.evaluate(() => ({ focus: document.activeElement?.textContent.trim(), inside: !!document.activeElement?.closest('[role="dialog"]'),
+        cut: document.querySelector(".rhythm-lab-delete-dialog").classList.contains("df-cut-md") }));
+      invariant(open.inside && open.focus === "Cancel" && open.cut, `${where}: on open ${JSON.stringify(open)}`);
+      invariant((await p5Sweep(page)).length === 0, `${where}: ${JSON.stringify(await p5Sweep(page))}`);
+      checkFace(where, await rhythmFace(page, ".rhythm-lab-delete-dialog", ".rhythm-lab-modal-backdrop"), ink);
+      await page.keyboard.press("Escape"); await frames(page);
+      const closed = await page.evaluate(() => ({ open: !!document.querySelector('[role="dialog"]'), focus: document.activeElement?.textContent.trim().slice(0, 30) ?? null }));
+      invariant(!closed.open && closed.focus === "Delete", `${where}: after Escape ${JSON.stringify(closed)} (focus returns to Delete)`);
+      await rhythmChart(page, { id: "probe-other-song", title: "Another song", durationMs: 2000, audioFileName: "another-song.wav" });
+      await page.locator(".rhythm-lab-delete-dialog").waitFor(); await page.mouse.move(0, 0); await frames(page);
+      where = `${theme} /simulations/rhythm-lab import dialog`;
+      invariant(await page.evaluate(() => document.activeElement?.closest('[role="dialog"]') && document.activeElement.textContent.trim() === "Cancel"), `${where}: focus is not on Cancel`);
+      invariant((await p5Sweep(page)).length === 0, `${where}: ${JSON.stringify(await p5Sweep(page))}`);
+      checkFace(where, await rhythmFace(page, ".rhythm-lab-delete-dialog", ".rhythm-lab-modal-backdrop"), ink);
+    });
+    // On a narrow phone (320x568) the chamfered dialog face clips whatever crosses its edge: every action of each dialog
+    // (delete, import, clear history), its boundary and its focus ring (the ring and the forced-colours outline) lie inside
+    // the dialog's border box. Each action is reached by Tab, so its ring shows. Cancel gives focus back to the control
+    // that opened the delete and the import dialogs (clearing history removes its opener, so that dialog only closes).
+    const narrowActions = async (where) => {
+      const out = [];
+      for (const key of ["Tab", "Shift+Tab"]) {
+        await page320.keyboard.press(key); await frames(page320);
+        out.push(...await page320.evaluate(() => {
+          const b = document.activeElement; const dialog = document.querySelector('[role="dialog"]');
+          if (!dialog || !dialog.contains(b)) return [`focus left the dialog (${b?.tagName})`];
+          const c = getComputedStyle(b); const r = b.getBoundingClientRect(); const d = dialog.getBoundingClientRect();
+          const ring = Math.max(0, ...[...c.boxShadow.matchAll(/(-?[\d.]+)px(?=\s*(,|$))/g)].map((m) => parseFloat(m[1])));
+          const outline = c.outlineStyle === "none" ? 0 : parseFloat(c.outlineWidth) + Math.max(0, parseFloat(c.outlineOffset));
+          const e = Math.max(ring, outline); const name = b.textContent.trim();
+          if (!ring) return [`${name}: no focus ring shown`];
+          return r.left - e < d.left - 0.5 || r.right + e > d.right + 0.5 || r.top - e < d.top - 0.5 || r.bottom + e > d.bottom + 0.5
+            ? [`${name} ${[r.left - e, r.right + e].map((v) => v.toFixed(1))} outside the dialog ${[d.left, d.right].map((v) => v.toFixed(1))}`] : [];
+        }));
+      }
+      invariant(out.length === 0, `${where}: ${JSON.stringify(out)}`);
+    };
+    const cancelReturns = async (where, opener) => {
+      const focus = await page320.evaluate(() => document.activeElement?.textContent.trim());
+      invariant(focus === "Cancel", `${where}: Cancel does not hold focus before closing (${focus})`);
+      await page320.keyboard.press("Enter"); await frames(page320);
+      const after = await page320.evaluate(() => ({ open: !!document.querySelector('[role="dialog"]'), focus: document.activeElement?.textContent.trim().slice(0, 30) ?? null }));
+      invariant(!after.open && after.focus === opener, `${where}: after Cancel ${JSON.stringify(after)} (focus returns to ${opener})`);
+    };
+    let page320;
+    await withPage({ theme, route: "/simulations/rhythm-lab" }, async (page) => {
+      page320 = page; await page.setViewportSize({ width: 320, height: 568 }); await frames(page);
+      await rhythmButton(page, "Start").waitFor(); await rhythmLoad(page);
+      await rhythmButton(page, "Delete").focus(); await page.keyboard.press("Enter"); await page.locator('[role="dialog"]').waitFor(); await frames(page);
+      await narrowActions(`${theme} /simulations/rhythm-lab 320x568 delete dialog`);
+      await cancelReturns(`${theme} /simulations/rhythm-lab 320x568 delete dialog`, "Delete");
+      const importer = rhythmButton(page, "Import chart"); await importer.focus();
+      // Through the hidden input rather than the file chooser, whose event is not reliably delivered; focus stays on
+      // Import chart, so the dialog still takes it as the opener.
+      await rhythmChart(page, { id: "probe-other-song", title: "Another song", durationMs: 2000, audioFileName: "another-song.wav" });
+      await page.locator('[role="dialog"]').waitFor(); await frames(page);
+      await narrowActions(`${theme} /simulations/rhythm-lab 320x568 import dialog`);
+      await cancelReturns(`${theme} /simulations/rhythm-lab 320x568 import dialog`, "Import chart");
+    });
+    await withPage({ theme, route: "/simulations/rhythm-lab" }, async (page) => {
+      page320 = page; await page.setViewportSize({ width: 320, height: 568 }); await frames(page);
+      await rhythmButton(page, "Start").click(); await page.locator(".rhythm-lab-active-bar").waitFor();
+      await page.keyboard.press("Escape"); await rhythmButton(page, "End Song").click();
+      await rhythmButton(page, "Back to setup").click(); await page.getByRole("tab", { name: "History", exact: true }).click();
+      const opener = rhythmButton(page, "Clear history"); await opener.focus(); await page.keyboard.press("Enter");
+      await page.locator('[role="dialog"]').waitFor(); await frames(page);
+      await narrowActions(`${theme} /simulations/rhythm-lab 320x568 clear-history dialog`);
+      await page.keyboard.press("Escape"); await frames(page);
+      invariant(await page.evaluate(() => !document.querySelector('[role="dialog"]') && document.activeElement?.textContent.trim() === "Clear history"),
+        `${theme} /simulations/rhythm-lab 320x568 clear-history dialog: Escape does not close it and return focus to Clear history`);
+    });
+  }
+  // The bounded setup face on a short phone (Task 19) scrolls a control that takes keyboard focus clear of its edge, so
+  // the focus ring is never clipped by the face (§13 Focus): every control in it, reached by Tab, has its whole ring inside
+  // the face's scrollport. After a saved song is chosen from the menu, by pointer or by keyboard, focus is on the trigger
+  // (the chosen option is removed with the list).
+  for (const theme of [...new Set([...THEMES, "mono"])]) {
+    await withPage({ theme, route: "/simulations/rhythm-lab" }, async (page) => {
+      await page.setViewportSize({ width: 320, height: 568 }); await frames(page);
+      await rhythmButton(page, "Start").waitFor(); await rhythmLoad(page);
+      const bounded = await page.evaluate(() => { const h = document.querySelector(".rhythm-lab-header"); return h.scrollHeight > h.clientHeight + 1; });
+      invariant(bounded, `${theme} /simulations/rhythm-lab 320x568: the setup face does not scroll (the check would be vacuous)`);
+      await page.locator(".rhythm-lab-back-link").focus();
+      const seen = [];
+      for (let i = 0; i < 40; i++) {
+        await page.keyboard.press("Tab"); await frames(page);
+        const at = await page.evaluate(() => {
+          const el = document.activeElement; const face = document.querySelector(".rhythm-lab-header");
+          if (!el || !face.contains(el)) return null;
+          const spread = Math.max(0, ...[...getComputedStyle(el).boxShadow.matchAll(/(-?[\d.]+)px(?=\s*(,|$))/g)].map((m) => parseFloat(m[1])));
+          const r = el.getBoundingClientRect(); const f = face.getBoundingClientRect();
+          const port = { top: f.top + face.clientTop, left: f.left + face.clientLeft }; port.bottom = port.top + face.clientHeight; port.right = port.left + face.clientWidth;
+          const ring = { top: r.top - spread, bottom: r.bottom + spread, left: r.left - spread, right: r.right + spread };
+          const clipped = el.matches('input[type="file"]') ? false : ring.top < port.top - 0.5 || ring.bottom > port.bottom + 0.5 || ring.left < port.left - 0.5 || ring.right > port.right + 0.5;
+          return { name: (el.getAttribute("aria-label") || el.textContent || el.tagName).trim().slice(0, 24), spread, clipped,
+            ring: [ring.top, ring.bottom].map((v) => +v.toFixed(1)), port: [port.top, port.bottom].map((v) => +v.toFixed(1)) };
+        });
+        if (!at) { if (seen.length) break; continue; }
+        seen.push(at);
+      }
+      invariant(seen.length >= 8 && seen.every((s) => s.spread > 0), `${theme} /simulations/rhythm-lab 320x568: focus walk ${JSON.stringify(seen)}`);
+      const clipped = seen.filter((s) => s.clipped);
+      invariant(clipped.length === 0, `${theme} /simulations/rhythm-lab 320x568: focus ring clipped at the setup face's edge ${JSON.stringify(clipped)}`);
+    });
+    await withPage({ theme, route: "/simulations/rhythm-lab" }, async (page) => {
+      await rhythmButton(page, "Start").waitFor();
+      await rhythmFile(page, "first-probe-track.wav"); await rhythmFile(page, "second-probe-track.wav");
+      const trigger = page.locator(".rhythm-lab-song-selector-trigger");
+      const onTrigger = () => page.evaluate(() => ({ trigger: document.activeElement?.matches(".rhythm-lab-song-selector-trigger") ?? false,
+        at: document.activeElement ? `${document.activeElement.tagName}.${document.activeElement.classList[0] ?? ""}` : null }));
+      const wait = async () => { await frames(page); await page.waitForTimeout(250); await frames(page); };
+      await trigger.click(); await page.locator(".rhythm-lab-song-option").first().waitFor();
+      await page.locator('.rhythm-lab-song-option[aria-selected="false"]').first().click(); await wait();
+      const byPointer = await onTrigger();
+      await trigger.focus(); await page.keyboard.press("Enter"); await page.locator(".rhythm-lab-song-option").first().waitFor();
+      await page.locator('.rhythm-lab-song-option[aria-selected="false"]').first().focus(); await page.keyboard.press("Enter"); await wait();
+      const byKey = await onTrigger();
+      await trigger.focus(); await page.keyboard.press("Enter"); await page.locator(".rhythm-lab-song-option").first().waitFor();
+      await page.locator(".rhythm-lab-song-option").first().focus(); await page.keyboard.press("Escape"); await wait();
+      const byEscape = await onTrigger();
+      invariant(byPointer.trigger && byKey.trigger && byEscape.trigger,
+        `${theme} /simulations/rhythm-lab: focus after the saved-songs menu closes ${JSON.stringify({ byPointer, byKey, byEscape })}`);
     });
   }
   // Phase 5 Task 12 (§07 The cell; §06 Hierarchy and voices; §13 control model; P5-7). /terminal, route intro: the heading

@@ -384,11 +384,10 @@ const RhythmLab = () => {
       pausePlayback();
       resetChartRuntimeForSongChange();
       void selectSong(songId);
-      focusGame();
+      // Focus stays with the saved-songs trigger (SongControls returns it there); lane keys are read on the window.
     },
     [
       activeSongId,
-      focusGame,
       pausePlayback,
       resetChartRuntimeForSongChange,
       selectSong,

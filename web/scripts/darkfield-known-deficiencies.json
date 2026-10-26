@@ -47,7 +47,7 @@
     },
     {
       "id": "text|dark|/simulations/rhythm-lab|span|Ready|\"Ready\"",
-      "reason": "covered by div.rhythm-lab-overlay-panel"
+      "reason": "covered by div.rhythm-lab-overlay"
     },
     {
       "id": "interact|dark|/simulations/rhythm-lab|button|A / J / Left#1:hover",
@@ -123,7 +123,7 @@
     },
     {
       "id": "text|light|/simulations/rhythm-lab|span|Ready|\"Ready\"",
-      "reason": "covered by div.rhythm-lab-overlay-panel"
+      "reason": "covered by div.rhythm-lab-overlay"
     },
     {
       "id": "interact|light|/simulations/rhythm-lab|button|A / J / Left#1:hover",

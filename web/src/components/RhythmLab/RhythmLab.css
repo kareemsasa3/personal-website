@@ -1033,6 +1033,11 @@
   line-height: 1.25;
 }
 
+/* In-highway overlays (Phase 5 Task 20; §08 Layers and overlays; §06 voices). The ready check, the pause menu, the run
+   summary and the tutorial prompt sit inside the native highway, whose pins keep its own type and ink; each sets the
+   site's family and colour here, so nothing governed inherits the highway's. The overlay dims the highway to the scrim
+   and its panel is one surface-2 face in an edge boundary, square and opaque. Supporting lines read fg-muted; headings
+   and values fg. */
 .rhythm-lab-overlay {
   position: absolute;
   inset: 0;
@@ -1042,7 +1047,9 @@
   justify-content: center;
   padding: 1rem;
   box-sizing: border-box;
-  background: rgba(0, 0, 0, 0.78);
+  background-color: var(--df-scrim);
+  color: var(--fg);
+  font-family: var(--font-sans);
 }
 
 .rhythm-lab-overlay-panel {
@@ -1050,26 +1057,31 @@
   min-width: 0;
   max-width: 100%;
   padding: 1.25rem;
-  border: 1px solid rgba(76, 175, 80, 0.55);
-  border-radius: 0.65rem;
-  background: rgba(0, 0, 0, 0.78);
+  border: var(--stroke-hair) solid var(--edge);
+  border-radius: var(--radius-0);
+  background-color: var(--surface-2);
   box-sizing: border-box;
+  color: var(--fg-muted);
   text-align: center;
+  --df-ground-up: var(--surface-3);
 }
 
-.rhythm-lab-overlay-panel p,
-.rhythm-lab-overlay-panel span {
+.rhythm-lab-overlay-panel > p,
+.rhythm-lab-overlay-panel > span {
+  display: block;
   margin: 0;
-  color: rgba(255, 255, 255, 0.72);
-  font-size: 0.88rem;
-  line-height: 1.5;
   overflow-wrap: anywhere;
 }
 
+/* Headings are sentence case (§06 Hierarchy); the words stay as written, so the case is set here. */
 .rhythm-lab-overlay-panel h2 {
   margin: 0.35rem 0 1rem;
   color: var(--fg);
-  font-size: clamp(1.6rem, 4vw, 2.4rem);
+  text-transform: lowercase;
+}
+
+.rhythm-lab-overlay-panel h2::first-letter {
+  text-transform: uppercase;
 }
 
 /* ── Tutorial prompt ── */
@@ -1085,23 +1097,15 @@
   flex-direction: column;
   align-items: center;
   gap: 0.35rem;
+  color: var(--fg);
+  font-family: var(--font-sans);
   text-align: center;
   pointer-events: none;
 }
 
 .rhythm-lab-tutorial-step {
   margin: 0;
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.rhythm-lab-tutorial-step:focus-visible {
-  border-radius: 0.2rem;
-  outline: 1px solid rgba(76, 175, 80, 0.7);
-  outline-offset: 0.2rem;
+  color: var(--fg-muted);
 }
 
 .rhythm-lab-tutorial-announcer {
@@ -1120,16 +1124,12 @@
 .rhythm-lab-tutorial-headline {
   margin: 0;
   color: var(--fg);
-  font-size: clamp(1.1rem, 3.6vw, 1.6rem);
-  font-weight: 700;
-  line-height: 1.25;
   overflow-wrap: anywhere;
 }
 
 .rhythm-lab-tutorial-detail {
   margin: 0.25rem 0 0;
-  color: rgba(255, 255, 255, 0.78);
-  font-size: 0.85rem;
+  color: var(--fg);
   overflow-wrap: anywhere;
 }
 
@@ -1138,48 +1138,21 @@
   pointer-events: auto;
 }
 
-.rhythm-lab-primary-action {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 9rem;
-  min-height: 2.75rem;
-  margin: 0 0 1rem;
-  border: 1px solid var(--fg-muted);
-  border-radius: 0.45rem;
-  background: var(--fg-muted);
-  color: #000000;
-  cursor: pointer;
-  font-weight: 900;
-  text-transform: uppercase;
+/* The overlay and dialog actions are controls (§13): the control model owns their boundary, ground and label, so
+   none is filled (D8) and the destructive one carries no fault hue (P3-5). Only their layout is set here. */
+.rhythm-lab-primary-action,
+.rhythm-lab-secondary-action,
+.rhythm-lab-danger-button {
+  min-width: min(9rem, 100%);
 }
 
-.rhythm-lab-secondary-action {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 9rem;
-  min-height: 2.75rem;
-  border: 1px solid rgba(76, 175, 80, 0.52);
-  border-radius: 0.45rem;
-  background: rgba(0, 0, 0, 0.52);
-  color: var(--fg-muted);
-  cursor: pointer;
-  font-family: inherit;
-  font-weight: 900;
-  text-transform: uppercase;
-}
-
-.rhythm-lab-secondary-action:hover,
-.rhythm-lab-secondary-action:focus-visible {
-  border-color: rgba(76, 175, 80, 0.82);
-  background: rgba(76, 175, 80, 0.12);
-}
-
+/* The summary scrolls inside its bound on short screens; like the setup face, it keeps a focused control's ring clear
+   of its edge. */
 .rhythm-lab-summary-panel {
   width: min(100%, 30rem);
   max-height: min(90%, 34rem);
   overflow: auto;
+  scroll-padding-block: var(--space-2);
 }
 
 .rhythm-lab-pause-panel {
@@ -1199,140 +1172,69 @@
   width: 100%;
 }
 
-.rhythm-lab-summary-progress {
+/* The run's results are name and value pairs in regions between L1 rules, not tiles (§08 Not a dashboard): names in
+   the small label voice at the muted tier, values in the Machine voice in fg. */
+.rhythm-lab-summary-progress,
+.rhythm-lab-summary-best,
+.rhythm-lab-summary-metrics {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.5rem;
   margin: 0 0 1rem;
+  padding: var(--space-2) 0;
+  border-top: var(--stroke-hair) solid var(--rule);
+  border-bottom: var(--stroke-hair) solid var(--rule);
 }
 
-.rhythm-lab-summary-progress div {
+.rhythm-lab-summary-best {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.rhythm-lab-summary-progress div,
+.rhythm-lab-summary-best div,
+.rhythm-lab-summary-metrics div {
   min-width: 0;
-  padding: 0.55rem 0.6rem;
-  border: 1px solid rgba(255, 183, 77, 0.32);
-  border-radius: 0.4rem;
-  background: rgba(255, 183, 77, 0.08);
   text-align: left;
 }
 
-.rhythm-lab-summary-progress dt {
-  margin: 0 0 0.25rem;
+.rhythm-lab-summary-progress dt,
+.rhythm-lab-summary-best dt,
+.rhythm-lab-summary-metrics dt {
+  margin: 0 0 var(--space-1);
   overflow: hidden;
-  color: rgba(255, 255, 255, 0.58);
-  font-size: 0.66rem;
-  font-weight: 900;
   text-overflow: ellipsis;
-  text-transform: uppercase;
   white-space: nowrap;
 }
 
-.rhythm-lab-summary-progress dd {
+.rhythm-lab-summary-progress dd,
+.rhythm-lab-summary-best dd,
+.rhythm-lab-summary-metrics dd {
   margin: 0;
-  color: #ffcc80;
-  font-size: 0.95rem;
-  font-weight: 900;
+  color: var(--fg);
 }
 
+/* The score: an Instrument name beside a Machine readout between rules. It is a settled result, never Live. */
 .rhythm-lab-summary-score {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: 1rem;
   margin: 0 0 1rem;
-  padding: 0.75rem 0.85rem;
-  border: 1px solid rgba(76, 175, 80, 0.42);
-  border-radius: 0.45rem;
-  background: rgba(76, 175, 80, 0.1);
-  color: rgba(255, 255, 255, 0.76);
+  padding: var(--space-2) 0;
+  border-top: var(--stroke-hair) solid var(--rule);
+  border-bottom: var(--stroke-hair) solid var(--rule);
   text-align: left;
-}
-
-.rhythm-lab-summary-score span {
-  color: rgba(255, 255, 255, 0.72);
-  font-size: 0.78rem;
-  font-weight: 900;
-  text-transform: uppercase;
 }
 
 .rhythm-lab-summary-score strong {
-  color: var(--fg-muted);
-  font-size: clamp(1.5rem, 4vw, 2.3rem);
-  line-height: 1;
+  color: var(--fg);
 }
 
-.rhythm-lab-summary-best {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.5rem;
-  margin: 0 0 1rem;
-}
-
-.rhythm-lab-summary-best div {
-  min-width: 0;
-  padding: 0.55rem 0.6rem;
-  border: 1px solid rgba(255, 215, 0, 0.28);
-  border-radius: 0.4rem;
-  background: rgba(255, 215, 0, 0.08);
-  text-align: left;
-}
-
-.rhythm-lab-summary-best dt {
-  margin: 0 0 0.25rem;
-  overflow: hidden;
-  color: rgba(255, 255, 255, 0.58);
-  font-size: 0.66rem;
-  font-weight: 900;
-  text-overflow: ellipsis;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-.rhythm-lab-summary-best dd {
-  margin: 0;
-  color: #ffe58a;
-  font-size: 0.95rem;
-  font-weight: 900;
-}
-
-.rhythm-lab-summary-warning {
+/* A run that could not be saved (§13 Errors): the shared error signature; the message is its own words in fg. */
+.rhythm-lab-overlay-panel > .rhythm-lab-summary-warning {
   margin: 0 0 0.75rem;
-  color: #ffb8c0;
-  font-size: 0.72rem;
-  font-weight: 800;
-}
-
-.rhythm-lab-summary-metrics {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.5rem;
-  margin: 0 0 1rem;
-}
-
-.rhythm-lab-summary-metrics div {
-  min-width: 0;
-  padding: 0.62rem 0.7rem;
-  border: 1px solid rgba(76, 175, 80, 0.28);
-  border-radius: 0.4rem;
-  background: rgba(0, 0, 0, 0.46);
+  padding: var(--space-2) var(--space-3);
   text-align: left;
-}
-
-.rhythm-lab-summary-metrics dt {
-  margin: 0 0 0.25rem;
-  overflow: hidden;
-  color: rgba(255, 255, 255, 0.58);
-  font-size: 0.7rem;
-  font-weight: 900;
-  text-overflow: ellipsis;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-.rhythm-lab-summary-metrics dd {
-  margin: 0;
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 1rem;
-  font-weight: 900;
 }
 
 .rhythm-lab-summary-actions {
@@ -1342,10 +1244,6 @@
   flex-wrap: wrap;
   gap: 0.6rem;
   margin: 0 0 1rem;
-}
-
-.rhythm-lab-summary-actions .rhythm-lab-primary-action {
-  margin: 0;
 }
 
 @media (max-width: 768px) {
@@ -1533,10 +1431,6 @@
     padding: 1rem;
   }
 
-  .rhythm-lab-summary-score {
-    padding: 0.65rem 0.7rem;
-  }
-
   .rhythm-lab-summary-metrics {
     gap: 0.42rem;
   }
@@ -1545,30 +1439,6 @@
     grid-template-columns: minmax(0, 1fr);
     gap: 0.42rem;
     margin-bottom: 0.75rem;
-  }
-
-  .rhythm-lab-summary-best div {
-    padding: 0.5rem 0.58rem;
-  }
-
-  .rhythm-lab-summary-best dt {
-    font-size: 0.62rem;
-  }
-
-  .rhythm-lab-summary-best dd {
-    font-size: 0.88rem;
-  }
-
-  .rhythm-lab-summary-metrics div {
-    padding: 0.55rem 0.58rem;
-  }
-
-  .rhythm-lab-summary-metrics dt {
-    font-size: 0.62rem;
-  }
-
-  .rhythm-lab-summary-metrics dd {
-    font-size: 0.88rem;
   }
 
   .rhythm-lab-summary-actions {
@@ -1587,12 +1457,14 @@
 /* Phones, before a run: the setup face scrolls inside a bounded height, so the highway below it keeps a floor that holds
    the ready check and its Start whatever the setup panel holds. A run's header is not bounded: the playfield and its
    hit zones keep their size. While the saved-songs menu is open the face is not bounded, so the menu is never cut by
-   it; the page behind is under the scrim then. */
+   it; the page behind is under the scrim then. A control that focus scrolls into view stops short of the face's edge by
+   more than the focus ring's width, so the ring is never clipped there (§13 Focus). */
 @media (max-width: 600px) {
   .rhythm-lab:not(.rhythm-lab-active-session) .rhythm-lab-header:not(:has([aria-expanded="true"])) {
     max-height: max(var(--rhythm-lab-setup-floor), calc(100dvh - var(--rhythm-lab-stage-floor)));
     overflow-y: auto;
     overscroll-behavior: contain;
+    scroll-padding-block: var(--space-2);
   }
 }
 
@@ -1643,8 +1515,7 @@
   .rhythm-lab-highway::after,
   .rhythm-lab-target-window::before,
   .rhythm-lab-target-window-line,
-  .rhythm-lab-hit-zone,
-  .rhythm-lab-primary-action {
+  .rhythm-lab-hit-zone {
     transition: none;
   }
 
@@ -1657,8 +1528,10 @@
   }
 }
 
-/* ── Delete chart confirmation modal ── */
-
+/* ── Dialogs (§08 Layers and overlays; §13) ──
+   The delete, clear-history and import confirmations: the backdrop dims the page to the scrim; the dialog is a primary
+   overlay on surface-2 in an edge boundary with the cut-md chamfer (df-cut-md in the markup), square. Nothing is armed
+   while a dialog only asks, so no state hue. The kicker is an Instrument label; the consequence is content in fg. */
 .rhythm-lab-modal-backdrop {
   position: fixed;
   inset: 0;
@@ -1668,7 +1541,7 @@
   justify-content: center;
   padding: 1rem;
   box-sizing: border-box;
-  background: rgba(0, 0, 0, 0.78);
+  background-color: var(--df-scrim);
 }
 
 .rhythm-lab-delete-dialog {
@@ -1676,78 +1549,42 @@
   min-width: 0;
   max-width: 100%;
   padding: 1.25rem;
-  border: 1px solid rgba(255, 183, 77, 0.55);
-  border-radius: 0.65rem;
-  background: rgba(0, 0, 0, 0.88);
+  border: var(--stroke-hair) solid var(--edge);
+  border-radius: var(--radius-0);
+  background-color: var(--surface-2);
   box-sizing: border-box;
+  color: var(--fg-muted);
   text-align: center;
+  --df-ground-up: var(--surface-3);
 }
 
 .rhythm-lab-modal-kicker {
   display: block;
   margin: 0 0 0.25rem;
-  color: rgba(255, 183, 77, 0.85);
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
 }
 
 .rhythm-lab-delete-dialog h2 {
   margin: 0.35rem 0 0.75rem;
-  color: rgba(255, 255, 255, 0.92);
-  font-size: clamp(1.2rem, 3vw, 1.6rem);
+  color: var(--fg);
   overflow-wrap: anywhere;
 }
 
 .rhythm-lab-delete-dialog-meta {
   margin: 0 0 0.75rem;
-  color: rgba(255, 255, 255, 0.45);
-  font-size: 0.82rem;
-  line-height: 1.5;
 }
 
 .rhythm-lab-delete-dialog-copy {
   margin: 0 0 1.25rem;
-  color: rgba(255, 255, 255, 0.72);
-  font-size: 0.88rem;
-  line-height: 1.5;
+  color: var(--fg);
 }
 
+/* The actions wrap onto their own rows when the dialog is too narrow for both, so each control, its boundary and its
+   focus ring stay inside the chamfered face, which clips whatever crosses its edge. */
 .rhythm-lab-delete-dialog-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.65rem;
   justify-content: center;
-}
-
-.rhythm-lab-danger-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 9rem;
-  min-height: 2.75rem;
-  border: 1px solid #d32f2f;
-  border-radius: 0.45rem;
-  background: #d32f2f;
-  color: #ffffff;
-  cursor: pointer;
-  font-family: inherit;
-  font-weight: 900;
-  text-transform: uppercase;
-}
-
-.rhythm-lab-danger-button:hover {
-  background: #e53935;
-  border-color: #e53935;
-}
-
-.rhythm-lab-danger-button:focus-visible {
-  outline: 2px solid rgba(255, 183, 77, 0.8);
-  outline-offset: 2px;
-}
-
-.rhythm-lab-clear-history-dialog {
-  border-color: rgba(255, 193, 7, 0.75);
 }
 
 .rhythm-lab-delete-dialog-copy p {
