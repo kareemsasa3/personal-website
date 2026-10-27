@@ -1,7 +1,7 @@
 // web/scripts/darkfield-surfaces.test.mjs: Phase 5 static invariants (governed interface around creative content).
 import test from "node:test";
 import assert from "node:assert/strict";
-import { read, governed, declarations, innermost, where, NATIVE, NATIVE_KEYFRAMES, PHASE5, NATIVE5, HOLDS5, DEAD_RULES5 } from "./darkfield-css-scope.mjs";
+import { read, governed, declarations, innermost, where, NATIVE, NATIVE_KEYFRAMES, PHASE5, NATIVE5, HOLDS5, DEAD_RULES5, ANNALS_MARKER_PINS } from "./darkfield-css-scope.mjs";
 
 // Stylesheets a Phase 5 task has finished; the rules below hold for these. Task 24 requires DONE5 to equal PHASE5.
 export const DONE5 = ["pages/NotFound/NotFound.css", "components/common/ErrorBoundary.css", "components/Terminal/TerminalErrorBoundary.css",
@@ -91,6 +91,9 @@ const reads = (value, name) => new RegExp(`var\\(${name.replace(/[\\.]/g, "\\$&"
 // app mount and the layout shell around every route, and the Annals page around its sheet.
 const ANCESTOR = (compound) => /:root\b|^(html|body|main)\b|#(root|main-content-area)\b/.test(compound) ||
   [...compound.matchAll(/\.([\w-]+)/g)].some(([, c]) => /^(layout-foreground|nav-mode-[\w-]+|has-section-rail|app-content|page-content|annals-page)$/.test(c));
+// The route wrapper between main and every page (Layout.tsx's motion.div) has no class and is styled only inline; a rule
+// can reach it only through main's child combinator, so a selector item ending there names an ancestor too (Task 21).
+const ROUTE_WRAPPER = /(^|[\s>])(main|#main-content-area|\.app-content)\s*>\s*(div|\*)$/;
 const derivedOnAncestors = (decls, colours) => {
   const derived = new Set(colours);
   for (let grew = true; grew;) {
@@ -98,7 +101,7 @@ const derivedOnAncestors = (decls, colours) => {
     for (const d of decls) if (d.prop.startsWith("--") && !derived.has(d.prop) && [...derived].some((n) => reads(d.value, n))) { derived.add(d.prop); grew = true; }
   }
   return decls.filter((d) => d.prop.startsWith("--") && derived.has(d.prop) && !colours.has(d.prop))
-    .filter((d) => { const items = topLevel(innermost(d.selector)); return !items.includes("[data-theme]") && items.some((i) => ANCESTOR(subject(i))); });
+    .filter((d) => { const items = topLevel(innermost(d.selector)); return !items.includes("[data-theme]") && items.some((i) => ANCESTOR(subject(i)) || ROUTE_WRAPPER.test(flat(i).trim())); });
 };
 const colourTokens = async () => new Set(declarations(await read("styles/darkfield/tokens.css")).filter((d) => /\[data-theme=/.test(d.selector) && d.prop.startsWith("--")).map((d) => d.prop));
 
@@ -118,8 +121,9 @@ test("P5 derived variables: colour-derived custom properties on a scoped wrapper
 test("P5 derived variables: the check flags a root-level derived variable and passes an element-local one", async () => {
   const colours = await colourTokens();
   const css = ":root { --x: var(--field); }\n.layout-foreground.nav-mode-dock { --y: var(--x); }\n.error-button { --df-ground-up: var(--surface-2); }\n" +
-    ".df-control:hover { --df-bracket-ink: var(--fg-muted); }\n:root, [data-theme] { --z: var(--field); }";
-  assert.deepEqual(derivedOnAncestors(declarations(css).map((d) => ({ file: "probe.css", ...d })), colours).map((d) => d.prop), ["--x", "--y"]);
+    ".df-control:hover { --df-bracket-ink: var(--fg-muted); }\n:root, [data-theme] { --z: var(--field); }\n.app-content > div { --w: var(--fg); }\n" +
+    ".annals-page > .annals-sheet { --v: var(--fg); }";
+  assert.deepEqual(derivedOnAncestors(declarations(css).map((d) => ({ file: "probe.css", ...d })), colours).map((d) => d.prop), ["--x", "--y", "--w"]);
 });
 
 // §13 state model and §05 state encoding: glyph, word and colour together mark a state; the glyph is generated content
@@ -1349,4 +1353,107 @@ test("P5 rhythm lab overlays and dialogs: re-grounded faces, governed type and t
   // its container.
   want(".rhythm-lab-delete-dialog-actions", { display: "flex", "flex-wrap": "wrap" });
   want(".rhythm-lab-primary-action, .rhythm-lab-secondary-action, .rhythm-lab-danger-button", { "min-width": "min(9rem, 100%)" });
+});
+
+// Annals I (Phase 5 Task 21; P5-3 option B, ruled; P5-2; §06 voices; §05 State encoding, Rationing the secondary hues;
+// §15 legends; D6 ruling). The page root takes the site's family and fg. The parchment sheet is native and keeps the ink,
+// stack and colour scheme it inherited from the page before the lift (the computed-style comparison reads it), and the six
+// narrative markers keep theirs by their own pins. The sheet carries data-theme="light", so the chrome on it renders the
+// Light token set in every theme. Governed rules live after the utilities and obey the P5 rules before the whole file
+// joins DONE5 (Task 22).
+const ANNALS_CSS = "pages/Annals/Annals.css";
+const ANNALS_GOVERNED = "/* Governed Annals chrome (D6 ruling) */";
+const SERIF = 'Georgia, Cambria, "Times New Roman", Times, serif';
+const annalsClassLists = (src) => [...src.matchAll(/className="([^"]*)"/g)].map((m) => m[1]);
+const annalsGoverned = async () => {
+  const css = await read(ANNALS_CSS);
+  const at = css.indexOf(ANNALS_GOVERNED);
+  assert.ok(at > 0, `${ANNALS_CSS}: the governed section comment is missing`);
+  const line = css.slice(0, at).split("\n").length;
+  return { css, line, decls: declarations(css).map((d) => ({ file: ANNALS_CSS, ...d })) };
+};
+test("P5 annals: the lifted root, the pinned parchment and markers, and the scoped sheet", async () => {
+  const tsx = await read("pages/Annals/Annals.tsx");
+  assert.match(tsx, /<div className="annals-page page-content">/, "the root drops its type and ink utilities");
+  assert.match(tsx, /<div className="annals-sheet max-w-5xl mx-auto px-5 py-8" data-theme="light">/, "the sheet renders the Light set");
+  assert.equal((tsx.match(/data-df-region="native"/g) ?? []).length, 6, "six narrative markers");
+  assert.equal((tsx.match(/data-theme=/g) ?? []).length, 1, "one scoped wrapper");
+  const { decls } = await annalsGoverned();
+  const rule = (sel) => decls.filter((d) => d.selector === sel).map((d) => `${d.prop}: ${d.value}`);
+  assert.deepEqual(rule(".annals-page"), ["background: transparent", "color: var(--fg)", "font-family: inherit", "--annals-sheet-shadow: rgba(0, 0, 0, 0.3)"],
+    ".annals-page: the root is lifted (no literal ink, stack or colour scheme)");
+  // The parchment's own pins: what it inherited from the page before the lift.
+  for (const want of ["color: #1c1917", `font-family: ${SERIF}`, "color-scheme: light"]) assert.ok(rule(".annals-sheet").includes(want), `.annals-sheet { ${want} }`);
+  // The markers' pins: the serif stack where no mono ancestor sets one, the page's ink where a marker has no colour class, the
+  // colour scheme for all six.
+  const [family, ink, scheme] = ANNALS_MARKER_PINS;
+  assert.deepEqual(rule(family), [`font-family: ${SERIF}`]);
+  assert.deepEqual(rule(ink), ["color: #1c1917"]);
+  assert.deepEqual(rule(scheme), ["color-scheme: light"]);
+  for (const sel of [".annals-sheet", ...ANNALS_MARKER_PINS]) assert.ok(NATIVE5[ANNALS_CSS].includes(sel), `${sel} is native`);
+  // No theme-keyed rule in the file but the parchment shadow's hold, so nothing keyed on the page's theme reaches the sheet.
+  assert.deepEqual(decls.filter((d) => /\[data-theme/.test(d.selector)).map((d) => d.selector), ['[data-theme="light"] .annals-page']);
+});
+test("P5 annals chrome: governed rules follow the utilities and obey the P5 rules", async () => {
+  const { line, decls } = await annalsGoverned();
+  const governedDecls = decls.filter((d) => d.line > line);
+  assert.ok(governedDecls.length >= 15, `governed rules not found (${governedDecls.length})`);
+  assert.ok(decls.every((d) => d.line < line || !NATIVE5[ANNALS_CSS].includes(innermost(d.selector))), "a native rule below the governed comment");
+  assert.ok(decls.filter((d) => d.line < line).every((d) => !/\.annals-(heading|readout|data|label|phrase|available|hint|footer|hand|legend|key|log|banner)\b/.test(d.selector)),
+    "a governed class styled above the governed comment");
+  assert.deepEqual(governedDecls.filter((d) => !topLevel(innermost(d.selector)).every((i) => /^\.annals-sheet \.annals-[\w-]+( > (span|div))?(::before)?$/.test(i))).map(where), [],
+    "governed rules are scoped to the sheet's chrome classes");
+  for (const [name, broken] of Object.entries(P5_RULE)) assert.deepEqual(governedDecls.filter(broken).map(where), [], `P5 ${name}`);
+  assert.deepEqual(derivedOnAncestors(governedDecls, await colourTokens()).map(where), [], "P5 derived variables");
+  const value = (sel, prop) => governedDecls.find((d) => d.selector === sel && d.prop === prop)?.value;
+  // Labels and phrases are fg-muted at rest; the available hand is signal; held is fg-muted (§05 State encoding).
+  assert.equal(value(".annals-sheet .annals-available", "color"), "var(--signal)");
+  for (const c of ["annals-label", "annals-phrase", "annals-hint"]) assert.ok(governedDecls.some((d) => topLevel(d.selector).includes(`.annals-sheet .${c}`) && d.prop === "color" && d.value === "var(--fg-muted)"), `.${c} is fg-muted`);
+  // Legends: the words are fg; the keys keep the narrative's inks (P5-2 holds, HOLDS5).
+  assert.equal(value(".annals-sheet .annals-hand", "color"), "var(--fg)");
+  assert.equal(value(".annals-sheet .annals-legend > span", "color"), "var(--fg)");
+  for (const [s, p] of [[".annals-sheet .annals-hand::before", "background"], [".annals-sheet .annals-key--hand", "color"], [".annals-sheet .annals-key--baseline", "color"]]) {
+    assert.ok(HOLDS5[ANNALS_CSS].some(([hs, hp]) => hs === s && hp === p), `${s} ${p} is a hold`);
+  }
+  // The log: Machine rows on the deep field between structure seams; the watched soul's banner: an ion-deep band, an ion
+  // boundary, fg words (§05: a person's mark).
+  assert.equal(value(".annals-sheet .annals-log", "background-color"), "var(--field-deep)");
+  assert.equal(value(".annals-sheet .annals-log", "border-block"), "var(--stroke-hair) solid var(--rule)");
+  assert.equal(value(".annals-sheet .annals-log > div", "color"), "var(--fg)");
+  assert.equal(value(".annals-sheet .annals-banner", "background-color"), "var(--ion-deep)");
+  assert.equal(value(".annals-sheet .annals-banner", "border"), "var(--stroke-hair) solid var(--ion)");
+  assert.equal(value(".annals-sheet .annals-banner", "color"), "var(--fg)");
+  assert.equal(value(".annals-sheet .annals-footer", "border-top"), "var(--stroke-hair) solid var(--rule)");
+  assert.equal(value(".annals-sheet .annals-legend", "border-top"), "var(--stroke-hair) solid var(--rule)");
+});
+test("P5 annals chrome: voices, kept first classes, phrases never labels, the year never Live", async () => {
+  const tsx = await read("pages/Annals/Annals.tsx");
+  const has = (re, what) => assert.match(tsx, re, what);
+  has(/<h1 className="text-4xl annals-heading"><span className="df-heading-1">The Annals<\/span><\/h1>/, "the title is a heading (its first class is a type utility, so the voice is an inner span)");
+  // The year is a Machine readout with its label beside it; the words are unchanged ("Yr N").
+  has(/<div className="text-5xl df-readout-xl annals-readout"><span className="df-label annals-label">Yr<\/span> \{world\.year\}<\/div>/, "the year readout");
+  has(/<div className="text-xs mt-1 df-data annals-data">\s*\{living\(world\)\.length\} living/, "the census is Machine text");
+  // Section names: Instrument labels; their first utility class stays (ids pair on first classes).
+  for (const name of ["The Chronicle", "The Living", "Standing Feuds"]) has(new RegExp(`<h2 className="text-xs mb-2 df-label annals-label">${name}</h2>`), name);
+  has(/<h2 className="text-xs mb-2 mt-4 df-label annals-label">Intervention Log<\/h2>/, "Intervention Log");
+  for (const name of ["Fates That Diverged", "Houses"]) has(new RegExp(`<h3 className="text-xs mb-1\\.5 df-label annals-label">${name}</h3>`), name);
+  // A phrase inside a heading stays Narrator text; only the name is a label.
+  has(/<h2 className="text-sm mb-3">\s*<span className="df-label annals-label">The Fork<\/span>\s*<span className="text-xs ml-2 annals-phrase"><span className="df-body-sm">what your hand changed by year \{world\.year\}<\/span><\/span>/, "The Fork");
+  has(/<h2 className="text-xs mb-2">\s*<span className="df-label annals-label">Your Hand<\/span> \{world\.token \? <span className="text-yellow-700 df-body-sm annals-available">· available<\/span> : <span className="text-stone-400 df-body-sm annals-phrase">· spent \(every 3rd year\)<\/span>\}/, "Your Hand");
+  assert.ok(annalsClassLists(tsx).filter((c) => /\bannals-(phrase|available|hint)\b/.test(c)).every((c) => !/\bdf-label/.test(c)), "a phrase or hint in the label voice");
+  // Hints and the footer: Narrator text at fg-muted; the legend's words in fg with a key cell.
+  has(/<p className="text-xs mb-4 h-8 annals-hint">\s*<span className="df-body-sm">\{pending/, "the verb hint");
+  has(/<p className="text-xs mt-2 annals-hint">\s*<span className="df-body-sm">Gold lines are <span className="text-yellow-700 annals-hand">your hand<\/span>\. Everything else, the world authored alone\.<\/span>/, "the chronicle legend");
+  has(/<footer className="mt-6 pt-3 df-body-sm annals-hint annals-footer">/, "the footer");
+  // The fork legend and the log are Machine text; the banner is Narrator text in the person's band.
+  has(/<div className="text-xs pt-2 mt-2 flex gap-6 df-data annals-legend">\s*<span><span className="annals-key annals-key--baseline">○<\/span> Baseline: /, "the fork legend baseline");
+  has(/<span className="text-yellow-700"><span className="annals-key annals-key--hand">●<\/span> Your hand: /, "the fork legend hand");
+  has(/<div className="text-xs p-2 max-h-\[120px\] overflow-y-auto df-data annals-log">/, "the intervention log");
+  has(/<div className="mb-4 px-4 py-2 df-body annals-banner">/, "the watched soul's banner");
+  // The year advances only when a person lets a year pass: it is never Live.
+  assert.doesNotMatch(tsx, /df-data--live|df-context--live|setInterval|requestAnimationFrame/, "the year readout is never Live");
+  // Governed text drops the utilities that would fight its voice (after the first class).
+  for (const c of annalsClassLists(tsx).filter((l) => /\bannals-(heading|readout|data|label|phrase|available|hint|legend|log|banner)\b/.test(l))) {
+    assert.doesNotMatch(c.split(/\s+/).slice(1).join(" "), /\b(uppercase|tracking-[\w-]+|font-(serif|mono|bold|medium|semibold|normal)|text-(stone|yellow|red|amber)-\d+|text-(xs|sm|4xl|5xl)|leading-[\w-]+|tabular-nums|rounded|border(-[\w-]+)?|bg-[\w/-]+)\b/, c);
+  }
 });

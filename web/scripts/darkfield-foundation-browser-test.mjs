@@ -1223,6 +1223,9 @@ if (MODE === "check") {
       { route: "/simulations/rhythm-lab", selector: ".rhythm-lab-highway", stack: '"Courier New", Monaco, monospace' },
       { route: "/simulations/rhythm-lab", selector: ".rhythm-lab-hit-zone", stack: '"Courier New", Monaco, monospace' },
       { route: "/simulations/rhythm-lab", selector: ".rhythm-lab-status", stack: '"Courier New", Monaco, monospace' },
+      // Annals (Task 21): the root is lifted; the native parchment and the narrative markers keep the page's serif stack.
+      { route: "/simulations/annals", selector: ".annals-sheet", stack: 'Georgia, Cambria, "Times New Roman", Times, serif' },
+      { route: "/simulations/annals", selector: ".annals-sheet > header [data-df-region]", stack: 'Georgia, Cambria, "Times New Roman", Times, serif' },
     ];
     const click = async (page, href) => {
       await page.locator(`a[href="${href}"]:visible`).first().click();
@@ -3397,12 +3400,16 @@ if (MODE === "check") {
   // Darkfield family. P5_NATIVE: native elements outside any region (they host controls or governed labels).
   const P5_ROUTES = ["/darkfield-404-probe", "/procedural-animations", "/procedural-animations/mechanical-time", "/case-studies/aether", "/simulations",
     "/simulations/orbital-simulator", "/simulations/traffic-simulator", "/terminal", "/simulations/snake",
-    "/simulations/spider", "/simulations/rhythm-lab"];
+    "/simulations/spider", "/simulations/rhythm-lab", "/simulations/annals"];
   // The Rhythm Lab highway is native (D6 ruling) but unmarked: its lanes host governed labels and its hit zones are buttons.
-  const P5_NATIVE = [".rhythm-lab-highway"];
+  // The Annals parchment sheet is native (D6 ruling, P5-3): its box holds the narrative and the chrome alike.
+  const P5_NATIVE = [".rhythm-lab-highway", ".annals-sheet"];
   // Governed chrome inside a P5_NATIVE element (Task 20): the in-highway overlays (ready check, pause, run summary,
   // tutorial complete) with their controls, the tutorial prompt and the lane labels are swept like the rest of the page.
-  const P5_GOVERNED_IN_NATIVE = [".rhythm-lab-overlay", ".rhythm-lab-tutorial-prompt", ".rhythm-lab-lane-label"];
+  // Task 21: the Annals text set in Darkfield voices on the sheet (title, year, census, labels, phrases, hints, legends,
+  // log, banner and footer); its controls follow in Task 22.
+  const P5_GOVERNED_IN_NATIVE = [".rhythm-lab-overlay", ".rhythm-lab-tutorial-prompt", ".rhythm-lab-lane-label",
+    ...["heading", "readout", "data", "label", "phrase", "available", "hint", "legend", "log", "banner"].map((c) => `.annals-sheet .annals-${c}`)];
   const P5_FAMILIES = ["Archivo", "Archivo Narrow", "IBM Plex Mono"];
   const p5Sweep = (page) => page.evaluate(([skip, governedIn, families]) => {
     const out = new Set();
@@ -3453,6 +3460,98 @@ if (MODE === "check") {
       invariant(same(seen.inside, theme === "light" ? seen.dark : seen.own), `${theme} rhythm lab: the page does not render the ${theme === "light" ? "Dark" : theme} set ${JSON.stringify([seen.inside, seen.dark])}`);
       invariant(same(seen.outside, seen.own), `${theme} rhythm lab: outside the page is not the site's ${theme} set`);
       invariant(seen.strays.length === 0, `${theme} rhythm lab: elements outside the scoped page ${JSON.stringify(seen.strays)}`);
+    });
+  }
+  // Phase 5 Task 21 (P5-3 option B, ruled; P5-1; §05 Roles; D6 ruling). The Annals parchment is paper in every theme, so
+  // the sheet renders the Light token set: inside it every variable declared on a [data-theme] or [data-theme="light"]
+  // rule (the theme tokens and the variables derived from them, such as --df-scrim) and a ground probe painted with the
+  // scrim resolve exactly as inside a Light element, while the document and everything outside the sheet keep the site's
+  // set. Everything the page renders sits inside the sheet. No rule that matches an ancestor of the sheet (the page, the
+  // unclassed route wrapper Layout.tsx renders, main and the layout shell up to the document) declares a variable that
+  // reads a theme variable unless it also matches [data-theme], so no outer-theme value reaches the sheet through one.
+  for (const theme of [...new Set([...THEMES, "mono"])]) {
+    await withPage({ theme, route: "/simulations/annals" }, async (page) => {
+      await page.locator(".annals-sheet [data-df-region]").first().waitFor();
+      const seen = await page.evaluate(() => {
+        const names = new Set();
+        const rules = [];
+        const walk = (list) => { for (const r of list) { if (r.cssRules) walk(r.cssRules); if (r.selectorText) rules.push(r);
+          // A theme scope's own rules: a selector item that is the bare [data-theme] or [data-theme="light"] attribute.
+          if (r.selectorText && r.selectorText.split(",").some((i) => /^\[data-theme(="light")?\]$/.test(i.trim()))) for (const p of r.style) if (p.startsWith("--")) names.add(p); } };
+        for (const sheet of document.styleSheets) { try { walk(sheet.cssRules); } catch { /* cross-origin sheet */ } }
+        const probe = (parent) => { const p = document.createElement("i"); p.style.backgroundColor = "var(--df-scrim)"; parent.append(p);
+          const c = getComputedStyle(p); const out = { scrim: c.backgroundColor, vars: Object.fromEntries([...names].sort().map((n) => [n, c.getPropertyValue(n).trim()])) };
+          p.remove(); return out; };
+        const ref = (t) => { const d = document.createElement("div"); d.setAttribute("data-theme", t); document.body.append(d); const out = probe(d); d.remove(); return out; };
+        const sheet = document.querySelector(".annals-sheet");
+        const ancestors = [];
+        for (let e = sheet.parentElement; e; e = e.parentElement) ancestors.push(e);
+        const reads = (v) => [...names].some((n) => new RegExp(`var\\(${n}(?![\\w-])`).test(v));
+        const leaks = [];
+        for (const r of rules) {
+          if (/\[data-theme/.test(r.selectorText)) continue;
+          const hit = ancestors.find((e) => { try { return e.matches(r.selectorText); } catch { return false; } });
+          if (!hit) continue;
+          for (const p of r.style) if (p.startsWith("--") && reads(r.style.getPropertyValue(p))) leaks.push(`${r.selectorText} { ${p} } on ${hit.tagName}.${hit.classList[0] ?? ""}`);
+        }
+        const pageEl = document.querySelector(".annals-page");
+        return { html: document.documentElement.getAttribute("data-theme"), attr: sheet.getAttribute("data-theme"), names: [...names],
+          inside: probe(sheet), outside: probe(document.body), light: ref("light"), own: ref(document.documentElement.getAttribute("data-theme")),
+          chain: ancestors.slice(0, 3).map((e) => `${e.tagName.toLowerCase()}${e.className ? "." + e.className.split(" ")[0] : ""}`), leaks,
+          strays: [...pageEl.children].filter((e) => e !== sheet).map((e) => e.outerHTML.slice(0, 60)) };
+      });
+      const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+      invariant(seen.html === theme, `${theme} annals: <html> data-theme is ${seen.html}`);
+      invariant(seen.names.includes("--field") && seen.names.includes("--df-scrim") && seen.names.length > 20, `${theme} annals: themed variables not found ${JSON.stringify(seen.names)}`);
+      invariant(seen.attr === "light", `${theme} annals: the sheet's data-theme is ${seen.attr}`);
+      invariant(same(seen.inside, seen.light), `${theme} annals: the sheet does not render the Light set ${JSON.stringify([seen.inside, seen.light])}`);
+      invariant(same(seen.outside, seen.own), `${theme} annals: outside the sheet is not the site's ${theme} set`);
+      // The chain names the unclassed route wrapper between .annals-page and main (Layout.tsx's motion.div).
+      invariant(same(seen.chain, ["div.annals-page", "div", "main.app-content"]), `${theme} annals: the sheet's ancestors are ${JSON.stringify(seen.chain)}`);
+      invariant(seen.leaks.length === 0, `${theme} annals: an ancestor of the sheet declares a theme-derived variable ${JSON.stringify(seen.leaks)}`);
+      invariant(seen.strays.length === 0, `${theme} annals: page content outside the scoped sheet ${JSON.stringify(seen.strays)}`);
+    });
+  }
+  // Phase 5 Task 21 amend (P5-T21c; §06 voices). Every element on the Annals sheet that carries a generated type class
+  // renders that voice: its family, size, line height, weight, tracking and case equal those of a probe with the same class
+  // in the sheet's own token set, so no utility class the element keeps overrides the voice. Checked at load, with the
+  // hand available, and with the fork, the log and a watched soul's banner on the sheet, in every theme.
+  const VOICE = /^df-(display|heading|body|label|readout|code|data|annotation)(-[\w-]+)?$/;
+  const voices = (page) => page.evaluate((source) => {
+    const re = new RegExp(source);
+    const sheet = document.querySelector(".annals-sheet");
+    const props = ["fontFamily", "fontSize", "lineHeight", "fontWeight", "letterSpacing", "textTransform"];
+    const out = { checked: 0, bad: [] };
+    for (const el of sheet.querySelectorAll("[class*='df-']")) {
+      const voice = [...el.classList].find((c) => re.test(c));
+      if (!voice || !el.getClientRects().length) continue;
+      const probe = document.createElement("span"); probe.className = voice; sheet.append(probe);
+      const [a, b] = [getComputedStyle(el), getComputedStyle(probe)];
+      const diff = props.filter((p) => a[p] !== b[p]).map((p) => `${p} ${a[p]} != ${b[p]}`);
+      probe.remove();
+      out.checked += 1;
+      if (diff.length) out.bad.push(`${el.tagName.toLowerCase()}.${voice} "${el.textContent.trim().slice(0, 24)}": ${diff.join("; ")}`);
+    }
+    return out;
+  }, VOICE.source);
+  for (const theme of [...new Set([...THEMES, "mono"])]) {
+    await withPage({ theme, route: "/simulations/annals" }, async (page) => {
+      await page.locator(".annals-sheet [data-df-region]").first().waitFor();
+      const advance = page.getByRole("button", { name: "let a year pass →" });
+      const verbs = page.locator(".annals-page aside .flex-wrap > button");
+      const seen = [["load", await voices(page)]];
+      for (let year = 0; year < 3 && (await verbs.first().isDisabled()); year++) await advance.click();
+      seen.push(["available", await voices(page)]);
+      await page.getByRole("button", { name: "exile", exact: true }).click();
+      await page.locator(".annals-living button").first().click();
+      await page.getByRole("button", { name: "the fork", exact: true }).click();
+      await page.locator(".annals-living button").first().click();
+      invariant(await page.locator(".annals-sheet > section").count() && await page.locator(".annals-banner").count(), `${theme} annals voices: the fork or the banner did not open`);
+      seen.push(["fork, log and banner", await voices(page)]);
+      for (const [state, { checked, bad }] of seen) {
+        invariant(checked >= 12, `${theme} annals voices (${state}): only ${checked} voiced elements found`);
+        invariant(bad.length === 0, `${theme} annals voices (${state}): ${JSON.stringify(bad)}`);
+      }
     });
   }
   // Phase 5 Task 19 (§13 control model; §06 voices; D7 context labels). Rhythm Lab's active session bar at phone widths,

@@ -80,18 +80,20 @@ test("boot-shell fallbacks equal the Dark token values", async () => {
   assert.ok(seen >= 6, "index.html boot shell reads no tokens");
 });
 
-// Held for D6 (native-visual or preview typography) and Annals (creative): file → selector.
+// Held for D6 (native-visual or preview typography): file → selector. The Annals stylesheet is scanned like any other
+// (Task 21): its mono utility styles native regions; the serif stacks fall outside the legacy pattern.
 const FONT_HOLDS = [
   ["components/SpiderSolitaire/SpiderSolitaire.css", ".spider-board"],
   ["components/RhythmLab/RhythmLab.css", ".rhythm-lab-highway"],
   ["components/RhythmLab/RhythmLab.css", ".rhythm-lab-hit-zone"],
   ["components/RhythmLab/RhythmLab.css", ".rhythm-lab-status"],
   ["components/SimulationCard/SimulationCard.css", ".spider-preview-card-face"],
+  ["pages/Annals/Annals.css", ".annals-page .font-mono"],
 ];
 test("site CSS names fonts only through the Darkfield families, except recorded holds", async () => {
   const legacyStack = /(font-family|--terminal-font):[^;]*(Courier New|Monaco|Menlo|Ubuntu Mono|ui-monospace|-apple-system)[^;]*;/g;
   for (const file of await cssFiles()) {
-    if (file.startsWith("pages/Annals/") || file === "styles/darkfield/tokens.css") continue;
+    if (file === "styles/darkfield/tokens.css") continue;
     const css = await read(`src/${file}`);
     for (const rule of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
       if (!legacyStack.test(rule[2])) continue;

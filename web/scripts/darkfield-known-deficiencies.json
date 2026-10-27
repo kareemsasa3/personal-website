@@ -176,22 +176,6 @@
   ],
   "entries": [
     {
-      "id": "contrast|dark|/simulations/annals|main p|Gold lines are your hand. Ever|span.text-yellow-700>\"your hand\"",
-      "check": "contrast",
-      "theme": "dark",
-      "route": "/simulations/annals",
-      "detail": "3.74:1 (rendered ground) [your hand]",
-      "baseline": 3.74
-    },
-    {
-      "id": "contrast|dark|/simulations/annals|h2|Your Hand · spent (every 3rd y|span.text-stone-400>\"· spent (every 3rd year)\"",
-      "check": "contrast",
-      "theme": "dark",
-      "route": "/simulations/annals",
-      "detail": "1.86:1 (rendered ground) [· spent (every 3rd year)]",
-      "baseline": 1.86
-    },
-    {
       "id": "text|dark|/simulations/annals|span.text-stone-400|·|\"·\"",
       "check": "text",
       "theme": "dark",
@@ -509,30 +493,6 @@
       "theme": "dark",
       "route": "/simulations/annals",
       "detail": "2.01:1 (rendered ground) [·]",
-      "baseline": 2.01
-    },
-    {
-      "id": "state|dark|/simulations/annals|Your Hand · available:prepared|span.text-yellow-700>\"· available\"",
-      "check": "state",
-      "theme": "dark",
-      "route": "/simulations/annals",
-      "detail": "3.7:1 (rendered ground) [· available]",
-      "baseline": 3.7
-    },
-    {
-      "id": "contrast|light|/simulations/annals|main p|Gold lines are your hand. Ever|span.text-yellow-700>\"your hand\"",
-      "check": "contrast",
-      "theme": "light",
-      "route": "/simulations/annals",
-      "detail": "4.03:1 (rendered ground) [your hand]",
-      "baseline": 4.03
-    },
-    {
-      "id": "contrast|light|/simulations/annals|h2|Your Hand · spent (every 3rd y|span.text-stone-400>\"· spent (every 3rd year)\"",
-      "check": "contrast",
-      "theme": "light",
-      "route": "/simulations/annals",
-      "detail": "2.01:1 (rendered ground) [· spent (every 3rd year)]",
       "baseline": 2.01
     },
     {
@@ -854,14 +814,6 @@
       "route": "/simulations/annals",
       "detail": "2.01:1 (rendered ground) [·]",
       "baseline": 2.01
-    },
-    {
-      "id": "state|light|/simulations/annals|Your Hand · available:prepared|span.text-yellow-700>\"· available\"",
-      "check": "state",
-      "theme": "light",
-      "route": "/simulations/annals",
-      "detail": "3.99:1 (rendered ground) [· available]",
-      "baseline": 3.99
     }
   ],
   "creative": [

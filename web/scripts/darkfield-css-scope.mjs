@@ -106,6 +106,9 @@ const ANNALS_UTILITIES = [...String.raw`max-w-5xl mx-auto flex grid flex-1 flex-
   text-5xl text-left text-right leading-none leading-relaxed tracking-tight tracking-widest uppercase
   tabular-nums select-none transition cursor-not-allowed md\:grid-cols-\[1fr_320px\]`.split(/\s+/),
   ...["0\\.5", "1", "1\\.5"].map((n) => `space-y-${n} > * + *`)].map((u) => `.annals-page .${u}`);
+// Annals narrative-marker pins (Task 21, D6 ruling): the serif stack for the markers no mono ancestor sets, the page's
+// ink for the markers with no colour of their own, and the light colour scheme for all six.
+export const ANNALS_MARKER_PINS = [".annals-page [data-df-region]:not(.font-mono *)", ".annals-page div[data-df-region]", ".annals-page [data-df-region]"];
 // Phase 5 native list (D6 ruling, delegated): exact innermost selectors of native rules in mixed files, a superset of
 // NATIVE. Phase 5 never restyles them, except the font and colour pins a task names. A grouped rule that mixes native
 // and governed selectors is not listed; the task that owns its file splits it under a native comparison.
@@ -137,8 +140,9 @@ export const NATIVE5 = {
     ".rhythm-note-one", ".rhythm-note-two", ".rhythm-note-three", ".annals-preview", ".annals-preview-masthead",
     ".annals-preview-line", ...[2, 3, 4, 5, 6].map((n) => `.annals-preview-line:nth-child(${n})`),
     ".annals-preview-line-hand", ".annals-preview-line-death"],
-  // The parchment sheet and the utility-class rules (they style native regions too; never edited).
-  "pages/Annals/Annals.css": [".annals-sheet", ".annals-page .annals-sheet", ...ANNALS_UTILITIES],
+  // The parchment sheet and the utility-class rules (they style native regions too; never edited), and the pins that
+  // keep the six narrative markers on what they inherited from the page before its root was lifted (Task 21).
+  "pages/Annals/Annals.css": [".annals-sheet", ".annals-page .annals-sheet", ...ANNALS_UTILITIES, ...ANNALS_MARKER_PINS],
   // The Orbital canvas: its size, pointer behaviour and the type it inherited before its chrome was governed (Task 9).
   "pages/OrbitalSimulator/OrbitalSimulator.css": [".orbital-canvas"],
   // The Traffic road and time-space canvases: their size, pointer behaviour and corners, and the type they inherited
@@ -155,7 +159,10 @@ export const HOLDS5 = {
     ['[data-theme="light"] .spider-solitaire', "--spider-empty-column-border"]],
   "pages/TrafficSimulator/TrafficSimulator.css": [...trafficRamp(".traffic-container"), ...trafficRamp('html[data-theme="light"] .traffic-container'),
     ...trafficSwatches],
-  "pages/Annals/Annals.css": [[".annals-page", "--annals-sheet-shadow"], ['[data-theme="light"] .annals-page', "--annals-sheet-shadow"]],
+  // The Annals legend keys mirror the narrative's own inks (P5-2, Task 21): the chronicle's gold for a line of the
+  // player's hand, and the fates list's grey for the baseline.
+  "pages/Annals/Annals.css": [[".annals-page", "--annals-sheet-shadow"], ['[data-theme="light"] .annals-page', "--annals-sheet-shadow"],
+    [".annals-sheet .annals-hand::before", "background"], [".annals-sheet .annals-key--hand", "color"], [".annals-sheet .annals-key--baseline", "color"]],
 };
 // Phase 5 rules nothing renders (dead-code ruling): excluded by exact innermost selector or at-rule. Empty since Task 13,
 // which removed the terminal's unrendered .cursor rule together with the `blink` keyframes VimUI.css also defined, so

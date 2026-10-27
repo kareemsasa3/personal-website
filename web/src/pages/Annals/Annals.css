@@ -1,9 +1,9 @@
 
+/* The page root is governed (D6 ruling): it takes the site's family and fg. Everything it renders sits on the sheet. */
 .annals-page {
   background: transparent;
-  color: #1c1917;
-  color-scheme: light;
-  font-family: Georgia, Cambria, "Times New Roman", Times, serif;
+  color: var(--fg);
+  font-family: inherit;
 }
 
 /* The page wrapper stays transparent so the site backdrop shows through;
@@ -24,6 +24,21 @@
   border-radius: var(--border-radius-md, 8px);
   box-shadow: 0 8px 24px var(--annals-sheet-shadow);
 }
+
+/* Pinned before the root was lifted (Phase 5 Task 21): the parchment keeps the ink, the serif stack and the colour scheme
+   it inherited from the page, so the narrative it holds and the controls Task 22 has not yet given their voices read as
+   they did. The sheet also carries data-theme="light" (P5-3, ruled): the chrome on it renders the paper token set. */
+.annals-sheet {
+  color: #1c1917;
+  font-family: Georgia, Cambria, "Times New Roman", Times, serif;
+  color-scheme: light;
+}
+
+/* The six narrative markers (D6 ruling) keep what they inherited from the page, by their own pins: the serif stack where
+   no mono ancestor sets theirs, the page's ink where they carry no colour class, and the light colour scheme. */
+.annals-page [data-df-region]:not(.font-mono *) { font-family: Georgia, Cambria, "Times New Roman", Times, serif; }
+.annals-page div[data-df-region] { color: #1c1917; }
+.annals-page [data-df-region] { color-scheme: light; }
 
 .annals-page * {
   box-sizing: border-box;
@@ -215,3 +230,52 @@
 
 .annals-page .annals-living button { gap: .5rem; }
 .annals-page .annals-living button > span:last-child { white-space: nowrap; }
+
+/* Governed Annals chrome (D6 ruling) */
+/* Phase 5 Task 21. On the sheet these read the paper token set (P5-3). Voices (§06): the title is a heading, the year a
+   Machine readout with its label beside it, the census, the fork legend and the log Machine text, section names
+   Instrument labels, and the phrases inside a heading, the hints and the footer Narrator text. Labels and supporting
+   text are fg-muted at rest. State words (§05 State encoding): an available hand is signal, a spent one held. Every element
+   keeps its first class (ids pair on it). Where that class is a type utility whose size or leading differs from the voice,
+   the voice is carried by an inner span, so the line renders the voice; the container sets the voice's family so its own
+   line box agrees. */
+.annals-sheet .annals-heading,
+.annals-sheet .annals-readout,
+.annals-sheet .annals-data { color: var(--fg); }
+.annals-sheet .annals-label,
+.annals-sheet .annals-phrase,
+.annals-sheet .annals-hint { color: var(--fg-muted); }
+.annals-sheet .annals-available { color: var(--signal); }
+.annals-sheet .annals-heading,
+.annals-sheet .annals-hint { font-family: var(--font-sans); }
+/* The year's label sits beside its value with a cell of its own, clear of the value's tracking. */
+.annals-sheet .annals-readout > span { margin-inline-end: var(--space-1); }
+.annals-sheet .annals-footer { border-top: var(--stroke-hair) solid var(--rule); }
+/* Legends (§15): their words are fg; each key keeps the narrative's own ink (P5-2: a native-palette mirror is a hold), the
+   chronicle's gold for a line of the player's hand and the fates list's grey for the baseline. */
+.annals-sheet .annals-hand { color: var(--fg); }
+.annals-sheet .annals-hand::before {
+  content: "";
+  display: inline-block;
+  inline-size: var(--cell-w);
+  block-size: var(--cell-w);
+  margin-inline-end: var(--space-1);
+  background: #a16207;
+}
+.annals-sheet .annals-legend { border-top: var(--stroke-hair) solid var(--rule); }
+.annals-sheet .annals-legend > span { color: var(--fg); }
+.annals-sheet .annals-key--hand { color: #a16207; }
+.annals-sheet .annals-key--baseline { color: #635d58; }
+/* The intervention log: Machine rows on the deep field between two structure seams (§09 L1), square. */
+.annals-sheet .annals-log {
+  background-color: var(--field-deep);
+  border-block: var(--stroke-hair) solid var(--rule);
+}
+.annals-sheet .annals-log > div { color: var(--fg); }
+/* The watched soul is a person's mark (§05 Rationing the secondary hues): an ion-deep band in an ion boundary with its
+   words in fg, while the soul lives and after it falls. */
+.annals-sheet .annals-banner {
+  background-color: var(--ion-deep);
+  border: var(--stroke-hair) solid var(--ion);
+  color: var(--fg);
+}

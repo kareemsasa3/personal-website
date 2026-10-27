@@ -205,21 +205,21 @@ export default function Annals() {
   };
 
   return (
-    <div className="annals-page page-content text-stone-900 font-serif">
-      <div className="annals-sheet max-w-5xl mx-auto px-5 py-8">
+    <div className="annals-page page-content">
+      <div className="annals-sheet max-w-5xl mx-auto px-5 py-8" data-theme="light">
 
         {/* masthead */}
         <header className="border-b-2 border-stone-800 pb-3 mb-4">
           <div className="flex items-end justify-between flex-wrap gap-3">
             <div>
-              <h1 className="text-4xl tracking-tight font-bold">The Annals</h1>
+              <h1 className="text-4xl annals-heading"><span className="df-heading-1">The Annals</span></h1>
               <p data-df-region="native" className="text-stone-600 text-sm mt-1">
                 a world that writes its own history · <span className="font-mono">history = f(seed, your hand)</span>
               </p>
             </div>
             <div className="text-right">
-              <div className="text-5xl font-bold tabular-nums leading-none">Yr {world.year}</div>
-              <div className="text-xs text-stone-500 mt-1">
+              <div className="text-5xl df-readout-xl annals-readout"><span className="df-label annals-label">Yr</span> {world.year}</div>
+              <div className="text-xs mt-1 df-data annals-data">
                 {living(world).length} living · {world.born} born · {world.dead} lost
               </div>
             </div>
@@ -276,9 +276,9 @@ export default function Annals() {
         {/* the fork — divergence comparison */}
         {fork && (
           <section className="mb-5 bg-stone-50/80 border border-stone-400 rounded p-4 font-mono text-[13px] leading-relaxed">
-            <h2 className="text-sm font-bold tracking-widest text-stone-700 mb-3 font-serif">
-              The Fork
-              <span className="text-xs font-normal text-stone-500 ml-2">what your hand changed by year {world.year}</span>
+            <h2 className="text-sm mb-3">
+              <span className="df-label annals-label">The Fork</span>
+              <span className="text-xs ml-2 annals-phrase"><span className="df-body-sm">what your hand changed by year {world.year}</span></span>
             </h2>
 
             {fork.fates.length === 0 && fork.houses.length === 0 ? (
@@ -287,7 +287,7 @@ export default function Annals() {
               <>
                 {fork.fates.length > 0 && (
                   <div className="mb-3">
-                    <h3 className="text-xs uppercase tracking-widest text-stone-500 mb-1.5">Fates That Diverged</h3>
+                    <h3 className="text-xs mb-1.5 df-label annals-label">Fates That Diverged</h3>
                     <div data-df-region="native" className="space-y-1.5">
                       {fork.fates.map((f: ForkFate, i: number) => (
                         <div key={i}>
@@ -305,7 +305,7 @@ export default function Annals() {
 
                 {fork.houses.length > 0 && (
                   <div className="mb-3">
-                    <h3 className="text-xs uppercase tracking-widest text-stone-500 mb-1.5">Houses</h3>
+                    <h3 className="text-xs mb-1.5 df-label annals-label">Houses</h3>
                     <div className="space-y-0.5">
                       {fork.houses.map((h: ForkHouse) => (
                         <div key={h.name}>
@@ -320,18 +320,16 @@ export default function Annals() {
               </>
             )}
 
-            <div className="text-xs text-stone-500 border-t border-stone-300 pt-2 mt-2 flex gap-6">
-              <span>○ Baseline: {fork.baseline.living} living, {fork.baseline.dead} lost</span>
-              <span className="text-yellow-700">● Your hand: {fork.hand.living} living, {fork.hand.dead} lost</span>
+            <div className="text-xs pt-2 mt-2 flex gap-6 df-data annals-legend">
+              <span><span className="annals-key annals-key--baseline">○</span> Baseline: {fork.baseline.living} living, {fork.baseline.dead} lost</span>
+              <span className="text-yellow-700"><span className="annals-key annals-key--hand">●</span> Your hand: {fork.hand.living} living, {fork.hand.dead} lost</span>
             </div>
           </section>
         )}
 
         {/* favorite banner — the operationalized "do you care?" signal */}
         {favAgent && (
-          <div className={`mb-4 px-4 py-2 rounded border ${favFell
-            ? "bg-red-50 border-red-300 text-red-900"
-            : "bg-yellow-50 border-yellow-300 text-yellow-900"}`}>
+          <div className="mb-4 px-4 py-2 df-body annals-banner">
             {favFell
               ? <>★ <b>{favAgent.name}{favAgent.epithet ? ` ${favAgent.epithet}` : ""} of {favAgent.house}</b> — the one you watched — is gone. The world did not spare them for being loved.</>
               : <>★ You are watching <b>{favAgent.name}{favAgent.epithet ? ` ${favAgent.epithet}` : ""} of {favAgent.house}</b>, age {favAgent.age}, {favAgent.trait.toLowerCase()}{favAgent.grain < 1 ? " — and hungry." : "."}</>}
@@ -342,7 +340,7 @@ export default function Annals() {
 
           {/* the chronicle */}
           <section>
-            <h2 className="text-xs uppercase tracking-widest text-stone-500 mb-2">The Chronicle</h2>
+            <h2 className="text-xs mb-2 df-label annals-label">The Chronicle</h2>
             <div className="annals-chronicle bg-stone-50/70 border border-stone-300 rounded p-4 h-[460px] overflow-y-auto font-mono text-[13px] leading-relaxed flex flex-col-reverse">
               <div data-df-region="native">
                 {world.chronicle.map((e: ChronicleEvent, i: number) => (
@@ -353,16 +351,16 @@ export default function Annals() {
                 ))}
               </div>
             </div>
-            <p className="text-xs text-stone-500 mt-2">
-              Gold lines are <span className="text-yellow-700 font-medium">your hand</span>. Everything else, the world authored alone.
+            <p className="text-xs mt-2 annals-hint">
+              <span className="df-body-sm">Gold lines are <span className="text-yellow-700 annals-hand">your hand</span>. Everything else, the world authored alone.</span>
             </p>
           </section>
 
           {/* roster + feuds + intervention */}
           <aside>
             {/* intervention */}
-            <h2 className="text-xs uppercase tracking-widest text-stone-500 mb-2">
-              Your Hand {world.token ? <span className="text-yellow-700">· available</span> : <span className="text-stone-400">· spent (every 3rd year)</span>}
+            <h2 className="text-xs mb-2">
+              <span className="df-label annals-label">Your Hand</span> {world.token ? <span className="text-yellow-700 df-body-sm annals-available">· available</span> : <span className="text-stone-400 df-body-sm annals-phrase">· spent (every 3rd year)</span>}
             </h2>
             <div className="flex flex-wrap gap-1.5 mb-2">
               {VERBS.map(([v, label]) => (
@@ -376,16 +374,16 @@ export default function Annals() {
                 </button>
               ))}
             </div>
-            <p className="text-xs text-stone-500 mb-4 h-8">
-              {pending
+            <p className="text-xs mb-4 h-8 annals-hint">
+              <span className="df-body-sm">{pending
                 ? pickTwo
                   ? `…now choose the second soul (${world.agents[pickTwo]?.name}) acts upon`
                   : "…choose a soul below"
-                : "Pick an act, then a soul. Or click a soul to ★ watch them."}
+                : "Pick an act, then a soul. Or click a soul to ★ watch them."}</span>
             </p>
 
             {/* roster */}
-            <h2 className="text-xs uppercase tracking-widest text-stone-500 mb-2">The Living</h2>
+            <h2 className="text-xs mb-2 df-label annals-label">The Living</h2>
             <div className="annals-living space-y-1 mb-4 max-h-[230px] overflow-y-auto pr-1">
               {roster.map((a: Agent) => (
                 <button key={a.id} onClick={() => onAgentClick(a)}
@@ -407,7 +405,7 @@ export default function Annals() {
             </div>
 
             {/* feuds */}
-            <h2 className="text-xs uppercase tracking-widest text-stone-500 mb-2">Standing Feuds</h2>
+            <h2 className="text-xs mb-2 df-label annals-label">Standing Feuds</h2>
             {feuds.length ? (
               <div data-df-region="native" className="space-y-1">
                 {feuds.map(([k, v]) => {
@@ -425,8 +423,8 @@ export default function Annals() {
             {/* intervention log */}
             {world.interventions.length > 0 && (
               <>
-                <h2 className="text-xs uppercase tracking-widest text-stone-500 mb-2 mt-4">Intervention Log</h2>
-                <div className="text-xs font-mono bg-stone-50 border border-stone-300 rounded p-2 max-h-[120px] overflow-y-auto">
+                <h2 className="text-xs mb-2 mt-4 df-label annals-label">Intervention Log</h2>
+                <div className="text-xs p-2 max-h-[120px] overflow-y-auto df-data annals-log">
                   {world.interventions.map((iv: InterventionLog, i: number) => (
                     <div key={i} className="text-yellow-800">
                       Yr {iv.year}: {iv.verb} → {iv.targetName}{iv.secondName ? ` & ${iv.secondName}` : ""}
@@ -446,7 +444,7 @@ export default function Annals() {
           </aside>
         </div>
 
-        <footer className="mt-6 pt-3 border-t border-stone-300 text-xs text-stone-500">
+        <footer className="mt-6 pt-3 df-body-sm annals-hint annals-footer">
           The test: do you find yourself <i>not wanting</i> someone to die? Star them, then let years pass.
           Then <b>replay seed</b> with a different hand and watch the history fork. That fork is your agency, made legible.
         </footer>
