@@ -973,7 +973,7 @@ test("P5 terminal overlays: top, vim and man pages", async () => {
   assert.doesNotMatch(topText, /processUpdate/, "the old update flash");
   assert.deepEqual(topCss.filter((d) => d.selector.startsWith("@keyframes top-afterglow >> ")).map((d) => `${innermost(d.selector)} ${d.prop}: ${d.value}`),
     ["from color: var(--signal)", "50% color: var(--signal-dim)"]);
-  assert.match(topText, /\/\* §12: accumulation \(afterglow\) · a row's values changed \*\/\s*@keyframes top-afterglow\b/);
+  assert.match(topText, /\/\* §12: state transition \(afterglow\) · a value in the row was replaced; the new value starts bright and fades back to rest(?:(?!\*\/)[\s\S])*?\*\/\s*@keyframes top-afterglow\b/);
   want(topCss, ".top-process-row.updating > *", { animation: "top-afterglow var(--dur-decay) var(--ease-standard)" }, "TopUI.css");
   want(topCss, "@media (prefers-reduced-motion: reduce) >> .top-process-row.updating > *", { animation: "none" }, "TopUI.css");
 

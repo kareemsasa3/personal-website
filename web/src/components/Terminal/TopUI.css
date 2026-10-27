@@ -277,7 +277,8 @@
     }
 }
 
-/* §12: accumulation (afterglow) · a row's values changed */
+/* §12: state transition (afterglow) · a value in the row was replaced; the new value starts bright and fades back to rest
+   Unreached: no code sets .updating, so this rule never applies today; it is on the owner dead-code list. */
 @keyframes top-afterglow {
     from { color: var(--signal); }
     50% { color: var(--signal-dim); }

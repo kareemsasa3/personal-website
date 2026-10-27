@@ -153,7 +153,7 @@
   pointer-events: none;
   animation: df-processing-scan var(--dur-scan) var(--ease-linear) infinite;
 }
-/* §12: scan / inspection · the route chunk is loading */
+/* §12: scan / inspection · a navigation this control started is pending (Home.tsx clears busy a few frames after it navigates) */
 @keyframes df-processing-scan {
   from { inset-inline-start: 0; }
   to { inset-inline-start: calc(100% - var(--cell-w)); }

@@ -89,7 +89,7 @@ const Toast: React.FC<ToastProps> = ({
               className="toast-progress"
               initial={{ scaleX: 1 }}
               animate={{ scaleX: 0 }}
-              // §12: state transition (continuous change) · the time left before the notification closes; the bar is that time, so it shrinks at a constant rate
+              // §12: accumulation (elapsed time) · the time left before the notification closes, running down for its whole life; the bar is that time, so it shrinks at a constant rate
               transition={{ ...motionToken("--dur-base", "--ease-linear"), duration: progressSeconds }}
             />
           )}
