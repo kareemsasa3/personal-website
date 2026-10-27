@@ -20,8 +20,8 @@ const resolveInitialTheme = (): Theme => {
   return "dark";
 };
 
-// Theme values live in src/styles/darkfield/tokens.css (generated from tokens.runtime.json)
-// and the legacy aliases in bridge.css; switching a theme only selects one.
+// Theme values live in src/styles/darkfield/tokens.css (generated from tokens.runtime.json);
+// switching a theme only selects one.
 const applyThemeToDocument = (theme: Theme) => {
   const root = document.documentElement;
   root.setAttribute("data-theme", theme);

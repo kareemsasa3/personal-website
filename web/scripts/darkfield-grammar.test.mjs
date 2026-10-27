@@ -1,9 +1,10 @@
 // web/scripts/darkfield-grammar.test.mjs: Phase 3 (Grammar) static invariants.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { read, reachable, governed, declarations, NATIVE, NATIVE_FILES, PHASE3, PHASE5, innermost, where } from "./darkfield-css-scope.mjs";
+import { resolve } from "node:path";
+import { src, isFile, read, reachable, governed, declarations, NATIVE, NATIVE_FILES, PHASE3, PHASE5, innermost, where } from "./darkfield-css-scope.mjs";
 
-const OUTSIDE = ["styles/darkfield/bridge.css", ...NATIVE_FILES];
+const OUTSIDE = [...NATIVE_FILES];
 // Rules no component renders (dead-code ruling, P3-8): excluded by exact innermost selector, never deleted.
 // A selector joins only after `rg` over web/src TSX shows nothing renders it; the commit body lists it.
 const DEAD_RULES = {
@@ -30,9 +31,8 @@ test("ownership: every reachable governed stylesheet belongs to exactly one phas
   assert.deepEqual(PHASE5.filter((f) => !css.includes(f)), [], "PHASE5 names a file the walk does not reach");
 });
 
-test("T2 bridge: only the --accent-color hold remains", async () => {
-  const defined = declarations(await read("styles/darkfield/bridge.css")).filter((d) => d.prop.startsWith("--")).map((d) => d.prop.slice(2));
-  assert.deepEqual([...new Set(defined)].sort(), ["accent-color"]);
+test("T2 bridge: the bridge file is gone (Phase 5 Task 23)", async () => {
+  assert.equal(await isFile(resolve(src, "styles/darkfield/bridge.css")), false, "bridge.css still exists");
 });
 
 test("scrim: grammar.css derives --df-scrim from --field and --opacity-dim only", async () => {
@@ -43,12 +43,12 @@ test("scrim: grammar.css derives --df-scrim from --field and --opacity-dim only"
 });
 
 const LITERAL = /#[0-9a-f]{3,8}\b|\b(rgba?|hsla?|hwb|lab|lch|oklch|oklab)\(|\b(white|black|red|green|blue|gray|grey|silver|gold|yellow)\b/i;
-test("T3 grammar.css: tokens only; imported after the bridge and before component CSS", async () => {
+test("T3 grammar.css: tokens only; imported after index.css and before component CSS", async () => {
   const css = await read("styles/darkfield/grammar.css");
   assert.doesNotMatch(css.replace(/\/\*[\s\S]*?\*\//g, ""), LITERAL);
   for (const d of declarations(css)) if (/^(transition|animation)/.test(d.prop)) assert.match(d.value, /^(none|.*var\(--dur-[a-z]+\).*var\(--ease-[a-z]+\).*)$/, where({ file: "grammar.css", ...d }));
   const index = await read("index.tsx");
-  const order = ["tokens.css", "index.css", "bridge.css", "grammar.css", "components.css"].map((f) => index.indexOf(`/${f}"`));
+  const order = ["tokens.css", "index.css", "grammar.css", "components.css"].map((f) => index.indexOf(`/${f}"`));
   assert.deepEqual([...order].sort((a, b) => a - b), order); assert.ok(!order.includes(-1));
   for (const sel of [".df-control", ".df-control--latch", ".df-control--card", ".df-control--light", ".df-control--unavailable"]) assert.ok(css.includes(sel), sel);
   for (const f of ["pages/NotFound/NotFound.tsx", "components/common/ErrorBoundary.tsx", "components/common/AppErrorBoundary.tsx"]) {

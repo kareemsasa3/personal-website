@@ -7,7 +7,7 @@ import { src, read, CREATIVE, reachable, governed, declarations, NATIVE, NATIVE_
 
 test("scope: the walk reaches the shell, skips creative paths, matches DEAD, and every NATIVE selector exists", async () => {
   const files = await reachable();
-  for (const f of ["index.css", "App.tsx", "styles/darkfield/bridge.css", "components/Layout/Layout.tsx"]) assert.ok(files.includes(f), f);
+  for (const f of ["index.css", "App.tsx", "components/Layout/Layout.tsx"]) assert.ok(files.includes(f), f);
   assert.ok(!files.some((f) => f.startsWith("pages/Annals/sim/")));
   const all = (await readdir(src, { recursive: true })).filter((f) => /\.(tsx?|css)$/.test(f) && !f.endsWith(".d.ts") && !CREATIVE.some((re) => re.test(f)));
   assert.deepEqual(all.filter((f) => !files.includes(f)).sort(), [...DEAD].sort(), "unreachable files differ from DEAD");
@@ -25,7 +25,6 @@ test("T1 atmosphere: one static ground behind Layout, no drift or reading scrim;
   const ground = declarations(await read("components/StaticBackground/StaticBackground.css"));
   assert.ok(!ground.some((d) => /^animation/.test(d.prop)), "the ground animates");
   assert.ok(!ground.some((d) => /#[0-9a-f]{3,8}\b|rgba?\(|--bg-|radial-gradient/i.test(d.value)), "the ground uses a literal, legacy or radial colour");
-  assert.doesNotMatch(await read("styles/darkfield/bridge.css"), /--bg-/, "bridge still defines --bg-*");
   assert.ok(!declarations(await read("index.css")).some((d) => /prose-surface/.test(d.selector) && /shadow|backdrop|gradient/.test(`${d.prop} ${d.value}`)), "reading scrim");
 });
 

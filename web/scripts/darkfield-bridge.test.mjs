@@ -7,7 +7,7 @@ import { resolve } from "node:path";
 const web = resolve(import.meta.dirname, "..");
 const read = (path) => readFile(resolve(web, path), "utf8");
 const cssFiles = async () => (await readdir(resolve(web, "src"), { recursive: true })).filter((f) => f.endsWith(".css"));
-import { reachable, DEAD } from "./darkfield-css-scope.mjs";
+import { reachable, DEAD, isFile } from "./darkfield-css-scope.mjs";
 // Colour and font aliases retired into tokens (Phase 3 Task 2).
 const RETIRED = [
   "font-family-primary", "font-family-mono",
@@ -19,9 +19,6 @@ const RETIRED = [
   "card-background", "panel-bg-color", "text-color", "text-color-secondary", "text-secondary",
   "text-color-muted", "text-muted-color", "border-color", "app-overlay",
 ];
-// Variables whose legacy literal values are deliberately held (Phase 1 review): only these may sit in the fence.
-const HELD = ["accent-color"];
-const FENCE = /\/\* legacy:start \*\/([\s\S]*?)\/\* legacy:end \*\//g;
 
 test("theme switching only selects a theme; it never writes token values", async () => {
   for (const file of ["src/contexts/ThemeContext.tsx", "index.html"]) {
@@ -30,11 +27,7 @@ test("theme switching only selects a theme; it never writes token values", async
 });
 
 test("retired aliases are defined nowhere and read nowhere", async () => {
-  const bridge = await read("src/styles/darkfield/bridge.css");
   const files = [...(await reachable()).filter((f) => /\.(css|tsx?)$/.test(f) && !DEAD.includes(f)), "../index.html"];
-  for (const name of RETIRED) {
-    assert.doesNotMatch(bridge, new RegExp(`--${name}\\s*:`), `bridge.css still defines --${name}`);
-  }
   for (const file of files) {
     const text = await read(file.startsWith("..") ? file.slice(3) : `src/${file}`);
     for (const name of RETIRED) {
@@ -43,13 +36,14 @@ test("retired aliases are defined nowhere and read nowhere", async () => {
   }
 });
 
-test("literal colours appear only inside the legacy fence, and only for held variables", async () => {
-  const bridge = await read("src/styles/darkfield/bridge.css");
-  assert.doesNotMatch(bridge.replace(FENCE, ""), /#[0-9a-f]{3,8}\b|rgba?\(/i, "literal colour outside the fence");
-  for (const [, fenced] of bridge.matchAll(FENCE)) {
-    for (const [, name] of fenced.matchAll(/--([a-z0-9-]+)\s*:/g)) {
-      assert.ok(HELD.includes(name), `--${name} is not an approved held variable`);
-    }
+// The bridge is deleted (Phase 5 Task 23): its last held legacy value is retired. Snake's native food still reads it
+// with its own fallback, but a later literal .food rule sets the colours it renders.
+test("the bridge is gone: no bridge.css, no import of it, and no file defines --accent-color", async () => {
+  assert.equal(await isFile(resolve(web, "src/styles/darkfield/bridge.css")), false, "bridge.css still exists");
+  assert.doesNotMatch(await read("src/index.tsx"), /bridge\.css/, "index.tsx still imports bridge.css");
+  const files = (await readdir(resolve(web, "src"), { recursive: true })).filter((f) => /\.(css|tsx?)$/.test(f)).map((f) => `src/${f}`);
+  for (const file of [...files, "index.html"]) {
+    assert.doesNotMatch(await read(file), /--accent-color["']?\s*:/, `${file} defines --accent-color`);
   }
 });
 
@@ -102,9 +96,8 @@ test("site CSS names fonts only through the Darkfield families, except recorded 
       assert.ok(FONT_HOLDS.some(([f, s]) => f === file && selector.endsWith(s)), `${file} ${selector}`);
     }
     legacyStack.lastIndex = 0;
+    assert.doesNotMatch(css, /--font-family-primary\s*:/, `${file} defines --font-family-primary`);
+    assert.doesNotMatch(css, /--font-family-mono\s*:/, `${file} defines --font-family-mono`);
   }
   assert.doesNotMatch(await read("index.html"), /font-family:[^;]*-apple-system/, "index.html route shell");
-  const bridge = await read("src/styles/darkfield/bridge.css");
-  assert.doesNotMatch(bridge, /--font-family-primary/);
-  assert.doesNotMatch(bridge, /--font-family-mono/);
 });
