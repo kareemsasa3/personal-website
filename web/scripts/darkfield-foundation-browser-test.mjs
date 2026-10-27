@@ -10,6 +10,7 @@
 // Record mode also prints every measurement on a MEASURED line (r10), for Step 9's run-by-run comparison.
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import { P5_GOVERNED_IN_NATIVE, P5_NATIVE, P5_NATIVE_GROUND } from "./darkfield-measure-lib.mjs";
 const { chromium } = await import(process.argv[3] || "playwright");
 const browser = await chromium.launch({ headless: true, ...(process.argv[4] ? { executablePath: process.argv[4] } : {}) });
 const base = process.argv[2] || "http://127.0.0.1:4173";
@@ -3422,14 +3423,7 @@ if (MODE === "check") {
     "/simulations/orbital-simulator", "/simulations/traffic-simulator", "/terminal", "/simulations/snake",
     "/simulations/spider", "/simulations/rhythm-lab", "/simulations/annals",
     "/projects", "/case-studies", "/case-studies/erebus", "/case-studies/arachne", "/case-studies/where-the-specification-lived"];
-  // The Rhythm Lab highway is native (D6 ruling) but unmarked: its lanes host governed labels and its hit zones are buttons.
-  const P5_NATIVE = [".rhythm-lab-highway"];
-  // Governed chrome inside a P5_NATIVE element (Task 20): the in-highway overlays (ready check, pause, run summary,
-  // tutorial complete) with their controls, the tutorial prompt and the lane labels are swept like the rest of the page.
-  const P5_GOVERNED_IN_NATIVE = [".rhythm-lab-overlay", ".rhythm-lab-tutorial-prompt", ".rhythm-lab-lane-label"];
-  // Native grounds (Task 22): the Annals parchment sheet's own box is native (D6 ruling, P5-3), and everything on it
-  // outside the six narrative markers is governed, so only the sheet itself and the marked subtrees are skipped.
-  const P5_NATIVE_GROUND = [".annals-sheet"];
+  // P5_NATIVE, P5_GOVERNED_IN_NATIVE and P5_NATIVE_GROUND are imported from darkfield-measure-lib.mjs.
   const P5_FAMILIES = ["Archivo", "Archivo Narrow", "IBM Plex Mono"];
   const p5Sweep = (page) => page.evaluate(([skip, governedIn, ground, families]) => {
     const out = new Set();
