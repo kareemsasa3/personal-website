@@ -1,7 +1,8 @@
 // web/scripts/darkfield-surfaces.test.mjs: Phase 5 static invariants (governed interface around creative content).
 import test from "node:test";
 import assert from "node:assert/strict";
-import { read, governed, declarations, innermost, where, NATIVE, NATIVE_KEYFRAMES, PHASE5, NATIVE5, HOLDS5, DEAD_RULES5, ANNALS_MARKER_PINS } from "./darkfield-css-scope.mjs";
+import { readdir } from "node:fs/promises";
+import { src, read, reachable, governed, declarations, innermost, where, NATIVE, NATIVE_KEYFRAMES, PHASE5, NATIVE5, HOLDS5, DEAD_RULES5, ANNALS_MARKER_PINS } from "./darkfield-css-scope.mjs";
 
 // Stylesheets a Phase 5 task has finished; the rules below hold for these. Since the Phase 5 exit (Task 24) DONE5 equals PHASE5.
 export const DONE5 = ["pages/NotFound/NotFound.css", "components/common/ErrorBoundary.css", "components/Terminal/TerminalErrorBoundary.css",
@@ -992,6 +993,28 @@ test("P5 terminal overlays: top, vim and man pages", async () => {
     assert.deepEqual(decls.filter((d) => (d.prop === "text-align" && d.value === "justify") || (d.prop === "font-style" && d.value !== "normal")).map((d) => where({ file, ...d })), [],
       `${file}: no justified or italic runs`);
   }
+});
+
+// Phase 6 R-2. A Prism theme is a global stylesheet: imported by any module, governed or creative-owned, it lands in a
+// shared stylesheet and its language-* rules give every article code fence the theme's own ink on every page. The editor
+// styles its own lines and syntax runs (VimUI.css), so no source under src imports a theme, from script or from CSS.
+test("R-2: no source imports a Prism theme stylesheet", async () => {
+  const sources = (await reachable()).filter((f) => /\.tsx?$/.test(f));
+  assert.ok(sources.includes("components/Terminal/VimUI.tsx"), "the scan reaches the editor, which uses Prism");
+  const specs = (code) => [...code.matchAll(/(?:import|export)\s[^'"`;]*?from\s*['"]([^'"]+)['"]|import\s*['"]([^'"]+)['"]|import\(\s*['"]([^'"]+)['"]\s*\)/g)]
+    .map(([, a, b, c]) => a ?? b ?? c);
+  assert.ok(specs(await read("components/Terminal/VimUI.tsx")).includes("prismjs"), "the editor still imports Prism itself");
+  const themes = [];
+  for (const file of sources) for (const spec of specs(await read(file))) if (/^prismjs\/themes\//.test(spec)) themes.push(`${file}: ${spec}`);
+  // Every other file under src, creative-owned modules and stylesheets included: script imports and CSS @import.
+  const all = (await readdir(src, { recursive: true })).filter((f) => /\.(?:[cm]?[jt]sx?|css)$/.test(f) && !sources.includes(f));
+  for (const file of all) {
+    const code = await read(file);
+    const found = /\.css$/.test(file) ? [...code.matchAll(/@import\s+(?:url\(\s*)?['"]?([^'")\s;]+)/g)].map(([, spec]) => spec) : specs(code);
+    for (const spec of found) if (/(?:^|\/)prismjs\/themes\//.test(spec)) themes.push(`${file}: ${spec}`);
+  }
+  assert.ok(all.some((f) => f.endsWith(".css")) && all.some((f) => /\.tsx?$/.test(f)), "the wider scan reaches stylesheets and creative modules");
+  assert.deepEqual(themes, []);
 });
 
 // Snake chrome (Phase 5 Task 15; §08 Layers and overlays, Not a dashboard; §13 control model; §06 voices; D6 and C2

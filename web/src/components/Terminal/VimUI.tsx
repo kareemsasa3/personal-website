@@ -1,7 +1,6 @@
 import React, { useEffect, useLayoutEffect, useRef, useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import Prism from "prismjs";
-import "prismjs/themes/prism-tomorrow.css";
 // Only import the most commonly used languages to reduce bundle size
 import "prismjs/components/prism-typescript";
 import "prismjs/components/prism-javascript";

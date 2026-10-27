@@ -120,7 +120,7 @@
     caret-color: transparent;
 }
 
-/* A read-only file's line keeps the same cells instead of the syntax theme's face, size, padding and wrapping, and
+/* A read-only file's line keeps the same cells instead of the inline-code face, size, padding and wrapping, and
    none of its inline-code ground or rounded corners: the line is part of the editor's field, square like it. */
 .vim-line-content code[class*="language-"] {
     font: inherit;
