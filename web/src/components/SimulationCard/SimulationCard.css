@@ -103,7 +103,7 @@
 }
 
 /* D6 hold: the food is native preview ink. It keeps the colour it rendered in every theme, held here because the bridge
-   value it read is being retired. */
+   value it read was retired. */
 .food-preview {
     position: absolute;
     right: 20px;

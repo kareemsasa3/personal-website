@@ -26,7 +26,7 @@ const ROUTES = [
   "/simulations/rhythm-lab", "/procedural-animations", "/experience", "/journey", "/terminal", "/darkfield-404-probe",
 ];
 const SAMPLER_SELECTORS = ["main p", "main li", "h1", "h2", "h3", "a", "button", ".tech-tag"];
-// Fill/text pairs whose ground the bridge changes (rule-level scan, 2026-10-11).
+// Fill/text pairs whose ground the bridge changed (rule-level scan, 2026-10-11).
 // .projects-cta-primary is excluded: no component renders it (dead CSS, Phase 3).
 // .error-button.primary renders only when an error boundary fires, so expect it UNCOVERED.
 // The last five cover the r8 contrast repairs: states and elements the route-load sampler does not
@@ -3110,6 +3110,8 @@ if (MODE === "check") {
   const P3_ROUTES = ["/", "/projects", "/case-studies", "/case-studies/aether", "/writing", "/writing/what-should-still-be-hard", "/experience", "/journey"];
   // Not Phase 3's on these routes: creative regions. Project media chrome is governed (Phase 5 Task 7) and checked here.
   const P3_SKIP = "[data-df-region]";
+  // The controls, inputs and true containers that may carry a closed frame (Phase 3 Task 17; Phase 5 extends the list).
+  const P3_FRAMED = '.df-control, input, select, textarea, [role="dialog"], dialog, .settings-panel, .site-header__panel, .dock-explore__panel, .terminal-dropdown-options, .dot-tooltip, .dock-tooltip, pre';
   // Phase 3 Task 16 (§03, §17): every visible governed corner is square. Native playfields and independent media
   // keep their own geometry until their assigned phase.
   for (const theme of THEMES) for (const route of P3_ROUTES) {
@@ -3128,18 +3130,17 @@ if (MODE === "check") {
   // Phase 3 Task 17 (§03, §09): only controls, inputs and true containers carry a closed frame.
   for (const theme of THEMES) for (const route of P3_ROUTES) {
     await withPage({ theme, route }, async (page) => {
-      const frames17 = await page.evaluate((skip) => {
+      const frames17 = await page.evaluate(([skip, allowed]) => {
         const closed = (el) => {
           const c = getComputedStyle(el);
           return ["Top", "Right", "Bottom", "Left"].every((s) =>
             parseFloat(c[`border${s}Width`]) > 0 && c[`border${s}Style`] !== "none" &&
             !/rgba\(.*, 0\)$/.test(c[`border${s}Color`]));
         };
-        const allowed = '.df-control, input, select, textarea, [role="dialog"], dialog, .settings-panel, .site-header__panel, .dock-explore__panel, .terminal-dropdown-options, .dot-tooltip, .dock-tooltip, pre';
         return [...document.querySelectorAll("body *")].filter((el) => el.getClientRects().length &&
           !el.closest(skip) && closed(el) && !el.matches(allowed))
           .map((el) => `${el.tagName}.${el.className}`).slice(0, 10);
-      }, P3_SKIP);
+      }, [P3_SKIP, P3_FRAMED]);
       invariant(frames17.length === 0, `${theme} ${route}: closed frames ${JSON.stringify(frames17)}`);
     });
   }
@@ -3419,7 +3420,8 @@ if (MODE === "check") {
   // Darkfield family. P5_NATIVE: native elements outside any region (they host controls or governed labels).
   const P5_ROUTES = ["/darkfield-404-probe", "/procedural-animations", "/procedural-animations/mechanical-time", "/case-studies/aether", "/simulations",
     "/simulations/orbital-simulator", "/simulations/traffic-simulator", "/terminal", "/simulations/snake",
-    "/simulations/spider", "/simulations/rhythm-lab", "/simulations/annals"];
+    "/simulations/spider", "/simulations/rhythm-lab", "/simulations/annals",
+    "/projects", "/case-studies", "/case-studies/erebus", "/case-studies/arachne", "/case-studies/where-the-specification-lived"];
   // The Rhythm Lab highway is native (D6 ruling) but unmarked: its lanes host governed labels and its hit zones are buttons.
   const P5_NATIVE = [".rhythm-lab-highway"];
   // Governed chrome inside a P5_NATIVE element (Task 20): the in-highway overlays (ready check, pause, run summary,
@@ -3443,13 +3445,53 @@ if (MODE === "check") {
     }
     return [...out].slice(0, 12);
   }, [P5_NATIVE.join(", "), P5_GOVERNED_IN_NATIVE.join(", "), P5_NATIVE_GROUND.join(", "), P5_FAMILIES]);
+  // Phase 5 exit (Task 24; §03 Rules, §09 Frames and corners, §08 Not a dashboard): the Phase 3 closed-frame check runs on
+  // the same routes with the same native exclusions. Beyond Phase 3's list, the §13 signatures and fields may close a
+  // box, and so may these true containers: the simulation field panels (the bounded system each simulator draws), the
+  // terminal window (a real terminal), Rhythm Lab's setup face on the held rain and its in-highway overlay panels (§08
+  // overlays), the Annals chronicle (the log's bounded scroll box) and the preview wells of the simulation cards (Task 8's
+  // field-deep well with its L1 rule). One control is listed too: the Traffic data table's disclosure toggle, not a
+  // frame but a control styled from CSS because its markup is creative-owned (Task 11).
+  const P5_FRAMED = [P3_FRAMED, ".df-error, .df-warning, .df-confirmed, .df-field, .orbital-field, .traffic-field",
+    ".terminal-container, .rhythm-lab-header, .rhythm-lab-overlay-panel, .annals-chronicle, .simulation-preview, .traffic-table > summary"].join(", ");
+  const p5Frames = (page) => page.evaluate(([skip, governedIn, ground, allowed]) => {
+    const closed = (el) => {
+      const c = getComputedStyle(el);
+      return ["Top", "Right", "Bottom", "Left"].every((s) =>
+        parseFloat(c[`border${s}Width`]) > 0 && c[`border${s}Style`] !== "none" &&
+        !/rgba\(.*, 0\)$/.test(c[`border${s}Color`]));
+    };
+    return [...document.querySelectorAll("body *")].filter((el) => el.getClientRects().length && !el.closest("[data-df-region]") &&
+      !(el.closest(skip) && !el.closest(governedIn)) && !el.matches(ground) && closed(el) && !el.matches(allowed))
+      .map((el) => `${el.tagName}.${el.className}`).slice(0, 10);
+  }, [P5_NATIVE.join(", "), P5_GOVERNED_IN_NATIVE.join(", "), P5_NATIVE_GROUND.join(", "), P5_FRAMED]);
   for (const theme of THEMES) {
     for (const route of P5_ROUTES) {
       await withPage({ theme, route }, async (page) => {
         const bad = await p5Sweep(page);
         invariant(bad.length === 0, `${theme} ${route}: ${JSON.stringify(bad)}`);
+        const framed = await p5Frames(page);
+        invariant(framed.length === 0, `${theme} ${route}: closed frames ${JSON.stringify(framed)}`);
       });
     }
+  }
+  // Phase 5 exit (Task 24): P5_ROUTES holds every route of ROUTES that is a Phase 5 page (master plan, Phase 5 table: the
+  // simulations, the procedural animations, the terminal and the not-found probe) or renders project media, and at least
+  // one procedural piece route; a route left out renders no project media.
+  const P5_PAGE = /^\/(simulations|procedural-animations|terminal)(\/|$)|^\/darkfield-404-probe$/;
+  invariant(ROUTES.every((route) => !P5_PAGE.test(route) || P5_ROUTES.includes(route)),
+    `P5_ROUTES misses a Phase 5 page ${JSON.stringify(ROUTES.filter((route) => P5_PAGE.test(route) && !P5_ROUTES.includes(route)))}`);
+  invariant(P5_ROUTES.some((route) => /^\/procedural-animations\/[^/]+$/.test(route)), "P5_ROUTES holds no procedural piece route");
+  for (const route of ROUTES.filter((r) => !P5_ROUTES.includes(r))) {
+    await withPage({ theme: THEMES[0], route }, async (page) => {
+      const media = await page.locator(".project-media").count();
+      invariant(media === 0, `${route} renders project media (${media}) but is not in P5_ROUTES`);
+    });
+  }
+  for (const route of P5_ROUTES.filter((r) => /^\/(projects|case-studies)(\/|$)/.test(r))) {
+    await withPage({ theme: THEMES[0], route }, async (page) => {
+      invariant((await page.locator(".project-media").count()) > 0, `${route} is in P5_ROUTES for its project media but renders none`);
+    });
   }
   // Phase 5 Task 18 (P5-1; §05 Roles; §10 Atmosphere by context). Rhythm Lab's held rain is always dark, so in Light its
   // page renders the Dark token set: every variable declared on a [data-theme] rule (the theme tokens and the variables

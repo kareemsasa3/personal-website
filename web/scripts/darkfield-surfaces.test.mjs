@@ -3,7 +3,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { read, governed, declarations, innermost, where, NATIVE, NATIVE_KEYFRAMES, PHASE5, NATIVE5, HOLDS5, DEAD_RULES5, ANNALS_MARKER_PINS } from "./darkfield-css-scope.mjs";
 
-// Stylesheets a Phase 5 task has finished; the rules below hold for these. Task 24 requires DONE5 to equal PHASE5.
+// Stylesheets a Phase 5 task has finished; the rules below hold for these. Since the Phase 5 exit (Task 24) DONE5 equals PHASE5.
 export const DONE5 = ["pages/NotFound/NotFound.css", "components/common/ErrorBoundary.css", "components/Terminal/TerminalErrorBoundary.css",
   "components/common/Toast.css", "components/common/ToastContainer.css", "components/common/Modal.css", "components/common/PageLoader.css",
   "pages/ProceduralAnimations/ProceduralAnimations.css", "pages/ProceduralAnimationPiece/ProceduralAnimationPiece.css",
@@ -36,13 +36,15 @@ const LITERAL = /#[0-9a-f]{3,8}\b|\b(rgba?|hsla?|hwb|lab|lch|oklch|oklab)\(|\b(w
 const RETIRED = /var\(--(terminal-(text-|window-bg|header-bg|border|selection-|primary\b)|text-color|accent-color|hover-color|spacing-|border-radius-|transition-)/;
 const UNTOKENED_TIME = /(?<![\w-])\d*\.?\d+m?s\b|\b(ease|ease-in|ease-out|ease-in-out|linear|cubic-bezier|steps)\b(?![\w-])/;
 
-test("P5 scope: NATIVE5 covers Phase 2's NATIVE, every listed selector exists, DONE5 is within PHASE5", async () => {
+test("P5 scope: NATIVE5 covers Phase 2's NATIVE, every listed selector exists, DONE5 equals PHASE5", async () => {
   for (const [file, sels] of Object.entries(NATIVE)) for (const s of sels) assert.ok((NATIVE5[file] ?? []).includes(s), `${file} ${s}`);
   for (const [file, sels] of Object.entries(NATIVE5)) {
     const present = new Set(declarations(await read(file)).map((d) => innermost(d.selector)));
     for (const s of sels) assert.ok(present.has(s), `${file} ${s}`);
   }
   assert.deepEqual(DONE5.filter((f) => !PHASE5.includes(f)), []);
+  // Phase 5 exit (Task 24): every Phase 5 stylesheet is finished, each listed once.
+  assert.deepEqual([...DONE5].sort(), [...new Set(PHASE5)].sort(), "DONE5 does not equal PHASE5");
 });
 // The P5 rules, one predicate each: a declaration they return true for breaks the rule.
 const P5_RULE = {
@@ -396,7 +398,7 @@ test("P5 project media: evidence markers, control model, bar, caption and inspec
 // linked card is a card control: its title is a Narrator heading that carries the hover marker, the mode and status tags
 // are context labels, Launch is an Instrument label, and the preview frame is a square field-deep well with an L1 rule
 // boundary. A card that cannot be opened is Unavailable. The previews stay native: the hold on their content is kept
-// as it is, and the snake preview's food keeps its own colour now that the bridge value it read is going away (D6 hold).
+// as it is, and the snake preview's food keeps its own colour now that the bridge value it read is gone (D6 hold).
 test("P5 simulations: index and card chrome, the preview frame, and the food preview's local hold", async () => {
   const classLists = (code) => [...code.matchAll(/className=\{?[`"]([^`"]*)[`"]/g)].map((m) => m[1].split(/\s+/));
   const card = await read("components/SimulationCard/SimulationCard.tsx");
