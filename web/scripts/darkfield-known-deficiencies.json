@@ -3,11 +3,10 @@
   "notes": [
     "scripts/orbital-browser-test.mjs:196 clicks a \"Switch to light mode\" button that no longer exists (baseline issue outside the ledger checks).",
     "The baseline was recorded with the 6 Annals data-df-region markers applied and, from r10, the 6 /simulations preview-root markers (SimulationCard.tsx: the Snake, Spider, Rhythm Lab and Annals preview roots and the Orbital and Traffic preview SVGs), the same attribute-only patches as the candidate, so both measure the same interface. The preview markers are a measurement boundary, not a D6 decision.",
-    "Annals verbs (\"Your Hand\"): disabled at load and enabled every third year. Their r7 readings measured the page field, not their ground, and were unreliable. r8 measures every state against the rendered ground. r9 records the six disabled verbs under inactive: WCAG 1.4.3 exempts inactive controls, so they are observations held to this record, not D10 entries. Enabled, hovered and pressed, they are measured as prepared states like any other text.",
+    "Annals verbs (\"Your Hand\"): Disabled (§13) until a hand is available, every third year. From Phase 5 Task 22 they carry aria-disabled, so they stay focusable and are described by the spent phrase, and their handler does nothing while no hand is available. The test classifies [aria-disabled=\"true\"] like :disabled; WCAG 1.4.3 exempts inactive controls, so the six disabled verbs are recorded under inactive as observations held to this record, not D10 entries. Task 22 re-recorded them in Dark and Light on the Darkfield disabled signature (the paper field, from the sheet's token set). Enabled, hovered and pressed, they are measured as prepared states like any other text.",
     "r7's Annals parchment readings were invalid: they compared parchment text with the page field. They are not carried into entries, and their absence is not an improvement. The authored narrative is recorded under creative for D6; the governed parchment text is measured on rendered pixels, run by run, and its failures are entries.",
     "Rhythm Lab: the lane tap zones at load and when paused, and the lane labels and \"Ready\" lane text at load, sit under .rhythm-lab-overlay or its panel. They are listed in unmeasured with their reasons (38 ids: the zones' contrast and text runs at load, their interact hover, focus and pressed states at load (18 ids), the zones when paused, and the lane labels and \"Ready\" text at load); none of them is a PASS. Playing, lane-key and pointer-pressed states are measured under a page clock frozen before navigation and advanced only in fixed steps (r9).",
     "Unverified (never measured by this test): the Annals conditional baseline, your-hand and fork buttons (including the pressed \"close fork\" state) and copy-log; the Annals conditional governed text (favourite banner, fork headings, houses list and totals, intervention log); Annals focus; the Rhythm Lab hint under moving notes; the links in the opened \"Explore\" panel (768 and 375 px wide), which opens only on interaction. From r10 the interaction pass measures the hover, focus and pressed states of every enabled control a route renders at load outside creative regions (covered controls, such as the Rhythm Lab zones under the Ready Check overlay, are unmeasured, and disabled controls are inactive), so cast world, replay seed and the advance button are no longer unverified.",
-    "Annals roster glyph: r10's text pass measures the \"·\" glyph inside each roster button (2.19:1 in both themes, on the baseline and the Task 3 work alike), and the interaction pass measures it with each roster button hovered, focused and pressed (2.01-2.19:1); these 80 runs are entries. Once a soul is watched the glyph becomes \"★\", the visible state of the watch, at 2.35:1 on its yellow ground; no step performs a watch action, so the watched \"★\" is a known pre-existing failure outside the ledger's coverage. Not a PASS. The seed field's value text is not measured.",
     "Light background residual (r10, Task 3 Step 7 item 6; pre-existing, not repaired): the Light background's darkest pixels lie at grid intersections near the viewport's edges, about rgb(212, 218, 214) to rgb(215, 220, 217) on the Task 3 work and rgb(217, 218, 213) to rgb(218, 220, 216) on the baseline. There signal-dim text measures 4.03-4.12:1, and the baseline's #2a7331 4.16-4.23:1. Which text lies over such a pixel depends on the viewport and scroll position; the run-by-run comparisons found no other text crossing 4.5:1. Removing the exposure needs a global brand mapping or a background change (Phase 2, D3).",
     "Limits of the rendered runs (r10): no control covers a run that only an ancestor clips; text that visibly overflows its parent is measured only inside the parent; content positioned outside a clipping ancestor's box may be clipped by that ancestor anyway; the interaction pass measures header controls over whatever the earlier steps left behind the header, and the backdrop pass gives their bound in each theme (black under Light, white under Dark and Mono); a run is identified by its element path, text and occurrence, so a change to a card's markup or text unpairs its runs, and Step 9 reports every unpaired run. Each element is captured at the scroll positions the test chooses.",
     "At 1280x800 only, the fixed section dots on /case-studies/where-the-specification-lived overlap the \"Open the Traffic Simulator\" link at every scroll position, on every build, so its hover, focus and pressed runs are unmeasured there (pre-existing layout; the ledger is recorded at 1440x900)."
@@ -174,648 +173,7 @@
       "reason": "covered by div.rhythm-lab-overlay"
     }
   ],
-  "entries": [
-    {
-      "id": "text|dark|/simulations/annals|span.text-stone-400|·|\"·\"",
-      "check": "text",
-      "theme": "dark",
-      "route": "/simulations/annals",
-      "detail": "2.19:1 [·]",
-      "baseline": 2.19
-    },
-    {
-      "id": "text|dark|/simulations/annals|span.text-stone-400|·#2|\"·\"",
-      "check": "text",
-      "theme": "dark",
-      "route": "/simulations/annals",
-      "detail": "2.19:1 [·]",
-      "baseline": 2.19
-    },
-    {
-      "id": "text|dark|/simulations/annals|span.text-stone-400|·#3|\"·\"",
-      "check": "text",
-      "theme": "dark",
-      "route": "/simulations/annals",
-      "detail": "2.19:1 [·]",
-      "baseline": 2.19
-    },
-    {
-      "id": "text|dark|/simulations/annals|span.text-stone-400|·#4|\"·\"",
-      "check": "text",
-      "theme": "dark",
-      "route": "/simulations/annals",
-      "detail": "2.19:1 [·]",
-      "baseline": 2.19
-    },
-    {
-      "id": "text|dark|/simulations/annals|span.text-stone-400|·#5|\"·\"",
-      "check": "text",
-      "theme": "dark",
-      "route": "/simulations/annals",
-      "detail": "2.19:1 [·]",
-      "baseline": 2.19
-    },
-    {
-      "id": "text|dark|/simulations/annals|span.text-stone-400|·#6|\"·\"",
-      "check": "text",
-      "theme": "dark",
-      "route": "/simulations/annals",
-      "detail": "2.19:1 [·]",
-      "baseline": 2.19
-    },
-    {
-      "id": "text|dark|/simulations/annals|span.text-stone-400|·#7|\"·\"",
-      "check": "text",
-      "theme": "dark",
-      "route": "/simulations/annals",
-      "detail": "2.19:1 [·]",
-      "baseline": 2.19
-    },
-    {
-      "id": "text|dark|/simulations/annals|span.text-stone-400|·#8|\"·\"",
-      "check": "text",
-      "theme": "dark",
-      "route": "/simulations/annals",
-      "detail": "2.19:1 [·]",
-      "baseline": 2.19
-    },
-    {
-      "id": "text|dark|/simulations/annals|span.text-stone-400|·#9|\"·\"",
-      "check": "text",
-      "theme": "dark",
-      "route": "/simulations/annals",
-      "detail": "2.19:1 [·]",
-      "baseline": 2.19
-    },
-    {
-      "id": "text|dark|/simulations/annals|span.text-stone-400|·#10|\"·\"",
-      "check": "text",
-      "theme": "dark",
-      "route": "/simulations/annals",
-      "detail": "2.19:1 [·]",
-      "baseline": 2.19
-    },
-    {
-      "id": "interact|dark|/simulations/annals|button|·Rue of MaraB·20#1:hover|span>span.text-stone-400>\"·\"",
-      "check": "interact",
-      "theme": "dark",
-      "route": "/simulations/annals",
-      "detail": "2.01:1 (rendered ground) [·]",
-      "baseline": 2.01
-    },
-    {
-      "id": "interact|dark|/simulations/annals|button|·Rue of MaraB·20#1:focus|span>span.text-stone-400>\"·\"",
-      "check": "interact",
-      "theme": "dark",
-      "route": "/simulations/annals",
-      "detail": "2.19:1 (rendered ground) [·]",
-      "baseline": 2.19
-    },
-    {
-      "id": "interact|dark|/simulations/annals|button|·Rue of MaraB·20#1:active|span>span.text-stone-400>\"·\"",
-      "check": "interact",
-      "theme": "dark",
-      "route": "/simulations/annals",
-      "detail": "2.01:1 (rendered ground) [·]",
-      "baseline": 2.01
-    },
-    {
-      "id": "interact|dark|/simulations/annals|button|·Halia of MaraG·33#1:hover|span>span.text-stone-400>\"·\"",
-      "check": "interact",
-      "theme": "dark",
-      "route": "/simulations/annals",
-      "detail": "2.01:1 (rendered ground) [·]",
-      "baseline": 2.01
-    },
-    {
-      "id": "interact|dark|/simulations/annals|button|·Halia of MaraG·33#1:focus|span>span.text-stone-400>\"·\"",
-      "check": "interact",
-      "theme": "dark",
-      "route": "/simulations/annals",
-      "detail": "2.19:1 (rendered ground) [·]",
-      "baseline": 2.19
-    },
-    {
-      "id": "interact|dark|/simulations/annals|button|·Halia of MaraG·33#1:active|span>span.text-stone-400>\"·\"",
-      "check": "interact",
-      "theme": "dark",
-      "route": "/simulations/annals",
-      "detail": "2.01:1 (rendered ground) [·]",
-      "baseline": 2.01
-    },
-    {
-      "id": "interact|dark|/simulations/annals|button|·Oda of OrinC·26#1:hover|span>span.text-stone-400>\"·\"",
-      "check": "interact",
-      "theme": "dark",
-      "route": "/simulations/annals",
-      "detail": "2.01:1 (rendered ground) [·]",
-      "baseline": 2.01
-    },
-    {
-      "id": "interact|dark|/simulations/annals|button|·Oda of OrinC·26#1:focus|span>span.text-stone-400>\"·\"",
-      "check": "interact",
-      "theme": "dark",
-      "route": "/simulations/annals",
-      "detail": "2.19:1 (rendered ground) [·]",
-      "baseline": 2.19
-    },
-    {
-      "id": "interact|dark|/simulations/annals|button|·Oda of OrinC·26#1:active|span>span.text-stone-400>\"·\"",
-      "check": "interact",
-      "theme": "dark",
-      "route": "/simulations/annals",
-      "detail": "2.01:1 (rendered ground) [·]",
-      "baseline": 2.01
-    },
-    {
-      "id": "interact|dark|/simulations/annals|button|·Nael of OrinG·31#1:hover|span>span.text-stone-400>\"·\"",
-      "check": "interact",
-      "theme": "dark",
-      "route": "/simulations/annals",
-      "detail": "2.01:1 (rendered ground) [·]",
-      "baseline": 2.01
-    },
-    {
-      "id": "interact|dark|/simulations/annals|button|·Nael of OrinG·31#1:focus|span>span.text-stone-400>\"·\"",
-      "check": "interact",
-      "theme": "dark",
-      "route": "/simulations/annals",
-      "detail": "2.19:1 (rendered ground) [·]",
-      "baseline": 2.19
-    },
-    {
-      "id": "interact|dark|/simulations/annals|button|·Nael of OrinG·31#1:active|span>span.text-stone-400>\"·\"",
-      "check": "interact",
-      "theme": "dark",
-      "route": "/simulations/annals",
-      "detail": "2.01:1 (rendered ground) [·]",
-      "baseline": 2.01
-    },
-    {
-      "id": "interact|dark|/simulations/annals|button|·ULm of ReshC·21#1:hover|span>span.text-stone-400>\"·\"",
-      "check": "interact",
-      "theme": "dark",
-      "route": "/simulations/annals",
-      "detail": "2.01:1 (rendered ground) [·]",
-      "baseline": 2.01
-    },
-    {
-      "id": "interact|dark|/simulations/annals|button|·ULm of ReshC·21#1:focus|span>span.text-stone-400>\"·\"",
-      "check": "interact",
-      "theme": "dark",
-      "route": "/simulations/annals",
-      "detail": "2.19:1 (rendered ground) [·]",
-      "baseline": 2.19
-    },
-    {
-      "id": "interact|dark|/simulations/annals|button|·ULm of ReshC·21#1:active|span>span.text-stone-400>\"·\"",
-      "check": "interact",
-      "theme": "dark",
-      "route": "/simulations/annals",
-      "detail": "2.01:1 (rendered ground) [·]",
-      "baseline": 2.01
-    },
-    {
-      "id": "interact|dark|/simulations/annals|button|·Vesh of ReshB·35#1:hover|span>span.text-stone-400>\"·\"",
-      "check": "interact",
-      "theme": "dark",
-      "route": "/simulations/annals",
-      "detail": "2.01:1 (rendered ground) [·]",
-      "baseline": 2.01
-    },
-    {
-      "id": "interact|dark|/simulations/annals|button|·Vesh of ReshB·35#1:focus|span>span.text-stone-400>\"·\"",
-      "check": "interact",
-      "theme": "dark",
-      "route": "/simulations/annals",
-      "detail": "2.19:1 (rendered ground) [·]",
-      "baseline": 2.19
-    },
-    {
-      "id": "interact|dark|/simulations/annals|button|·Vesh of ReshB·35#1:active|span>span.text-stone-400>\"·\"",
-      "check": "interact",
-      "theme": "dark",
-      "route": "/simulations/annals",
-      "detail": "2.01:1 (rendered ground) [·]",
-      "baseline": 2.01
-    },
-    {
-      "id": "interact|dark|/simulations/annals|button|·Myrr of TovaK·20#1:hover|span>span.text-stone-400>\"·\"",
-      "check": "interact",
-      "theme": "dark",
-      "route": "/simulations/annals",
-      "detail": "2.01:1 (rendered ground) [·]",
-      "baseline": 2.01
-    },
-    {
-      "id": "interact|dark|/simulations/annals|button|·Myrr of TovaK·20#1:focus|span>span.text-stone-400>\"·\"",
-      "check": "interact",
-      "theme": "dark",
-      "route": "/simulations/annals",
-      "detail": "2.19:1 (rendered ground) [·]",
-      "baseline": 2.19
-    },
-    {
-      "id": "interact|dark|/simulations/annals|button|·Myrr of TovaK·20#1:active|span>span.text-stone-400>\"·\"",
-      "check": "interact",
-      "theme": "dark",
-      "route": "/simulations/annals",
-      "detail": "2.01:1 (rendered ground) [·]",
-      "baseline": 2.01
-    },
-    {
-      "id": "interact|dark|/simulations/annals|button|·Bryn of TovaC·21#1:hover|span>span.text-stone-400>\"·\"",
-      "check": "interact",
-      "theme": "dark",
-      "route": "/simulations/annals",
-      "detail": "2.01:1 (rendered ground) [·]",
-      "baseline": 2.01
-    },
-    {
-      "id": "interact|dark|/simulations/annals|button|·Bryn of TovaC·21#1:focus|span>span.text-stone-400>\"·\"",
-      "check": "interact",
-      "theme": "dark",
-      "route": "/simulations/annals",
-      "detail": "2.19:1 (rendered ground) [·]",
-      "baseline": 2.19
-    },
-    {
-      "id": "interact|dark|/simulations/annals|button|·Bryn of TovaC·21#1:active|span>span.text-stone-400>\"·\"",
-      "check": "interact",
-      "theme": "dark",
-      "route": "/simulations/annals",
-      "detail": "2.01:1 (rendered ground) [·]",
-      "baseline": 2.01
-    },
-    {
-      "id": "interact|dark|/simulations/annals|button|·Dara of VaelG·18#1:hover|span>span.text-stone-400>\"·\"",
-      "check": "interact",
-      "theme": "dark",
-      "route": "/simulations/annals",
-      "detail": "2.01:1 (rendered ground) [·]",
-      "baseline": 2.01
-    },
-    {
-      "id": "interact|dark|/simulations/annals|button|·Dara of VaelG·18#1:focus|span>span.text-stone-400>\"·\"",
-      "check": "interact",
-      "theme": "dark",
-      "route": "/simulations/annals",
-      "detail": "2.19:1 (rendered ground) [·]",
-      "baseline": 2.19
-    },
-    {
-      "id": "interact|dark|/simulations/annals|button|·Dara of VaelG·18#1:active|span>span.text-stone-400>\"·\"",
-      "check": "interact",
-      "theme": "dark",
-      "route": "/simulations/annals",
-      "detail": "2.01:1 (rendered ground) [·]",
-      "baseline": 2.01
-    },
-    {
-      "id": "interact|dark|/simulations/annals|button|·Kett of VaelP·28#1:hover|span>span.text-stone-400>\"·\"",
-      "check": "interact",
-      "theme": "dark",
-      "route": "/simulations/annals",
-      "detail": "2.01:1 (rendered ground) [·]",
-      "baseline": 2.01
-    },
-    {
-      "id": "interact|dark|/simulations/annals|button|·Kett of VaelP·28#1:focus|span>span.text-stone-400>\"·\"",
-      "check": "interact",
-      "theme": "dark",
-      "route": "/simulations/annals",
-      "detail": "2.19:1 (rendered ground) [·]",
-      "baseline": 2.19
-    },
-    {
-      "id": "interact|dark|/simulations/annals|button|·Kett of VaelP·28#1:active|span>span.text-stone-400>\"·\"",
-      "check": "interact",
-      "theme": "dark",
-      "route": "/simulations/annals",
-      "detail": "2.01:1 (rendered ground) [·]",
-      "baseline": 2.01
-    },
-    {
-      "id": "text|light|/simulations/annals|span.text-stone-400|·|\"·\"",
-      "check": "text",
-      "theme": "light",
-      "route": "/simulations/annals",
-      "detail": "2.19:1 [·]",
-      "baseline": 2.19
-    },
-    {
-      "id": "text|light|/simulations/annals|span.text-stone-400|·#2|\"·\"",
-      "check": "text",
-      "theme": "light",
-      "route": "/simulations/annals",
-      "detail": "2.19:1 [·]",
-      "baseline": 2.19
-    },
-    {
-      "id": "text|light|/simulations/annals|span.text-stone-400|·#3|\"·\"",
-      "check": "text",
-      "theme": "light",
-      "route": "/simulations/annals",
-      "detail": "2.19:1 [·]",
-      "baseline": 2.19
-    },
-    {
-      "id": "text|light|/simulations/annals|span.text-stone-400|·#4|\"·\"",
-      "check": "text",
-      "theme": "light",
-      "route": "/simulations/annals",
-      "detail": "2.19:1 [·]",
-      "baseline": 2.19
-    },
-    {
-      "id": "text|light|/simulations/annals|span.text-stone-400|·#5|\"·\"",
-      "check": "text",
-      "theme": "light",
-      "route": "/simulations/annals",
-      "detail": "2.19:1 [·]",
-      "baseline": 2.19
-    },
-    {
-      "id": "text|light|/simulations/annals|span.text-stone-400|·#6|\"·\"",
-      "check": "text",
-      "theme": "light",
-      "route": "/simulations/annals",
-      "detail": "2.19:1 [·]",
-      "baseline": 2.19
-    },
-    {
-      "id": "text|light|/simulations/annals|span.text-stone-400|·#7|\"·\"",
-      "check": "text",
-      "theme": "light",
-      "route": "/simulations/annals",
-      "detail": "2.19:1 [·]",
-      "baseline": 2.19
-    },
-    {
-      "id": "text|light|/simulations/annals|span.text-stone-400|·#8|\"·\"",
-      "check": "text",
-      "theme": "light",
-      "route": "/simulations/annals",
-      "detail": "2.19:1 [·]",
-      "baseline": 2.19
-    },
-    {
-      "id": "text|light|/simulations/annals|span.text-stone-400|·#9|\"·\"",
-      "check": "text",
-      "theme": "light",
-      "route": "/simulations/annals",
-      "detail": "2.19:1 [·]",
-      "baseline": 2.19
-    },
-    {
-      "id": "text|light|/simulations/annals|span.text-stone-400|·#10|\"·\"",
-      "check": "text",
-      "theme": "light",
-      "route": "/simulations/annals",
-      "detail": "2.19:1 [·]",
-      "baseline": 2.19
-    },
-    {
-      "id": "interact|light|/simulations/annals|button|·Rue of MaraB·20#1:hover|span>span.text-stone-400>\"·\"",
-      "check": "interact",
-      "theme": "light",
-      "route": "/simulations/annals",
-      "detail": "2.01:1 (rendered ground) [·]",
-      "baseline": 2.01
-    },
-    {
-      "id": "interact|light|/simulations/annals|button|·Rue of MaraB·20#1:focus|span>span.text-stone-400>\"·\"",
-      "check": "interact",
-      "theme": "light",
-      "route": "/simulations/annals",
-      "detail": "2.19:1 (rendered ground) [·]",
-      "baseline": 2.19
-    },
-    {
-      "id": "interact|light|/simulations/annals|button|·Rue of MaraB·20#1:active|span>span.text-stone-400>\"·\"",
-      "check": "interact",
-      "theme": "light",
-      "route": "/simulations/annals",
-      "detail": "2.01:1 (rendered ground) [·]",
-      "baseline": 2.01
-    },
-    {
-      "id": "interact|light|/simulations/annals|button|·Halia of MaraG·33#1:hover|span>span.text-stone-400>\"·\"",
-      "check": "interact",
-      "theme": "light",
-      "route": "/simulations/annals",
-      "detail": "2.01:1 (rendered ground) [·]",
-      "baseline": 2.01
-    },
-    {
-      "id": "interact|light|/simulations/annals|button|·Halia of MaraG·33#1:focus|span>span.text-stone-400>\"·\"",
-      "check": "interact",
-      "theme": "light",
-      "route": "/simulations/annals",
-      "detail": "2.19:1 (rendered ground) [·]",
-      "baseline": 2.19
-    },
-    {
-      "id": "interact|light|/simulations/annals|button|·Halia of MaraG·33#1:active|span>span.text-stone-400>\"·\"",
-      "check": "interact",
-      "theme": "light",
-      "route": "/simulations/annals",
-      "detail": "2.01:1 (rendered ground) [·]",
-      "baseline": 2.01
-    },
-    {
-      "id": "interact|light|/simulations/annals|button|·Oda of OrinC·26#1:hover|span>span.text-stone-400>\"·\"",
-      "check": "interact",
-      "theme": "light",
-      "route": "/simulations/annals",
-      "detail": "2.01:1 (rendered ground) [·]",
-      "baseline": 2.01
-    },
-    {
-      "id": "interact|light|/simulations/annals|button|·Oda of OrinC·26#1:focus|span>span.text-stone-400>\"·\"",
-      "check": "interact",
-      "theme": "light",
-      "route": "/simulations/annals",
-      "detail": "2.19:1 (rendered ground) [·]",
-      "baseline": 2.19
-    },
-    {
-      "id": "interact|light|/simulations/annals|button|·Oda of OrinC·26#1:active|span>span.text-stone-400>\"·\"",
-      "check": "interact",
-      "theme": "light",
-      "route": "/simulations/annals",
-      "detail": "2.01:1 (rendered ground) [·]",
-      "baseline": 2.01
-    },
-    {
-      "id": "interact|light|/simulations/annals|button|·Nael of OrinG·31#1:hover|span>span.text-stone-400>\"·\"",
-      "check": "interact",
-      "theme": "light",
-      "route": "/simulations/annals",
-      "detail": "2.01:1 (rendered ground) [·]",
-      "baseline": 2.01
-    },
-    {
-      "id": "interact|light|/simulations/annals|button|·Nael of OrinG·31#1:focus|span>span.text-stone-400>\"·\"",
-      "check": "interact",
-      "theme": "light",
-      "route": "/simulations/annals",
-      "detail": "2.19:1 (rendered ground) [·]",
-      "baseline": 2.19
-    },
-    {
-      "id": "interact|light|/simulations/annals|button|·Nael of OrinG·31#1:active|span>span.text-stone-400>\"·\"",
-      "check": "interact",
-      "theme": "light",
-      "route": "/simulations/annals",
-      "detail": "2.01:1 (rendered ground) [·]",
-      "baseline": 2.01
-    },
-    {
-      "id": "interact|light|/simulations/annals|button|·ULm of ReshC·21#1:hover|span>span.text-stone-400>\"·\"",
-      "check": "interact",
-      "theme": "light",
-      "route": "/simulations/annals",
-      "detail": "2.01:1 (rendered ground) [·]",
-      "baseline": 2.01
-    },
-    {
-      "id": "interact|light|/simulations/annals|button|·ULm of ReshC·21#1:focus|span>span.text-stone-400>\"·\"",
-      "check": "interact",
-      "theme": "light",
-      "route": "/simulations/annals",
-      "detail": "2.19:1 (rendered ground) [·]",
-      "baseline": 2.19
-    },
-    {
-      "id": "interact|light|/simulations/annals|button|·ULm of ReshC·21#1:active|span>span.text-stone-400>\"·\"",
-      "check": "interact",
-      "theme": "light",
-      "route": "/simulations/annals",
-      "detail": "2.01:1 (rendered ground) [·]",
-      "baseline": 2.01
-    },
-    {
-      "id": "interact|light|/simulations/annals|button|·Vesh of ReshB·35#1:hover|span>span.text-stone-400>\"·\"",
-      "check": "interact",
-      "theme": "light",
-      "route": "/simulations/annals",
-      "detail": "2.01:1 (rendered ground) [·]",
-      "baseline": 2.01
-    },
-    {
-      "id": "interact|light|/simulations/annals|button|·Vesh of ReshB·35#1:focus|span>span.text-stone-400>\"·\"",
-      "check": "interact",
-      "theme": "light",
-      "route": "/simulations/annals",
-      "detail": "2.19:1 (rendered ground) [·]",
-      "baseline": 2.19
-    },
-    {
-      "id": "interact|light|/simulations/annals|button|·Vesh of ReshB·35#1:active|span>span.text-stone-400>\"·\"",
-      "check": "interact",
-      "theme": "light",
-      "route": "/simulations/annals",
-      "detail": "2.01:1 (rendered ground) [·]",
-      "baseline": 2.01
-    },
-    {
-      "id": "interact|light|/simulations/annals|button|·Myrr of TovaK·20#1:hover|span>span.text-stone-400>\"·\"",
-      "check": "interact",
-      "theme": "light",
-      "route": "/simulations/annals",
-      "detail": "2.01:1 (rendered ground) [·]",
-      "baseline": 2.01
-    },
-    {
-      "id": "interact|light|/simulations/annals|button|·Myrr of TovaK·20#1:focus|span>span.text-stone-400>\"·\"",
-      "check": "interact",
-      "theme": "light",
-      "route": "/simulations/annals",
-      "detail": "2.19:1 (rendered ground) [·]",
-      "baseline": 2.19
-    },
-    {
-      "id": "interact|light|/simulations/annals|button|·Myrr of TovaK·20#1:active|span>span.text-stone-400>\"·\"",
-      "check": "interact",
-      "theme": "light",
-      "route": "/simulations/annals",
-      "detail": "2.01:1 (rendered ground) [·]",
-      "baseline": 2.01
-    },
-    {
-      "id": "interact|light|/simulations/annals|button|·Bryn of TovaC·21#1:hover|span>span.text-stone-400>\"·\"",
-      "check": "interact",
-      "theme": "light",
-      "route": "/simulations/annals",
-      "detail": "2.01:1 (rendered ground) [·]",
-      "baseline": 2.01
-    },
-    {
-      "id": "interact|light|/simulations/annals|button|·Bryn of TovaC·21#1:focus|span>span.text-stone-400>\"·\"",
-      "check": "interact",
-      "theme": "light",
-      "route": "/simulations/annals",
-      "detail": "2.19:1 (rendered ground) [·]",
-      "baseline": 2.19
-    },
-    {
-      "id": "interact|light|/simulations/annals|button|·Bryn of TovaC·21#1:active|span>span.text-stone-400>\"·\"",
-      "check": "interact",
-      "theme": "light",
-      "route": "/simulations/annals",
-      "detail": "2.01:1 (rendered ground) [·]",
-      "baseline": 2.01
-    },
-    {
-      "id": "interact|light|/simulations/annals|button|·Dara of VaelG·18#1:hover|span>span.text-stone-400>\"·\"",
-      "check": "interact",
-      "theme": "light",
-      "route": "/simulations/annals",
-      "detail": "2.01:1 (rendered ground) [·]",
-      "baseline": 2.01
-    },
-    {
-      "id": "interact|light|/simulations/annals|button|·Dara of VaelG·18#1:focus|span>span.text-stone-400>\"·\"",
-      "check": "interact",
-      "theme": "light",
-      "route": "/simulations/annals",
-      "detail": "2.19:1 (rendered ground) [·]",
-      "baseline": 2.19
-    },
-    {
-      "id": "interact|light|/simulations/annals|button|·Dara of VaelG·18#1:active|span>span.text-stone-400>\"·\"",
-      "check": "interact",
-      "theme": "light",
-      "route": "/simulations/annals",
-      "detail": "2.01:1 (rendered ground) [·]",
-      "baseline": 2.01
-    },
-    {
-      "id": "interact|light|/simulations/annals|button|·Kett of VaelP·28#1:hover|span>span.text-stone-400>\"·\"",
-      "check": "interact",
-      "theme": "light",
-      "route": "/simulations/annals",
-      "detail": "2.01:1 (rendered ground) [·]",
-      "baseline": 2.01
-    },
-    {
-      "id": "interact|light|/simulations/annals|button|·Kett of VaelP·28#1:focus|span>span.text-stone-400>\"·\"",
-      "check": "interact",
-      "theme": "light",
-      "route": "/simulations/annals",
-      "detail": "2.19:1 (rendered ground) [·]",
-      "baseline": 2.19
-    },
-    {
-      "id": "interact|light|/simulations/annals|button|·Kett of VaelP·28#1:active|span>span.text-stone-400>\"·\"",
-      "check": "interact",
-      "theme": "light",
-      "route": "/simulations/annals",
-      "detail": "2.01:1 (rendered ground) [·]",
-      "baseline": 2.01
-    }
-  ],
+  "entries": [],
   "creative": [
     {
       "id": "creative|dark|/simulations|div.spider-preview-card|K|\"K\"",
@@ -1144,96 +502,96 @@
       "check": "inactive",
       "theme": "dark",
       "route": "/simulations/annals",
-      "detail": "1.17:1 (rendered ground) (disabled) [give grain]",
-      "baseline": 1.17
+      "detail": "5.48:1 (disabled) [give grain]",
+      "baseline": 5.48
     },
     {
       "id": "inactive|dark|/simulations/annals|button|warn|\"warn\"",
       "check": "inactive",
       "theme": "dark",
       "route": "/simulations/annals",
-      "detail": "1.17:1 (rendered ground) (disabled) [warn]",
-      "baseline": 1.17
+      "detail": "5.48:1 (disabled) [warn]",
+      "baseline": 5.48
     },
     {
       "id": "inactive|dark|/simulations/annals|button|protect|\"protect\"",
       "check": "inactive",
       "theme": "dark",
       "route": "/simulations/annals",
-      "detail": "1.16:1 (rendered ground) (disabled) [protect]",
-      "baseline": 1.16
+      "detail": "5.48:1 (disabled) [protect]",
+      "baseline": 5.48
     },
     {
       "id": "inactive|dark|/simulations/annals|button|urge alliance|\"urge alliance\"",
       "check": "inactive",
       "theme": "dark",
       "route": "/simulations/annals",
-      "detail": "1.15:1 (rendered ground) (disabled) [urge alliance]",
-      "baseline": 1.15
+      "detail": "5.48:1 (disabled) [urge alliance]",
+      "baseline": 5.48
     },
     {
       "id": "inactive|dark|/simulations/annals|button|accuse (of…)|\"accuse (of…)\"",
       "check": "inactive",
       "theme": "dark",
       "route": "/simulations/annals",
-      "detail": "1.17:1 (rendered ground) (disabled) [accuse (of…)]",
-      "baseline": 1.17
+      "detail": "5.48:1 (disabled) [accuse (of…)]",
+      "baseline": 5.48
     },
     {
       "id": "inactive|dark|/simulations/annals|button|exile|\"exile\"",
       "check": "inactive",
       "theme": "dark",
       "route": "/simulations/annals",
-      "detail": "1.17:1 (rendered ground) (disabled) [exile]",
-      "baseline": 1.17
+      "detail": "5.48:1 (disabled) [exile]",
+      "baseline": 5.48
     },
     {
       "id": "inactive|light|/simulations/annals|button|give grain|\"give grain\"",
       "check": "inactive",
       "theme": "light",
       "route": "/simulations/annals",
-      "detail": "1.24:1 (rendered ground) (disabled) [give grain]",
-      "baseline": 1.24
+      "detail": "5.48:1 (disabled) [give grain]",
+      "baseline": 5.48
     },
     {
       "id": "inactive|light|/simulations/annals|button|warn|\"warn\"",
       "check": "inactive",
       "theme": "light",
       "route": "/simulations/annals",
-      "detail": "1.24:1 (rendered ground) (disabled) [warn]",
-      "baseline": 1.24
+      "detail": "5.48:1 (disabled) [warn]",
+      "baseline": 5.48
     },
     {
       "id": "inactive|light|/simulations/annals|button|protect|\"protect\"",
       "check": "inactive",
       "theme": "light",
       "route": "/simulations/annals",
-      "detail": "1.23:1 (rendered ground) (disabled) [protect]",
-      "baseline": 1.23
+      "detail": "5.48:1 (disabled) [protect]",
+      "baseline": 5.48
     },
     {
       "id": "inactive|light|/simulations/annals|button|urge alliance|\"urge alliance\"",
       "check": "inactive",
       "theme": "light",
       "route": "/simulations/annals",
-      "detail": "1.22:1 (rendered ground) (disabled) [urge alliance]",
-      "baseline": 1.22
+      "detail": "5.48:1 (disabled) [urge alliance]",
+      "baseline": 5.48
     },
     {
       "id": "inactive|light|/simulations/annals|button|accuse (of…)|\"accuse (of…)\"",
       "check": "inactive",
       "theme": "light",
       "route": "/simulations/annals",
-      "detail": "1.24:1 (rendered ground) (disabled) [accuse (of…)]",
-      "baseline": 1.24
+      "detail": "5.48:1 (disabled) [accuse (of…)]",
+      "baseline": 5.48
     },
     {
       "id": "inactive|light|/simulations/annals|button|exile|\"exile\"",
       "check": "inactive",
       "theme": "light",
       "route": "/simulations/annals",
-      "detail": "1.23:1 (rendered ground) (disabled) [exile]",
-      "baseline": 1.23
+      "detail": "5.48:1 (disabled) [exile]",
+      "baseline": 5.48
     }
   ]
 }

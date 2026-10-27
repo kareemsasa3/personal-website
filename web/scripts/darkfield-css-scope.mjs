@@ -101,7 +101,7 @@ const ANNALS_UTILITIES = [...String.raw`max-w-5xl mx-auto flex grid flex-1 flex-
   text-stone-400 text-stone-500 text-stone-600 text-stone-700 text-stone-900 text-yellow-700 text-yellow-800
   text-yellow-900 text-amber-800 text-emerald-700 text-emerald-800 text-sky-800 text-red-700 text-red-800
   text-red-900 text-white hover\:bg-stone-200:hover hover\:bg-stone-700:hover hover\:bg-stone-800:hover
-  hover\:bg-yellow-50:hover hover\:text-stone-50:hover ring-1 ring-yellow-400 ring-yellow-500 font-serif
+  hover\:bg-yellow-50:hover hover\:text-stone-50:hover ring-yellow-400 ring-yellow-500 font-serif
   font-mono font-normal font-medium font-semibold font-bold italic text-xs text-sm text-\[13px\] text-4xl
   text-5xl text-left text-right leading-none leading-relaxed tracking-tight tracking-widest uppercase
   tabular-nums select-none transition cursor-not-allowed md\:grid-cols-\[1fr_320px\]`.split(/\s+/),

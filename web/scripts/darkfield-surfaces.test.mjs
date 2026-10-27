@@ -13,7 +13,7 @@ export const DONE5 = ["pages/NotFound/NotFound.css", "components/common/ErrorBou
   "components/Terminal/TopUI.css", "components/Terminal/VimUI.css", "components/Terminal/ManPageUI.css",
   "components/SnakeGame/SnakeGame.css", "pages/SnakeGame/SnakeGame.css",
   "components/SpiderSolitaire/SpiderSolitaire.css", "pages/SpiderSolitaire/SpiderSolitaire.css", "pages/RhythmLab/RhythmLab.css",
-  "components/RhythmLab/RhythmLab.css"];
+  "components/RhythmLab/RhythmLab.css", "pages/Annals/Annals.css"];
 // Rhythm Lab rules that were already dead (never rendered) when Task 19 found them: kept as found, excluded by name.
 const RHYTHM_CSS = "components/RhythmLab/RhythmLab.css";
 const RHYTHM_DEAD = [".rhythm-lab-audio-resume", ".rhythm-lab-record-button-active"];
@@ -1359,8 +1359,8 @@ test("P5 rhythm lab overlays and dialogs: re-grounded faces, governed type and t
 // §15 legends; D6 ruling). The page root takes the site's family and fg. The parchment sheet is native and keeps the ink,
 // stack and colour scheme it inherited from the page before the lift (the computed-style comparison reads it), and the six
 // narrative markers keep theirs by their own pins. The sheet carries data-theme="light", so the chrome on it renders the
-// Light token set in every theme. Governed rules live after the utilities and obey the P5 rules before the whole file
-// joins DONE5 (Task 22).
+// Light token set in every theme. Governed rules live after the utilities and obey the P5 rules; from Task 22 the whole
+// file is in DONE5.
 const ANNALS_CSS = "pages/Annals/Annals.css";
 const ANNALS_GOVERNED = "/* Governed Annals chrome (D6 ruling) */";
 const SERIF = 'Georgia, Cambria, "Times New Roman", Times, serif';
@@ -1399,9 +1399,11 @@ test("P5 annals chrome: governed rules follow the utilities and obey the P5 rule
   const governedDecls = decls.filter((d) => d.line > line);
   assert.ok(governedDecls.length >= 15, `governed rules not found (${governedDecls.length})`);
   assert.ok(decls.every((d) => d.line < line || !NATIVE5[ANNALS_CSS].includes(innermost(d.selector))), "a native rule below the governed comment");
-  assert.ok(decls.filter((d) => d.line < line).every((d) => !/\.annals-(heading|readout|data|label|phrase|available|hint|footer|hand|legend|key|log|banner)\b/.test(d.selector)),
+  assert.ok(decls.filter((d) => d.line < line).every((d) => !/\.annals-(heading|readout|data|label|phrase|available|hint|footer|hand|legend|key|log|banner|control|soul|value|reason|frame|count)\b/.test(d.selector)),
     "a governed class styled above the governed comment");
-  assert.deepEqual(governedDecls.filter((d) => !topLevel(innermost(d.selector)).every((i) => /^\.annals-sheet \.annals-[\w-]+( > (span|div))?(::before)?$/.test(i))).map(where), [],
+  // The roster row (Task 22) also styles its own spans, values and pressed values.
+  const ROSTER = /^\.annals-sheet \.annals-soul(:is\(:active, \[data-df-pressed\]\))?( span| \.annals-value| > span:last-child)$/;
+  assert.deepEqual(governedDecls.filter((d) => !topLevel(innermost(d.selector)).every((i) => /^\.annals-sheet \.annals-[\w-]+( > (span|div))?(::before)?$/.test(i) || ROSTER.test(i))).map(where), [],
     "governed rules are scoped to the sheet's chrome classes");
   for (const [name, broken] of Object.entries(P5_RULE)) assert.deepEqual(governedDecls.filter(broken).map(where), [], `P5 ${name}`);
   assert.deepEqual(derivedOnAncestors(governedDecls, await colourTokens()).map(where), [], "P5 derived variables");
@@ -1439,10 +1441,10 @@ test("P5 annals chrome: voices, kept first classes, phrases never labels, the ye
   for (const name of ["Fates That Diverged", "Houses"]) has(new RegExp(`<h3 className="text-xs mb-1\\.5 df-label annals-label">${name}</h3>`), name);
   // A phrase inside a heading stays Narrator text; only the name is a label.
   has(/<h2 className="text-sm mb-3">\s*<span className="df-label annals-label">The Fork<\/span>\s*<span className="text-xs ml-2 annals-phrase"><span className="df-body-sm">what your hand changed by year \{world\.year\}<\/span><\/span>/, "The Fork");
-  has(/<h2 className="text-xs mb-2">\s*<span className="df-label annals-label">Your Hand<\/span> \{world\.token \? <span className="text-yellow-700 df-body-sm annals-available">· available<\/span> : <span className="text-stone-400 df-body-sm annals-phrase">· spent \(every 3rd year\)<\/span>\}/, "Your Hand");
+  has(/<h2 className="text-xs mb-2">\s*<span className="df-label annals-label">Your Hand<\/span> \{world\.token \? <span className="text-yellow-700 df-body-sm annals-available">· available<\/span> : <span className="text-stone-400 df-body-sm annals-phrase" id="annals-hand-spent">· spent \(every 3rd year\)<\/span>\}/, "Your Hand");
   assert.ok(annalsClassLists(tsx).filter((c) => /\bannals-(phrase|available|hint)\b/.test(c)).every((c) => !/\bdf-label/.test(c)), "a phrase or hint in the label voice");
   // Hints and the footer: Narrator text at fg-muted; the legend's words in fg with a key cell.
-  has(/<p className="text-xs mb-4 h-8 annals-hint">\s*<span className="df-body-sm">\{pending/, "the verb hint");
+  has(/<p className="text-xs mb-4 annals-hint annals-reason">\s*<span className="df-body-sm">\{pending/, "the verb hint");
   has(/<p className="text-xs mt-2 annals-hint">\s*<span className="df-body-sm">Gold lines are <span className="text-yellow-700 annals-hand">your hand<\/span>\. Everything else, the world authored alone\.<\/span>/, "the chronicle legend");
   has(/<footer className="mt-6 pt-3 df-body-sm annals-hint annals-footer">/, "the footer");
   // The fork legend and the log are Machine text; the banner is Narrator text in the person's band.
@@ -1456,4 +1458,72 @@ test("P5 annals chrome: voices, kept first classes, phrases never labels, the ye
   for (const c of annalsClassLists(tsx).filter((l) => /\bannals-(heading|readout|data|label|phrase|available|hint|legend|log|banner)\b/.test(l))) {
     assert.doesNotMatch(c.split(/\s+/).slice(1).join(" "), /\b(uppercase|tracking-[\w-]+|font-(serif|mono|bold|medium|semibold|normal)|text-(stone|yellow|red|amber)-\d+|text-(xs|sm|4xl|5xl)|leading-[\w-]+|tabular-nums|rounded|border(-[\w-]+)?|bg-[\w/-]+)\b/, c);
   }
+});
+
+// Annals II (Phase 5 Task 22; P5-4; §13 control model, Disabled, Selected, Selection versus transient states; §06 voices;
+// §09 Frames and corners). Every button on the sheet is a df-control with one generated voice, the label voice or, where
+// its text is longer than a label, the Narrator voice; it keeps its first class (ids pair on it) and drops the utilities
+// the control model owns. The seed field is a df-field in the Machine voice and its name a label. The verbs are Disabled
+// through aria-disabled, guarded in their handler and described by the spent phrase, so they stay focusable with their
+// reason; nothing on the page is natively disabled. Selection is aria-pressed alone: the page's own pressed and focus
+// outlines, the ring utility and the control font reset are gone. The house counts of the fork are Machine text with
+// their names as labels, and the two frames are square.
+test("P5 annals controls: the control model, voices, Disabled verbs, Selected through aria-pressed", async () => {
+  const tsx = await read("pages/Annals/Annals.tsx");
+  const opens = [...tsx.matchAll(/<button\b/g)].map((m) => tsx.slice(m.index, tsx.indexOf("className=", m.index) + 200));
+  assert.equal(opens.length, 9, "nine buttons: cast world, replay seed, baseline, your hand, the fork, the advance, the verbs, the roster rows, copy log");
+  const OWNED = /^(rounded|border(-[\w-]+)?|bg-[\w/-]+|text-(stone|yellow|red|amber|white)(-\d+)?|hover\\?:[\w-]+|transition|ring-[\w-]+|font-[\w-]+|text-(xs|sm|\[13px\])|leading-[\w-]+|tracking-[\w-]+|uppercase|tabular-nums|py-[\w.]+|cursor-[\w-]+)$/;
+  const voices = [];
+  for (const open of opens) {
+    const list = /className="([^"]*)"/.exec(open)?.[1];
+    assert.ok(list, `a button without a static class list: ${open.slice(0, 80)}`);
+    const [, ...rest] = list.split(/\s+/);
+    assert.ok(rest.includes("df-control") && rest.includes("annals-control"), `${list}: not an Annals df-control`);
+    const voice = rest.filter((c) => /^df-(label|body)(-[\w-]+)?$/.test(c));
+    assert.equal(voice.length, 1, `${list}: one voice`);
+    voices.push(voice[0]);
+    assert.deepEqual(rest.filter((c) => OWNED.test(c)), [], `${list}: keeps a utility the control model owns`);
+  }
+  assert.deepEqual(voices.filter((v) => v === "df-body-sm").length, 2, "the advance and the roster rows are Narrator text");
+  assert.ok(voices.every((v) => v === "df-body-sm" || v === "df-label-sm"), `voices ${voices}`);
+  assert.match(tsx, /className="px-5 df-control df-body-sm annals-control">\s*let a year pass →/, "the advance");
+  assert.match(tsx, /className="w-full text-left flex items-center justify-between df-control df-body-sm annals-control annals-soul">/, "the roster row");
+  // No native disabled anywhere; the verbs are Disabled, focusable and guarded, their reason the spent phrase.
+  assert.doesNotMatch(tsx, /\sdisabled=\{/, "a natively disabled control");
+  assert.match(tsx, /aria-disabled=\{!world\.token\} aria-describedby=\{world\.token \? undefined : "annals-hand-spent"\} aria-pressed=\{pending === v\}/, "the verbs' Disabled state");
+  assert.match(tsx, /onClick=\{\(\) => \{ if \(!world\.token\) return; setPending\(/, "the verbs' handler is guarded");
+  assert.match(tsx, /<span className="text-stone-400 df-body-sm annals-phrase" id="annals-hand-spent">· spent \(every 3rd year\)<\/span>/, "the reason");
+  assert.match(tsx, /aria-pressed=\{pending \? pickTwo === a\.id : favorite === a\.id\}/, "the roster's selection");
+  assert.doesNotMatch(tsx, /\bring-(1|yellow)/, "a ring utility");
+  // The seed field and its name.
+  assert.match(tsx, /<span className="text-stone-500 df-label-sm annals-label">seed<\/span>/, "the seed label");
+  assert.match(tsx, /<input\s[\s\S]{0,200}?className="w-24 px-2 py-1 df-field df-data annals-field"/, "the seed field");
+  // The roster row: its trait and age are values and its state glyph a marker, both fg; the verb hint reserves its lines.
+  assert.match(tsx, /<span className="text-stone-400 mr-1 annals-value">\{favorite === a\.id \? "★" : "·"\}<\/span>/, "the state glyph");
+  assert.match(tsx, /<span className="text-xs df-data annals-value">/, "the trait and age");
+  assert.match(tsx, /<p className="text-xs mb-4 annals-hint annals-reason">/, "the verb hint");
+  // The fork's houses and the frames.
+  assert.match(tsx, /<span className="font-semibold df-label annals-label">\{h\.name\}<\/span>/, "a house name");
+  assert.match(tsx, /<span className="text-stone-500 ml-2 df-data annals-count"><span className="annals-key annals-key--baseline">○<\/span> /, "a baseline count");
+  assert.match(tsx, /<span className="text-yellow-700 ml-2 df-data annals-count"><span className="annals-key annals-key--hand">●<\/span> /, "a hand count");
+  for (const frame of tsx.match(/className="[^"]*annals-frame[^"]*"/g) ?? []) assert.doesNotMatch(frame, /\b(rounded|border-stone-\d+)\b/, frame);
+  assert.equal((tsx.match(/annals-frame/g) ?? []).length, 2, "the chronicle's and the fork's frames");
+  const { line, decls } = await annalsGoverned();
+  assert.deepEqual(decls.filter((d) => /button(\[aria-pressed|:focus-visible|:disabled)|\.ring-1\b|\.annals-living button/.test(d.selector) ||
+    (/\.annals-page (button|input)\b/.test(d.selector) && /^font/.test(d.prop))).map(where), [], "the page's own control rules");
+  const governedDecls = decls.filter((d) => d.line > line);
+  const value = (sel, prop) => governedDecls.find((d) => d.selector === sel && d.prop === prop)?.value;
+  assert.equal(value(".annals-sheet .annals-control", "--df-ground"), "var(--field)");
+  assert.equal(value(".annals-sheet .annals-control", "--df-ground-up"), "var(--surface-1)");
+  assert.equal(value(".annals-sheet .annals-soul span", "color"), "inherit");
+  assert.equal(value(".annals-sheet .annals-soul .annals-value", "color"), "var(--fg)");
+  assert.equal(value(".annals-sheet .annals-soul:is(:active, [data-df-pressed]) .annals-value", "color"), "inherit");
+  assert.equal(value(".annals-sheet .annals-reason > span", "min-block-size"), "2lh");
+  assert.equal(value(".annals-sheet .annals-frame", "border-color"), "var(--rule)");
+  assert.equal(value(".annals-sheet .annals-count", "color"), "var(--fg)");
+  // The seed field's target size on small or coarse-pointer screens is the grammar's expression for non-card controls.
+  const grammarPad = declarations(await read("styles/darkfield/grammar.css")).find((d) => d.selector.endsWith(".df-control:not(.df-control--card)") && d.prop === "padding-block");
+  const fieldPad = governedDecls.find((d) => d.selector.endsWith(".annals-sheet .annals-field") && d.prop === "padding-block");
+  assert.ok(grammarPad && fieldPad && fieldPad.value === grammarPad.value && fieldPad.selector.split(" >> ")[0] === grammarPad.selector.split(" >> ")[0],
+    `the seed field's target padding ${JSON.stringify([fieldPad, grammarPad])}`);
 });

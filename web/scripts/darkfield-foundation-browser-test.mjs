@@ -65,8 +65,10 @@ const STATES = [
     texts: [".annals-page aside > h2"],
     prepare: async (page) => {
       const advance = page.getByRole("button", { name: "let a year pass →" });
-      for (let year = 0; year < 3 && (await page.locator(".annals-page aside .flex-wrap > button:disabled").count()); year++) await advance.click();
-      if (await page.locator(".annals-page aside .flex-wrap > button:disabled").count()) throw new Error("annals: verbs not enabled");
+      // Phase 5 Task 22 (P5-4): the verbs are Disabled through aria-disabled (focusable), so either form counts.
+      const off = '.annals-page aside .flex-wrap > button:is(:disabled, [aria-disabled="true"])';
+      for (let year = 0; year < 3 && (await page.locator(off).count()); year++) await advance.click();
+      if (await page.locator(off).count()) throw new Error("annals: verbs not enabled");
     },
     states: {
       enabled: async (page) => { await page.mouse.move(0, 0); },
@@ -83,6 +85,10 @@ const STATES = [
         await control.click();
         await page.mouse.move(0, 0);
         if ((await control.getAttribute("aria-pressed")) !== "true") throw new Error("annals: verb did not press");
+        // Phase 5 Task 22: a df-control shows the Pressed inverse on contact and holds it for dur-instant
+        // (pressAcknowledge.ts); the state measured here is the Selected verb that persists after it.
+        await control.evaluate((el) => new Promise((done) => { const wait = () => (el.hasAttribute("data-df-pressed") ? requestAnimationFrame(wait) : done()); wait(); }));
+        await frames(page);
         return () => control.click();
       },
     },
@@ -622,7 +628,7 @@ const contrastOf = async (page, selector, { all = true, rendered = false, painte
           ownRuns.push({ key: runSeen[runText] === 1 ? `"${runText}"` : `"${runText}"#${runSeen[runText]}`, text: runText, ratio, fg: getComputedStyle(el).color, ground: colour(bg), size: null });
         }
       }
-      found.push({ text: key, ratio, region, rendered: !bg, disabled: el.matches(":disabled"), fg: getComputedStyle(el).color, ground: colour(bg), y: Math.round(scrollY), ...(ownRuns.length ? { runs: ownRuns } : {}) });
+      found.push({ text: key, ratio, region, rendered: !bg, disabled: el.matches(':disabled, [aria-disabled="true"]'), fg: getComputedStyle(el).color, ground: colour(bg), y: Math.round(scrollY), ...(ownRuns.length ? { runs: ownRuns } : {}) });
       if (!every) break;
     }
     return found;
@@ -646,7 +652,7 @@ const interactions = async (page) => {
   const controls = await page.evaluate((sel) => {
     const seen = {};
     return [...document.querySelectorAll(sel)].flatMap((el, i) => {
-      if (!el.checkVisibility?.() || !el.textContent.trim() || el.closest("[data-df-region]") || el.matches(":disabled") || el.parentElement?.closest(sel)) return [];
+      if (!el.checkVisibility?.() || !el.textContent.trim() || el.closest("[data-df-region]") || el.matches(':disabled, [aria-disabled="true"]') || el.parentElement?.closest(sel)) return [];
       el.setAttribute("data-df-control", String(i));
       // An inline SVG's <title> renders nothing, so it is not part of the control's name (Phase 4 Task 2).
       const shown = el.querySelector("svg title") ? (() => { const c = el.cloneNode(true); c.querySelectorAll("svg title").forEach((t) => t.remove()); return c.textContent; })() : el.textContent;
@@ -1086,7 +1092,7 @@ if (MODE === "check") {
     .worse:hover .label, .worse:focus-visible .label, .worse:active .label { color: #eeeeee; }
     .framed { border: 6px solid #000000; outline: 4px solid #000000; outline-offset: -16px; padding: 0 4px; line-height: 2; position: relative; }
     .sr-only { color: #eeeeee; position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
-    button:disabled { color: #999999; background: #aaaaaa; border: 0; }
+    button:is(:disabled, [aria-disabled="true"]) { color: #999999; background: #aaaaaa; border: 0; }
   </style><main>
     <a href="#a">Card A <span class="gradient">Gradient label</span></a>
     <a href="#b">Card B <span class="solid">Solid label</span></a>
@@ -1095,6 +1101,7 @@ if (MODE === "check") {
     <a href="#e"><span>Same colour and ground</span></a>
     <a href="#f" class="framed">Framed<span class="sr-only"> for the fixture (opens in a new tab)</span></a>
     <button disabled>Disabled control</button>
+    <button aria-disabled="true">Focusable disabled control</button>
   </main>`;
   await withPage({ theme: "dark" }, async (page) => {
     await page.setContent(FIXTURE);
@@ -1113,6 +1120,9 @@ if (MODE === "check") {
     control(["hover", "focus", "active"].every((name) => state("Framed", name)?.ratio >= 20 && !state("Framed", name).skipped) && !texts.some((r) => r.text.includes("for the fixture")), "a border, outline or screen-reader-only text is read as text contrast, or skipped instead of excluded");
     const disabled = sampled.find((r) => r.text === "Disabled control");
     control(disabled?.disabled === true && disabled.ratio < 4.5 && !states.some((r) => r.key.startsWith("button|Disabled")), "an inactive control is not classified as inactive");
+    // Phase 5 Task 22 (P5-4): a control Disabled through aria-disabled stays focusable and is classified like :disabled.
+    const focusable = sampled.find((r) => r.text === "Focusable disabled control");
+    control(focusable?.disabled === true && focusable.ratio < 4.5 && !states.some((r) => r.key.startsWith("button|Focusable disabled")), "an aria-disabled control is not classified as inactive");
   });
   // Masking and pairing controls (r10): the per-run comparison, on two fixture builds with known differences.
   // Masking: a link holds a failing badge and a label; on the candidate, a label that passed on the baseline
@@ -1440,6 +1450,15 @@ if (MODE === "check") {
       selectors: [".rhythm-lab-song-selector-trigger", ".rhythm-lab-panel-tabs button", ".rhythm-lab-preview-button", ".rhythm-lab-chart-management-button"] },
     // Phase 5 Task 20: the ready check's Start, on the overlay panel's face inside the highway (no fill, D8).
     { route: "/simulations/rhythm-lab", scope: ".rhythm-lab-page", selectors: [".rhythm-lab-primary-action"] },
+    // Phase 5 Task 22 (P5-4): the Annals controls on the parchment, inside the sheet's scoped paper token set (P5-3): the
+    // seed row's cast world, replay seed and advance, and the roster rows (their hover marker out of flow, before the glyph);
+    // then, once the hand is available, the verbs (Disabled at load, through aria-disabled).
+    { route: "/simulations/annals", scope: ".annals-sheet",
+      selectors: [".annals-sheet > div > button:first-of-type", ".annals-sheet > div > button:nth-of-type(2)", ".annals-sheet > div > button:last-of-type", ".annals-living button"] },
+    { route: "/simulations/annals", scope: ".annals-sheet", selectors: [".annals-columns aside .flex-wrap > button"], prepare: async (page) => {
+      const advance = page.getByRole("button", { name: "let a year pass →" });
+      for (let year = 0; year < 3 && (await page.locator('.annals-columns aside .flex-wrap > button[aria-disabled="true"]').count()); year++) await advance.click();
+    } },
     // Task 15: the two controls on Phase 5 surfaces rest directly on the Layout field.
     { route: "/simulations/spider", selectors: [".spider-button"] },
     { route: "/terminal", selectors: [".terminal-sidecar"],
@@ -3402,20 +3421,20 @@ if (MODE === "check") {
     "/simulations/orbital-simulator", "/simulations/traffic-simulator", "/terminal", "/simulations/snake",
     "/simulations/spider", "/simulations/rhythm-lab", "/simulations/annals"];
   // The Rhythm Lab highway is native (D6 ruling) but unmarked: its lanes host governed labels and its hit zones are buttons.
-  // The Annals parchment sheet is native (D6 ruling, P5-3): its box holds the narrative and the chrome alike.
-  const P5_NATIVE = [".rhythm-lab-highway", ".annals-sheet"];
+  const P5_NATIVE = [".rhythm-lab-highway"];
   // Governed chrome inside a P5_NATIVE element (Task 20): the in-highway overlays (ready check, pause, run summary,
   // tutorial complete) with their controls, the tutorial prompt and the lane labels are swept like the rest of the page.
-  // Task 21: the Annals text set in Darkfield voices on the sheet (title, year, census, labels, phrases, hints, legends,
-  // log, banner and footer); its controls follow in Task 22.
-  const P5_GOVERNED_IN_NATIVE = [".rhythm-lab-overlay", ".rhythm-lab-tutorial-prompt", ".rhythm-lab-lane-label",
-    ...["heading", "readout", "data", "label", "phrase", "available", "hint", "legend", "log", "banner"].map((c) => `.annals-sheet .annals-${c}`)];
+  const P5_GOVERNED_IN_NATIVE = [".rhythm-lab-overlay", ".rhythm-lab-tutorial-prompt", ".rhythm-lab-lane-label"];
+  // Native grounds (Task 22): the Annals parchment sheet's own box is native (D6 ruling, P5-3), and everything on it
+  // outside the six narrative markers is governed, so only the sheet itself and the marked subtrees are skipped.
+  const P5_NATIVE_GROUND = [".annals-sheet"];
   const P5_FAMILIES = ["Archivo", "Archivo Narrow", "IBM Plex Mono"];
-  const p5Sweep = (page) => page.evaluate(([skip, governedIn, families]) => {
+  const p5Sweep = (page) => page.evaluate(([skip, governedIn, ground, families]) => {
     const out = new Set();
     for (const el of document.querySelectorAll("body *")) {
       if (!el.getClientRects().length || el.closest("[data-df-region], svg") || el.matches("img, video, canvas, iframe")) continue;
       if (el.closest(skip) && !el.closest(governedIn)) continue;
+      if (el.matches(ground)) continue;
       const c = getComputedStyle(el);
       if ([c.borderTopLeftRadius, c.borderTopRightRadius, c.borderBottomRightRadius, c.borderBottomLeftRadius].some((r) => r !== "0px")) out.add(`radius ${el.tagName}.${el.classList[0] ?? ""}`);
       const own = [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim());
@@ -3423,7 +3442,7 @@ if (MODE === "check") {
       if (own && !families.includes(family)) out.add(`family ${el.tagName}.${el.classList[0] ?? ""} ${family}`);
     }
     return [...out].slice(0, 12);
-  }, [P5_NATIVE.join(", "), P5_GOVERNED_IN_NATIVE.join(", "), P5_FAMILIES]);
+  }, [P5_NATIVE.join(", "), P5_GOVERNED_IN_NATIVE.join(", "), P5_NATIVE_GROUND.join(", "), P5_FAMILIES]);
   for (const theme of THEMES) {
     for (const route of P5_ROUTES) {
       await withPage({ theme, route }, async (page) => {
@@ -3515,13 +3534,20 @@ if (MODE === "check") {
   // Phase 5 Task 21 amend (P5-T21c; §06 voices). Every element on the Annals sheet that carries a generated type class
   // renders that voice: its family, size, line height, weight, tracking and case equal those of a probe with the same class
   // in the sheet's own token set, so no utility class the element keeps overrides the voice. Checked at load, with the
-  // hand available, and with the fork, the log and a watched soul's banner on the sheet, in every theme.
+  // hand available, and with the fork, the log and a watched soul's banner on the sheet, in every theme. Task 22 (§13
+  // control model): every button and the seed field on the sheet carry a voice of their own, also with a verb chosen and
+  // on the replayed baseline; in each of those states the P5 sweep finds nothing on the page, the fork's houses included;
+  // and the watched soul's row is Selected through aria-pressed (the signal-deep band, a signal boundary and label, the
+  // node at its upper-right corner) with its ★ marker in fg, all from the sheet's token set.
   const VOICE = /^df-(display|heading|body|label|readout|code|data|annotation)(-[\w-]+)?$/;
   const voices = (page) => page.evaluate((source) => {
     const re = new RegExp(source);
     const sheet = document.querySelector(".annals-sheet");
     const props = ["fontFamily", "fontSize", "lineHeight", "fontWeight", "letterSpacing", "textTransform"];
-    const out = { checked: 0, bad: [] };
+    const out = { checked: 0, bad: [], unvoiced: [] };
+    for (const el of sheet.querySelectorAll("button, input")) {
+      if (el.getClientRects().length && ![...el.classList].some((c) => re.test(c))) out.unvoiced.push(`${el.tagName.toLowerCase()} "${el.textContent.trim().slice(0, 24)}"`);
+    }
     for (const el of sheet.querySelectorAll("[class*='df-']")) {
       const voice = [...el.classList].find((c) => re.test(c));
       if (!voice || !el.getClientRects().length) continue;
@@ -3534,25 +3560,113 @@ if (MODE === "check") {
     }
     return out;
   }, VOICE.source);
+  const watched = (page) => page.evaluate(() => {
+    const sheet = document.querySelector(".annals-sheet");
+    const tok = (n) => { const p = document.createElement("i"); p.style.color = `var(${n})`; sheet.append(p); const c = getComputedStyle(p).color; p.remove(); return c; };
+    return [...sheet.querySelectorAll('.annals-living button[aria-pressed="true"]')].map((row) => {
+      const [c, node, glyph] = [getComputedStyle(row), getComputedStyle(row, "::after"), row.querySelector(".annals-value")];
+      return { glyph: glyph?.textContent, band: c.backgroundColor === tok("--signal-deep"), boundary: c.borderTopColor === tok("--signal"), label: c.color === tok("--signal"),
+        node: node.content !== "none" && node.backgroundColor === tok("--signal"), value: glyph && getComputedStyle(glyph).color === tok("--fg") };
+    });
+  });
   for (const theme of [...new Set([...THEMES, "mono"])]) {
     await withPage({ theme, route: "/simulations/annals" }, async (page) => {
       await page.locator(".annals-sheet [data-df-region]").first().waitFor();
       const advance = page.getByRole("button", { name: "let a year pass →" });
-      const verbs = page.locator(".annals-page aside .flex-wrap > button");
-      const seen = [["load", await voices(page)]];
-      for (let year = 0; year < 3 && (await verbs.first().isDisabled()); year++) await advance.click();
-      seen.push(["available", await voices(page)]);
+      const off = '.annals-page aside .flex-wrap > button:is(:disabled, [aria-disabled="true"])';
+      const seen = [["load", await voices(page), await p5Sweep(page)]];
+      for (let year = 0; year < 3 && (await page.locator(off).count()); year++) await advance.click();
+      seen.push(["available", await voices(page), await p5Sweep(page)]);
       await page.getByRole("button", { name: "exile", exact: true }).click();
+      seen.push(["verb chosen", await voices(page), await p5Sweep(page)]);
       await page.locator(".annals-living button").first().click();
       await page.getByRole("button", { name: "the fork", exact: true }).click();
       await page.locator(".annals-living button").first().click();
       invariant(await page.locator(".annals-sheet > section").count() && await page.locator(".annals-banner").count(), `${theme} annals voices: the fork or the banner did not open`);
-      seen.push(["fork, log and banner", await voices(page)]);
-      for (const [state, { checked, bad }] of seen) {
+      invariant(await page.locator(".annals-sheet > section h3", { hasText: "Houses" }).count(), `${theme} annals voices: the fork shows no houses`);
+      seen.push(["fork, log and banner", await voices(page), await p5Sweep(page)]);
+      // Read once the click's Pressed acknowledgement has ended, with the pointer away (Selected, not Pressed or Hover).
+      await page.mouse.move(0, 0);
+      await page.waitForFunction(() => !document.querySelector(".annals-sheet [data-df-pressed]"));
+      await frames(page);
+      const marks = await watched(page);
+      invariant(marks.length === 1 && marks[0].glyph === "★" && Object.values(marks[0]).every(Boolean), `${theme} annals: the watched soul's row ${JSON.stringify(marks)}`);
+      await page.getByRole("button", { name: "baseline", exact: true }).click();
+      seen.push(["baseline", await voices(page), await p5Sweep(page)]);
+      for (const [state, { checked, bad, unvoiced }, swept] of seen) {
         invariant(checked >= 12, `${theme} annals voices (${state}): only ${checked} voiced elements found`);
         invariant(bad.length === 0, `${theme} annals voices (${state}): ${JSON.stringify(bad)}`);
+        invariant(unvoiced.length === 0, `${theme} annals voices (${state}): controls without a voice ${JSON.stringify(unvoiced)}`);
+        invariant(swept.length === 0, `${theme} annals sweep (${state}): ${JSON.stringify(swept)}`);
       }
     });
+  }
+  // Phase 5 Task 22 (§13 Disabled, its reason; §06 voices). The verb hint keeps its box: at 1440, 375 and 320 px wide, for
+  // every text it shows (at rest, with a verb chosen, and asking for the second soul of a two-soul verb, there with every
+  // name the world can give a soul), its text lies inside the hint's box and nothing overflows it, and the roster heading
+  // below stays the same distance from the hint, so the roster never moves as the hint changes. A child may be named after
+  // a parent with " II" added, again for each generation (world.js), so the widest pool name is also tried with one and two.
+  // Task 22 amend (§13 control model, target size): at 375 and 320 px the seed field is at least three cells tall and no
+  // shorter than any button on its line (at 320 px the row wraps and none may share it).
+  const { NAME_POOL } = await import(new URL("../src/pages/Annals/sim/names.js", import.meta.url));
+  for (const theme of THEMES) {
+    for (const width of [VIEW_W, 375, 320]) {
+      await withPage({ theme, route: "/simulations/annals" }, async (page) => {
+        if (width !== VIEW_W) { await page.setViewportSize({ width, height: 812 }); await frames(page); }
+        await page.locator(".annals-sheet [data-df-region]").first().waitFor();
+        if (width !== VIEW_W) {
+          const seed = await page.evaluate(() => {
+            const field = document.querySelector(".annals-sheet > div > input"); const f = field.getBoundingClientRect();
+            const cell = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--cell-h"));
+            const line = [...field.parentElement.querySelectorAll(":scope > button")].map((b) => b.getBoundingClientRect())
+              .filter((b) => b.bottom > f.top && b.top < f.bottom).map((b) => b.height);
+            return { height: f.height, target: 3 * cell, line };
+          });
+          invariant(seed.height >= seed.target - 0.5 && seed.line.every((h) => seed.height >= h - 0.5),
+            `${theme} ${width}px annals: the seed field is below the target or its row's buttons ${JSON.stringify(seed)}`);
+        }
+        const hint = () => page.evaluate(() => {
+          const p = document.querySelector(".annals-columns aside > p");
+          const living = [...p.parentElement.querySelectorAll(":scope > h2")].find((h) => /the living/i.test(h.textContent));
+          const box = p.getBoundingClientRect();
+          const range = document.createRange(); range.selectNodeContents(p);
+          const outside = [...range.getClientRects()].filter((r) => r.width > 0 && r.height > 0 &&
+            (r.top < box.top - 0.5 || r.bottom > box.bottom + 0.5 || r.left < box.left - 0.5 || r.right > box.right + 0.5)).length;
+          return { text: p.textContent, outside, overflow: p.scrollHeight - p.clientHeight, below: Math.round((living.getBoundingClientRect().top - box.top) * 10) / 10 };
+        });
+        const advance = page.getByRole("button", { name: "let a year pass →" });
+        const off = '.annals-page aside .flex-wrap > button:is(:disabled, [aria-disabled="true"])';
+        const seen = [await hint()];
+        for (let year = 0; year < 3 && (await page.locator(off).count()); year++) await advance.click();
+        seen.push(await hint());
+        await page.getByRole("button", { name: "give grain", exact: true }).click();
+        seen.push(await hint());
+        await page.getByRole("button", { name: "give grain", exact: true }).click();
+        await page.getByRole("button", { name: "urge alliance", exact: true }).click();
+        seen.push(await hint());
+        await page.locator(".annals-living button").first().click();
+        const second = await hint();
+        const named = /\(([^)]+)\)/.exec(second.text)?.[1];
+        invariant(named, `${theme} ${width}px annals hint: no second-soul text ${JSON.stringify(second.text)}`);
+        seen.push(second);
+        // Every name a soul can carry, written into the hint's own text for the measurement and then put back.
+        const swap = ([from, to]) => { const t = document.querySelector(".annals-columns aside > p > span").firstChild; t.textContent = t.textContent.replace(`(${from})`, `(${to})`); };
+        const widest = await page.evaluate((names) => {
+          const ctx = document.createElement("canvas").getContext("2d");
+          ctx.font = getComputedStyle(document.querySelector(".annals-columns aside > p > span")).font;
+          return names.reduce((a, b) => (ctx.measureText(b).width > ctx.measureText(a).width ? b : a));
+        }, NAME_POOL);
+        for (const name of named ? [...NAME_POOL, `${widest} II`, `${widest} II II`] : []) {
+          await page.evaluate(swap, [named, name]);
+          seen.push(await hint());
+          await page.evaluate(swap, [name, named]);
+        }
+        const bad = seen.filter((h) => h.outside || h.overflow > 0);
+        invariant(bad.length === 0, `${theme} ${width}px annals hint: text outside its box ${JSON.stringify(bad)}`);
+        const below = [...new Set(seen.map((h) => h.below))];
+        invariant(below.length === 1, `${theme} ${width}px annals hint: the roster moves as the hint changes ${JSON.stringify(seen.map((h) => [h.text.slice(0, 24), h.below]))}`);
+      });
+    }
   }
   // Phase 5 Task 19 (§13 control model; §06 voices; D7 context labels). Rhythm Lab's active session bar at phone widths,
   // while the run plays and while it is paused, in every theme Mono included: each item of the session's context (the

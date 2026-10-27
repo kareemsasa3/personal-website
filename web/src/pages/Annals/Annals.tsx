@@ -228,54 +228,52 @@ export default function Annals() {
 
         {/* seed + tick controls */}
         <div className="flex items-center gap-2 flex-wrap mb-5 text-sm">
-          <span className="text-stone-500">seed</span>
+          <span className="text-stone-500 df-label-sm annals-label">seed</span>
           <input
             value={seedInput}
             onChange={(e) => setSeedInput(e.target.value.replace(/\D/g, ""))}
-            className="w-24 px-2 py-1 bg-stone-50 border border-stone-400 rounded font-mono"
+            className="w-24 px-2 py-1 df-field df-data annals-field"
           />
           <button onClick={() => reset(seedInput)}
-            className="px-3 py-1 border border-stone-700 rounded hover:bg-stone-800 hover:text-stone-50 transition">
+            className="px-3 df-control df-label-sm annals-control">
             cast world
           </button>
           <button onClick={() => reset(world.seed.toString())}
-            className="px-3 py-1 border border-stone-400 rounded text-stone-600 hover:bg-stone-200 transition"
+            className="px-3 df-control df-label-sm annals-control"
             title="replay this exact seed from year 0 — the counterfactual">
             replay seed
           </button>
           {world.interventions.length > 0 && !savedReplay && (
             <button onClick={replayBaseline}
-              className="px-3 py-1 border border-stone-400 rounded text-stone-600 hover:bg-stone-200 transition"
+              className="px-3 df-control df-label-sm annals-control"
               title="replay to this year with no interventions — the road not taken">
               baseline
             </button>
           )}
           {savedReplay && (
             <button onClick={replayHand}
-              className="px-3 py-1 border border-yellow-600 rounded text-yellow-700 hover:bg-yellow-50 transition"
+              className="px-3 df-control df-label-sm annals-control"
               title="replay with your interventions — the road you chose">
               your hand
             </button>
           )}
           {(world.interventions.length > 0 || savedReplay) && (
             <button onClick={showFork}
-              className={`px-3 py-1 border rounded transition ${
-                fork ? "border-stone-700 bg-stone-800 text-stone-50"
-                     : "border-stone-400 text-stone-600 hover:bg-stone-200"}`}
+              className="px-3 df-control df-label-sm annals-control"
               title="compare your hand against the baseline — what changed?">
               {fork ? "close fork" : "the fork"}
             </button>
           )}
           <div className="flex-1" />
           <button onClick={advance}
-            className="px-5 py-1.5 bg-stone-900 text-stone-50 rounded font-medium hover:bg-stone-700 transition">
+            className="px-5 df-control df-body-sm annals-control">
             let a year pass →
           </button>
         </div>
 
         {/* the fork — divergence comparison */}
         {fork && (
-          <section className="mb-5 bg-stone-50/80 border border-stone-400 rounded p-4 font-mono text-[13px] leading-relaxed">
+          <section className="mb-5 bg-stone-50/80 border p-4 font-mono text-[13px] leading-relaxed annals-frame">
             <h2 className="text-sm mb-3">
               <span className="df-label annals-label">The Fork</span>
               <span className="text-xs ml-2 annals-phrase"><span className="df-body-sm">what your hand changed by year {world.year}</span></span>
@@ -309,9 +307,9 @@ export default function Annals() {
                     <div className="space-y-0.5">
                       {fork.houses.map((h: ForkHouse) => (
                         <div key={h.name}>
-                          <span className="font-semibold">{h.name}</span>
-                          <span className="text-stone-500 ml-2">○ {h.baseline === 0 ? "extinct" : `${h.baseline} living`}</span>
-                          <span className="text-yellow-700 ml-2">● {h.hand === 0 ? "extinct" : `${h.hand} living`}</span>
+                          <span className="font-semibold df-label annals-label">{h.name}</span>
+                          <span className="text-stone-500 ml-2 df-data annals-count"><span className="annals-key annals-key--baseline">○</span> {h.baseline === 0 ? "extinct" : `${h.baseline} living`}</span>
+                          <span className="text-yellow-700 ml-2 df-data annals-count"><span className="annals-key annals-key--hand">●</span> {h.hand === 0 ? "extinct" : `${h.hand} living`}</span>
                         </div>
                       ))}
                     </div>
@@ -341,7 +339,7 @@ export default function Annals() {
           {/* the chronicle */}
           <section>
             <h2 className="text-xs mb-2 df-label annals-label">The Chronicle</h2>
-            <div className="annals-chronicle bg-stone-50/70 border border-stone-300 rounded p-4 h-[460px] overflow-y-auto font-mono text-[13px] leading-relaxed flex flex-col-reverse">
+            <div className="annals-chronicle bg-stone-50/70 border p-4 h-[460px] overflow-y-auto font-mono text-[13px] leading-relaxed flex flex-col-reverse annals-frame">
               <div data-df-region="native">
                 {world.chronicle.map((e: ChronicleEvent, i: number) => (
                   <div key={i} className="mb-1.5">
@@ -360,21 +358,18 @@ export default function Annals() {
           <aside>
             {/* intervention */}
             <h2 className="text-xs mb-2">
-              <span className="df-label annals-label">Your Hand</span> {world.token ? <span className="text-yellow-700 df-body-sm annals-available">· available</span> : <span className="text-stone-400 df-body-sm annals-phrase">· spent (every 3rd year)</span>}
+              <span className="df-label annals-label">Your Hand</span> {world.token ? <span className="text-yellow-700 df-body-sm annals-available">· available</span> : <span className="text-stone-400 df-body-sm annals-phrase" id="annals-hand-spent">· spent (every 3rd year)</span>}
             </h2>
             <div className="flex flex-wrap gap-1.5 mb-2">
               {VERBS.map(([v, label]) => (
-                <button key={v} disabled={!world.token} aria-pressed={pending === v}
-                  onClick={() => { setPending(pending === v ? null : v); setPickTwo(null); }}
-                  className={`px-2 py-1 text-xs rounded border transition ${
-                    pending === v ? "bg-stone-800 text-white border-yellow-700"
-                    : world.token ? "border-stone-400 hover:bg-stone-200"
-                    : "border-stone-200 text-stone-300 cursor-not-allowed"}`}>
+                <button key={v} aria-disabled={!world.token} aria-describedby={world.token ? undefined : "annals-hand-spent"} aria-pressed={pending === v}
+                  onClick={() => { if (!world.token) return; setPending(pending === v ? null : v); setPickTwo(null); }}
+                  className="px-2 df-control df-label-sm annals-control">
                   {label}
                 </button>
               ))}
             </div>
-            <p className="text-xs mb-4 h-8 annals-hint">
+            <p className="text-xs mb-4 annals-hint annals-reason">
               <span className="df-body-sm">{pending
                 ? pickTwo
                   ? `…now choose the second soul (${world.agents[pickTwo]?.name}) acts upon`
@@ -390,14 +385,12 @@ export default function Annals() {
                   title={pending ? "Choose this soul" : "Watch this soul"}
                   aria-pressed={pending ? pickTwo === a.id : favorite === a.id}
                   aria-label={`${a.name}, ${a.trait}, age ${a.age}${favorite === a.id ? ", watched" : ""}`}
-                  className={`w-full text-left px-2 py-1 rounded text-sm flex items-center justify-between transition
-                    ${favorite === a.id ? "bg-yellow-100 ring-1 ring-yellow-400" : "hover:bg-stone-200"}
-                    ${pickTwo === a.id ? "ring-1 ring-yellow-500" : ""}`}>
+                  className="w-full text-left flex items-center justify-between df-control df-body-sm annals-control annals-soul">
                   <span>
-                    <span className="text-stone-400 mr-1">{favorite === a.id ? "★" : "·"}</span>
+                    <span className="text-stone-400 mr-1 annals-value">{favorite === a.id ? "★" : "·"}</span>
                     <b>{a.name}</b>{a.epithet && <span className="text-amber-800"> {a.epithet}</span>} <span className="text-stone-500">of {a.house}</span>
                   </span>
-                  <span className="text-xs text-stone-500 tabular-nums">
+                  <span className="text-xs df-data annals-value">
                     <abbr title={`${a.trait}, age ${a.age}`}>{a.trait[0]}·{a.age}</abbr>{a.grain < 1 ? " ·hungry" : ""}{a.partner ? " ·♥" : ""}
                   </span>
                 </button>
@@ -436,7 +429,7 @@ export default function Annals() {
                     const data = JSON.stringify({ seed: world.seed, interventions: world.interventions }, null, 2);
                     navigator.clipboard.writeText(data);
                   }}
-                  className="mt-1.5 px-2 py-1 text-xs border border-stone-400 rounded hover:bg-stone-200 transition w-full">
+                  className="mt-1.5 w-full df-control df-label-sm annals-control">
                   copy log JSON
                 </button>
               </>
