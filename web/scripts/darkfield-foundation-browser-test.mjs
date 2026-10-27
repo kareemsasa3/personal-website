@@ -26,6 +26,46 @@ const ROUTES = [
   "/simulations/traffic-simulator", "/simulations/annals", "/simulations/snake", "/simulations/spider",
   "/simulations/rhythm-lab", "/procedural-animations", "/experience", "/journey", "/terminal", "/darkfield-404-probe",
 ];
+// Phase 6 Task 5 (P6-7): every article and every procedural piece is a route too, read from the data files, so a new
+// essay or piece joins the test without an edit here. Aliases (/work, /games/*) are not added.
+// Articles: the top-level entries of articlesData sit at four spaces; nested series objects sit deeper and repeat
+// article slugs (and carry the series slug, which is not a route). The slug count must equal the entry count, so a
+// format change or a repeated slug fails rather than dropping a route.
+const SLUG_ROUTES = await (async () => {
+  const source = (path) => readFile(new URL(path, import.meta.url), "utf8");
+  const articles = await source("../src/data/generated/articles.ts");
+  const block = articles.slice(articles.indexOf("export const articlesData"), articles.indexOf("\n];", articles.indexOf("export const articlesData")));
+  const entries = (block.match(/^ {2}\{$/gm) ?? []).length;
+  const slugs = [...new Set([...block.matchAll(/^ {4}"slug": "([^"]+)"/gm)].map((m) => m[1]))];
+  if (!entries || slugs.length !== entries) throw new Error(`articles.ts: ${slugs.length} distinct top-level slugs for ${entries} articlesData entries`);
+  if (slugs.includes("agent-systems")) throw new Error("articles.ts: the series slug agent-systems was read as an article");
+  const pieces = await source("../src/data/proceduralAnimations.ts");
+  const pieceBlock = pieces.slice(pieces.indexOf("export const proceduralAnimationsData"));
+  const pieceEntries = (pieceBlock.match(/^ {2}\{$/gm) ?? []).length;
+  const pieceSlugs = [...new Set([...pieceBlock.matchAll(/^ {4}slug: "([^"]+)"/gm)].map((m) => m[1]))];
+  if (!pieceEntries || pieceSlugs.length !== pieceEntries) throw new Error(`proceduralAnimations.ts: ${pieceSlugs.length} distinct slugs for ${pieceEntries} entries`);
+  return [...slugs.map((slug) => `/writing/${slug}`), ...pieceSlugs.map((slug) => `/procedural-animations/${slug}`)];
+})();
+if (SLUG_ROUTES.some((route) => ROUTES.includes(route))) throw new Error("a slug route is already in ROUTES");
+ROUTES.push(...SLUG_ROUTES);
+// DARKFIELD_ROUTE_SHARD=i/n (Phase 6 Task 5; 1 <= i <= n): this process runs the routes whose index in ROUTES is
+// i - 1 modulo n, so the n shards are disjoint and together are ROUTES. Every page a check opens belongs to one route of
+// ROUTES, its owner (withPage's owner, by default the route it loads): the check runs only in the shard that owns it,
+// and so do the scope asserts (they compare the records of the routes that ran). Unset, the one shard is 1/1.
+const SHARD = (() => {
+  const raw = process.env.DARKFIELD_ROUTE_SHARD;
+  if (raw === undefined) return { i: 1, n: 1 };
+  const m = /^([1-9]\d*)\/([1-9]\d*)$/.exec(raw);
+  if (!m || Number(m[1]) > Number(m[2])) throw new Error(`DARKFIELD_ROUTE_SHARD must be i/n with 1 <= i <= n, not "${raw}"`);
+  return { i: Number(m[1]), n: Number(m[2]) };
+})();
+const owns = (route) => {
+  const index = ROUTES.indexOf(route);
+  if (index < 0) throw new Error(`${route} is not in ROUTES: name the route of ROUTES that owns the check`);
+  return index % SHARD.n === SHARD.i - 1;
+};
+const SHARD_ROUTES = ROUTES.filter(owns);
+console.log(`SHARD ${SHARD.i}/${SHARD.n} ROUTES ${JSON.stringify(SHARD_ROUTES)}`);
 const SAMPLER_SELECTORS = ["main p", "main li", "h1", "h2", "h3", "a", "button", ".tech-tag"];
 // Fill/text pairs whose ground the bridge changed (rule-level scan, 2026-10-11).
 // .projects-cta-primary is excluded: no component renders it (dead CSS, Phase 3).
@@ -158,7 +198,10 @@ const invariant = (ok, message) => { if (!ok) invariantFailures.push(message); }
 const CLOCK_START = new Date("2026-01-01T00:00:00Z");
 const CLOCK_PAUSED = new Date("2026-01-01T01:00:00Z");
 
-const withPage = async ({ theme, route = "/", javaScriptEnabled = true, forcedColors = "none", reducedMotion = "reduce", clock = false, routePass = false, scale = 1 }, run) => {
+// owner (Phase 6 Task 5): the route of ROUTES the check belongs to, by default the route loaded. Outside this shard the
+// page is not opened and run is not called.
+const withPage = async ({ theme, route = "/", owner = route, javaScriptEnabled = true, forcedColors = "none", reducedMotion = "reduce", clock = false, routePass = false, scale = 1 }, run) => {
+  if (!owns(owner)) return;
   const context = await browser.newContext({ viewport: { width: VIEW_W, height: VIEW_H }, deviceScaleFactor: scale, javaScriptEnabled, forcedColors, reducedMotion });
   if (theme) await context.addInitScript((value) => localStorage.setItem("theme", value), theme);
   // Seeded randomness (r10): decorative backgrounds draw a random static frame under reduced motion, and it
@@ -1007,6 +1050,7 @@ if (MODE === "check") {
   // colours on <html>. Compare each arrival with its direct load. Since Phase 5 Task 14 no stylesheet
   // defines a terminal colour alias on <html>, so a direct load has neither name.
   for (const route of ["/journey", "/terminal"]) {
+    if (!owns(route)) continue;
     const readTerminalAliases = (page) => page.evaluate(() => {
       const style = getComputedStyle(document.documentElement);
       return [style.getPropertyValue("--terminal-text-light").trim(), style.getPropertyValue("--terminal-header-bg").trim()];
@@ -1016,7 +1060,7 @@ if (MODE === "check") {
       direct = await readTerminalAliases(page);
     });
     invariant(direct[0] === "" && direct[1] === "", `Light direct ${route}: terminal aliases ${JSON.stringify(direct)}`);
-    await withPage({ theme: "light", route: "/projects" }, async (page) => {
+    await withPage({ theme: "light", route: "/projects", owner: route }, async (page) => {
       await follow(page, route);
       const seen = await readTerminalAliases(page);
       invariant(JSON.stringify(seen) === JSON.stringify(direct),
@@ -1037,7 +1081,8 @@ if (MODE === "check") {
     for (const [game, probes] of Object.entries(GAMES)) {
       let direct = null;
       for (const path of NAVIGATION) {
-        await withPage({ theme, route: path.start(game) }, async (page) => {
+        // Every path to a game compares with the first (direct) one, so the game's own route owns them all.
+        await withPage({ theme, route: path.start(game), owner: `/simulations/${game}` }, async (page) => {
           if (path.go) await path.go(page, game);
           await page.locator(probes[0]).first().waitFor();
           const seen = await page.evaluate((selectors) => ({
@@ -1172,34 +1217,37 @@ if (MODE === "check") {
     });
     return sink;
   };
-  const before = await fixtureBuild(BUILD("#767676", "#787878", "#777777", "#777777", "#767676", "#000000", "#787878"));
-  const after = await fixtureBuild(BUILD("#7b7b7b", "#808080", "#888888", "#888888", "#7b7b7b", "#010101", "#808080"));
-  const diff = compareRuns(before.regressions.map((r) => ({ id: r.id, baseline: r.value })), after.measured);
-  const ofLabel = (list, text) => list.filter((id) => id.startsWith("interact|") && id.endsWith(`"${text}"`));
   const control = (ok, message) => invariant(ok, `measurement control: ${message}`);
-  control(ofLabel(diff.fresh, "Read more →").length === 3 && ofLabel(diff.worse, "Read on →").length === 3,
-    `a worsened label beside a failing badge is masked: fresh ${diff.fresh.length}, worse ${diff.worse.length}`);
-  const changed = [...diff.fresh, ...diff.worse].filter((id) => id.includes("Read →"));
-  control(before.duplicates.length === 0 && after.duplicates.length === 0 && diff.missing.length === 0 && changed.length >= 2 &&
-    changed.every((id) => id.includes("Read →#2")),
-    `repeated cards are not paired with themselves: ${changed.join("; ") || "nothing changed"}; duplicates ${before.duplicates.length + after.duplicates.length}`);
-  const twins = diff.worse.filter((id) => id.startsWith("interact|") && id.includes("|a|Go Go#1:"));
-  control(before.duplicates.length === 0 && after.duplicates.length === 0 && twins.length === 3 && twins.every((id) => id.endsWith('span.go>"Go"#2')),
-    `repeated runs in one control are not paired with themselves: ${twins.join("; ") || "nothing changed"}`);
-  // Covered, off-screen and wrapped runs (r10): a run off screen or under a fixed bar when its card is centred,
-  // a run under a fixed box at the middle of the viewport (like the section dots), and a link that wraps inside
-  // a paragraph, are each measured on their own, never hiding the card's other runs; every worsened label is
-  // reported fresh in every state, and nothing is left unmeasured.
-  const edgeLabels = ["Above →", "Below →", "Under bar →", "Clear →", "Beside the dots →", "the wrapped link label"];
-  const edgeUnmeasured = [...before.unmeasured, ...after.unmeasured].map(({ id, reason }) => `${id} (${reason})`);
-  control(edgeLabels.every((text) => ofLabel(diff.fresh, text).length === 3) && edgeUnmeasured.length === 0,
-    `a covered, off-screen or wrapped run is not measured on its own: ${edgeLabels.map((text) => `${text} ${ofLabel(diff.fresh, text).length}`).join(", ")}; unmeasured ${edgeUnmeasured.join("; ") || "none"}`);
-  // Element pairing across a colour-dependent skip (r10): the first of three identical notes has its link's
-  // colour and ground on the baseline only, so the text pass skips it there; the second already fails and
-  // worsens. Elements are numbered before that skip, so the worsening must be the second note's alone.
-  const notes = [...diff.fresh, ...diff.worse].filter((id) => id.startsWith("text|") && id.includes("span.note|Note"));
-  control(notes.length === 1 && diff.worse.includes('text|fixture|/|span.note|Note#2|"Note"'),
-    `elements are not paired across a colour-dependent skip: ${notes.join("; ") || "nothing changed"}`);
+  // The two fixture builds load "/", so the shard that owns "/" runs these controls (Phase 6 Task 5).
+  if (owns("/")) {
+    const before = await fixtureBuild(BUILD("#767676", "#787878", "#777777", "#777777", "#767676", "#000000", "#787878"));
+    const after = await fixtureBuild(BUILD("#7b7b7b", "#808080", "#888888", "#888888", "#7b7b7b", "#010101", "#808080"));
+    const diff = compareRuns(before.regressions.map((r) => ({ id: r.id, baseline: r.value })), after.measured);
+    const ofLabel = (list, text) => list.filter((id) => id.startsWith("interact|") && id.endsWith(`"${text}"`));
+    control(ofLabel(diff.fresh, "Read more →").length === 3 && ofLabel(diff.worse, "Read on →").length === 3,
+      `a worsened label beside a failing badge is masked: fresh ${diff.fresh.length}, worse ${diff.worse.length}`);
+    const changed = [...diff.fresh, ...diff.worse].filter((id) => id.includes("Read →"));
+    control(before.duplicates.length === 0 && after.duplicates.length === 0 && diff.missing.length === 0 && changed.length >= 2 &&
+      changed.every((id) => id.includes("Read →#2")),
+      `repeated cards are not paired with themselves: ${changed.join("; ") || "nothing changed"}; duplicates ${before.duplicates.length + after.duplicates.length}`);
+    const twins = diff.worse.filter((id) => id.startsWith("interact|") && id.includes("|a|Go Go#1:"));
+    control(before.duplicates.length === 0 && after.duplicates.length === 0 && twins.length === 3 && twins.every((id) => id.endsWith('span.go>"Go"#2')),
+      `repeated runs in one control are not paired with themselves: ${twins.join("; ") || "nothing changed"}`);
+    // Covered, off-screen and wrapped runs (r10): a run off screen or under a fixed bar when its card is centred,
+    // a run under a fixed box at the middle of the viewport (like the section dots), and a link that wraps inside
+    // a paragraph, are each measured on their own, never hiding the card's other runs; every worsened label is
+    // reported fresh in every state, and nothing is left unmeasured.
+    const edgeLabels = ["Above →", "Below →", "Under bar →", "Clear →", "Beside the dots →", "the wrapped link label"];
+    const edgeUnmeasured = [...before.unmeasured, ...after.unmeasured].map(({ id, reason }) => `${id} (${reason})`);
+    control(edgeLabels.every((text) => ofLabel(diff.fresh, text).length === 3) && edgeUnmeasured.length === 0,
+      `a covered, off-screen or wrapped run is not measured on its own: ${edgeLabels.map((text) => `${text} ${ofLabel(diff.fresh, text).length}`).join(", ")}; unmeasured ${edgeUnmeasured.join("; ") || "none"}`);
+    // Element pairing across a colour-dependent skip (r10): the first of three identical notes has its link's
+    // colour and ground on the baseline only, so the text pass skips it there; the second already fails and
+    // worsens. Elements are numbered before that skip, so the worsening must be the second note's alone.
+    const notes = [...diff.fresh, ...diff.worse].filter((id) => id.startsWith("text|") && id.includes("span.note|Note"));
+    control(notes.length === 1 && diff.worse.includes('text|fixture|/|span.note|Note#2|"Note"'),
+      `elements are not paired across a colour-dependent skip: ${notes.join("; ") || "nothing changed"}`);
+  }
   // Re-entry (r10): a card taller than the viewport, measured on rendered pixels. Without a way to re-enter its
   // state (a hover pair), both off-screen runs stay unmeasured, each with its reason; at rest they are retried
   // and measured.
@@ -1653,7 +1701,9 @@ if (MODE === "check") {
   // opaque ground, idle in fg-muted inside an edge boundary, inverted on contact; the touch controls are not translucent.
   // At rest the board (native region) holds only pieces; paused, the overlay beside it dims the well with the scrim and
   // its panel is surface-2, outlined in edge, with a heading in its own words, uncased.
+  // Its own context (a touch screen), not withPage: the shard that owns the route runs it (Phase 6 Task 5).
   for (const theme of THEMES) {
+    if (!owns("/simulations/snake")) break;
     const context = await browser.newContext({ viewport: { width: 375, height: 812 }, reducedMotion: "reduce", hasTouch: true, isMobile: true });
     await context.addInitScript((t) => localStorage.setItem("theme", t), theme);
     const page = await context.newPage();
@@ -2938,14 +2988,16 @@ if (MODE === "check") {
   // Phase 3 Task 12 (§08): the section rail never covers page content. On every route that renders it, at widths where it
   // shows, with a fine and a coarse pointer (the coarse cell is larger), no rail cell intersects visible text or media in main
   // at any scroll position: the page is stepped through in half-viewport scrolls.
+  // One context per pointer and width visits every rail route; each route is visited by the shard that owns it (Phase 6 Task 5).
   const RAIL_ROUTES = ["/case-studies/aether", "/case-studies/erebus", "/case-studies/arachne", "/case-studies/where-the-specification-lived", "/experience", "/journey"];
   for (const coarse of [false, true]) for (const width of [820, 1024, 1280, 1440]) {
+    if (!RAIL_ROUTES.some(owns)) break;
     const context = await browser.newContext({ viewport: { width, height: VIEW_H }, reducedMotion: "reduce", hasTouch: coarse, isMobile: coarse });
     await context.addInitScript((t) => localStorage.setItem("theme", t), THEMES[0]);
     const page = await context.newPage();
     page.on("pageerror", (error) => errors.push(`rail clearance ${width}px: ${error.message}`));
     try {
-      for (const route of RAIL_ROUTES) {
+      for (const route of RAIL_ROUTES.filter(owns)) {
         await page.goto(`${base}${route}`, { waitUntil: "networkidle" });
         await page.locator(".nav-dot").first().waitFor();
         const hits = await page.evaluate(async (isCoarse) => {
@@ -3419,7 +3471,9 @@ if (MODE === "check") {
   }
   // Phase 5 (§03, §06): on each listed route, governed elements outside creative regions have square corners and a
   // Darkfield family. P5_NATIVE: native elements outside any region (they host controls or governed labels).
-  const P5_ROUTES = ["/darkfield-404-probe", "/procedural-animations", "/procedural-animations/mechanical-time", "/case-studies/aether", "/simulations",
+  // Phase 6 Task 5: the other three pieces joined ROUTES, so the completeness invariant below lists them here.
+  const P5_ROUTES = ["/darkfield-404-probe", "/procedural-animations", "/procedural-animations/mechanical-time",
+    "/procedural-animations/descent", "/procedural-animations/observing", "/procedural-animations/one-quiet-day", "/case-studies/aether", "/simulations",
     "/simulations/orbital-simulator", "/simulations/traffic-simulator", "/terminal", "/simulations/snake",
     "/simulations/spider", "/simulations/rhythm-lab", "/simulations/annals",
     "/projects", "/case-studies", "/case-studies/erebus", "/case-studies/arachne", "/case-studies/where-the-specification-lived"];
@@ -4451,6 +4505,10 @@ if (MODE === "check") {
 }
 
 await browser.close();
+// The routes whose route pass ran in every theme: in each shard, exactly its routes; the shards' lists together are ROUTES.
+const RAN = ROUTES.filter((route) => THEMES.every((theme) => ran.has(`contrast|${theme}|${route}`)));
+console.log(`RAN ${JSON.stringify(RAN)}`);
+assert.deepEqual(RAN, SHARD_ROUTES, `shard ${SHARD.i}/${SHARD.n}: the route pass did not run exactly its routes`);
 console.log(`UNCOVERED pairs (not rendered on any listed route): ${[...uncovered].join(", ") || "none"}`);
 console.log(`TEXTLESS pairs (rendered, no text run to measure; colours checked by P3_CONTROLS): ${[...textless].join(", ") || "none"}`);
 
