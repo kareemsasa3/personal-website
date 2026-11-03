@@ -1309,40 +1309,138 @@ if (MODE === "check") {
       }
     }
   }
-  // Focus ring (Task 6): every keyboard-focused control shows the focus-ring token's spread shadow, and
-  // forced-colors mode keeps a painted outline (it discards box-shadow). Focus that enters an <iframe>
-  // belongs to the artwork's own document and is not asserted here.
+  // Focus ring (Task 6; Phase 6 Task 7 on every route): every keyboard-focused element shows the focus-ring token's
+  // spread shadow, and forced-colors mode keeps a painted outline (it discards box-shadow). Focus excludes nothing:
+  // elements inside creative regions and media are checked too. Each pass makes one full Tab cycle, and every visible
+  // tabbable element must be reached in it. An <iframe> holding focus counts as reached; the ring inside it belongs to
+  // the artwork's own document (the procedural-animations test checks it), so the iframe's own style is not asserted.
   {
     const RING = { dark: "rgb(108, 255, 149)", light: "rgb(4, 110, 48)", mono: "rgb(255, 255, 255)" };
-    const FOCUS_ROUTES = ["/", "/projects", "/terminal", "/simulations/rhythm-lab", "/simulations/orbital-simulator", "/procedural-animations"];
-    const focusStates = async (page, presses = 25) => {
+    const FOCUS_ROUTES = ROUTES;
+    const TABBABLE = 'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), summary, iframe, video[controls], audio[controls], [contenteditable]:not([contenteditable="false"]), [tabindex]:not([tabindex="-1"])';
+    const CYCLE_CAP = 1000;
+    // Named exceptions (DEV-6): an element that keeps forward Tab for itself. On its route the cycle runs with Shift+Tab,
+    // with the same assertions over every marked element, and the test asserts that forward Tab still stays on the
+    // element (else the exception is stale) and that Shift+Tab moves focus off it.
+    const TAB_CONSUMERS = [
+      { route: "/terminal", selector: "input.command-input", reason: "DEV-6" },
+    ];
+    for (const consumer of TAB_CONSUMERS) if (!ROUTES.includes(consumer.route)) throw new Error(`TAB_CONSUMERS: ${consumer.route} is not in ROUTES`);
+    // Marks every visible tabbable element with a data-df-tab index, then presses Tab (Shift+Tab on a TAB_CONSUMERS
+    // route) until focus comes back to the first element it reached (one full cycle). Not tabbable after all, so not
+    // marked and listed as dropped: an element with a negative tabindex attribute (Rhythm Lab's hit-zone buttons, its
+    // hidden file input), one in an inert subtree or matching :disabled (a disabled fieldset), and one not rendered.
+    // Wrap: headless Chromium has no browser UI, so after the last element (or a frame with nothing focusable inside)
+    // focus can land on no element at all (the page's body or html), where a headed browser would move to its own UI and
+    // then to the document start. Only on that condition, the cycle focuses a sentinel outside the tab order at the
+    // document's start (its end, going backward), so the next press resumes there. The wrap marks nothing reached. A
+    // trap keeps focus on an element (or in a frame) and still runs into the cap.
+    // Returns the state of each element at the press that first reached it, the marked elements never reached, the
+    // dropped elements, the wraps taken and whether the cap ended the cycle. The ring set expected is the element's
+    // nearest [data-theme] (P5-1: Rhythm Lab scopes its own set), else the stored theme.
+    const focusCycle = async (page, theme, backward = false) => {
+      const key = backward ? "Shift+Tab" : "Tab";
+      const { marked, dropped } = await page.evaluate((selector) => {
+        let index = 0;
+        const dropped = [];
+        for (const el of document.querySelectorAll(selector)) {
+          const why = el.hasAttribute("tabindex") && Number(el.getAttribute("tabindex")) < 0 ? "tabindex"
+            : el.closest("[inert]") ? "inert" : el.matches(":disabled") ? "disabled"
+              : !el.checkVisibility({ visibilityProperty: true }) ? "unrendered" : null;
+          if (why) { dropped.push(`${why} ${el.tagName}.${el.classList[0] ?? ""} ${(el.getAttribute("aria-label") || el.textContent || "").trim().slice(0, 30)}`); continue; }
+          el.setAttribute("data-df-tab", String(index++));
+        }
+        window.__dfReached = { ids: new WeakMap(), next: 0 };
+        return { marked: index, dropped };
+      }, TABBABLE);
       const states = [];
-      for (let i = 0; i < presses; i += 1) {
-        await page.keyboard.press("Tab");
-        const state = await page.evaluate(() => {
+      let first = null;
+      let previous = null;
+      let last = null;
+      let presses = 0;
+      let wraps = 0;
+      let closed = false;
+      while (presses < CYCLE_CAP) {
+        await page.keyboard.press(key);
+        presses += 1;
+        const state = await page.evaluate((stored) => {
           const el = document.activeElement;
-          if (!el || el === document.body || el.tagName === "IFRAME") return null;
+          if (!el || el === document.body || el === document.documentElement) return { away: true };
+          if (el.hasAttribute("data-df-wrap")) return { stuck: true };
+          const reached = window.__dfReached;
+          const fresh = !reached.ids.has(el);
+          if (fresh) reached.ids.set(el, reached.next++);
           const c = getComputedStyle(el);
-          // The ring is the one of the token set the control renders in: its nearest [data-theme] (P5-1 scopes Rhythm Lab).
-          return { label: `${el.tagName} ${(el.getAttribute("aria-label") || el.textContent || "").trim().slice(0, 30)}`, boxShadow: c.boxShadow, outlineStyle: c.outlineStyle, outlineWidth: c.outlineWidth,
-            set: el.closest("[data-theme]")?.getAttribute("data-theme") };
-        });
-        if (state) states.push(state);
+          return { id: reached.ids.get(el), fresh, iframe: el.tagName === "IFRAME", tab: el.getAttribute("data-df-tab"),
+            label: `${el.tagName} ${(el.getAttribute("aria-label") || el.textContent || "").trim().slice(0, 30)}`,
+            boxShadow: c.boxShadow, outlineStyle: c.outlineStyle, outlineWidth: c.outlineWidth,
+            set: el.closest("[data-theme]")?.getAttribute("data-theme") ?? stored };
+        }, theme);
+        if (state.stuck) { previous = null; last = "the wrap sentinel"; continue; }
+        if (state.away) {
+          wraps += 1;
+          previous = null;
+          await page.evaluate((atEnd) => {
+            const sentinel = document.querySelector("[data-df-wrap]") ?? document.createElement("span");
+            sentinel.setAttribute("data-df-wrap", "");
+            sentinel.tabIndex = -1;
+            sentinel.style.cssText = "position: fixed; top: 0; left: 0; width: 0; height: 0; overflow: hidden";
+            if (atEnd) document.body.append(sentinel); else document.body.prepend(sentinel);
+            sentinel.focus({ preventScroll: true });
+          }, backward);
+          continue;
+        }
+        if (first === null) first = state.id;
+        else if (state.id === first && previous !== first) { closed = true; break; }
+        if (state.fresh) states.push(state);
+        previous = state.id;
+        last = state.label;
       }
-      return states;
+      const unreached = await page.evaluate(() => {
+        document.querySelector("[data-df-wrap]")?.remove();
+        return [...document.querySelectorAll("[data-df-tab]")]
+          .filter((el) => !window.__dfReached.ids.has(el))
+          .map((el) => `${el.tagName} ${(el.getAttribute("aria-label") || el.textContent || "").trim().slice(0, 30)} [data-df-tab=${el.getAttribute("data-df-tab")}]`);
+      });
+      return { states, unreached, dropped, marked, presses, wraps, closed, last, key };
     };
+    // The cycle's own failures: the cap ended it (focus never came back, a keyboard trap), or it missed a marked element.
+    // On a TAB_CONSUMERS route it also checks the exception still holds: forward Tab stays on the consumer, Shift+Tab leaves.
+    const cycleChecks = async (page, pass, route, cycle) => {
+      invariant(cycle.closed, `${pass} ${route}: focus did not return to the first element within ${CYCLE_CAP} ${cycle.key} presses (last focused: ${cycle.last})`);
+      for (const label of cycle.unreached) invariant(false, `unreached ${route} ${label} (${pass})`);
+      console.log(`FOCUS ${pass} ${route} key=${cycle.key} marked=${cycle.marked} reached=${cycle.states.length} presses=${cycle.presses} wraps=${cycle.wraps} closed=${cycle.closed}`);
+      console.log(`FOCUS-DROPPED ${pass} ${route} ${JSON.stringify(cycle.dropped)}`);
+      for (const { selector, reason } of TAB_CONSUMERS.filter((c) => c.route === route)) {
+        const count = await page.locator(selector).count();
+        invariant(count === 1, `${pass} ${route}: TAB_CONSUMERS ${selector} (${reason}) matches ${count} elements, not 1`);
+        if (count !== 1) continue;
+        const onConsumer = (sel) => page.evaluate((s) => document.activeElement?.matches(s) ?? false, sel);
+        await page.locator(selector).focus();
+        await page.keyboard.press("Tab");
+        invariant(await onConsumer(selector), `${pass} ${route}: forward Tab left ${selector}, so its TAB_CONSUMERS exception (${reason}) is stale`);
+        await page.locator(selector).focus();
+        await page.keyboard.press("Shift+Tab");
+        const left = await page.evaluate((s) => { const el = document.activeElement; return Boolean(el) && el !== document.body && el !== document.documentElement && !el.matches(s); }, selector);
+        invariant(left, `${pass} ${route}: Shift+Tab did not move focus off ${selector} (${reason})`);
+      }
+    };
+    const backwardOn = (route) => TAB_CONSUMERS.some((c) => c.route === route);
     for (const theme of THEMES) {
       for (const route of FOCUS_ROUTES) {
         await withPage({ theme, route }, async (page) => {
-          for (const state of await focusStates(page)) {
-            const set = route === "/simulations/rhythm-lab" && theme === "light" ? "dark" : theme;
-            invariant(state.set === set && state.boxShadow.includes(`${RING[set]} 0px 0px 0px 4px`), `${theme} ${route}: ${state.label} lacks the ${set} focus-ring (${state.set}: ${state.boxShadow})`);
+          const cycle = await focusCycle(page, theme, backwardOn(route));
+          for (const state of cycle.states) {
+            if (state.iframe) continue;
+            invariant(RING[state.set] && state.boxShadow.includes(`${RING[state.set]} 0px 0px 0px 4px`), `${theme} ${route}: ${state.label} lacks the ${state.set} focus-ring (${state.boxShadow})`);
           }
+          await cycleChecks(page, theme, route, cycle);
         });
       }
     }
     // Focus appears instantly (§13): with motion allowed, the ring is complete as soon as focus lands,
-    // not part-way through a transition. Read right after the key press, before any transition could finish.
+    // not part-way through a transition. Read right after the key press, before any transition could finish. The ring
+    // expected is the element's nearest [data-theme] set, as above (the Annals sheet scopes the Light set in Dark too).
     for (const route of FOCUS_ROUTES) {
       await withPage({ theme: "dark", route, reducedMotion: "no-preference" }, async (page) => {
         for (let i = 0; i < 25; i += 1) {
@@ -1350,17 +1448,24 @@ if (MODE === "check") {
           const state = await page.evaluate(() => {
             const el = document.activeElement;
             if (!el || el === document.body || el.tagName === "IFRAME") return null;
-            return { label: `${el.tagName} ${(el.getAttribute("aria-label") || el.textContent || "").trim().slice(0, 30)}`, boxShadow: getComputedStyle(el).boxShadow };
+            return { label: `${el.tagName} ${(el.getAttribute("aria-label") || el.textContent || "").trim().slice(0, 30)}`, boxShadow: getComputedStyle(el).boxShadow,
+              set: el.closest("[data-theme]")?.getAttribute("data-theme") ?? "dark" };
           });
-          if (state) invariant(state.boxShadow.includes(`${RING.dark} 0px 0px 0px 4px`), `instant focus ${route}: ${state.label} ring is not complete on arrival (${state.boxShadow})`);
+          if (state) invariant(RING[state.set] && state.boxShadow.includes(`${RING[state.set]} 0px 0px 0px 4px`), `instant focus ${route}: ${state.label} ${state.set} ring is not complete on arrival (${state.boxShadow})`);
         }
       });
     }
-    await withPage({ theme: "dark", route: "/", forcedColors: "active" }, async (page) => {
-      for (const state of await focusStates(page, 10)) {
-        invariant(state.outlineStyle === "solid" && state.outlineWidth === "2px", `forced colors: ${state.label} outline ${state.outlineStyle} ${state.outlineWidth}`);
-      }
-    });
+    // Forced colours (Phase 6 Task 7: every route, dark, the same full cycle): each reached element keeps a solid 2px outline.
+    for (const route of FOCUS_ROUTES) {
+      await withPage({ theme: "dark", route, forcedColors: "active" }, async (page) => {
+        const cycle = await focusCycle(page, "dark", backwardOn(route));
+        for (const state of cycle.states) {
+          if (state.iframe) continue;
+          invariant(state.outlineStyle === "solid" && state.outlineWidth === "2px", `forced colors ${route}: ${state.label} outline ${state.outlineStyle} ${state.outlineWidth}`);
+        }
+        await cycleChecks(page, "forced-colors", route, cycle);
+      });
+    }
   }
   // Phase 2 Task 1 (D3 ruling): Layout routes have no rain canvas, and the static ground runs no animation.
   // /simulations/rhythm-lab is immersive (outside Layout) and keeps its own rain (P2-3), so it is not listed.
