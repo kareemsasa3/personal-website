@@ -10,7 +10,7 @@
 // Record mode also prints every measurement on a MEASURED line (r10), for Step 9's run-by-run comparison.
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
-import { P5_GOVERNED_IN_NATIVE, P5_NATIVE, P5_NATIVE_GROUND } from "./darkfield-measure-lib.mjs";
+import { EXCLUDED, MEASURE_NATIVE, P5_GOVERNED_IN_NATIVE, P5_NATIVE, P5_NATIVE_GROUND, PAGE_PREDICATES } from "./darkfield-measure-lib.mjs";
 const { chromium } = await import(process.argv[3] || "playwright");
 const browser = await chromium.launch({ headless: true, ...(process.argv[4] ? { executablePath: process.argv[4] } : {}) });
 const base = process.argv[2] || "http://127.0.0.1:4173";
@@ -3472,6 +3472,7 @@ if (MODE === "check") {
   // Phase 5 (§03, §06): on each listed route, governed elements outside creative regions have square corners and a
   // Darkfield family. P5_NATIVE: native elements outside any region (they host controls or governed labels).
   // Phase 6 Task 5: the other three pieces joined ROUTES, so the completeness invariant below lists them here.
+  // Phase 6 Task 6: the sweep and the frame check below run on every route of ROUTES; P5_ROUTES serves the invariants below.
   const P5_ROUTES = ["/darkfield-404-probe", "/procedural-animations", "/procedural-animations/mechanical-time",
     "/procedural-animations/descent", "/procedural-animations/observing", "/procedural-animations/one-quiet-day", "/case-studies/aether", "/simulations",
     "/simulations/orbital-simulator", "/simulations/traffic-simulator", "/terminal", "/simulations/snake",
@@ -3479,30 +3480,55 @@ if (MODE === "check") {
     "/projects", "/case-studies", "/case-studies/erebus", "/case-studies/arachne", "/case-studies/where-the-specification-lived"];
   // P5_NATIVE, P5_GOVERNED_IN_NATIVE and P5_NATIVE_GROUND are imported from darkfield-measure-lib.mjs.
   const P5_FAMILIES = ["Archivo", "Archivo Narrow", "IBM Plex Mono"];
-  const p5Sweep = (page) => page.evaluate(([skip, governedIn, ground, families]) => {
+  // Phase 6 Task 6 (P6-5′): the sweep and the frame check skip native paint by the measurement's own rule, the lib's page
+  // predicates over its MEASURE_NATIVE entries: the Rhythm Lab highway is a native subtree minus its governed-in
+  // carve-outs, and the Annals sheet is native for its own box only, so the governed chrome on it is checked. They take
+  // the Phase 5 entries; the P5-2 entries hold a hue, not a shape or a voice, so the swatches and lamps stay checked here.
+  const SWEEP_NATIVE = MEASURE_NATIVE.filter((entry) => [...P5_NATIVE, ...P5_NATIVE_GROUND].includes(entry.selector));
+  assert.equal(SWEEP_NATIVE.length, P5_NATIVE.length + P5_NATIVE_GROUND.length, "MEASURE_NATIVE lacks a Phase 5 native entry");
+  // Phase 6 Task 6 (§03 Rules, §06 Rules, §17 Corner radii): every visible governed element outside EXCLUDED and inline
+  // SVG has square corners, or is a node (the node radius on all four corners, no own text, not a control); its own text
+  // is in a Darkfield family; own text set uppercase is in Archivo Narrow. What a native skip hides is
+  // returned beside the findings, so it can be listed and never hides silently.
+  const p5SweepAll = (page) => page.evaluate(([src, native, governedIn, excluded, controls, families]) => {
+    const { ownPaintExcluded, subtreeExcluded } = new Function(`return (${src});`)();
     const out = new Set();
+    const skipped = { subtree: 0, own: 0, hidden: new Set() };
     for (const el of document.querySelectorAll("body *")) {
-      if (!el.getClientRects().length || el.closest("[data-df-region], svg") || el.matches("img, video, canvas, iframe")) continue;
-      if (el.closest(skip) && !el.closest(governedIn)) continue;
-      if (el.matches(ground)) continue;
+      if (!el.getClientRects().length || el.closest(`${excluded}, svg`)) continue;
+      const name = `${el.tagName}.${el.classList[0] ?? ""}`;
       const c = getComputedStyle(el);
-      if ([c.borderTopLeftRadius, c.borderTopRightRadius, c.borderBottomRightRadius, c.borderBottomLeftRadius].some((r) => r !== "0px")) out.add(`radius ${el.tagName}.${el.classList[0] ?? ""}`);
+      const radii = [c.borderTopLeftRadius, c.borderTopRightRadius, c.borderBottomRightRadius, c.borderBottomLeftRadius];
       const own = [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim());
       const family = c.fontFamily.split(",")[0].replace(/["']/g, "").trim();
-      if (own && !families.includes(family)) out.add(`family ${el.tagName}.${el.classList[0] ?? ""} ${family}`);
+      const node = radii.every((r) => r === "50%") && !own && !el.matches(controls);
+      const found = [];
+      if (!radii.every((r) => r === "0px") && !node) found.push(`radius ${name} ${radii.join(" ")}`);
+      if (own && !families.includes(family)) found.push(`family ${name} ${family}`);
+      if (own && c.textTransform === "uppercase" && family !== "Archivo Narrow") found.push(`upper ${name} ${family}`);
+      const kind = subtreeExcluded(el, native, governedIn) ? "subtree" : ownPaintExcluded(el, native) ? "own" : null;
+      if (kind) {
+        skipped[kind] += 1;
+        for (const f of found) skipped.hidden.add(`${kind} ${f}`);
+        continue;
+      }
+      for (const f of found) out.add(f);
     }
-    return [...out].slice(0, 12);
-  }, [P5_NATIVE.join(", "), P5_GOVERNED_IN_NATIVE.join(", "), P5_NATIVE_GROUND.join(", "), P5_FAMILIES]);
+    return { bad: [...out].slice(0, 12), skipped: { subtree: skipped.subtree, own: skipped.own, hidden: [...skipped.hidden].slice(0, 12) } };
+  }, [PAGE_PREDICATES, SWEEP_NATIVE, P5_GOVERNED_IN_NATIVE, EXCLUDED, CONTROLS, P5_FAMILIES]);
+  const p5Sweep = async (page) => (await p5SweepAll(page)).bad;
   // Phase 5 exit (Task 24; §03 Rules, §09 Frames and corners, §08 Not a dashboard): the Phase 3 closed-frame check runs on
   // the same routes with the same native exclusions. Beyond Phase 3's list, the §13 signatures and fields may close a
   // box, and so may these true containers: the simulation field panels (the bounded system each simulator draws), the
   // terminal window (a real terminal), Rhythm Lab's setup face on the held rain and its in-highway overlay panels (§08
   // overlays), the Annals chronicle (the log's bounded scroll box) and the preview wells of the simulation cards (Task 8's
   // field-deep well with its L1 rule). One control is listed too: the Traffic data table's disclosure toggle, not a
-  // frame but a control styled from CSS because its markup is creative-owned (Task 11).
+  // frame but a control styled from CSS because its markup is creative-owned (Task 11). Phase 6 Task 6: it is named in
+  // the CSS's exact form (T24 M-1), so the chart's df-control summary is allowed by P3_FRAMED alone.
   const P5_FRAMED = [P3_FRAMED, ".df-error, .df-warning, .df-confirmed, .df-field, .orbital-field, .traffic-field",
-    ".terminal-container, .rhythm-lab-header, .rhythm-lab-overlay-panel, .annals-chronicle, .simulation-preview, .traffic-table > summary"].join(", ");
-  const p5Frames = (page) => page.evaluate(([skip, governedIn, ground, allowed]) => {
+    ".terminal-container, .rhythm-lab-header, .rhythm-lab-overlay-panel, .annals-chronicle, .simulation-preview, .traffic-table > summary:not(.df-control)"].join(", ");
+  const p5Frames = (page) => page.evaluate(([src, native, governedIn, allowed]) => {
+    const { ownPaintExcluded, subtreeExcluded } = new Function(`return (${src});`)();
     const closed = (el) => {
       const c = getComputedStyle(el);
       return ["Top", "Right", "Bottom", "Left"].every((s) =>
@@ -3510,14 +3536,17 @@ if (MODE === "check") {
         !/rgba\(.*, 0\)$/.test(c[`border${s}Color`]));
     };
     return [...document.querySelectorAll("body *")].filter((el) => el.getClientRects().length && !el.closest("[data-df-region]") &&
-      !(el.closest(skip) && !el.closest(governedIn)) && !el.matches(ground) && closed(el) && !el.matches(allowed))
+      !subtreeExcluded(el, native, governedIn) && !ownPaintExcluded(el, native) && closed(el) && !el.matches(allowed))
       .map((el) => `${el.tagName}.${el.className}`).slice(0, 10);
-  }, [P5_NATIVE.join(", "), P5_GOVERNED_IN_NATIVE.join(", "), P5_NATIVE_GROUND.join(", "), P5_FRAMED]);
+  }, [PAGE_PREDICATES, SWEEP_NATIVE, P5_GOVERNED_IN_NATIVE, P5_FRAMED]);
+  // Phase 6 Task 6: both checks run on every route of ROUTES (each in the shard that owns it). What the sweep's native
+  // skips covered (element counts, and any finding they hid) is listed on a NATIVE-SKIPPED line, never failed.
   for (const theme of THEMES) {
-    for (const route of P5_ROUTES) {
+    for (const route of ROUTES) {
       await withPage({ theme, route }, async (page) => {
-        const bad = await p5Sweep(page);
+        const { bad, skipped } = await p5SweepAll(page);
         invariant(bad.length === 0, `${theme} ${route}: ${JSON.stringify(bad)}`);
+        if (skipped.subtree || skipped.own) console.log(`NATIVE-SKIPPED ${theme} ${route} subtree=${skipped.subtree} own=${skipped.own} ${JSON.stringify(skipped.hidden)}`);
         const framed = await p5Frames(page);
         invariant(framed.length === 0, `${theme} ${route}: closed frames ${JSON.stringify(framed)}`);
       });

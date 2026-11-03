@@ -59,7 +59,8 @@ test("the browser test imports the Phase 5 lists instead of defining them", () =
   const imported = browserTest.match(/^import \{([^}]*)\} from "\.\/darkfield-measure-lib\.mjs";$/m);
   assert.ok(imported, "browser test imports from darkfield-measure-lib.mjs");
   const names = imported[1].split(",").map((s) => s.trim()).filter(Boolean).sort();
-  assert.deepEqual(names, ["P5_GOVERNED_IN_NATIVE", "P5_NATIVE", "P5_NATIVE_GROUND"]);
+  // Phase 6 Task 6: the sweep also imports EXCLUDED and the native predicates (MEASURE_NATIVE, PAGE_PREDICATES).
+  assert.deepEqual(names, ["EXCLUDED", "MEASURE_NATIVE", "P5_GOVERNED_IN_NATIVE", "P5_NATIVE", "P5_NATIVE_GROUND", "PAGE_PREDICATES"]);
 });
 
 test("parseTokenColours returns every single-colour token of each theme block", () => {
