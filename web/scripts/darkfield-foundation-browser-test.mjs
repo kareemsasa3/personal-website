@@ -10,7 +10,7 @@
 // Record mode also prints every measurement on a MEASURED line (r10), for Step 9's run-by-run comparison.
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
-import { boxMask, EXCLUDED, IDLE_ALLOWED, LIVE_READOUTS, MEASURE_NATIVE, nativeOwnBoxes, nativeSubtreeBoxes, P5_GOVERNED_IN_NATIVE, P5_NATIVE, P5_NATIVE_GROUND, PAGE_PREDICATES } from "./darkfield-measure-lib.mjs";
+import { boxMask, chroma, DEFAULT_TOLERANCE, deltaE76, EXCLUDED, IDLE_ALLOWED, LIVE_READOUTS, MEASURE_NATIVE, MONO_DEVIATION_SCOPE, MONO_DEVIATIONS, MONO_ROUNDING, monoChromaThreshold, nativeOwnBoxes, nativeSubtreeBoxes, P5_GOVERNED_IN_NATIVE, P5_NATIVE, P5_NATIVE_GROUND, PAGE_PREDICATES, parseTokenColours, srgbToLab } from "./darkfield-measure-lib.mjs";
 const { chromium } = await import(process.argv[3] || "playwright");
 const browser = await chromium.launch({ headless: true, ...(process.argv[4] ? { executablePath: process.argv[4] } : {}) });
 const base = process.argv[2] || "http://127.0.0.1:4173";
@@ -4120,6 +4120,390 @@ if (MODE === "check") {
         const allowed = [...new Set(seen.first.animations.filter((x) => !x.kind && x.idle >= 0).map((x) => `${x.label}:${x.name}`))];
         console.log(`MOTION-SKIPPED ${where} gap=${seen.gap} allowed=${JSON.stringify(allowed)} animations=${JSON.stringify(skipped)} pixels=${JSON.stringify(removed)}`);
         if (seen.masked.length) console.log(`MASKED ${where} n=${seen.masked.length} ${JSON.stringify(seen.masked.slice(0, 25).map((m) => `${m.kind} ${m.label}`))}`);
+      });
+    }
+  }
+  // Phase 6 Task 10 (§05 Monochrome; README Design principles, principle 3; P6-2, P6-5′, P5-3; ruling P6-T3b): a dedicated
+  // pass with the Mono theme stored, whatever THEMES holds, on every route at load, pointer off the page. The threshold is
+  // the Mono tokens' largest chroma plus MONO_ROUNDING, read from tokens.css; the Mono tokens' largest chroma must be 0, so
+  // a token that gains hue fails here first. Two layers, each failing on hue above the threshold:
+  // - DOM: every rendered element and its generated ::before and ::after outside EXCLUDED, on the colours it paints: color
+  //   and text-shadow where it draws text (own text, a text field, generated content), text-decoration-color when it draws
+  //   a decoration, background-color, each drawn border's colour, outline-color when an outline is drawn, fill and stroke
+  //   on SVG shapes and text, and every colour inside background-image, box-shadow and text-shadow.
+  // - Pixels: one viewport capture; governed pixels are those outside the dilated EXCLUDED boxes and outside native paint.
+  //   Each leak cluster (touching cells) is reported with its pixel count, its colour, the element at its centre and the
+  //   element each pixel is attributed to (rulings P6-T10f): the deepest element whose clipped box holds it, or its generated
+  //   box whose ground matches the pixel; when that element's own paint (ink, ground, border colours) does not match the
+  //   pixel, the nearest ancestor whose opaque ground matches it within DEFAULT_TOLERANCE.
+  // Named deviations (MONO_DEVIATIONS; P5-3, P5-2; rulings P6-T10a–g): an entry names elements (and a generated box, when
+  // it carries one) by Element.matches, never closest. On those it excuses only what its reason covers: a P5-3 entry a DOM
+  // colour within DEFAULT_TOLERANCE of a Light token (read from tokens.css), or any colour of a property it lists as
+  // untokened; the P5-2 entry its generated box's background colour. Any other colour there fails as a leak. In the pixel
+  // layer an entry excuses the hue pixels attributed to its elements: paint routes the DOM layer does not read are pixel-only.
+  // Excused items are counted on a MONO-DEVIATION line instead of failing. On a route that renders the entries' scope
+  // (MONO_DEVIATION_SCOPE), an entry that matches no rendered element is stale, and an element it matches on which it excuses
+  // nothing (no DOM colour, no pixel) means the entry matches more than it excuses: both fail.
+  // Native paint follows P6-5′ through the lib's predicates and box helpers: a "subtree" entry is skipped minus its
+  // governed-in carve-outs; an "own" entry skips only its own paint. In the pixel layer an "own" entry's paint is its box
+  // minus the boxes of its descendants that paint their own ground (P6-T3b), and within that, only the pixels that keep the
+  // colour (within DEFAULT_TOLERANCE) they have with every descendant hidden: text, glyphs, borders and generated boxes
+  // drawn on the native ground stay governed. Those native pixels print as MONO-NATIVE with counts per reason. What a
+  // skip removed (subtree findings and pixels, an "own" entry's own colours, governed leaves under an exclusion box) prints
+  // on MONO-SKIPPED and MONO-MASKED lines, never failed.
+  {
+    const monoTokens = await readFile(new URL("../src/styles/darkfield/tokens.css", import.meta.url), "utf8");
+    const monoThreshold = monoChromaThreshold(monoTokens);
+    const LIGHT_LABS = Object.values(parseTokenColours(monoTokens, "light")).map((rgb) => srgbToLab(rgb));
+    invariant(LIGHT_LABS.length > 0, "tokens.css: no Light token colour read");
+    // Whether entry k excuses a DOM colour ([r, g, b, alpha]) of this property.
+    const devAllows = (k, property, [r, g, b, alpha]) => {
+      const entry = MONO_DEVIATIONS[k];
+      if (entry.reason === "P5-2") return property === "background-color";
+      if ((entry.untokened ?? []).includes(property)) return true;
+      return alpha === 1 && LIGHT_LABS.some((lab) => deltaE76(lab, srgbToLab([r, g, b])) <= DEFAULT_TOLERANCE);
+    };
+    invariant(monoThreshold - MONO_ROUNDING === 0, `Mono tokens: the largest chroma is ${monoThreshold - MONO_ROUNDING}, not 0, so a Mono token carries hue`);
+    console.log(`MONO-THRESHOLD ${monoThreshold} (largest Mono token chroma ${monoThreshold - MONO_ROUNDING} + MONO_ROUNDING)`);
+    const MONO_CELL = 8;
+    // Page-side helpers shared by both layers, as source: a label, a rendered test, a clipped box and a colour reader.
+    const MONO_PAGE = `{
+      label: (el) => el.tagName.toLowerCase() + (el.id ? "#" + el.id : "") + [...el.classList].map((c) => "." + c).join(""),
+      shown: (el) => el.isConnected && el.checkVisibility({ visibilityProperty: true, opacityProperty: true }) && el.getClientRects().length > 0,
+      // The element's border box clipped by every ancestor that clips its overflow (null when nothing of it shows).
+      box: (el) => {
+        const r = el.getBoundingClientRect();
+        let [x0, y0, x1, y1] = [r.left, r.top, r.right, r.bottom];
+        for (let n = el.parentElement; n && n !== document.documentElement; n = n.parentElement) {
+          const s = getComputedStyle(n);
+          if (s.overflowX === "visible" && s.overflowY === "visible") continue;
+          const b = n.getBoundingClientRect();
+          x0 = Math.max(x0, b.left + parseFloat(s.borderLeftWidth)); y0 = Math.max(y0, b.top + parseFloat(s.borderTopWidth));
+          x1 = Math.min(x1, b.right - parseFloat(s.borderRightWidth)); y1 = Math.min(y1, b.bottom - parseFloat(s.borderBottomWidth));
+        }
+        return x1 > x0 && y1 > y0 ? { x: x0, y: y0, width: x1 - x0, height: y1 - y0 } : null;
+      },
+    }`;
+    const MONO_DEVS = MONO_DEVIATIONS.map(({ selector, pseudo = "" }) => ({ selector, pseudo }));
+    const devName = (d) => `${d.selector}${d.pseudo ?? ""}`;
+    const monoDom = (page) => page.evaluate(([src, helpers, native, governedIn, excluded, threshold, devs, scope]) => {
+      const { ownPaintExcluded, subtreeExcluded } = new Function(`return (${src});`)();
+      const { label, shown } = new Function(`return (${helpers});`)();
+      const context = new OffscreenCanvas(1, 1).getContext("2d", { willReadFrequently: true });
+      const read = new Map();
+      // 8-bit channels and alpha of one colour: rgb()/rgba() read directly, any other form painted on a canvas; a form
+      // the canvas does not take is returned as null and reported.
+      const rgba = (colour) => {
+        if (read.has(colour)) return read.get(colour);
+        const m = /^rgba?\(([\d.]+),\s*([\d.]+),\s*([\d.]+)(?:,\s*([\d.]+))?\)$/.exec(colour);
+        let out = null;
+        if (m) out = [Math.round(+m[1]), Math.round(+m[2]), Math.round(+m[3]), m[4] === undefined ? 1 : +m[4]];
+        else {
+          context.fillStyle = "rgba(1, 2, 3, 0)";
+          context.fillStyle = colour;
+          if (context.fillStyle !== "rgba(1, 2, 3, 0)") {
+            context.clearRect(0, 0, 1, 1); context.fillRect(0, 0, 1, 1);
+            const d = context.getImageData(0, 0, 1, 1).data;
+            out = [d[0], d[1], d[2], d[3] / 255];
+          }
+        }
+        read.set(colour, out);
+        return out;
+      };
+      const COLOUR = /(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch|color)\([^()]*\)/g;
+      const findings = new Map();
+      const ids = new Map([...document.querySelectorAll("*")].map((el, i) => [el, i]));
+      const candidates = [];
+      // A deviation renders when an element matches it and, for a generated box, that box is rendered.
+      const renders = (el, pseudo) => {
+        if (!pseudo) return true;
+        const c = getComputedStyle(el, pseudo);
+        return !["none", "normal"].includes(c.content) && c.display !== "none" && c.visibility === "visible";
+      };
+      const matched = devs.map((d) => [...document.querySelectorAll(d.selector)].filter((el) => shown(el) && renders(el, d.pseudo))
+        .map((el) => ({ id: ids.get(el), label: `${label(el)}${d.pseudo}` })));
+      const scoped = [...document.querySelectorAll(scope)].some(shown);
+      const hidden = { subtree: new Map(), own: new Map() };
+      const unread = new Set();
+      const skipped = { excluded: 0, subtree: 0, own: 0 };
+      const note = (map, key) => map.set(key, (map.get(key) ?? 0) + 1);
+      const TEXT_FIELD = "input:not([type=checkbox], [type=radio], [type=range], [type=color], [type=hidden]), textarea, select";
+      for (const el of document.querySelectorAll("*")) {
+        if (!shown(el)) continue;
+        if (el.closest(excluded)) { skipped.excluded += 1; continue; }
+        const subtree = subtreeExcluded(el, native, governedIn);
+        const own = ownPaintExcluded(el, native);
+        if (subtree) skipped.subtree += 1;
+        else if (own) skipped.own += 1;
+        const svg = el instanceof SVGElement;
+        for (const pseudo of ["", "::before", "::after"]) {
+          const c = getComputedStyle(el, pseudo || null);
+          if (pseudo && (["none", "normal"].includes(c.content) || c.display === "none" || c.visibility !== "visible")) continue;
+          const text = pseudo ? c.content !== '""'
+            : !svg && ([...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim()) || el.matches(TEXT_FIELD));
+          const paint = [];
+          const ownPaint = [["background-color", c.backgroundColor], ["background-image", c.backgroundImage], ["box-shadow", c.boxShadow]];
+          for (const side of ["Top", "Right", "Bottom", "Left"]) {
+            if (parseFloat(c[`border${side}Width`]) > 0 && !["none", "hidden"].includes(c[`border${side}Style`])) ownPaint.push([`border-${side.toLowerCase()}-color`, c[`border${side}Color`]]);
+          }
+          if (text) paint.push(["color", c.color], ["text-shadow", c.textShadow]);
+          if (text && c.textDecorationLine !== "none") paint.push(["text-decoration-color", c.textDecorationColor]);
+          if (c.outlineStyle !== "none" && parseFloat(c.outlineWidth) > 0) paint.push(["outline-color", c.outlineColor]);
+          if (!pseudo && (el instanceof SVGGeometryElement || el instanceof SVGTextContentElement)) {
+            if (c.fill !== "none") paint.push(["fill", c.fill]);
+            if (c.stroke !== "none" && parseFloat(c.strokeWidth) > 0) paint.push(["stroke", c.stroke]);
+          }
+          const where = `${label(el)}${pseudo}`;
+          for (const [list, ownList] of [[paint, false], [ownPaint, true]]) {
+            for (const [property, value] of list) {
+              for (const colour of value.match(COLOUR) ?? []) {
+                const v = rgba(colour);
+                if (!v) { unread.add(`${where} ${property} ${colour}`); continue; }
+                if (v[3] === 0 || Math.max(v[0], v[1], v[2]) - Math.min(v[0], v[1], v[2]) <= threshold) continue;
+                const key = `${where} ${property} ${colour}`;
+                if (subtree) { note(hidden.subtree, key); continue; }
+                if (own && ownList && !pseudo) { note(hidden.own, key); continue; }
+                const named = devs.flatMap((d, k) => (d.pseudo === pseudo && el.matches(d.selector) ? [k] : []));
+                if (named.length) candidates.push({ key, id: ids.get(el), property, colour: v, devs: named });
+                else note(findings, key);
+              }
+            }
+          }
+        }
+      }
+      const list = (map) => [...map].map(([key, n]) => (n > 1 ? `${key} (x${n})` : key));
+      return { findings: [...findings], hidden: { subtree: list(hidden.subtree), own: list(hidden.own) }, unread: [...unread], skipped, candidates, matched, scoped };
+    }, [PAGE_PREDICATES, MONO_PAGE, MEASURE_NATIVE, P5_GOVERNED_IN_NATIVE, EXCLUDED, monoThreshold, MONO_DEVS, MONO_DEVIATION_SCOPE]);
+    // The boxes the pixel layer needs, and every rendered element in the viewport with its depth and painting generated boxes.
+    const monoLook = (page) => page.evaluate(([src, helpers, native, governedIn, excluded, devs]) => {
+      const { ownPaintExcluded, subtreeExcluded } = new Function(`return (${src});`)();
+      const { label, shown, box } = new Function(`return (${helpers});`)();
+      // Task 3's ground rule (P6-T3b): a descendant paints its own ground when it has a background colour or image.
+      const paintsGround = (el) => { const s = getComputedStyle(el); return s.backgroundImage !== "none" || !/^rgba\(.*,\s*0\)$|^transparent$/.test(s.backgroundColor); };
+      const boxes = { excluded: [], subtree: [], subtreeGoverned: [], own: [] };
+      for (const el of document.querySelectorAll(excluded)) if (shown(el)) { const b = box(el); if (b) boxes.excluded.push(b); }
+      for (const entry of native) for (const el of document.querySelectorAll(entry.selector)) {
+        if (!shown(el) || el.closest(excluded)) continue;
+        if (entry.kind === "subtree") {
+          for (const n of [el, ...el.querySelectorAll("*")]) {
+            const b = shown(n) && box(n);
+            if (b) (governedIn.length && n.closest(governedIn.join(", ")) ? boxes.subtreeGoverned : boxes.subtree).push(b);
+          }
+        } else {
+          const b = box(el);
+          if (b) boxes.own.push({ selector: entry.selector, reason: entry.reason, box: b,
+            holes: [...el.querySelectorAll("*")].filter((d) => shown(d) && !d.closest(excluded) && paintsGround(d)).map(box).filter(Boolean) });
+        }
+      }
+      const owners = [];
+      const index = new Map();
+      const ids = new Map([...document.querySelectorAll("*")].map((el, i) => [el, i]));
+      const TEXT_FIELD = "input:not([type=checkbox], [type=radio], [type=range], [type=color], [type=hidden]), textarea, select";
+      for (const el of document.querySelectorAll("body *")) {
+        if (!shown(el)) continue;
+        const b = box(el);
+        if (!b || b.x >= innerWidth || b.y >= innerHeight || b.x + b.width <= 0 || b.y + b.height <= 0) continue;
+        let parent = -1;
+        for (let e = el.parentElement; e && parent < 0; e = e.parentElement) parent = index.get(e) ?? -1;
+        index.set(el, owners.length);
+        let depth = 0;
+        for (let e = el; e; e = e.parentElement) depth += 1;
+        const kind = el.closest(excluded) ? "excluded" : subtreeExcluded(el, native, governedIn) ? "subtree" : ownPaintExcluded(el, native) ? "own" : null;
+        const generated = [];
+        for (const pseudo of ["::before", "::after"]) {
+          const c = getComputedStyle(el, pseudo);
+          if (["none", "normal"].includes(c.content) || c.display === "none" || c.visibility !== "visible") continue;
+          generated.push({ pseudo, background: c.backgroundColor, color: c.color });
+        }
+        const own = [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim());
+        const s = getComputedStyle(el);
+        const lines = ["Top", "Right", "Bottom", "Left"].filter((side) => parseFloat(s[`border${side}Width`]) > 0 && !["none", "hidden"].includes(s[`border${side}Style`]))
+          .map((side) => s[`border${side}Color`]);
+        owners.push({ id: ids.get(el), label: label(el), box: b, depth, kind, generated, leaf: own || !el.childElementCount, parent,
+          ink: own || el.matches(TEXT_FIELD) ? s.color : null, ground: s.backgroundColor, lines,
+          devs: devs.flatMap((d, k) => (el.matches(d.selector) ? [k] : [])) });
+      }
+      return { boxes, owners };
+    }, [PAGE_PREDICATES, MONO_PAGE, MEASURE_NATIVE, P5_GOVERNED_IN_NATIVE, EXCLUDED, MONO_DEVS]);
+    const rgbOf = (colour) => { const m = /^rgba?\(([\d.]+),\s*([\d.]+),\s*([\d.]+)(?:,\s*([\d.]+))?\)$/.exec(colour); return m && (m[4] === undefined || +m[4] === 1) ? [+m[1], +m[2], +m[3]] : null; };
+    const monoPixels = async (page) => {
+      const look = await monoLook(page);
+      const shot = () => page.screenshot({ animations: "disabled", caret: "hide" });
+      const painted = await shot();
+      // The same view with every descendant of every "own" entry hidden: what remains there is the entry's own paint.
+      const own = [...new Set(look.boxes.own.map((o) => o.selector))];
+      let bare = painted;
+      if (own.length) {
+        const style = await page.addStyleTag({ content: `${own.map((s) => `${s} *`).join(", ")} { visibility: hidden !important; transition: none !important; }` });
+        bare = await shot();
+        await style.evaluate((node) => node.remove());
+      }
+      const { width, height, rgb } = await decoder.evaluate(async (pngs) => {
+        const read = async (data) => {
+          const image = new Image(); image.src = `data:image/png;base64,${data}`; await image.decode();
+          const canvas = new OffscreenCanvas(image.width, image.height), context = canvas.getContext("2d");
+          context.drawImage(image, 0, 0);
+          return context.getImageData(0, 0, image.width, image.height);
+        };
+        const images = await Promise.all(pngs.map(read));
+        const out = images.map((im) => {
+          const bytes = new Uint8Array(im.width * im.height * 3);
+          for (let i = 0, p = 0; i < im.data.length; i += 4, p += 3) { bytes[p] = im.data[i]; bytes[p + 1] = im.data[i + 1]; bytes[p + 2] = im.data[i + 2]; }
+          let text = "";
+          for (let i = 0; i < bytes.length; i += 0x8000) text += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+          return btoa(text);
+        });
+        return { width: images[0].width, height: images[0].height, rgb: out };
+      }, [painted, bare].map((png) => png.toString("base64")));
+      const [A, B] = rgb.map((data) => Buffer.from(data, "base64"));
+      const excludedMask = boxMask(nativeOwnBoxes(look.boxes.excluded, []), width, height);
+      const subtreeMask = boxMask(nativeSubtreeBoxes(look.boxes.subtree, look.boxes.subtreeGoverned), width, height);
+      const ownAt = new Int16Array(width * height).fill(-1);
+      look.boxes.own.forEach((o, k) => { const mask = boxMask(nativeOwnBoxes([o.box], o.holes), width, height); for (let p = 0; p < mask.length; p += 1) if (mask[p] && ownAt[p] < 0) ownAt[p] = k; });
+      // The deepest rendered element whose clipped box holds each pixel.
+      const ownerAt = new Int32Array(width * height).fill(-1);
+      const order = look.owners.map((o, i) => i).sort((a, b) => look.owners[a].depth - look.owners[b].depth);
+      for (const i of order) {
+        const b = look.owners[i].box;
+        const x0 = Math.max(0, Math.floor(b.x)), x1 = Math.min(width, Math.ceil(b.x + b.width));
+        for (let y = Math.max(0, Math.floor(b.y)); y < Math.min(height, Math.ceil(b.y + b.height)); y += 1) if (x1 > x0) ownerAt.fill(i, y * width + x0, y * width + x1);
+      }
+      const lab = new Map();
+      const labOf = (r, g, b) => { const key = (r << 16) | (g << 8) | b; let v = lab.get(key); if (!v) { v = srgbToLab([r, g, b]); lab.set(key, v); } return v; };
+      const generatedLabs = look.owners.map((o) => o.generated.map((g) => ({ pseudo: g.pseudo, ground: rgbOf(g.background) })).filter((g) => g.ground)
+        .map((g) => ({ pseudo: g.pseudo, lab: srgbToLab(g.ground) })));
+      const labsOf = (colours) => colours.map(rgbOf).filter(Boolean).map((c) => srgbToLab(c));
+      const paintLabs = look.owners.map((o) => ({ own: labsOf([o.ink, o.ground, ...o.lines].filter(Boolean)), ground: labsOf([o.ground]) }));
+      const near = (labs, lab) => labs.some((l) => deltaE76(l, lab) <= DEFAULT_TOLERANCE);
+      // The element (owner index, or -1) and generated box a pixel of this colour at owner i is attributed to (P6-T10f).
+      const attributed = new Map();
+      const attribute = (i, r, g, b) => {
+        const key = `${i}|${(r << 16) | (g << 8) | b}`;
+        let hit = attributed.get(key);
+        if (hit) return hit;
+        const lab = labOf(r, g, b);
+        hit = { i, pseudo: "" };
+        if (i >= 0) {
+          const gen = generatedLabs[i].find((gl) => deltaE76(gl.lab, lab) <= DEFAULT_TOLERANCE);
+          if (gen) hit = { i, pseudo: gen.pseudo };
+          else if (!near(paintLabs[i].own, lab)) {
+            for (let a = look.owners[i].parent; a >= 0; a = look.owners[a].parent) if (near(paintLabs[a].ground, lab)) { hit = { i: a, pseudo: "" }; break; }
+          }
+        }
+        attributed.set(key, hit);
+        return hit;
+      };
+      const excusedPx = MONO_DEVS.map(() => 0);
+      const credited = new Map(); // "k|element id" -> excused pixels
+      const nativeCounts = {};
+      const leaks = { governed: new Map(), subtree: new Map() };
+      const cols = Math.ceil(width / MONO_CELL);
+      for (let p = 0, o = 0; p < width * height; p += 1, o += 3) {
+        if (excludedMask[p]) continue;
+        const [r, g, b] = [A[o], A[o + 1], A[o + 2]];
+        const ch = chroma([r, g, b]);
+        const k = ownAt[p];
+        if (!subtreeMask[p] && k >= 0 && deltaE76(labOf(r, g, b), labOf(B[o], B[o + 1], B[o + 2])) <= DEFAULT_TOLERANCE) {
+          const key = `${look.boxes.own[k].reason} ${look.boxes.own[k].selector}`;
+          nativeCounts[key] = (nativeCounts[key] ?? 0) + 1;
+          continue;
+        }
+        if (ch <= monoThreshold) continue;
+        const at = attribute(ownerAt[p], r, g, b);
+        if (!subtreeMask[p] && at.i >= 0) {
+          const devs = look.owners[at.i].devs.filter((k) => MONO_DEVS[k].pseudo === at.pseudo);
+          if (devs.length) {
+            for (const k of devs) {
+              excusedPx[k] += 1;
+              const key = `${k}|${look.owners[at.i].id}`;
+              credited.set(key, (credited.get(key) ?? 0) + 1);
+            }
+            continue;
+          }
+        }
+        const grid = subtreeMask[p] ? leaks.subtree : leaks.governed;
+        const x = p % width, y = (p - x) / width, key = Math.floor(y / MONO_CELL) * cols + Math.floor(x / MONO_CELL);
+        const cell = grid.get(key) ?? { x0: x, y0: y, x1: x, y1: y, pixels: 0, max: 0, colours: new Map(), owners: new Map() };
+        grid.set(key, cell);
+        Object.assign(cell, { x0: Math.min(cell.x0, x), y0: Math.min(cell.y0, y), x1: Math.max(cell.x1, x), y1: Math.max(cell.y1, y), pixels: cell.pixels + 1, max: Math.max(cell.max, ch) });
+        const colour = `rgb(${r}, ${g}, ${b})`;
+        cell.colours.set(colour, (cell.colours.get(colour) ?? 0) + 1);
+        const owner = at.i >= 0 ? `${look.owners[at.i].label}${at.pseudo}` : "(none)";
+        cell.owners.set(owner, (cell.owners.get(owner) ?? 0) + 1);
+      }
+      // Cells grouped into clusters of 8-connected cells.
+      const clusters = (grid) => {
+        const seen = new Set();
+        const out = [];
+        for (const start of grid.keys()) {
+          if (seen.has(start)) continue;
+          seen.add(start);
+          const c = { x0: Infinity, y0: Infinity, x1: -1, y1: -1, pixels: 0, max: 0, colours: new Map(), owners: new Map() };
+          for (const stack = [start]; stack.length;) {
+            const key = stack.pop(), cell = grid.get(key);
+            Object.assign(c, { x0: Math.min(c.x0, cell.x0), y0: Math.min(c.y0, cell.y0), x1: Math.max(c.x1, cell.x1), y1: Math.max(c.y1, cell.y1), pixels: c.pixels + cell.pixels, max: Math.max(c.max, cell.max) });
+            for (const [m, n] of cell.colours) c.colours.set(m, (c.colours.get(m) ?? 0) + n);
+            for (const [m, n] of cell.owners) c.owners.set(m, (c.owners.get(m) ?? 0) + n);
+            const cx = key % cols, cy = (key - cx) / cols;
+            for (const dy of [-1, 0, 1]) for (const dx of [-1, 0, 1]) {
+              const next = (cy + dy) * cols + cx + dx;
+              if (cx + dx >= 0 && cx + dx < cols && grid.has(next) && !seen.has(next)) { seen.add(next); stack.push(next); }
+            }
+          }
+          const top = (map, n) => [...map].sort((a, b) => b[1] - a[1]).slice(0, n).map(([m, v]) => `${m} ${v}`);
+          out.push({ x: c.x0, y: c.y0, width: c.x1 - c.x0 + 1, height: c.y1 - c.y0 + 1, pixels: c.pixels, max: c.max, colours: top(c.colours, 3), owners: top(c.owners, 6) });
+        }
+        return out.sort((a, b) => b.pixels - a.pixels);
+      };
+      const governed = clusters(leaks.governed);
+      for (const c of governed) {
+        Object.assign(c, await page.evaluate(([x, y]) => {
+          const hit = document.elementFromPoint(x, y);
+          return { centre: hit ? hit.tagName.toLowerCase() + [...hit.classList].map((n) => "." + n).join("") : null };
+        }, [c.x + c.width / 2, c.y + c.height / 2]));
+      }
+      // Governed leaves (own text, or no element child) at least half under the exclusion mask.
+      const masked = look.owners.filter((o) => !o.kind && o.leaf).filter((o) => {
+        const b = o.box;
+        const x0 = Math.max(0, Math.floor(b.x)), y0 = Math.max(0, Math.floor(b.y)), x1 = Math.min(width, Math.ceil(b.x + b.width)), y1 = Math.min(height, Math.ceil(b.y + b.height));
+        let area = 0, under = 0;
+        for (let y = y0; y < y1; y += 1) for (let x = x0; x < x1; x += 1) { area += 1; under += excludedMask[y * width + x]; }
+        return area && under * 2 >= area;
+      }).map((o) => o.label);
+      return { width, height, nativeCounts, governed, subtree: clusters(leaks.subtree), masked, excusedPx, credited };
+    };
+    for (const route of ROUTES) {
+      await withPage({ theme: "mono", route }, async (page) => {
+        await page.mouse.move(-1, -1);
+        await frames(page);
+        const html = await page.evaluate(() => document.documentElement.getAttribute("data-theme"));
+        invariant(html === "mono", `mono ${route}: <html> data-theme is ${html}`);
+        const dom = await monoDom(page);
+        // A colour on a named element is excused by every entry naming it that allows it, else it is a leak.
+        const leaks = new Map(dom.findings);
+        const domCredit = new Map(); // "k|element id" -> excused DOM colours
+        const domExcused = MONO_DEVS.map(() => 0);
+        for (const c of dom.candidates) {
+          const allowing = c.devs.filter((k) => devAllows(k, c.property, c.colour));
+          if (!allowing.length) leaks.set(c.key, (leaks.get(c.key) ?? 0) + 1);
+          for (const k of allowing) { domExcused[k] += 1; domCredit.set(`${k}|${c.id}`, (domCredit.get(`${k}|${c.id}`) ?? 0) + 1); }
+        }
+        for (const [key, n] of leaks) invariant(false, `mono ${route}: leak ${key}${n > 1 ? ` (x${n})` : ""}`);
+        for (const colour of dom.unread) invariant(false, `mono ${route}: colour form not read ${colour}`);
+        const px = await monoPixels(page);
+        for (const c of px.governed) {
+          invariant(false, `mono ${route}: ${c.pixels} hue px max ${c.max} in ${c.x},${c.y} ${c.width}x${c.height} at ${c.centre} owners ${JSON.stringify(c.owners)} colours ${JSON.stringify(c.colours)}`);
+        }
+        for (const [key, n] of Object.entries(px.nativeCounts)) console.log(`MONO-NATIVE ${key} ${route} ${n}`);
+        MONO_DEVIATIONS.forEach((d, k) => {
+          if (dom.matched[k].length || domExcused[k] || px.excusedPx[k]) console.log(`MONO-DEVIATION ${d.reason} ${devName(d)} ${route} dom=${domExcused[k]} px=${px.excusedPx[k]}`);
+          if (!dom.scoped) return;
+          if (!dom.matched[k].length) invariant(false, `mono ${route}: MONO_DEVIATIONS entry ${devName(d)} matches no rendered element, so the entry is stale`);
+          const idle = dom.matched[k].filter(({ id }) => !domCredit.get(`${k}|${id}`) && !px.credited.get(`${k}|${id}`)).map((m) => m.label);
+          if (idle.length) invariant(false, `mono ${route}: MONO_DEVIATIONS entry ${devName(d)} matches more than it excuses: nothing excused on ${idle.length} of ${dom.matched[k].length} ${JSON.stringify(idle.slice(0, 6))}`);
+        });
+        console.log(`MONO-SKIPPED ${route} elements excluded=${dom.skipped.excluded} subtree=${dom.skipped.subtree} own=${dom.skipped.own} dom-subtree=${JSON.stringify(dom.hidden.subtree)} dom-own=${JSON.stringify(dom.hidden.own)} px-subtree=${JSON.stringify(px.subtree.map((c) => `${c.pixels} px max ${c.max} ${c.x},${c.y} ${c.width}x${c.height} ${c.owners.join("; ")}`))}`);
+        if (px.masked.length) console.log(`MONO-MASKED ${route} n=${px.masked.length} ${JSON.stringify(px.masked.slice(0, 25))}`);
       });
     }
   }

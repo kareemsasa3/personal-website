@@ -8,7 +8,7 @@ import { resolve } from "node:path";
 import { Script } from "node:vm";
 import {
   DEFAULT_TOLERANCE, EXCLUDED, EXCLUSION_DILATION_PX, IDLE_ALLOWED, IDLE_REPEATS, LIVE_READOUTS, MEASURE_NATIVE, MONO_DEVIATIONS,
-  MONO_ROUNDING, P5_GOVERNED_IN_NATIVE, P5_NATIVE, P5_NATIVE_GROUND, PAGE_PREDICATES, TIERS, UNCLASSIFIED,
+  MONO_DEVIATION_SCOPE, MONO_ROUNDING, P5_GOVERNED_IN_NATIVE, P5_NATIVE, P5_NATIVE_GROUND, PAGE_PREDICATES, TIERS, UNCLASSIFIED,
   boxMask, chroma, classify, deltaE76, largestComponent, monoChromaThreshold, nativeOwnBoxes, nativeSubtreeBoxes,
   ownPaintExcluded, parseTokenColours, srgbToLab, subtreeExcluded, tierBounds, tierOf, verdict,
 } from "./darkfield-measure-lib.mjs";
@@ -27,12 +27,45 @@ const blockOf = (theme) => {
   return hit[0][2];
 };
 
-test("approved constants and the empty Task 10 list", () => {
+test("approved constants", () => {
   assert.equal(MONO_ROUNDING, 2);
   assert.equal(DEFAULT_TOLERANCE, 2.3);
   assert.equal(EXCLUSION_DILATION_PX, 1);
   assert.equal(EXCLUDED, "[data-df-region], iframe, canvas, video, img, picture");
-  assert.deepEqual(MONO_DEVIATIONS, []);
+});
+
+test("Mono deviations name one exact element on the Annals sheet, with reason P5-3 or P5-2 (Task 10)", () => {
+  assert.equal(MONO_DEVIATION_SCOPE, ".annals-sheet");
+  assert.ok(MONO_DEVIATIONS.length > 0);
+  const seen = new Set();
+  for (const entry of MONO_DEVIATIONS) {
+    const { selector, reason, pseudo } = entry;
+    const where = JSON.stringify(entry);
+    assert.deepEqual(Object.keys(entry).filter((k) => !["selector", "reason", "pseudo", "untokened"].includes(k)), [], `${where}: unknown field`);
+    assert.ok(["P5-3", "P5-2"].includes(reason), `${where}: reason`);
+    assert.ok(pseudo === undefined || ["::before", "::after"].includes(pseudo), `${where}: pseudo`);
+    assert.ok(typeof selector === "string" && selector.trim() === selector && selector !== "", `${where}: selector`);
+    // Scoped under the sheet, with at least one compound after it: the sheet itself is a container.
+    assert.match(selector, /^\.annals-sheet( | > )\S/, `${where}: not scoped under .annals-sheet`);
+    // No wildcard, selector list, attribute selector, or pseudo-class of any kind (widening, negating, structural or
+    // state), and no pseudo-element (that is the pseudo field).
+    assert.doesNotMatch(selector, /[*,[\]:]/, `${where}: widened`);
+    // A bare type reached from the sheet is allowed only as its direct child: below that, a class must name the element.
+    const rest = selector.slice(".annals-sheet".length);
+    assert.ok(rest.includes(".") || /^ > [a-z][a-z0-9-]*$/.test(rest), `${where}: a bare type below the sheet`);
+    assert.doesNotMatch(selector, /[>+~]\s*$/, `${where}: ends in a combinator`);
+    const key = `${selector}${pseudo ?? ""}`;
+    if (entry.untokened !== undefined) {
+      assert.equal(reason, "P5-3", `${where}: untokened on a P5-2 entry`);
+      assert.ok(Array.isArray(entry.untokened) && entry.untokened.length > 0, `${where}: untokened`);
+      for (const p of entry.untokened) assert.match(p, /^(background-color|border-(top|right|bottom|left)-color|color)$/, `${where}: untokened ${p}`);
+    }
+    assert.ok(!seen.has(key), `${where}: duplicate`);
+    seen.add(key);
+  }
+  // Only the two non-token colours of the open Step M item may pass outside the Light set (P6-T10b, P6-T10g).
+  assert.deepEqual(MONO_DEVIATIONS.filter((e) => e.untokened).map(({ selector, untokened }) => [selector, untokened]),
+    [[".annals-sheet .annals-chronicle", ["background-color"]], [".annals-sheet > header", ["border-bottom-color"]]]);
 });
 
 test("idle motion rows name an exact element, a route and a repeat row (Task 9)", () => {
@@ -91,8 +124,13 @@ test("the browser test imports the Phase 5 lists instead of defining them", () =
   // Phase 6 Task 6: the sweep also imports EXCLUDED and the native predicates (MEASURE_NATIVE, PAGE_PREDICATES).
   // Phase 6 Task 9: the motion check also imports its rows (IDLE_ALLOWED, LIVE_READOUTS) and the lib's box helpers
   // (boxMask, nativeOwnBoxes, nativeSubtreeBoxes).
-  assert.deepEqual(names, ["EXCLUDED", "IDLE_ALLOWED", "LIVE_READOUTS", "MEASURE_NATIVE", "P5_GOVERNED_IN_NATIVE", "P5_NATIVE",
-    "P5_NATIVE_GROUND", "PAGE_PREDICATES", "boxMask", "nativeOwnBoxes", "nativeSubtreeBoxes"]);
+  // Phase 6 Task 10: the Mono pass also imports its threshold reader and colour maths (DEFAULT_TOLERANCE, MONO_ROUNDING,
+  // chroma, deltaE76, monoChromaThreshold, srgbToLab), its named deviations (MONO_DEVIATIONS, MONO_DEVIATION_SCOPE) and the
+  // token reader for the Light set they are held to (parseTokenColours).
+  assert.deepEqual(names, ["DEFAULT_TOLERANCE", "EXCLUDED", "IDLE_ALLOWED", "LIVE_READOUTS", "MEASURE_NATIVE", "MONO_DEVIATIONS",
+    "MONO_DEVIATION_SCOPE", "MONO_ROUNDING",
+    "P5_GOVERNED_IN_NATIVE", "P5_NATIVE", "P5_NATIVE_GROUND", "PAGE_PREDICATES", "boxMask", "chroma", "deltaE76",
+    "monoChromaThreshold", "nativeOwnBoxes", "nativeSubtreeBoxes", "parseTokenColours", "srgbToLab"]);
 });
 
 test("parseTokenColours returns every single-colour token of each theme block", () => {

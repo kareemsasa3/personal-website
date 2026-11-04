@@ -32,8 +32,40 @@ export const MEASURE_NATIVE = [
   { selector: ".traffic-swatch", reason: "P5-2", kind: "own" },
   { selector: ".traffic-signal-lamp", reason: "P5-2", kind: "own" },
 ];
-// Exact selectors whose Mono hue is a named deviation, with reason P5-3 or P5-2 (filled in Task 10).
-export const MONO_DEVIATIONS = [];
+// Exact selectors whose Mono hue is a named deviation (Task 10; rulings P6-T10a–c, P6-T10g). Each names the leaking element
+// itself, scoped under the Annals sheet, and the browser test matches it with Element.matches on the element a finding or a
+// pixel is attributed to, never closest, so an entry that is also a container excuses only its own paint. pseudo, when set,
+// names the generated box the entry stands for instead of the element. Reasons, and what each excuses in the DOM layer:
+// P5-3, governed chrome on the sheet renders the Light token set in every theme, so only colours of that set; P5-2, a legend
+// key that mirrors the narrative's palette is a hold, so only its background colour.
+// untokened lists the properties of an entry that may hold a colour outside the Light set. The header rule
+// (border-stone-800) and the chronicle's translucent ground (bg-stone-50/70) carry one: their non-token colours are NOT
+// approved; they are the open Step M item from the Task 3 review (P6-T10b), listed so that only those properties pass.
+export const MONO_DEVIATIONS = [
+  ...[
+    ".annals-sheet .annals-heading > .df-heading-1",
+    ".annals-sheet .annals-readout",
+    ".annals-sheet .annals-label",
+    ".annals-sheet .annals-data",
+    ".annals-sheet .annals-field",
+    ".annals-sheet .annals-control",
+    ".annals-sheet .annals-phrase",
+    ".annals-sheet .annals-hint > .df-body-sm",
+    ".annals-sheet .annals-hand",
+    ".annals-sheet .annals-soul > span > .annals-value",
+    ".annals-sheet .annals-soul b",
+    ".annals-sheet .annals-soul .text-stone-500",
+    ".annals-sheet .annals-soul abbr",
+    ".annals-sheet .annals-footer",
+    ".annals-sheet .annals-footer > i",
+    ".annals-sheet .annals-footer > b",
+  ].map((selector) => ({ selector, reason: "P5-3" })),
+  { selector: ".annals-sheet .annals-chronicle", reason: "P5-3", untokened: ["background-color"] },
+  { selector: ".annals-sheet > header", reason: "P5-3", untokened: ["border-bottom-color"] },
+  { selector: ".annals-sheet .annals-hand", pseudo: "::before", reason: "P5-2" },
+];
+// The element every MONO_DEVIATIONS selector is scoped under.
+export const MONO_DEVIATION_SCOPE = ".annals-sheet";
 // Phase 6 Task 9 (§12 What may repeat; rulings P6-T9a, P6-T9b). The rows of §12 What may repeat an idle animation can
 // name. IDLE_ALLOWED: a governed animation allowed to run at idle on its route, with the condition under which it may;
 // whileFocused, when set, is asserted (the element focused at both captures). LIVE_READOUTS: governed value elements whose
