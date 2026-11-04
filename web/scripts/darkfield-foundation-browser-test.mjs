@@ -3798,6 +3798,123 @@ if (MODE === "check") {
       });
     }
   }
+  // Phase 6 Task 8 (§11 Glow tokens, Rules, Light theme; P6-5′): on every route and theme, at rest with the pointer
+  // moved off the page (a fresh page hovers whatever sits at its origin), governed emission comes only from the four
+  // glow tokens. Each glow is resolved by a probe in the theme scope of the element it is compared with (its nearest
+  // [data-theme], else the root; P5-1 and the Annals sheet scope their own set): as computed box-shadow and
+  // text-shadow, and, for filters, as a chain built from the text-shadow layers, one drop-shadow() per layer in order.
+  // Then, for every rendered element and its generated ::before and ::after: box-shadow and text-shadow are none or one
+  // resolved glow, and a filter holding drop-shadow() is exactly one glow's chain. Skipped, and listed with what they
+  // would have reported on a GLOW-SKIPPED line, never failed: EXCLUDED boxes and everything inside them; the
+  // MEASURE_NATIVE subtree minus its governed-in carve-outs; the own box-shadow of an "own" entry and of the focused
+  // element (Task 7 checks what focus paints), whose text-shadow, filter and generated boxes stay checked. An element
+  // that emits in a scope whose theme differs from the page's is listed on a GLOW-SCOPED line. Every glow resolved in a
+  // Light scope must be none, so a token change there fails loudly.
+  {
+    const GLOWS = ["--glow-trace", "--glow-signal", "--glow-flare", "--glow-fault"];
+    const glowSeen = new Set();
+    const emission = (page) => page.evaluate(([src, native, governedIn, excluded, glows]) => {
+      const { ownPaintExcluded, subtreeExcluded } = new Function(`return (${src});`)();
+      // A shadow list's layers, split at its top-level commas (colours hold commas inside parentheses).
+      const layers = (value) => {
+        if (value === "none") return [];
+        const out = [];
+        let depth = 0;
+        let start = 0;
+        for (let i = 0; i < value.length; i += 1) {
+          if (value[i] === "(") depth += 1;
+          else if (value[i] === ")") depth -= 1;
+          else if (value[i] === "," && depth === 0) { out.push(value.slice(start, i).trim()); start = i + 1; }
+        }
+        out.push(value.slice(start).trim());
+        return out;
+      };
+      const label = (el) => `${el.tagName}${el.id ? `#${el.id}` : ""}${[...el.classList].map((c) => `.${c}`).join("")}`;
+      const resolved = new Map();
+      const resolve = (scope) => {
+        if (resolved.has(scope)) return resolved.get(scope);
+        const probe = document.createElement("i");
+        for (const [name, value] of [["position", "absolute"], ["visibility", "hidden"], ["pointer-events", "none"]]) probe.style.setProperty(name, value, "important");
+        (scope === document.documentElement ? document.body : scope).append(probe);
+        const set = glows.map((name) => {
+          probe.style.setProperty("box-shadow", `var(${name})`, "important");
+          probe.style.setProperty("text-shadow", `var(${name})`, "important");
+          const { boxShadow: box, textShadow: text } = getComputedStyle(probe);
+          const chain = layers(text);
+          probe.style.setProperty("filter", chain.length ? chain.map((layer) => `drop-shadow(${layer})`).join(" ") : "none", "important");
+          return { name, box, text, filter: chain.length ? getComputedStyle(probe).filter : null };
+        });
+        probe.remove();
+        const entry = { scope: scope === document.documentElement ? "root" : label(scope), theme: scope.getAttribute("data-theme"), set };
+        resolved.set(scope, entry);
+        return entry;
+      };
+      const root = resolve(document.documentElement);
+      const focused = document.activeElement === document.body ? null : document.activeElement;
+      const hovered = [...document.querySelectorAll(":hover")].filter((el) => el !== document.documentElement && el !== document.body).map(label);
+      const findings = new Map();
+      const hidden = new Set();
+      const scoped = new Set();
+      const skipped = { excluded: 0, subtree: 0, own: 0, focus: 0 };
+      const note = (map, key, where) => { const hit = map.get(key) ?? { count: 0, where: [] }; hit.count += 1; if (hit.where.length < 6) hit.where.push(where); map.set(key, hit); };
+      for (const el of document.querySelectorAll("body, body *")) {
+        if (!el.checkVisibility({ visibilityProperty: true })) continue;
+        const kind = el.closest(excluded) ? "excluded" : subtreeExcluded(el, native, governedIn) ? "subtree" : null;
+        if (kind) skipped[kind] += 1;
+        const glow = resolve(el.closest("[data-theme]") ?? document.documentElement);
+        for (const pseudo of ["", "::before", "::after"]) {
+          const c = getComputedStyle(el, pseudo || null);
+          if (pseudo && (c.content === "none" || c.content === "normal" || c.display === "none")) continue;
+          if (pseudo && c.visibility !== "visible") continue;
+          const where = `${label(el)}${pseudo}`;
+          const own = !pseudo && ownPaintExcluded(el, native);
+          const focus = !pseudo && el === focused;
+          if (own) skipped.own += 1;
+          if (focus) skipped.focus += 1;
+          const checks = [
+            ["box-shadow", c.boxShadow, c.boxShadow === "none" || glow.set.some((g) => g.box === c.boxShadow), own ? "own" : focus ? "focus" : null],
+            ["text-shadow", c.textShadow, c.textShadow === "none" || glow.set.some((g) => g.text === c.textShadow), null],
+            ["filter", c.filter, !c.filter.includes("drop-shadow(") || glow.set.some((g) => g.filter === c.filter), null],
+          ];
+          for (const [property, value, ok, ownSkip] of checks) {
+            const skip = kind ?? ownSkip;
+            if (!skip && value !== "none" && !(property === "filter" && !value.includes("drop-shadow(")) && glow.theme !== root.theme) scoped.add(`${where} ${property} ${value} (${glow.scope})`);
+            if (ok) continue;
+            if (skip) hidden.add(`${skip} ${where} ${property} ${value}`);
+            else note(findings, `${property} ${value}`, where);
+          }
+        }
+      }
+      return {
+        glows: [...resolved.values()],
+        findings: [...findings].map(([key, { count, where }]) => `${key} on ${count}: ${where.join(" ")}`),
+        hidden: [...hidden].slice(0, 20), hiddenCount: hidden.size, scoped: [...scoped].slice(0, 20), skipped,
+        focused: focused ? label(focused) : null, hovered,
+      };
+    }, [PAGE_PREDICATES, MEASURE_NATIVE, P5_GOVERNED_IN_NATIVE, EXCLUDED, GLOWS]);
+    for (const theme of THEMES) {
+      for (const route of ROUTES) {
+        await withPage({ theme, route }, async (page) => {
+          await page.mouse.move(-1, -1);
+          await frames(page);
+          const seen = await emission(page);
+          invariant(seen.hovered.length === 0, `${theme} ${route}: emission check not at rest, pointer over ${JSON.stringify(seen.hovered)}`);
+          for (const finding of seen.findings) invariant(false, `${theme} ${route}: emission ${finding}`);
+          for (const { scope, theme: set, set: glows } of seen.glows) {
+            const line = `GLOWS ${theme} ${scope}[${set}] ${glows.map((g) => `${g.name}=${g.box}`).join(" | ")}`;
+            if (!glowSeen.has(line)) { glowSeen.add(line); console.log(line); }
+            // Light: every glow is none. Elsewhere a glow resolving to none would mean the probe read nothing.
+            for (const g of glows) {
+              if (set === "light") invariant(g.box === "none" && g.text === "none", `${theme} ${route}: Light glow ${g.name} in ${scope} is ${g.box} / ${g.text}, not none`);
+              else invariant(g.box !== "none", `${theme} ${route}: glow ${g.name} in ${scope}[${set}] resolved to none`);
+            }
+          }
+          console.log(`GLOW-SKIPPED ${theme} ${route} excluded=${seen.skipped.excluded} subtree=${seen.skipped.subtree} own=${seen.skipped.own} focus=${seen.skipped.focus}${seen.focused ? `(${seen.focused})` : ""} hidden=${seen.hiddenCount} ${JSON.stringify(seen.hidden)}`);
+          if (seen.scoped.length) console.log(`GLOW-SCOPED ${theme} ${route} ${JSON.stringify(seen.scoped)}`);
+        });
+      }
+    }
+  }
   // Phase 5 exit (Task 24): P5_ROUTES holds every route of ROUTES that is a Phase 5 page (master plan, Phase 5 table: the
   // simulations, the procedural animations, the terminal and the not-found probe) or renders project media, and at least
   // one procedural piece route; a route left out renders no project media.
