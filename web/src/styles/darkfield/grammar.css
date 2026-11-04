@@ -132,6 +132,23 @@
   border-color: var(--signal);
 }
 
+/* Forced colours (R-3, DEV-7): forced colours replaces the Selected band, ink and node and the lit lamp with the
+   page's own colours, so neither state would show. Selected takes the system's selected-item colour across the whole
+   control, its node in the selected-item text colour; the label keeps its forced ink, because forced colours draws text
+   on a plate of the page's own colour, where the selected-item text colour can vanish. A latch that is on fills its
+   lamp with the system text colour. */
+@media (forced-colors: active) {
+  .df-control:is([aria-current]:not([aria-current="false"]), [aria-selected="true"], [aria-pressed="true"]:not(.df-control--latch)) {
+    background-color: SelectedItem;
+  }
+  .df-control:is([aria-current]:not([aria-current="false"]), [aria-selected="true"], [aria-pressed="true"]:not(.df-control--latch))::after {
+    background-color: SelectedItemText;
+  }
+  .df-control--latch:is([aria-pressed="true"], [aria-checked="true"], [aria-expanded="true"], details[open] > *)::after {
+    background-color: CanvasText;
+  }
+}
+
 /* Disabled (§13; P3-10) and Unavailable: both ignore hover and press. */
 .df-control:is(:disabled, [aria-disabled="true"]) { border-style: dashed; color: var(--fg-faint); cursor: not-allowed; }
 .df-control--unavailable { border-color: transparent; background-image: none; color: var(--fg-faint); cursor: default; }

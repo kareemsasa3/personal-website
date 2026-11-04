@@ -110,6 +110,11 @@
   background-color: var(--signal);
   border-color: var(--signal);
 }
+/* Forced colours (R-3, DEV-7): the lamp's fill is a background, which forced colours replaces with the page's, so a
+   checked lamp fills with the system text colour. */
+@media (forced-colors: active) {
+  .orbital-checkbox:has(> input:checked)::after { background-color: CanvasText; }
+}
 .orbital-checkbox:has(:focus-visible) {
   box-shadow: var(--focus-ring);
 }

@@ -205,6 +205,15 @@ html[data-theme="light"] .traffic-container {
   border-radius: var(--radius-0);
   background-color: var(--signal);
 }
+/* Forced colours (R-3, DEV-7): the rail and the square are backgrounds, which forced colours removes, so the slider
+   hands back to the browser's own control, painted in the user's system colours. */
+@media (forced-colors: active) {
+  .traffic-slider input[type="range"].df-range,
+  .traffic-slider .df-range::-webkit-slider-thumb {
+    appearance: revert;
+    -webkit-appearance: revert;
+  }
+}
 .traffic-actions {
   display: flex;
   gap: var(--space-2);

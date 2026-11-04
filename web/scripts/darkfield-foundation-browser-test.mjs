@@ -1455,6 +1455,135 @@ if (MODE === "check") {
         }
       });
     }
+    // Forced colours keep governed controls and their states on screen (R-3, DEV-7). Every reading is a screenshot of the
+    // element's own box with nothing focused, so the focus outline never counts, compared with the forced Canvas colour
+    // or with a second screenshot. (i) Every visible range input paints a rail (one row painted from its first quarter to
+    // its last) and a thumb (a column painted at least twice as tall as the median painted column). (ii) Every visible
+    // Selected control and every latch that is on differs in pixels from itself with that state switched off in the page
+    // (the attribute, the open <details> it summarises, or its checked input, clicked), which is then restored.
+    const FORCED_SELECTED = '.df-control:is([aria-current]:not([aria-current="false"]), [aria-selected="true"], [aria-pressed="true"]:not(.df-control--latch))';
+    const FORCED_LATCHED = '.df-control--latch:is([aria-pressed="true"], [aria-checked="true"], [aria-expanded="true"], details[open] > *, :has(> input:checked))';
+    const forcedPixels = (images, ground) => decoder.evaluate(async ([pngs, rgb]) => {
+      const read = async (data) => {
+        const image = new Image(); image.src = `data:image/png;base64,${data}`; await image.decode();
+        const canvas = new OffscreenCanvas(image.width, image.height), context = canvas.getContext("2d");
+        context.drawImage(image, 0, 0);
+        return context.getImageData(0, 0, image.width, image.height);
+      };
+      const [first, second] = await Promise.all(pngs.map(read));
+      const apart = (p, i, q, j) => Math.abs(p[i] - q[j]) + Math.abs(p[i + 1] - q[j + 1]) + Math.abs(p[i + 2] - q[j + 2]) > 24;
+      if (second) {
+        let changed = 0;
+        for (let i = 0; i < first.data.length; i += 4) if (apart(first.data, i, second.data, i)) changed += 1;
+        return { changed };
+      }
+      const { data, width, height } = first;
+      const painted = (x, y) => apart(data, (y * width + x) * 4, rgb, 0);
+      let rail = false;
+      for (let y = 0; y < height && !rail; y += 1) {
+        let [lo, hi] = [-1, -1];
+        for (let x = 0; x < width; x += 1) if (painted(x, y)) { if (lo < 0) lo = x; hi = x; }
+        rail = lo >= 0 && lo <= width / 4 && hi >= (3 * width) / 4;
+      }
+      const columns = [];
+      for (let x = 0; x < width; x += 1) {
+        let n = 0;
+        for (let y = 0; y < height; y += 1) if (painted(x, y)) n += 1;
+        if (n) columns.push(n);
+      }
+      columns.sort((a, b) => a - b);
+      const median = columns.length ? columns[Math.floor(columns.length / 2)] : 0;
+      const tallest = columns.at(-1) ?? 0;
+      return { rail, median, tallest, thumb: tallest > 0 && tallest >= 2 * median };
+    }, [images.map((png) => png.toString("base64")), ground]);
+    const forcedPaint = async (page, pass) => {
+      const ground = await page.evaluate(() => {
+        const probe = document.body.appendChild(document.createElement("div"));
+        probe.style.backgroundColor = "Canvas";
+        const value = getComputedStyle(probe).backgroundColor;
+        probe.remove();
+        return value.match(/\d+/g).slice(0, 3).map(Number);
+      });
+      // Scrolling can move a state (the section rail and an article's contents follow the scroll position, a frame later),
+      // so the page is read from its top, as loaded, once its states hold still (the focus cycle leaves it scrolled); the
+      // elements already on screen are read first, and the page scrolls only to bring an element on screen.
+      const KINDS = { range: 'input[type="range"]', selected: FORCED_SELECTED, latched: FORCED_LATCHED };
+      await page.evaluate(() => { document.activeElement?.blur?.(); window.scrollTo({ top: 0, behavior: "instant" }); });
+      for (let sample = 0, last = null; sample < 20; sample += 1) {
+        await frames(page);
+        await page.waitForTimeout(150);
+        const now = await page.evaluate((selector) => [...document.querySelectorAll(selector)]
+          .map((el) => `${el.tagName}.${el.className}`).join("|"), `${FORCED_SELECTED}, ${FORCED_LATCHED}`);
+        if (now === last) break;
+        last = now;
+      }
+      const marked = await page.evaluate((lists) => {
+        const out = [];
+        for (const [kind, selector] of lists) {
+          for (const el of document.querySelectorAll(selector)) {
+            const r = el.getBoundingClientRect();
+            if (el.hasAttribute("data-df-forced") || !el.checkVisibility({ visibilityProperty: true }) || r.width < 1 || r.height < 1) continue;
+            el.setAttribute("data-df-forced", String(out.length));
+            const named = el.getAttribute("aria-label") || el.labels?.[0]?.textContent || document.getElementById(el.getAttribute("aria-labelledby"))?.textContent || el.textContent || "";
+            out.push({ index: out.length, kind, label: `${el.tagName} ${named.trim().slice(0, 30)}`, onScreen: r.top >= 0 && r.left >= 0 && r.bottom <= innerHeight && r.right <= innerWidth });
+          }
+        }
+        return out;
+      }, Object.entries(KINDS));
+      const switchOff = (el, off) => el.evaluate((node, turnOff) => {
+        if (!turnOff) {
+          for (const [what, name, value] of node.dfForcedUndo) {
+            if (what === "attribute") node.setAttribute(name, value);
+            else if (what === "open") node.parentElement.open = true;
+            else node.querySelector(":scope > input").click();
+          }
+          return 0;
+        }
+        const undo = [];
+        for (const name of ["aria-pressed", "aria-checked", "aria-selected", "aria-expanded"]) {
+          if (node.getAttribute(name) === "true") { node.setAttribute(name, "false"); undo.push(["attribute", name, "true"]); }
+        }
+        const current = node.getAttribute("aria-current");
+        if (current !== null && current !== "false") { node.removeAttribute("aria-current"); undo.push(["attribute", "aria-current", current]); }
+        if (node.parentElement?.matches("details[open]")) { node.parentElement.open = false; undo.push(["open"]); }
+        // A checked input is switched by a click, as a visitor would: the app keeps a controlled input's checked
+        // property in step with its own state on every render, so a property set behind its back does not hold.
+        const box = node.querySelector(":scope > input:checked");
+        if (box) { box.click(); undo.push(["click"]); }
+        node.dfForcedUndo = undo;
+        return undo.length;
+      }, off);
+      for (const { index, kind, label } of [...marked.filter((m) => m.onScreen), ...marked.filter((m) => !m.onScreen)]) {
+        const el = page.locator(`[data-df-forced="${index}"]`);
+        const clip = await el.evaluate((node, selector) => {
+          const seen = (r) => r.top >= 0 && r.left >= 0 && r.bottom <= innerHeight && r.right <= innerWidth;
+          if (!seen(node.getBoundingClientRect())) node.scrollIntoView({ block: "center", behavior: "instant" });
+          document.activeElement?.blur?.();
+          const r = node.getBoundingClientRect();
+          const [x, y] = [Math.max(0, Math.floor(r.left)), Math.max(0, Math.floor(r.top))];
+          return { x, y, width: Math.min(innerWidth, Math.ceil(r.right)) - x, height: Math.min(innerHeight, Math.ceil(r.bottom)) - y, still: node.matches(selector) };
+        }, KINDS[kind]);
+        if (clip.width < 1 || clip.height < 1) { invariant(false, `forced colors ${pass}: ${kind} ${label} is not on screen to be read`); continue; }
+        if (!clip.still) { invariant(false, `forced colors ${pass}: ${kind} ${label} left its state while the page was read`); continue; }
+        delete clip.still;
+        await frames(page);
+        const before = await page.screenshot({ clip, animations: "disabled" });
+        if (kind === "range") {
+          const shape = await forcedPixels([before], ground);
+          invariant(shape.rail && shape.thumb, `forced colors ${pass}: range ${label} paints rail ${shape.rail}, thumb ${shape.thumb} (tallest column ${shape.tallest}px, median ${shape.median}px)`);
+          continue;
+        }
+        invariant((await switchOff(el, true)) > 0, `forced colors ${pass}: ${kind} ${label} has no state to switch off`);
+        await frames(page);
+        const after = await page.screenshot({ clip, animations: "disabled" });
+        await switchOff(el, false);
+        await frames(page);
+        const { changed } = await forcedPixels([before, after], ground);
+        invariant(changed > 0, `forced colors ${pass}: ${kind} ${label} looks the same with its state off`);
+      }
+      const count = (kind) => marked.filter((m) => m.kind === kind).length;
+      console.log(`FORCED-PAINT ${pass} ranges=${count("range")} selected=${count("selected")} latched=${count("latched")}`);
+    };
     // Forced colours (Phase 6 Task 7: every route, dark, the same full cycle): each reached element keeps a solid 2px outline.
     for (const route of FOCUS_ROUTES) {
       await withPage({ theme: "dark", route, forcedColors: "active" }, async (page) => {
@@ -1464,8 +1593,20 @@ if (MODE === "check") {
           invariant(state.outlineStyle === "solid" && state.outlineWidth === "2px", `forced colors ${route}: ${state.label} outline ${state.outlineStyle} ${state.outlineWidth}`);
         }
         await cycleChecks(page, "forced-colors", route, cycle);
+        await forcedPaint(page, route);
       });
     }
+    // Settings, opened once in forced colours in dock mode with Dock tuning expanded: both sliders (Speed is disabled
+    // under reduced motion), the theme and navigation options, the tuning toggle and the opener.
+    await withPage({ theme: "dark", route: "/", forcedColors: "active" }, async (page) => {
+      await page.evaluate(() => localStorage.setItem("web-nav-mode", "dock"));
+      await page.reload({ waitUntil: "networkidle" });
+      await page.locator(".dock-container").waitFor();
+      await openSettings(page);
+      await page.getByRole("button", { name: "Dock tuning", exact: true }).click();
+      await page.locator("#dock-tuning-panel").waitFor();
+      await forcedPaint(page, "/ Settings");
+    });
   }
   // Phase 2 Task 1 (D3 ruling): Layout routes have no rain canvas, and the static ground runs no animation.
   // /simulations/rhythm-lab is immersive (outside Layout) and keeps its own rain (P2-3), so it is not listed.

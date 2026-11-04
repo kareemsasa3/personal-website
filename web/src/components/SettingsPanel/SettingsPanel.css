@@ -226,6 +226,17 @@
     color: var(--fg-faint);
 }
 
+/* Forced colours (R-3, DEV-7): the square is a background, which forced colours removes, so the slider hands back to
+   the browser's own control in the user's system colours. The hairline rail still draws inside it, dashed while
+   disabled. */
+@media (forced-colors: active) {
+    .setting-range,
+    .setting-range::-webkit-slider-thumb {
+        -webkit-appearance: revert;
+        appearance: revert;
+    }
+}
+
 /* Dock tuning disclosure */
 .settings-disclosure__toggle {
     display: flex;
