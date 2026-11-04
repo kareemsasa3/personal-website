@@ -335,8 +335,11 @@ html[data-theme="light"] .traffic-container {
   overflow-wrap: anywhere;
   color: var(--fg-muted);
 }
+/* The elapsed time and the signal countdowns are padded to a constant character count; their leading spaces are kept
+   so the labels beside them hold still (§06 Numeric readout). */
 .traffic-value {
   color: var(--fg);
+  white-space: pre-wrap;
 }
 .traffic-signals {
   list-style: none;

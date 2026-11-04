@@ -199,8 +199,10 @@
   overflow-wrap: anywhere;
   color: var(--fg-muted);
 }
+/* A live value is padded to a constant character count (readout.ts); its leading spaces are kept so its width holds. */
 .orbital-value {
   color: var(--fg);
+  white-space: pre-wrap;
 }
 .orbital-editor {
   display: flex;

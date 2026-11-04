@@ -8,8 +8,10 @@ import { useTrafficSimulation } from "../../components/TrafficSimulator/useTraff
 import { SPEED_BINS } from "../../components/TrafficSimulator/renderer";
 import "./TrafficSimulator.css";
 
+// §06 Numeric readout: the elapsed time keeps a constant character count (up to "99:59", padded at the start with spaces
+// that its CSS keeps), so the labels beside it hold still as the minutes gain a digit.
 const elapsed = (seconds: number) =>
-  `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, "0")}`;
+  `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, "0")}`.padStart(5);
 
 // §06: each key names its band in the label voice beside its range as Machine text. The swatches mirror the renderer's
 // speed ramp (P5-2 hold).

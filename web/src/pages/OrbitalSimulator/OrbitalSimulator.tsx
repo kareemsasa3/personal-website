@@ -5,11 +5,16 @@ import BodyInspector from "../../components/OrbitalSimulator/BodyInspector";
 import SimulationControls from "../../components/OrbitalSimulator/SimulationControls";
 import { useOrbitalSimulation } from "../../components/OrbitalSimulator/useOrbitalSimulation";
 import { presets } from "../../components/OrbitalSimulator/physics/presets";
+import { fixedWidth } from "../../components/OrbitalSimulator/readout";
 import {
   fitExtent,
   type Camera,
 } from "../../components/OrbitalSimulator/renderer";
 import "./OrbitalSimulator.css";
+// Constant character counts for the status values (readout.ts): elapsed years up to "99.999", and a sign plus "0.0000"
+// for the energy change.
+const ELAPSED_WIDTH = 6;
+const ENERGY_WIDTH = 7;
 export default function OrbitalSimulator() {
   const simulation = useOrbitalSimulation();
   const [selected, setSelected] = useState("planet");
@@ -90,13 +95,13 @@ export default function OrbitalSimulator() {
               <span>
                 <span className="df-label-sm">Elapsed</span>{" "}
                 <output className={`orbital-value df-data${live}`} aria-label="Elapsed years" aria-live="off">
-                  {simulation.state.time.toFixed(3)}
+                  {fixedWidth(simulation.state.time.toFixed(3), ELAPSED_WIDTH)}
                 </output>{" "}
                 <span className="df-label-sm">yr</span>
               </span>
               <span title="Relative change in total softened kinetic + potential energy since reset or edit.">
                 <span className="df-label-sm">Δ energy</span>{" "}
-                <span className={`orbital-value df-data${live}`}>{energyChange.toFixed(4)}</span>
+                <span className={`orbital-value df-data${live}`}>{fixedWidth(energyChange.toFixed(4), ENERGY_WIDTH)}</span>
                 <span className="df-label-sm">%</span>
               </span>
             </div>

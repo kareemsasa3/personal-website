@@ -75,7 +75,8 @@ export default function TrafficReadout({ simulation }: { simulation: TrafficSimu
                 </span>
                 <span>
                   <span className="df-label-sm">{signal.state}</span> ·{" "}
-                  <span className={`traffic-value df-data${live}`}>{Math.ceil(signal.remaining)}</span>{" "}
+                  {/* §06 Numeric readout: two characters at every count, so the state word beside it holds still. */}
+                  <span className={`traffic-value df-data${live}`}>{String(Math.ceil(signal.remaining)).padStart(2)}</span>{" "}
                   <span className="df-label-sm">s</span>
                 </span>
               </li>

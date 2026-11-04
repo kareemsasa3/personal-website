@@ -1,8 +1,12 @@
 import { useState, type FormEvent } from "react";
 import { LIMITS, type Body } from "./physics/model";
 import type { OrbitalSimulation } from "./useOrbitalSimulation";
+import { fixedWidth } from "./readout";
 const format = (n: number) =>
   Math.abs(n) > 0 && Math.abs(n) < 0.001 ? n.toExponential(3) : n.toFixed(4);
+// A position or velocity component changes sign and form as the body moves; it keeps a constant character count
+// (readout.ts) that fits a sign with either form: "-999.9999" or "-1.234e-4".
+const component = (n: number) => fixedWidth(format(n), 9);
 const fields = [
   {
     key: "mass",
@@ -180,7 +184,7 @@ export default function BodyInspector({
           <dt className="df-label-sm">Position X / Y</dt>
           <dd>
             <span className={`orbital-value df-data${live}`}>
-              {format(body.position.x)} / {format(body.position.y)}
+              {component(body.position.x)} / {component(body.position.y)}
             </span>{" "}
             <span className="df-label-sm">AU</span>
           </dd>
@@ -189,7 +193,7 @@ export default function BodyInspector({
           <dt className="df-label-sm">Velocity X / Y</dt>
           <dd>
             <span className={`orbital-value df-data${live}`}>
-              {format(body.velocity.x)} / {format(body.velocity.y)}
+              {component(body.velocity.x)} / {component(body.velocity.y)}
             </span>{" "}
             <span className="df-label-sm">AU/yr</span>
           </dd>
