@@ -10,7 +10,7 @@
 // Record mode also prints every measurement on a MEASURED line (r10), for Step 9's run-by-run comparison.
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
-import { EXCLUDED, MEASURE_NATIVE, P5_GOVERNED_IN_NATIVE, P5_NATIVE, P5_NATIVE_GROUND, PAGE_PREDICATES } from "./darkfield-measure-lib.mjs";
+import { boxMask, EXCLUDED, IDLE_ALLOWED, LIVE_READOUTS, MEASURE_NATIVE, nativeOwnBoxes, nativeSubtreeBoxes, P5_GOVERNED_IN_NATIVE, P5_NATIVE, P5_NATIVE_GROUND, PAGE_PREDICATES } from "./darkfield-measure-lib.mjs";
 const { chromium } = await import(process.argv[3] || "playwright");
 const browser = await chromium.launch({ headless: true, ...(process.argv[4] ? { executablePath: process.argv[4] } : {}) });
 const base = process.argv[2] || "http://127.0.0.1:4173";
@@ -406,6 +406,172 @@ const HIDE_TEXT = ["", " *", "::before", "::after", " *::before", " *::after"].m
   // drawn by a pointer-transparent element (a tooltip) rather than whatever lies beneath it.
   " [data-df-cover], [data-df-cover] * { pointer-events: auto !important; }";
 const decoder = await browser.newPage();
+// Phase 6 Task 9 (Principle 6; §12 What may repeat, Reduced motion, by class; P6-5′): what still moves on a page left
+// alone. With the pointer off the page, after a settle, it lists the running animations whose target (a pseudo-element's
+// host) is rendered, each with its skip kind, null when governed: "region" inside [data-df-region], "excluded" inside the
+// rest of EXCLUDED, "subtree" in a MEASURE_NATIVE subtree outside its governed-in carve-outs, "own" when the target is an
+// "own" entry itself (its descendants count). Then two viewport screenshots a gap apart: the changed pixels outside every
+// skipped box, grouped into boxes of touching cells with the element at each box's centre, and, beside them, what each
+// skip kind removed. Skipped boxes are dilated as the lib's exclusion boxes are; a box is taken at both captures.
+// idle ({ selector, whileFocused } rows) and live (selectors): each animation records the idle row its target matches
+// (Element.matches), with whether each row's whileFocused element holds focus at each capture; changed pixels inside the
+// boxes of elements matching a row count as "idle" or "live", not "governed". masked: the rendered governed leaves (no
+// element child, or own text) in the viewport whose box lies at least half under a skip mask, so a mask hides nothing
+// silently.
+const MOTION_SETTLE_MS = 3000;
+const MOTION_GAP_MS = 2000;
+const MOTION_CELL = 8;
+const motionProbe = async (page, { idle = [], live = [] } = {}) => {
+  await page.mouse.move(-1, -1);
+  await page.waitForTimeout(MOTION_SETTLE_MS);
+  const look = () => page.evaluate(([src, native, governedIn, excluded, idleRows, liveRows]) => {
+    const { ownPaintExcluded, subtreeExcluded } = new Function(`return (${src});`)();
+    const label = (el) => `${el.tagName}${el.id ? `#${el.id}` : ""}${[...el.classList].map((c) => `.${c}`).join("")}`;
+    const shown = (el) => el.isConnected && el.checkVisibility({ visibilityProperty: true }) && el.getClientRects().length > 0;
+    const kindOf = (el) => (el.closest("[data-df-region]") ? "region" : el.closest(excluded) ? "excluded"
+      : subtreeExcluded(el, native, governedIn) ? "subtree" : ownPaintExcluded(el, native) ? "own" : null);
+    const box = (el) => { const r = el.getBoundingClientRect(); return { x: r.x, y: r.y, width: r.width, height: r.height }; };
+    const animations = document.getAnimations().filter((a) => a.playState === "running" && a.effect?.target).map((a) => {
+      const el = a.effect.target;
+      const timing = a.effect.getComputedTiming();
+      return {
+        selector: `${el.tagName.toLowerCase()}.${el.classList[0] ?? ""}`, label: `${label(el)}${a.effect.pseudoElement ?? ""}`,
+        name: a.animationName ?? a.transitionProperty ?? (a.id || "(script)"), type: a.constructor.name,
+        iterations: String(timing.iterations), duration: timing.duration, visible: shown(el), kind: kindOf(el), box: box(el),
+        idle: idleRows.findIndex((row) => el.matches(row.selector)),
+      };
+    });
+    const boxes = { region: [], excluded: [], subtree: [], subtreeGoverned: [], own: [], ownGoverned: [], idle: [], live: [] };
+    for (const row of idleRows) for (const el of document.querySelectorAll(row.selector)) if (shown(el)) boxes.idle.push(box(el));
+    for (const selector of liveRows) for (const el of document.querySelectorAll(selector)) if (shown(el)) boxes.live.push(box(el));
+    const leaves = [];
+    for (const el of document.querySelectorAll("body *")) {
+      if (!shown(el) || kindOf(el)) continue;
+      const own = [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim());
+      const b = box(el);
+      if ((own || !el.childElementCount) && b.width > 0 && b.height > 0 && b.x < innerWidth && b.y < innerHeight && b.x + b.width > 0 && b.y + b.height > 0) leaves.push({ label: label(el), box: b });
+    }
+    for (const el of document.querySelectorAll("[data-df-region]")) if (shown(el)) boxes.region.push(box(el));
+    for (const el of document.querySelectorAll(excluded)) if (shown(el) && !el.closest("[data-df-region]")) boxes.excluded.push(box(el));
+    for (const entry of native) for (const el of document.querySelectorAll(entry.selector)) {
+      if (!shown(el)) continue;
+      if (entry.kind === "subtree") {
+        for (const n of [el, ...el.querySelectorAll("*")]) {
+          if (shown(n)) (governedIn.length && n.closest(governedIn.join(", ")) ? boxes.subtreeGoverned : boxes.subtree).push(box(n));
+        }
+      } else {
+        boxes.own.push(box(el));
+        for (const n of el.querySelectorAll("*")) if (shown(n)) boxes.ownGoverned.push(box(n));
+      }
+    }
+    const active = document.activeElement && document.activeElement !== document.body ? label(document.activeElement) : null;
+    const focus = idleRows.map((row) => !row.whileFocused || Boolean(document.activeElement?.matches(row.whileFocused)));
+    return { animations, boxes, leaves, focus, active, hasFocus: document.hasFocus(), scrollY };
+  }, [PAGE_PREDICATES, MEASURE_NATIVE, P5_GOVERNED_IN_NATIVE, EXCLUDED, idle, live]);
+  const first = await look();
+  const shot = () => page.screenshot({ animations: "allow", caret: "hide" });
+  const before = await shot();
+  const t0 = Date.now();
+  await page.waitForTimeout(MOTION_GAP_MS);
+  const after = await shot();
+  const gap = Date.now() - t0;
+  const second = await look();
+  // Largest channel difference per pixel, row-major.
+  const { width, height, delta } = await decoder.evaluate(async (pngs) => {
+    const read = async (data) => {
+      const image = new Image(); image.src = `data:image/png;base64,${data}`; await image.decode();
+      const canvas = new OffscreenCanvas(image.width, image.height), context = canvas.getContext("2d");
+      context.drawImage(image, 0, 0);
+      return context.getImageData(0, 0, image.width, image.height);
+    };
+    const [a, b] = await Promise.all(pngs.map(read));
+    const out = new Uint8Array(a.width * a.height);
+    for (let i = 0, p = 0; i < a.data.length; i += 4, p += 1) {
+      out[p] = Math.max(Math.abs(a.data[i] - b.data[i]), Math.abs(a.data[i + 1] - b.data[i + 1]), Math.abs(a.data[i + 2] - b.data[i + 2]));
+    }
+    let text = "";
+    for (let i = 0; i < out.length; i += 0x8000) text += String.fromCharCode(...out.subarray(i, i + 0x8000));
+    return { width: a.width, height: a.height, delta: btoa(text) };
+  }, [before, after].map((png) => png.toString("base64")));
+  const diff = Buffer.from(delta, "base64");
+  const both = (key) => [...first.boxes[key], ...second.boxes[key]];
+  const masks = [
+    ["region", boxMask(nativeOwnBoxes(both("region"), []), width, height)],
+    ["excluded", boxMask(nativeOwnBoxes(both("excluded"), []), width, height)],
+    ["subtree", boxMask(nativeSubtreeBoxes(both("subtree"), both("subtreeGoverned")), width, height)],
+    ["own", boxMask(nativeOwnBoxes(both("own"), both("ownGoverned")), width, height)],
+    ["idle", boxMask(nativeOwnBoxes(both("idle"), []), width, height)],
+    ["live", boxMask(nativeOwnBoxes(both("live"), []), width, height)],
+  ];
+  const skipKinds = ["region", "excluded", "subtree", "own"];
+  const masked = first.leaves.flatMap(({ label, box }) => {
+    const x0 = Math.max(0, Math.floor(box.x)), y0 = Math.max(0, Math.floor(box.y));
+    const x1 = Math.min(width, Math.ceil(box.x + box.width)), y1 = Math.min(height, Math.ceil(box.y + box.height));
+    const under = {};
+    let area = 0;
+    for (let y = y0; y < y1; y += 1) for (let x = x0; x < x1; x += 1) {
+      area += 1;
+      const kind = masks.find(([k, mask]) => skipKinds.includes(k) && mask[y * width + x])?.[0];
+      if (kind) under[kind] = (under[kind] ?? 0) + 1;
+    }
+    const total = Object.values(under).reduce((n, v) => n + v, 0);
+    return area && total * 2 >= area ? [{ label, kind: Object.entries(under).sort((a, b) => b[1] - a[1])[0][0] }] : [];
+  });
+  // Changed pixels by kind ("governed" when no skip covers them), grouped into boxes of 8-connected MOTION_CELL cells.
+  const cols = Math.ceil(width / MOTION_CELL);
+  const cells = new Map();
+  for (let p = 0; p < diff.length; p += 1) {
+    if (!diff[p]) continue;
+    const kind = masks.find(([, mask]) => mask[p])?.[0] ?? "governed";
+    const grid = cells.get(kind) ?? new Map();
+    cells.set(kind, grid);
+    const x = p % width, y = (p - x) / width, key = Math.floor(y / MOTION_CELL) * cols + Math.floor(x / MOTION_CELL);
+    const cell = grid.get(key) ?? { x0: x, y0: y, x1: x, y1: y, pixels: 0, maxDelta: 0 };
+    grid.set(key, cell);
+    Object.assign(cell, { x0: Math.min(cell.x0, x), y0: Math.min(cell.y0, y), x1: Math.max(cell.x1, x), y1: Math.max(cell.y1, y),
+      pixels: cell.pixels + 1, maxDelta: Math.max(cell.maxDelta, diff[p]) });
+  }
+  const changed = {};
+  for (const [kind, grid] of cells) {
+    const seen = new Set();
+    const groups = [];
+    for (const start of grid.keys()) {
+      if (seen.has(start)) continue;
+      seen.add(start);
+      const group = { x0: Infinity, y0: Infinity, x1: -1, y1: -1, pixels: 0, maxDelta: 0 };
+      for (const stack = [start]; stack.length;) {
+        const key = stack.pop(), cell = grid.get(key);
+        Object.assign(group, { x0: Math.min(group.x0, cell.x0), y0: Math.min(group.y0, cell.y0), x1: Math.max(group.x1, cell.x1),
+          y1: Math.max(group.y1, cell.y1), pixels: group.pixels + cell.pixels, maxDelta: Math.max(group.maxDelta, cell.maxDelta) });
+        const cx = key % cols, cy = (key - cx) / cols;
+        for (const dy of [-1, 0, 1]) for (const dx of [-1, 0, 1]) {
+          const next = (cy + dy) * cols + cx + dx;
+          if (cx + dx >= 0 && cx + dx < cols && grid.has(next) && !seen.has(next)) { seen.add(next); stack.push(next); }
+        }
+      }
+      groups.push({ x: group.x0, y: group.y0, width: group.x1 - group.x0 + 1, height: group.y1 - group.y0 + 1, pixels: group.pixels, maxDelta: group.maxDelta });
+    }
+    changed[kind] = { pixels: groups.reduce((n, g) => n + g.pixels, 0), boxes: groups.sort((a, b) => b.pixels - a.pixels) };
+  }
+  // The element at each governed box's centre: the hit-tested element and the deepest rendered element whose box holds it.
+  for (const g of changed.governed?.boxes ?? []) {
+    Object.assign(g, await page.evaluate(([x, y]) => {
+      const label = (el) => `${el.tagName}${el.id ? `#${el.id}` : ""}${[...el.classList].map((c) => `.${c}`).join("")}`;
+      const depth = (el) => { let n = 0; for (let e = el; e; e = e.parentElement) n += 1; return n; };
+      let deepest = null;
+      for (const el of document.querySelectorAll("body *")) {
+        const r = el.getBoundingClientRect();
+        if (!el.checkVisibility({ visibilityProperty: true }) || x < r.left || x >= r.right || y < r.top || y >= r.bottom) continue;
+        if (!deepest || depth(el) >= depth(deepest)) deepest = el;
+      }
+      const hit = document.elementFromPoint(x, y);
+      return { hit: hit ? label(hit) : null, deepest: deepest ? label(deepest) : null };
+    }, [g.x + g.width / 2, g.y + g.height / 2]));
+  }
+  const state = ({ animations, focus, active, hasFocus, scrollY, boxes }) =>
+    ({ animations, focus, active, hasFocus, scrollY, skippedBoxes: Object.fromEntries(Object.entries(boxes).map(([key, list]) => [key, list.length])) });
+  return { gap, width, height, first: state(first), second: state(second), changed, masked };
+};
 const RETRY_PLACES = [0.5, 0.3, 0.7];
 // One measurement of an element's runs (r10). only: measure that run alone, scrolled first so that its middle
 // lies at the fraction place of the viewport's height (a retry). Each run is measured over its line boxes, each clipped as above: a run that wraps is
@@ -3913,6 +4079,48 @@ if (MODE === "check") {
           if (seen.scoped.length) console.log(`GLOW-SCOPED ${theme} ${route} ${JSON.stringify(seen.scoped)}`);
         });
       }
+    }
+  }
+  // Phase 6 Task 9 (Principle 6; §12 What may repeat, Reduced motion, by class, The same in every theme; P6-6, P6-5′;
+  // rulings P6-T9a–e): in the first theme, every route is left alone with motion allowed and with reduced motion, and
+  // motionProbe reads it. With motion allowed, every running governed animation matches an IDLE_ALLOWED row of the route
+  // (Element.matches on its target), and a row's whileFocused element holds focus at both captures; with reduced motion,
+  // no governed animation runs. In both, no governed pixel changes outside the boxes of the route's LIVE_READOUTS
+  // elements (and, with motion allowed, its IDLE_ALLOWED elements). Each row's element must still render on its route.
+  // Report only: MOTION-SKIPPED lists what the skip kinds removed (animations, changed pixels), and MASKED the governed
+  // leaves that lie under a skip mask (the Rhythm Lab rain canvas covers its whole viewport, P6-T9d). The diff sees the
+  // viewport only (P6-T9e).
+  {
+    for (const row of [...IDLE_ALLOWED, ...LIVE_READOUTS]) if (!ROUTES.includes(row.route)) throw new Error(`Task 9 row ${row.selector}: ${row.route} is not in ROUTES`);
+    const theme = THEMES[0];
+    for (const route of ROUTES) for (const reducedMotion of ["no-preference", "reduce"]) {
+      await withPage({ theme, route, reducedMotion }, async (page) => {
+        const where = `${theme} ${reducedMotion} ${route}`;
+        const idleRows = reducedMotion === "reduce" ? [] : IDLE_ALLOWED.filter((row) => row.route === route);
+        const liveRows = LIVE_READOUTS.filter((row) => row.route === route);
+        const seen = await motionProbe(page, { idle: idleRows.map(({ selector, whileFocused }) => ({ selector, whileFocused })), live: liveRows.map((row) => row.selector) });
+        const found = new Set();
+        for (const state of [seen.first, seen.second]) {
+          for (const a of state.animations.filter((x) => x.visible && !x.kind)) {
+            const row = idleRows[a.idle];
+            if (!row) found.add(`governed animation ${a.name} runs at idle on ${a.label}${reducedMotion === "reduce" ? " under reduced motion" : " and matches no IDLE_ALLOWED row"}`);
+            else if (!seen.first.focus[a.idle] || !seen.second.focus[a.idle]) found.add(`${row.selector} (${row.repeat}) runs while ${row.whileFocused} is not focused (focused: ${seen.first.active} / ${seen.second.active})`);
+          }
+        }
+        for (const g of seen.changed.governed?.boxes ?? []) found.add(`governed pixels changed at idle: ${g.pixels} px in ${g.x},${g.y} ${g.width}x${g.height} at ${g.deepest}`);
+        for (const message of found) invariant(false, `${where}: ${message}`);
+        // A row's selector still matches an element in the DOM while motion is allowed (the simulators start paused under
+        // reduced motion, so their values are not live then). This counts DOM matches; it does not test that they render.
+        if (reducedMotion === "no-preference") {
+          for (const row of [...idleRows, ...liveRows]) invariant(await page.locator(row.selector).count() > 0, `${where}: Task 9 row ${row.selector} matches no element, so the row is stale`);
+        }
+        const skipped = {};
+        for (const a of seen.first.animations.filter((x) => x.kind)) skipped[`${a.kind}:${a.label}:${a.name}`] = (skipped[`${a.kind}:${a.label}:${a.name}`] ?? 0) + 1;
+        const removed = Object.fromEntries(Object.entries(seen.changed).filter(([kind]) => kind !== "governed").map(([kind, { pixels }]) => [kind, pixels]));
+        const allowed = [...new Set(seen.first.animations.filter((x) => !x.kind && x.idle >= 0).map((x) => `${x.label}:${x.name}`))];
+        console.log(`MOTION-SKIPPED ${where} gap=${seen.gap} allowed=${JSON.stringify(allowed)} animations=${JSON.stringify(skipped)} pixels=${JSON.stringify(removed)}`);
+        if (seen.masked.length) console.log(`MASKED ${where} n=${seen.masked.length} ${JSON.stringify(seen.masked.slice(0, 25).map((m) => `${m.kind} ${m.label}`))}`);
+      });
     }
   }
   // Phase 5 exit (Task 24): P5_ROUTES holds every route of ROUTES that is a Phase 5 page (master plan, Phase 5 table: the

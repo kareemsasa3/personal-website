@@ -34,9 +34,23 @@ export const MEASURE_NATIVE = [
 ];
 // Exact selectors whose Mono hue is a named deviation, with reason P5-3 or P5-2 (filled in Task 10).
 export const MONO_DEVIATIONS = [];
-// Governed animations allowed to run at idle, and governed regions allowed to change at idle (filled in Task 9).
-export const IDLE_ALLOWED = [];
-export const LIVE_READOUTS = [];
+// Phase 6 Task 9 (§12 What may repeat; rulings P6-T9a, P6-T9b). The rows of §12 What may repeat an idle animation can
+// name. IDLE_ALLOWED: a governed animation allowed to run at idle on its route, with the condition under which it may;
+// whileFocused, when set, is asserted (the element focused at both captures). LIVE_READOUTS: governed value elements whose
+// pixels may change at idle because they report running data. Selectors are exact and name the moving or changing
+// element itself, never a container of it; the browser test matches them with Element.matches.
+export const IDLE_REPEATS = ["scan", "transmit", "processing", "heartbeat", "cursor", "accumulation"];
+export const IDLE_ALLOWED = [
+  { route: "/terminal", selector: ".terminal-body span.terminal-cursor", repeat: "cursor", whileFocused: "input.command-input",
+    condition: "the cursor renders only while the prompt input holds focus, so it blinks only while typing goes to the prompt" },
+];
+export const LIVE_READOUTS = [
+  { route: "/simulations/orbital-simulator", selector: ".orbital-status output.orbital-value", reports: "elapsed simulated time while the simulation runs" },
+  { route: "/simulations/orbital-simulator", selector: ".orbital-status span.orbital-value", reports: "relative energy change since reset or edit" },
+  { route: "/simulations/orbital-simulator", selector: ".orbital-readout .orbital-value.df-data--live", reports: "the selected body's speed, position and velocity" },
+  { route: "/simulations/traffic-simulator", selector: ".traffic-status output.traffic-value", reports: "elapsed simulated time while the simulation runs" },
+  { route: "/simulations/traffic-simulator", selector: ".traffic-metrics .traffic-value.df-data--live", reports: "the running traffic metrics" },
+];
 
 // ---- Tiers ----
 // Area tiers by colour token. on-* tokens report under text. focus-ring is in no tier: it paints only on focus and

@@ -7,7 +7,7 @@ import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { Script } from "node:vm";
 import {
-  DEFAULT_TOLERANCE, EXCLUDED, EXCLUSION_DILATION_PX, IDLE_ALLOWED, LIVE_READOUTS, MEASURE_NATIVE, MONO_DEVIATIONS,
+  DEFAULT_TOLERANCE, EXCLUDED, EXCLUSION_DILATION_PX, IDLE_ALLOWED, IDLE_REPEATS, LIVE_READOUTS, MEASURE_NATIVE, MONO_DEVIATIONS,
   MONO_ROUNDING, P5_GOVERNED_IN_NATIVE, P5_NATIVE, P5_NATIVE_GROUND, PAGE_PREDICATES, TIERS, UNCLASSIFIED,
   boxMask, chroma, classify, deltaE76, largestComponent, monoChromaThreshold, nativeOwnBoxes, nativeSubtreeBoxes,
   ownPaintExcluded, parseTokenColours, srgbToLab, subtreeExcluded, tierBounds, tierOf, verdict,
@@ -27,14 +27,43 @@ const blockOf = (theme) => {
   return hit[0][2];
 };
 
-test("approved constants and the empty Task 9/10 lists", () => {
+test("approved constants and the empty Task 10 list", () => {
   assert.equal(MONO_ROUNDING, 2);
   assert.equal(DEFAULT_TOLERANCE, 2.3);
   assert.equal(EXCLUSION_DILATION_PX, 1);
   assert.equal(EXCLUDED, "[data-df-region], iframe, canvas, video, img, picture");
-  assert.deepEqual(IDLE_ALLOWED, []);
-  assert.deepEqual(LIVE_READOUTS, []);
   assert.deepEqual(MONO_DEVIATIONS, []);
+});
+
+test("idle motion rows name an exact element, a route and a repeat row (Task 9)", () => {
+  assert.deepEqual(IDLE_REPEATS, ["scan", "transmit", "processing", "heartbeat", "cursor", "accumulation"]);
+  const nonEmpty = (v) => typeof v === "string" && v.trim() !== "";
+  for (const rows of [IDLE_ALLOWED, LIVE_READOUTS]) {
+    assert.ok(rows.length > 0);
+    for (const row of rows) {
+      assert.ok(nonEmpty(row.selector), `selector of ${JSON.stringify(row)}`);
+      assert.ok(nonEmpty(row.route) && row.route.startsWith("/"), `route of ${JSON.stringify(row)}`);
+      assert.ok(!row.selector.includes(","), `one selector per row: ${row.selector}`);
+    }
+    const keys = rows.map((row) => `${row.route} ${row.selector}`);
+    assert.equal(new Set(keys).size, keys.length, "no row is listed twice");
+  }
+  for (const row of IDLE_ALLOWED) {
+    assert.ok(IDLE_REPEATS.includes(row.repeat), `repeat ${row.repeat} is a row of the list`);
+    assert.ok(nonEmpty(row.condition), `condition of ${row.selector}`);
+    assert.ok(row.whileFocused === undefined || nonEmpty(row.whileFocused), `whileFocused of ${row.selector}`);
+  }
+  for (const row of LIVE_READOUTS) assert.ok(nonEmpty(row.reports), `reports of ${row.selector}`);
+  // The rulings (P6-T9a, P6-T9b).
+  assert.deepEqual(IDLE_ALLOWED.map((r) => [r.route, r.selector, r.repeat, r.whileFocused]),
+    [["/terminal", ".terminal-body span.terminal-cursor", "cursor", "input.command-input"]]);
+  assert.deepEqual(LIVE_READOUTS.map((r) => [r.route, r.selector]), [
+    ["/simulations/orbital-simulator", ".orbital-status output.orbital-value"],
+    ["/simulations/orbital-simulator", ".orbital-status span.orbital-value"],
+    ["/simulations/orbital-simulator", ".orbital-readout .orbital-value.df-data--live"],
+    ["/simulations/traffic-simulator", ".traffic-status output.traffic-value"],
+    ["/simulations/traffic-simulator", ".traffic-metrics .traffic-value.df-data--live"],
+  ]);
 });
 
 test("Phase 5 lists keep their values and MEASURE_NATIVE derives from them (P6-5′)", () => {
@@ -60,7 +89,10 @@ test("the browser test imports the Phase 5 lists instead of defining them", () =
   assert.ok(imported, "browser test imports from darkfield-measure-lib.mjs");
   const names = imported[1].split(",").map((s) => s.trim()).filter(Boolean).sort();
   // Phase 6 Task 6: the sweep also imports EXCLUDED and the native predicates (MEASURE_NATIVE, PAGE_PREDICATES).
-  assert.deepEqual(names, ["EXCLUDED", "MEASURE_NATIVE", "P5_GOVERNED_IN_NATIVE", "P5_NATIVE", "P5_NATIVE_GROUND", "PAGE_PREDICATES"]);
+  // Phase 6 Task 9: the motion check also imports its rows (IDLE_ALLOWED, LIVE_READOUTS) and the lib's box helpers
+  // (boxMask, nativeOwnBoxes, nativeSubtreeBoxes).
+  assert.deepEqual(names, ["EXCLUDED", "IDLE_ALLOWED", "LIVE_READOUTS", "MEASURE_NATIVE", "P5_GOVERNED_IN_NATIVE", "P5_NATIVE",
+    "P5_NATIVE_GROUND", "PAGE_PREDICATES", "boxMask", "nativeOwnBoxes", "nativeSubtreeBoxes"]);
 });
 
 test("parseTokenColours returns every single-colour token of each theme block", () => {
