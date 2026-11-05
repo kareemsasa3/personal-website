@@ -48,6 +48,8 @@ const SLUG_ROUTES = await (async () => {
 })();
 if (SLUG_ROUTES.some((route) => ROUTES.includes(route))) throw new Error("a slug route is already in ROUTES");
 ROUTES.push(...SLUG_ROUTES);
+// The procedural pieces' routes, each a page that shows its piece in an iframe (see withPage's client-side arrival).
+const PIECE_ROUTES = SLUG_ROUTES.filter((route) => route.startsWith("/procedural-animations/"));
 // DARKFIELD_ROUTE_SHARD=i/n (Phase 6 Task 5; 1 <= i <= n): this process runs the routes whose index in ROUTES is
 // i - 1 modulo n, so the n shards are disjoint and together are ROUTES. Every page a check opens belongs to one route of
 // ROUTES, its owner (withPage's owner, by default the route it loads): the check runs only in the shard that owns it,
@@ -219,13 +221,30 @@ const withPage = async ({ theme, route = "/", owner = route, javaScriptEnabled =
     // Its animation frames and timers run only when the test advances the clock (r10: see frames and steady).
     frozen.add(page);
   }
+  // After a client-side arrival into a piece route, the piece's own frame: the network waits below use it.
+  let pieceFrame = null;
   try {
     if (routePass && ARRIVE_FROM && ARRIVE_FROM !== route) {
       // The router follows popstate, so this is the client-side navigation a link would make.
       await page.goto(`${base}${ARRIVE_FROM}`, { waitUntil: "networkidle" });
       await page.evaluate((to) => { history.pushState({}, "", to); dispatchEvent(new PopStateEvent("popstate")); }, route);
       await page.waitForFunction((to) => location.pathname === to, route);
-      await page.waitForLoadState("networkidle");
+      // Playwright keeps the main frame's networkidle across a same-document navigation, so on most routes this
+      // wait returns at once and the settle checks below carry the arrival. A piece route attaches its iframe
+      // after the navigation: that clears the main frame's networkidle, and Playwright sets it again only after
+      // another request of the main frame's own, which a piece route does not make, so the wait never ends
+      // (R-5). There the arrival waits instead for what it needs: the iframe's own document loaded from its
+      // source, then that frame network-idle.
+      if (PIECE_ROUTES.includes(route)) {
+        await page.waitForFunction(() => {
+          const frame = document.querySelector("iframe.animation-piece__frame");
+          return frame?.contentDocument?.readyState === "complete" && frame.contentWindow.location.pathname === new URL(frame.src).pathname;
+        });
+        pieceFrame = await (await page.$("iframe.animation-piece__frame")).contentFrame();
+        await pieceFrame.waitForLoadState("networkidle");
+      } else {
+        await page.waitForLoadState("networkidle");
+      }
       // The arriving route fades in through its transition wrapper, the visible main's direct child: wait
       // until the opacity and transform of main, its ancestors and its children stop changing (three samples
       // 150 ms apart agree), so it is measured settled, as a direct load is. Deeper content, such as a game's
@@ -270,7 +289,7 @@ const withPage = async ({ theme, route = "/", owner = route, javaScriptEnabled =
           img.addEventListener("error", done, { once: true });
         })));
       });
-      await page.waitForLoadState("networkidle");
+      await (pieceFrame ?? page).waitForLoadState("networkidle");
       await settled(page, () => page.evaluate(() => String(document.documentElement.scrollHeight)), `${route}: the page's height did not hold still`);
     }
     await run(page);
