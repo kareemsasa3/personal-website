@@ -10,7 +10,8 @@
     "Light background residual (r10, Task 3 Step 7 item 6; pre-existing, not repaired): the Light background's darkest pixels lie at grid intersections near the viewport's edges, about rgb(212, 218, 214) to rgb(215, 220, 217) on the Task 3 work and rgb(217, 218, 213) to rgb(218, 220, 216) on the baseline. There signal-dim text measures 4.03-4.12:1, and the baseline's #2a7331 4.16-4.23:1. Which text lies over such a pixel depends on the viewport and scroll position; the run-by-run comparisons found no other text crossing 4.5:1. Removing the exposure needs a global brand mapping or a background change (Phase 2, D3).",
     "Limits of the rendered runs (r10): no control covers a run that only an ancestor clips; text that visibly overflows its parent is measured only inside the parent; content positioned outside a clipping ancestor's box may be clipped by that ancestor anyway; the interaction pass measures header controls over whatever the earlier steps left behind the header, and the backdrop pass gives their bound in each theme (black under Light, white under Dark and Mono); a run is identified by its element path, text and occurrence, so a change to a card's markup or text unpairs its runs, and Step 9 reports every unpaired run. Each element is captured at the scroll positions the test chooses.",
     "At 1280x800 only, the fixed section dots on /case-studies/where-the-specification-lived overlap the \"Open the Traffic Simulator\" link at every scroll position, on every build, so its hover, focus and pressed runs are unmeasured there (pre-existing layout; the ledger is recorded at 1440x900).",
-    "Phase 6 Task 5: the article and procedural-piece routes joined the test; their scope records come from the Phase 6 candidate, because the baseline did not measure them. They carry no entries."
+    "Phase 6 Task 5: the article and procedural-piece routes joined the test; their scope records come from the Phase 6 candidate, because the baseline did not measure them. They carry no entries.",
+    "Phase 6 R-6: the Light creative record of the chronicle's first line (span.text-stone-500, \"The first frost\") was re-recorded on the chronicle's new ground, the opaque field of the sheet's token set; the narrative's own ink is unchanged. Its Dark record is within the check's tolerance and was not re-recorded."
   ],
   "regions": {
     "dark|/simulations": 4,
@@ -333,8 +334,8 @@
       "check": "creative",
       "theme": "light",
       "route": "/simulations/annals",
-      "detail": "5.89:1 (rendered ground) [The first frost. Ten sou]",
-      "baseline": 5.89
+      "detail": "5.83:1 (rendered ground) [The first frost. Ten sou]",
+      "baseline": 5.83
     },
     {
       "id": "creative|dark|/simulations/spider|span.spider-card-rank|Q|\"Q\"",

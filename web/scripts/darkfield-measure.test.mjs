@@ -63,9 +63,9 @@ test("Mono deviations name one exact element on the Annals sheet, with reason P5
     assert.ok(!seen.has(key), `${where}: duplicate`);
     seen.add(key);
   }
-  // Only the two non-token colours of the open Step M item may pass outside the Light set (P6-T10b, P6-T10g).
+  // Only the header rule's non-token colour, deviation DEV-8, may pass outside the Light set (P6-T10b, P6-T10g, P6-Mf).
   assert.deepEqual(MONO_DEVIATIONS.filter((e) => e.untokened).map(({ selector, untokened }) => [selector, untokened]),
-    [[".annals-sheet .annals-chronicle", ["background-color"]], [".annals-sheet > header", ["border-bottom-color"]]]);
+    [[".annals-sheet > header", ["border-bottom-color"]]]);
 });
 
 test("idle motion rows name an exact element, a route and a repeat row (Task 9)", () => {

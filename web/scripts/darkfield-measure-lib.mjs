@@ -38,9 +38,9 @@ export const MEASURE_NATIVE = [
 // names the generated box the entry stands for instead of the element. Reasons, and what each excuses in the DOM layer:
 // P5-3, governed chrome on the sheet renders the Light token set in every theme, so only colours of that set; P5-2, a legend
 // key that mirrors the narrative's palette is a hold, so only its background colour.
-// untokened lists the properties of an entry that may hold a colour outside the Light set. The header rule
-// (border-stone-800) and the chronicle's translucent ground (bg-stone-50/70) carry one: their non-token colours are NOT
-// approved; they are the open Step M item from the Task 3 review (P6-T10b), listed so that only those properties pass.
+// untokened lists the properties of an entry that may hold a colour outside the Light set. Only the header rule
+// (border-stone-800) carries one: its non-token colour is deviation DEV-8, pending the owner (rulings P6-T10b, P6-Mf),
+// listed so that only that property passes.
 export const MONO_DEVIATIONS = [
   ...[
     ".annals-sheet .annals-heading > .df-heading-1",
@@ -60,7 +60,7 @@ export const MONO_DEVIATIONS = [
     ".annals-sheet .annals-footer > i",
     ".annals-sheet .annals-footer > b",
   ].map((selector) => ({ selector, reason: "P5-3" })),
-  { selector: ".annals-sheet .annals-chronicle", reason: "P5-3", untokened: ["background-color"] },
+  { selector: ".annals-sheet .annals-chronicle", reason: "P5-3" },
   { selector: ".annals-sheet > header", reason: "P5-3", untokened: ["border-bottom-color"] },
   { selector: ".annals-sheet .annals-hand", pseudo: "::before", reason: "P5-2" },
 ];

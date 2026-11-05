@@ -273,7 +273,7 @@ export default function Annals() {
 
         {/* the fork — divergence comparison */}
         {fork && (
-          <section className="mb-5 bg-stone-50/80 border p-4 font-mono text-[13px] leading-relaxed annals-frame">
+          <section className="mb-5 border p-4 font-mono text-[13px] leading-relaxed annals-frame">
             <h2 className="text-sm mb-3">
               <span className="df-label annals-label">The Fork</span>
               <span className="text-xs ml-2 annals-phrase"><span className="df-body-sm">what your hand changed by year {world.year}</span></span>
@@ -339,7 +339,7 @@ export default function Annals() {
           {/* the chronicle */}
           <section>
             <h2 className="text-xs mb-2 df-label annals-label">The Chronicle</h2>
-            <div className="annals-chronicle bg-stone-50/70 border p-4 h-[460px] overflow-y-auto font-mono text-[13px] leading-relaxed flex flex-col-reverse annals-frame">
+            <div className="annals-chronicle border p-4 h-[460px] overflow-y-auto font-mono text-[13px] leading-relaxed flex flex-col-reverse annals-frame">
               <div data-df-region="native">
                 {world.chronicle.map((e: ChronicleEvent, i: number) => (
                   <div key={i} className="mb-1.5">

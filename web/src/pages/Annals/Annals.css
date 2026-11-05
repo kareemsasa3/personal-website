@@ -302,8 +302,11 @@
   display: block;
   min-block-size: 2lh;
 }
-/* The chronicle's and the fork's frames (§09 Frames and corners): square, a structure line. Their grounds stay the
-   narrative's paper, under the native chronicle and fates list. */
-.annals-sheet .annals-frame { border-color: var(--rule); }
+/* The chronicle's and the fork's frames (§09 Frames and corners): square, a structure line. Under the native chronicle
+   and fates list, their grounds are the field of the token set the sheet renders, opaque, as the controls rest on. */
+.annals-sheet .annals-frame {
+  border-color: var(--rule);
+  background-color: var(--field);
+}
 /* The fork's house counts: their words are fg; each key keeps the narrative's ink (P5-2), as in the fork legend. */
 .annals-sheet .annals-count { color: var(--fg); }
