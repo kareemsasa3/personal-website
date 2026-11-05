@@ -15,11 +15,11 @@
   overflow: hidden;
 }
 
-/* Rhythm Lab chrome (Phase 5 Task 19). The header is one surface-1 face on the held rain; following §08 Not a dashboard,
-   the regions inside it meet on single L1 rules and hold no boxes of their own, so only controls and fields draw a boundary (§09 L2).
-   Names speak in the Instrument voice, values in the Machine voice and supporting text in the Narrator voice (§06); the
-   voices and the control states come from the generated classes and the control model (§13). A control on the face
-   rises one surface step on hover. */
+/* Rhythm Lab chrome (Phase 5 Task 19). The header is one face on the field over the held rain (Phase 6 R-7; §05 How
+   much of each); following §08 Not a dashboard, the regions inside it meet on single L1 rules and hold no boxes of
+   their own, so only controls and fields draw a boundary (§09 L2). Names speak in the Instrument voice, values in the
+   Machine voice and supporting text in the Narrator voice (§06); the voices and the control states come from the
+   generated classes and the control model (§13). A control on the face rises one surface step on hover (§13 Hover). */
 .rhythm-lab-header {
   /* Phones, before a run (layout values, not tokens): the height the highway keeps below the bounded setup face, and the
      least the face keeps for itself on a short screen. */
@@ -37,8 +37,8 @@
   margin: 0 auto;
   padding: var(--space-3);
   border: var(--stroke-hair) solid var(--rule);
-  background-color: var(--surface-1);
-  --df-ground-up: var(--surface-2);
+  background-color: var(--field);
+  --df-ground-up: var(--surface-1);
 }
 
 /* §08 Layers and overlays: while the saved-songs menu is open, what lies behind it dims to the scrim. The scrim is the
@@ -139,7 +139,7 @@
 
 .rhythm-lab-audio-input::file-selector-button:hover {
   border-color: var(--fg-muted);
-  background-color: var(--surface-2);
+  background-color: var(--df-ground-up);
   color: var(--fg);
 }
 

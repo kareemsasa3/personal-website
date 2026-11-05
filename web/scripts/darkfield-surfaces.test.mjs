@@ -1274,8 +1274,10 @@ test("P5 rhythm lab chrome: one face, control model, voices and Live", async () 
   const css = declarations(await read(RHYTHM_CSS));
   const rule = (sel) => Object.fromEntries(css.filter((d) => d.selector === sel).map((d) => [d.prop, d.value]));
   const want = (sel, values) => { const r = rule(sel); for (const [p, v] of Object.entries(values)) assert.equal(r[p], v, `${sel} { ${p} }`); };
-  // One surface-1 face with an L1 seam; regions inside share single rules; the menu is an overlay over the scrim.
-  want(".rhythm-lab-header", { "background-color": "var(--surface-1)", border: "var(--stroke-hair) solid var(--rule)", "--df-ground-up": "var(--surface-2)" });
+  // One face on the field (Phase 6 R-7) with an L1 seam; a control on it rises one step, the native picker's button
+  // included; regions inside share single rules; the menu is an overlay over the scrim.
+  want(".rhythm-lab-header", { "background-color": "var(--field)", border: "var(--stroke-hair) solid var(--rule)", "--df-ground-up": "var(--surface-1)" });
+  want(".rhythm-lab-audio-input::file-selector-button:hover", { "background-color": "var(--df-ground-up)" });
   want('.rhythm-lab-header:has(.rhythm-lab-song-selector-trigger[aria-expanded="true"])::before', { position: "fixed", "background-color": "var(--df-scrim)" });
   want(".rhythm-lab-song-list", { "background-color": "var(--surface-2)", border: "var(--stroke-hair) solid var(--edge)", "--df-ground-up": "var(--surface-3)",
     "grid-template-columns": "minmax(0, 1fr)" });
