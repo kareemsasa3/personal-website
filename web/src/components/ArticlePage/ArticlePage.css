@@ -101,7 +101,7 @@
   padding: 1rem;
   border: var(--stroke-hair) solid var(--edge);
   border-radius: var(--radius-0);
-  background: var(--surface-1);
+  background: var(--field-deep);
   font-size: 0.82rem;
   line-height: 1.5;
 }
