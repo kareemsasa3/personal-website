@@ -185,11 +185,13 @@ const ProjectRosterItem = ({ project }: ProjectRosterItemProps) => {
         <AnimatePresence initial={false}>
           {isExpanded && (
             <motion.div
-              initial={{ height: 0, opacity: 0 }}
+              // The panel holds its full height from the first frame; only a vertical clip moves, from the panel's
+              // middle out to its edges and back.
+              initial={{ clipPath: "inset(50% 0% 50% 0%)" }}
               // §12: state transition (reveal) · detail panel opened
-              animate={{ height: "auto", opacity: 1, transition: reduceMotion ? INSTANT : motionToken("--dur-base", "--ease-settle") }}
+              animate={{ clipPath: "inset(0% 0% 0% 0%)", transition: reduceMotion ? INSTANT : motionToken("--dur-base", "--ease-settle") }}
               // §12: state transition (conceal) · detail panel closed
-              exit={{ height: 0, opacity: 0, transition: reduceMotion ? INSTANT : motionToken("--dur-fast", "--ease-depart") }}
+              exit={{ clipPath: "inset(50% 0% 50% 0%)", transition: reduceMotion ? INSTANT : motionToken("--dur-fast", "--ease-depart") }}
               style={{ overflow: "hidden" }}
             >
               <ProjectRosterDetail project={project} detailId={detailId} />
