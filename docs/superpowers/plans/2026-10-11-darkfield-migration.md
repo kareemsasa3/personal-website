@@ -5304,3 +5304,131 @@ Every line number refers to `a16c70f`. Implementers locate code by the anchor, n
   - Defined [Phase 6](#phase-6-conformance-measurement) measurements on the governed interface, with region exclusion.
   - Added D9 (execution authorization) and D10 (ledger acceptance).
   - Narrowed D3 to what remains after the rain decision.
+
+## Appendix: commit hashes after the release message rewording
+
+Every commit hash cited above this appendix, and in the phase plans and the ledger, is a pre-rewording hash; the table below gives its hash on the reworded history. Only messages were edited: every commit in the table keeps its tree, author, committer and dates.
+
+Reworded messages (pre-rewording hash, message line counted from the subject as line 1):
+
+- `8a652b3` line 4
+- `f92fd52` line 4
+- `f92fd52` line 7
+- `de60b7d` line 22
+- `dcf31bf` line 4
+- `dcf31bf` line 22
+- `614e780` line 19
+- `9285e82` line 6
+- `52b73af` line 10
+- `d343e2e` line 25
+- `d343e2e` line 44
+- `600272b` line 3
+- `abe0d0b` line 3
+
+Old to new hash, from the first reworded commit (`8a652b3`) to the end of the branch (103 commits; the 15 commits before it keep their hashes):
+
+| Old | New |
+| --- | --- |
+| `8a652b3` | `2e176e1` |
+| `4a096f8` | `b05354e` |
+| `46b941d` | `69f110b` |
+| `35156c9` | `0bc4d81` |
+| `96db9cf` | `c6b9bae` |
+| `e9575e9` | `c937cb3` |
+| `240f7cd` | `e8c4798` |
+| `75b8a39` | `a82a6b8` |
+| `eb1380a` | `c8d081f` |
+| `065d1cf` | `4807ec9` |
+| `6cdb6d5` | `31a8339` |
+| `f92fd52` | `cab56b8` |
+| `88c0cb6` | `730f447` |
+| `44542b9` | `60ede27` |
+| `78f02a1` | `750387f` |
+| `a4fa16f` | `2c3e567` |
+| `b974992` | `b063c25` |
+| `7c4034d` | `b5245b4` |
+| `c214d3d` | `053cea2` |
+| `4b07799` | `783b865` |
+| `b4185c3` | `362fbfc` |
+| `de60b7d` | `73bc42d` |
+| `7c1fdb3` | `f39470b` |
+| `4de4fe4` | `52a88bd` |
+| `cd78048` | `5b86734` |
+| `444ec49` | `664fd75` |
+| `6b86d15` | `60dc50e` |
+| `91884ee` | `f7e7096` |
+| `c1706a1` | `660a0dc` |
+| `59bfd03` | `0dedf14` |
+| `544d89f` | `e9522e8` |
+| `a29fff8` | `5b60b55` |
+| `0a34388` | `6736d2f` |
+| `bd28fc7` | `1d9b696` |
+| `d83983b` | `0e459cf` |
+| `bd41d10` | `49ee044` |
+| `bedadd8` | `42f3ac4` |
+| `dcf31bf` | `a2149ae` |
+| `f9d549d` | `24c07c7` |
+| `8b2725c` | `df0f66d` |
+| `e81bd05` | `dfa49ef` |
+| `f218fe5` | `8722332` |
+| `fc3fcdc` | `dc6ca8b` |
+| `f76e673` | `23fa812` |
+| `502f631` | `540e6f8` |
+| `ddbebf1` | `ac933a9` |
+| `73c1d51` | `e08f5b2` |
+| `ef37c06` | `a36e53a` |
+| `0ca760f` | `ea0999d` |
+| `09cd750` | `d237337` |
+| `fb6e2b2` | `26d08d5` |
+| `fa4d2e6` | `512aa6c` |
+| `030a31f` | `93faa8d` |
+| `2a23016` | `e29e4b5` |
+| `b7a759b` | `0bddc3e` |
+| `614e780` | `97c447b` |
+| `9285e82` | `2fd08b1` |
+| `52b73af` | `9280522` |
+| `8e60298` | `ad98a3a` |
+| `c5c2e15` | `5fc85d4` |
+| `efa18ba` | `c231aa0` |
+| `dd6580d` | `9ce5b17` |
+| `1f33d89` | `a92d4bb` |
+| `66469d9` | `de6e5f3` |
+| `4247156` | `5a066e3` |
+| `b0026a7` | `c001982` |
+| `edecf9c` | `ae8f783` |
+| `3e60e5d` | `7350bff` |
+| `5207787` | `36fc59f` |
+| `a7e629e` | `1161253` |
+| `d343e2e` | `6b4774c` |
+| `3c89af9` | `4991787` |
+| `44a7a2d` | `62c8a52` |
+| `35b70da` | `881b77a` |
+| `058d1c6` | `2af1a98` |
+| `ac34a8a` | `671e19f` |
+| `b68acd5` | `88a221d` |
+| `6582c5f` | `36af0a0` |
+| `4dda750` | `c5768a1` |
+| `ec8144d` | `50a5e5e` |
+| `8a9f04e` | `bc788f4` |
+| `72bfc63` | `056ee7a` |
+| `b424fd1` | `c2071fe` |
+| `600272b` | `3b12b22` |
+| `3f3aa59` | `969b85f` |
+| `6dbc820` | `edd87ad` |
+| `6e61c28` | `48472cb` |
+| `dc7153f` | `86a28fe` |
+| `9ba1087` | `6df62fb` |
+| `46510d9` | `9037ac2` |
+| `78c7ed3` | `dc19d93` |
+| `e10e34a` | `f013bd7` |
+| `52454ec` | `bee391c` |
+| `5fe2760` | `85cf7cc` |
+| `a5fffb7` | `cd4cbe4` |
+| `9c77aa8` | `83160e6` |
+| `933f932` | `a849a08` |
+| `d607cce` | `7644f58` |
+| `370f41d` | `a1b9eac` |
+| `d874e45` | `240b6c6` |
+| `8859716` | `271ef71` |
+| `abe0d0b` | `2928f84` |
+| `fea5b74` | `fe0caba` |
