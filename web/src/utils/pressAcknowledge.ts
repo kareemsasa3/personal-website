@@ -23,6 +23,8 @@ export const installPressAcknowledge = (doc: Document = document): (() => void) 
     timers.delete(el);
   };
   const press = (event: Event) => {
+    // Only the primary button presses: a secondary or middle button opens a menu or scrolls. Touch and pen report it.
+    if (event.type === "pointerdown" && (event as PointerEvent).button !== 0) return;
     if (event instanceof KeyboardEvent) {
       if (event.repeat || !PRESS_KEYS.includes(event.key)) return;
       if (event.key === "Enter" && isToggle(event.target)) return;

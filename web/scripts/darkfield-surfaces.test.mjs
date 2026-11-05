@@ -540,6 +540,56 @@ test("P5 orbital: controls, fields, panels and readouts", async () => {
     /^(color|background|background-color|border|border-color|border-radius)$/.test(d.prop)).map(where), []);
 });
 
+// Pressed acknowledgement (§13 Activation) is a press of the primary pointer button or a pressing key. A secondary or
+// middle button opens a menu or scrolls; it is not a press, so the control never reads Pressed for it. Touch and pen
+// report the primary button. The module runs here against a minimal fake document (TypeScript stripped by the
+// project's compiler; parseDuration is the real one).
+test("Pressed shows for the primary pointer button and pressing keys only", async () => {
+  const { default: ts } = await import("typescript");
+  const js = async (file) => ts.transpileModule(await read(file), { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 } }).outputText;
+  const url = (code) => `data:text/javascript,${encodeURIComponent(code)}`;
+  const motion = url(await js("utils/motionTokens.ts"));
+  const { installPressAcknowledge } = await import(url((await js("utils/pressAcknowledge.ts")).replace(/(["'])\.\/motionTokens\1/, JSON.stringify(motion))));
+  class FakeKeyboardEvent {}
+  class FakeInput {}
+  const saved = Object.fromEntries(["window", "KeyboardEvent", "HTMLInputElement", "getComputedStyle"].map((k) => [k, globalThis[k]]));
+  const listeners = [];
+  const target = { add: (type, fn) => listeners.push([type, fn]), remove: () => {} };
+  Object.assign(globalThis, {
+    window: { setTimeout, clearTimeout, addEventListener: target.add, removeEventListener: target.remove },
+    KeyboardEvent: FakeKeyboardEvent, HTMLInputElement: FakeInput,
+    getComputedStyle: () => ({ getPropertyValue: () => "0ms" }),
+  });
+  try {
+    const attrs = new Set();
+    const el = { closest: () => el, matches: () => false, setAttribute: (a) => attrs.add(a), removeAttribute: (a) => attrs.delete(a), hasAttribute: (a) => attrs.has(a) };
+    const doc = { documentElement: {}, addEventListener: target.add, removeEventListener: target.remove };
+    const uninstall = installPressAcknowledge(doc);
+    const fire = (type, init) => {
+      const proto = type.startsWith("key") ? FakeKeyboardEvent.prototype : Object.prototype;
+      const event = Object.assign(Object.create(proto), { type, target: el, repeat: false, ...init });
+      for (const [t, fn] of listeners) if (t === type) fn(event);
+      return el.hasAttribute("data-df-pressed");
+    };
+    for (const pointerType of ["mouse", "touch", "pen"]) {
+      assert.equal(fire("pointerdown", { button: 0, pointerType }), true, `primary ${pointerType} press shows Pressed`);
+      assert.equal(fire("pointerup", { button: 0, pointerType }), false, `releasing the ${pointerType} press clears it`);
+    }
+    for (const button of [1, 2, 3, 4]) {
+      assert.equal(fire("pointerdown", { button, pointerType: "mouse" }), false, `pointer button ${button} is not a press`);
+      assert.equal(fire("pointerup", { button, pointerType: "mouse" }), false, `pointer button ${button} leaves nothing pressed`);
+    }
+    assert.equal(fire("keydown", { key: "Enter" }), true, "Enter presses");
+    assert.equal(fire("keyup", { key: "Enter" }), false, "releasing Enter clears it");
+    // Any release still ends a held primary press.
+    fire("pointerdown", { button: 0, pointerType: "mouse" });
+    assert.equal(fire("pointercancel", { button: 0, pointerType: "mouse" }), false, "a cancelled press clears");
+    uninstall();
+  } finally {
+    for (const [k, v] of Object.entries(saved)) if (v === undefined) delete globalThis[k]; else globalThis[k] = v;
+  }
+});
+
 // Traffic simulator chrome (Phase 5 Task 10; §13 control model, Disabled, Errors, Warning, Direct manipulation; §06
 // voices; §08 Not a dashboard; §05 When bright signal appears). As on the Orbital route: the header link is an operable
 // breadcrumb, the eyebrow is Narrator supporting text, every button is a control in the label voice, Play stays
