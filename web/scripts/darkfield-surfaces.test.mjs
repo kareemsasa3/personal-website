@@ -454,8 +454,8 @@ test("P5 simulations: index and card chrome, the preview frame, and the food pre
 // (aria-disabled, guarded handler) and points at the reason. Selects and number inputs are fields; an input the browser
 // rejects on submit is marked invalid beside the editor's error message. Show trails is a latch whose lamp follows the
 // native checkbox, which stays focusable while the label draws the ring, and a keyboard press on it is Space, not Enter.
-// The regions form one surface-1 face with no boxes of their own (§08 Not a dashboard): the canvas region is the one
-// closed edge boundary, the inspector shares it, and the others meet on a single rule. Readouts pair Instrument labels
+// The regions form one face on the field with no boxes of their own (§08 Not a dashboard; Phase 6 R-7): the canvas
+// region is the one closed edge boundary, the inspector shares it, and the others meet on a single rule. Readouts pair Instrument labels
 // with Machine values and units; a value that is changing (the simulation is running) takes the shared Live value
 // class, and the inspector's heading carries the Live marker. The canvas is native: it keeps the inherited family and
 // line height it rendered with.
@@ -517,8 +517,9 @@ test("P5 orbital: controls, fields, panels and readouts", async () => {
   const css = declarations(await read("pages/OrbitalSimulator/OrbitalSimulator.css"));
   const rule = (sel) => Object.fromEntries(css.filter((d) => d.selector === sel).map((d) => [d.prop, d.value]));
   const want = (sel, values) => { const r = rule(sel); for (const [p, v] of Object.entries(values)) assert.equal(r[p], v, `${sel} { ${p} }`); };
-  // One face: surface-1 regions with no gap; only the canvas region is closed (edge); the others draw one rule each.
-  want(":is(.orbital-controls, .orbital-workspace, .orbital-messages, .orbital-context)", { "background-color": "var(--surface-1)", "--df-ground-up": "var(--surface-2)" });
+  // One face on the field, its regions with no gap; a control on it rises one step; only the canvas region is closed
+  // (edge); the others draw one rule each.
+  want(":is(.orbital-controls, .orbital-workspace, .orbital-messages, .orbital-context)", { "background-color": "var(--field)", "--df-ground-up": "var(--surface-1)" });
   want(".orbital-field", { border: "var(--stroke-hair) solid var(--edge)", position: "relative" });
   want(".orbital-workspace", { gap: "0" });
   want(".orbital-controls", { "border-bottom": "var(--stroke-hair) solid var(--rule)", "margin-bottom": "calc(-1 * var(--stroke-hair))" });

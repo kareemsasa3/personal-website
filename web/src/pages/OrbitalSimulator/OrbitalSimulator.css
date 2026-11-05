@@ -1,5 +1,5 @@
 /* Orbital simulator chrome (Phase 5 Task 9). The canvas is the subject; everything around it is governed: Narrator
-   prose, Instrument labels, Machine values and the control model on one surface-1 face (§08 rail and field). */
+   prose, Instrument labels, Machine values and the control model on one face on the field (§08 rail and field). */
 .orbital-container {
   max-width: 1400px;
   margin: 0 auto;
@@ -27,15 +27,15 @@
 .orbital-header .orbital-lead {
   color: var(--fg);
 }
-/* One instrument face (§08 Not a dashboard): the regions sit edge to edge on surface-1, with no gaps and no boxes of
-   their own. The canvas region is the one closed boundary, the bounded system in edge (§09 L2). Every other region
-   meets its neighbour on a single L1 rule: the controls bar draws the rule below it, the messages and the context draw
-   the rule above them, each overlapping its neighbour's edge by the rule's width, and the canvas region (positioned,
-   so painted later) keeps its edge where the two lines coincide. The inspector has no line of its own: it shares the
-   canvas region's edge. A control on the face rises one more step on hover. */
+/* One instrument face (§08 Not a dashboard): the regions sit edge to edge on the field (Phase 6 R-7; §05 How much of
+   each), with no gaps and no boxes of their own. The canvas region is the one closed boundary, the bounded system in
+   edge (§09 L2). Every other region meets its neighbour on a single L1 rule: the controls bar draws the rule below it,
+   the messages and the context draw the rule above them, each overlapping its neighbour's edge by the rule's width, and
+   the canvas region (positioned, so painted later) keeps its edge where the two lines coincide. The inspector has no
+   line of its own: it shares the canvas region's edge. A control on the face rises one step on hover (§13 Hover). */
 :is(.orbital-controls, .orbital-workspace, .orbital-messages, .orbital-context) {
-  background-color: var(--surface-1);
-  --df-ground-up: var(--surface-2);
+  background-color: var(--field);
+  --df-ground-up: var(--surface-1);
 }
 .orbital-panel {
   padding: var(--space-4);
