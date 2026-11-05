@@ -544,13 +544,13 @@ test("P5 orbital: controls, fields, panels and readouts", async () => {
 // voices; §08 Not a dashboard; §05 When bright signal appears). As on the Orbital route: the header link is an operable
 // breadcrumb, the eyebrow is Narrator supporting text, every button is a control in the label voice, Play stays
 // focusable while it cannot act and points at the alert, selects are fields, and the simulation's alert and the
-// step-budget note carry the error and warning signatures. The regions form one surface-1 face: the road region is the
-// one closed edge boundary and the others meet on single rules. Readouts pair Instrument labels with Machine values and
-// units; changing values take the shared Live value class while running and the groups' headings carry the Live
-// marker. Each slider is a direct-manipulation control: a hairline in the edge colour along its range, a mark at every
-// step (the count comes from the control), a heavier mark closing each end, and its value as a solid signal-coloured
-// square with nothing filled behind it. The signal lamps are square
-// cells that keep the renderer's colours. The canvases are native: they keep the type they inherited.
+// step-budget note carry the error and warning signatures. The regions form one face on the field (Phase 6 R-7): the
+// road region is the one closed edge boundary and the others meet on single rules. Readouts pair Instrument labels with
+// Machine values and units; changing values take the shared Live value class while running and the groups' headings
+// carry the Live marker. Each slider is a direct-manipulation control: a hairline in the edge colour along its range, a
+// mark at every step (the count comes from the control), a heavier mark closing each end, and its value as a solid
+// signal-coloured square with nothing filled behind it. The signal lamps are square cells that keep the renderer's
+// colours. The canvases are native: they keep the type they inherited.
 test("P5 traffic: controls, sliders, fields, panels and readouts", async () => {
   const page = await read("pages/TrafficSimulator/TrafficSimulator.tsx");
   const controls = await read("components/TrafficSimulator/TrafficControls.tsx");
@@ -615,8 +615,9 @@ test("P5 traffic: controls, sliders, fields, panels and readouts", async () => {
   const css = declarations(await read("pages/TrafficSimulator/TrafficSimulator.css"));
   const rule = (sel) => Object.fromEntries(css.filter((d) => d.selector === sel).map((d) => [d.prop, d.value]));
   const want = (sel, values) => { const r = rule(sel); for (const [p, v] of Object.entries(values)) assert.equal(r[p], v, `${sel} { ${p} }`); };
-  // One face: surface-1 regions; only the road region is closed (edge); the others draw one rule each, without gaps.
-  want(":is(.traffic-controls, .traffic-workspace, .traffic-messages, .traffic-charts, .traffic-context)", { "background-color": "var(--surface-1)", "--df-ground-up": "var(--surface-2)" });
+  // One face on the field; a control on it rises one step; only the road region is closed (edge); the others draw one
+  // rule each, without gaps.
+  want(":is(.traffic-controls, .traffic-workspace, .traffic-messages, .traffic-charts, .traffic-context)", { "background-color": "var(--field)", "--df-ground-up": "var(--surface-1)" });
   want(".traffic-field", { border: "var(--stroke-hair) solid var(--edge)", position: "relative" });
   want(".traffic-workspace", { gap: "0" });
   want(".traffic-controls", { "border-bottom": "var(--stroke-hair) solid var(--rule)", "margin-bottom": "calc(-1 * var(--stroke-hair))" });

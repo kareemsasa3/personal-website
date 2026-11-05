@@ -2400,7 +2400,7 @@ if (MODE === "check") {
   for (const theme of THEMES) {
     await withPage({ theme, route: "/simulations/traffic-simulator" }, async (page) => {
       const at = `${theme} /simulations/traffic-simulator`;
-      const tok = {}; for (const n of ["--signal", "--fg", "--edge", "--fault", "--fg-faint", "--surface-1"]) tok[n] = await tokenRgb(page, n);
+      const tok = {}; for (const n of ["--signal", "--fg", "--edge", "--fault", "--fg-faint", "--field"]) tok[n] = await tokenRgb(page, n);
       const ring = await page.evaluate(() => { const p = document.createElement("i"); p.style.boxShadow = "var(--focus-ring)"; document.body.append(p);
         const v = getComputedStyle(p).boxShadow; p.remove(); return v; });
       const tabTo = async (selector) => { for (let i = 0; i < 60; i++) { await page.keyboard.press("Tab");
@@ -2452,7 +2452,7 @@ if (MODE === "check") {
           const g = c.getContext("2d"); g.drawImage(img, 0, 0);
           const { data, width, height } = g.getImageData(0, 0, c.width, c.height);
           const rgb = (v) => v.match(/\d+/g).map(Number);
-          const [signal, ground] = [rgb(tk["--signal"]), rgb(tk["--surface-1"])];
+          const [signal, ground] = [rgb(tk["--signal"]), rgb(tk["--field"])];
           const px = (x, y) => [0, 1, 2].map((j) => data[(y * width + x) * 4 + j]);
           const near = (a, b, t) => a.every((v, j) => Math.abs(v - b[j]) <= t);
           let [x0, y0, x1, y1, n] = [width, height, -1, -1, 0];
@@ -2597,7 +2597,7 @@ if (MODE === "check") {
     const cx2 = c.getContext("2d"); cx2.drawImage(img, 0, 0);
     const { data, width, height } = cx2.getImageData(0, 0, c.width, c.height);
     const rgb = (v) => v.match(/\d+/g).map(Number);
-    const ground = rgb(tk["--surface-1"]);
+    const ground = rgb(tk["--field"]);
     const colour = { axis: rgb(tk["--edge"]), brackets: rgb(tk["--edge"]), cross: rgb(tk["--edge"]), line: rgb(tk["--signal"]), demand: rgb(tk["--coolant"]) };
     const px = (x, y) => (x < 0 || y < 0 || x >= width || y >= height ? ground : [0, 1, 2].map((j) => data[(y * width + x) * 4 + j]));
     const near = (a, b, t) => a.every((v, j) => Math.abs(v - b[j]) <= t);
@@ -2663,7 +2663,7 @@ if (MODE === "check") {
   for (const theme of THEMES) for (const scale of [1, 2]) {
     await withPage({ theme, route: "/simulations/traffic-simulator", scale }, async (page) => {
       const at = `${theme} /simulations/traffic-simulator @${scale}x`;
-      const tok = {}; for (const n of ["--surface-1", "--surface-2", "--edge", "--signal", "--coolant", "--fg", "--fg-muted"]) tok[n] = await tokenRgb(page, n);
+      const tok = {}; for (const n of ["--field", "--surface-2", "--edge", "--signal", "--coolant", "--fg", "--fg-muted"]) tok[n] = await tokenRgb(page, n);
       await page.getByLabel("Playback").selectOption("16");
       await page.getByRole("button", { name: "Play", exact: true }).click();
       await page.waitForFunction(() => (document.querySelector(".traffic-chart-line")?.getAttribute("d").match(/[HL]/g) ?? []).length >= 4, null, { timeout: 30000 });
