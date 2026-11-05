@@ -74,6 +74,32 @@ test("boot-shell fallbacks equal the Dark token values", async () => {
   assert.ok(seen >= 6, "index.html boot shell reads no tokens");
 });
 
+// The static route shell is a governed loading state (§09 Frames and corners): every corner it draws is square.
+// Any radius declaration in its CSS must resolve to zero, whether written as a literal or as a token with a fallback.
+test("the static route shell draws no rounded corners", async () => {
+  const tokens = await read("src/styles/darkfield/tokens.css");
+  const nonZero = (value) => (value.match(/-?\d*\.?\d+/g) ?? []).some((n) => Number(n) !== 0);
+  const styles = [...(await read("index.html")).matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>/g)].map((m) => m[1]);
+  assert.ok(styles.length > 0, "index.html has no shell <style>");
+  const offenders = [];
+  for (const css of styles) {
+    for (const rule of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+      const selector = rule[1].replace(/\/\*[\s\S]*?\*\//g, "").trim().replace(/\s+/g, " ");
+      for (const [, property, value] of rule[2].matchAll(/((?:border|[a-z-]*)-radius)\s*:\s*([^;]+)/g)) {
+        let literal = value;
+        for (const [ref, name] of value.matchAll(/var\(--([a-z0-9-]+)/g)) {
+          // Every theme's definition of the token must be zero, and it must be defined.
+          const defs = [...tokens.matchAll(new RegExp(`(?<![\\w-])--${name}:\\s*([^;]+);`, "g"))].map((d) => d[1]);
+          if (defs.length === 0 || defs.some(nonZero)) offenders.push(`${selector} { ${property}: ${value.trim()} } reads --${name}`);
+          literal = literal.replace(ref, "");
+        }
+        if (nonZero(literal)) offenders.push(`${selector} { ${property}: ${value.trim()} }`);
+      }
+    }
+  }
+  assert.deepEqual(offenders, [], "index.html route shell has rounded corners");
+});
+
 // Held for D6 (native-visual or preview typography): file → selector. The Annals stylesheet is scanned like any other
 // (Task 21): its mono utility styles native regions; the serif stacks fall outside the legacy pattern.
 const FONT_HOLDS = [
