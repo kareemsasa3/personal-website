@@ -50,6 +50,7 @@ interface SettingsPanelProps {
 const THEME_OPTIONS: readonly { value: Theme; label: string }[] = [
   { value: "dark", label: "Dark" },
   { value: "light", label: "Light" },
+  { value: "mono", label: "Mono" },
 ];
 
 const NAV_MODE_OPTIONS: readonly { value: NavigationMode; label: string }[] = [

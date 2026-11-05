@@ -11,7 +11,8 @@
     "Limits of the rendered runs (r10): no control covers a run that only an ancestor clips; text that visibly overflows its parent is measured only inside the parent; content positioned outside a clipping ancestor's box may be clipped by that ancestor anyway; the interaction pass measures header controls over whatever the earlier steps left behind the header, and the backdrop pass gives their bound in each theme (black under Light, white under Dark and Mono); a run is identified by its element path, text and occurrence, so a change to a card's markup or text unpairs its runs, and Step 9 reports every unpaired run. Each element is captured at the scroll positions the test chooses.",
     "At 1280x800 only, the fixed section dots on /case-studies/where-the-specification-lived overlap the \"Open the Traffic Simulator\" link at every scroll position, on every build, so its hover, focus and pressed runs are unmeasured there (pre-existing layout; the ledger is recorded at 1440x900).",
     "Phase 6 Task 5: the article and procedural-piece routes joined the test; their scope records come from the Phase 6 candidate, because the baseline did not measure them. They carry no entries.",
-    "Phase 6 R-6: the Light creative record of the chronicle's first line (span.text-stone-500, \"The first frost\") was re-recorded on the chronicle's new ground, the opaque field of the sheet's token set; the narrative's own ink is unchanged. Its Dark record is within the check's tolerance and was not re-recorded."
+    "Phase 6 R-6: the Light creative record of the chronicle's first line (span.text-stone-500, \"The first frost\") was re-recorded on the chronicle's new ground, the opaque field of the sheet's token set; the narrative's own ink is unchanged. Its Dark record is within the check's tolerance and was not re-recorded.",
+    "Mono scope records come from the Phase 6 candidate (Mono release commit): the baseline has no Mono theme (delegated ruling, Task 5). Mono has no ledger entries."
   ],
   "regions": {
     "dark|/simulations": 4,
@@ -19,7 +20,10 @@
     "dark|/simulations/spider": 10,
     "light|/simulations": 4,
     "light|/simulations/annals": 5,
-    "light|/simulations/spider": 10
+    "light|/simulations/spider": 10,
+    "mono|/simulations": 4,
+    "mono|/simulations/annals": 5,
+    "mono|/simulations/spider": 10
   },
   "unmeasured": [
     {
@@ -172,6 +176,82 @@
     },
     {
       "id": "state|light|/simulations/rhythm-lab|D / L / Right:paused|span>\"D / L / Right\"",
+      "reason": "covered by div.rhythm-lab-overlay"
+    },
+    {
+      "id": "contrast|mono|/simulations/rhythm-lab|button|A / J / Left|span>\"A / J / Left\"",
+      "reason": "covered by div.rhythm-lab-overlay"
+    },
+    {
+      "id": "contrast|mono|/simulations/rhythm-lab|button|S / K / Down|span>\"S / K / Down\"",
+      "reason": "covered by div.rhythm-lab-overlay"
+    },
+    {
+      "id": "contrast|mono|/simulations/rhythm-lab|button|D / L / Right|span>\"D / L / Right\"",
+      "reason": "covered by div.rhythm-lab-overlay"
+    },
+    {
+      "id": "text|mono|/simulations/rhythm-lab|span.rhythm-lab-lane-label|Left|\"Left\"",
+      "reason": "covered by div.rhythm-lab-overlay"
+    },
+    {
+      "id": "text|mono|/simulations/rhythm-lab|span.rhythm-lab-lane-label|Center|\"Center\"",
+      "reason": "covered by div.rhythm-lab-overlay"
+    },
+    {
+      "id": "text|mono|/simulations/rhythm-lab|span.rhythm-lab-lane-label|Right|\"Right\"",
+      "reason": "covered by div.rhythm-lab-overlay"
+    },
+    {
+      "id": "text|mono|/simulations/rhythm-lab|span|Ready|\"Ready\"",
+      "reason": "covered by div.rhythm-lab-overlay"
+    },
+    {
+      "id": "interact|mono|/simulations/rhythm-lab|button|A / J / Left#1:hover",
+      "reason": "covered by div.rhythm-lab-overlay"
+    },
+    {
+      "id": "interact|mono|/simulations/rhythm-lab|button|A / J / Left#1:focus",
+      "reason": "covered by div.rhythm-lab-overlay"
+    },
+    {
+      "id": "interact|mono|/simulations/rhythm-lab|button|A / J / Left#1:active",
+      "reason": "covered by div.rhythm-lab-overlay"
+    },
+    {
+      "id": "interact|mono|/simulations/rhythm-lab|button|S / K / Down#1:hover",
+      "reason": "covered by div.rhythm-lab-overlay"
+    },
+    {
+      "id": "interact|mono|/simulations/rhythm-lab|button|S / K / Down#1:focus",
+      "reason": "covered by div.rhythm-lab-overlay"
+    },
+    {
+      "id": "interact|mono|/simulations/rhythm-lab|button|S / K / Down#1:active",
+      "reason": "covered by div.rhythm-lab-overlay"
+    },
+    {
+      "id": "interact|mono|/simulations/rhythm-lab|button|D / L / Right#1:hover",
+      "reason": "covered by div.rhythm-lab-overlay"
+    },
+    {
+      "id": "interact|mono|/simulations/rhythm-lab|button|D / L / Right#1:focus",
+      "reason": "covered by div.rhythm-lab-overlay"
+    },
+    {
+      "id": "interact|mono|/simulations/rhythm-lab|button|D / L / Right#1:active",
+      "reason": "covered by div.rhythm-lab-overlay"
+    },
+    {
+      "id": "state|mono|/simulations/rhythm-lab|A / J / Left:paused|span>\"A / J / Left\"",
+      "reason": "covered by div.rhythm-lab-overlay"
+    },
+    {
+      "id": "state|mono|/simulations/rhythm-lab|S / K / Down:paused|span>\"S / K / Down\"",
+      "reason": "covered by div.rhythm-lab-overlay"
+    },
+    {
+      "id": "state|mono|/simulations/rhythm-lab|D / L / Right:paused|span>\"D / L / Right\"",
       "reason": "covered by div.rhythm-lab-overlay"
     }
   ],
@@ -496,6 +576,166 @@
       "route": "/simulations/spider",
       "detail": "4.96:1 [J]",
       "baseline": 4.96
+    },
+    {
+      "id": "creative|mono|/simulations|div.spider-preview-card|K|\"K\"",
+      "check": "creative",
+      "theme": "mono",
+      "route": "/simulations",
+      "detail": "1.01:1 (rendered ground) [K]",
+      "baseline": 1.01
+    },
+    {
+      "id": "creative|mono|/simulations|div.spider-preview-card|9|\"9\"",
+      "check": "creative",
+      "theme": "mono",
+      "route": "/simulations",
+      "detail": "1.01:1 (rendered ground) [9]",
+      "baseline": 1.01
+    },
+    {
+      "id": "creative|mono|/simulations|div.spider-preview-card|Q|\"Q\"",
+      "check": "creative",
+      "theme": "mono",
+      "route": "/simulations",
+      "detail": "1.01:1 (rendered ground) [Q]",
+      "baseline": 1.01
+    },
+    {
+      "id": "creative|mono|/simulations|div.spider-preview-card|7|\"7\"",
+      "check": "creative",
+      "theme": "mono",
+      "route": "/simulations",
+      "detail": "1.01:1 (rendered ground) [7]",
+      "baseline": 1.01
+    },
+    {
+      "id": "creative|mono|/simulations/annals|main p|a world that writes its own hi|\"a world that writes its \"",
+      "check": "creative",
+      "theme": "mono",
+      "route": "/simulations/annals",
+      "detail": "6.13:1 (rendered ground) [a world that writes its ]",
+      "baseline": 6.13
+    },
+    {
+      "id": "creative|mono|/simulations/annals|main p|a world that writes its own hi|span.font-mono>\"history = f(seed, your h\"",
+      "check": "creative",
+      "theme": "mono",
+      "route": "/simulations/annals",
+      "detail": "6.08:1 (rendered ground) [history = f(seed, your h]",
+      "baseline": 6.08
+    },
+    {
+      "id": "creative|mono|/simulations/annals|main p|None yet. Give it time.|\"None yet. Give it time.\"",
+      "check": "creative",
+      "theme": "mono",
+      "route": "/simulations/annals",
+      "detail": "1.85:1 (rendered ground) [None yet. Give it time.]",
+      "baseline": 1.85
+    },
+    {
+      "id": "creative|mono|/simulations/annals|span.font-mono|history = f(seed, your hand)|\"history = f(seed, your h\"",
+      "check": "creative",
+      "theme": "mono",
+      "route": "/simulations/annals",
+      "detail": "6.08:1 (rendered ground) [history = f(seed, your h]",
+      "baseline": 6.08
+    },
+    {
+      "id": "creative|mono|/simulations/annals|span.text-stone-400|··0|\"··0\"",
+      "check": "creative",
+      "theme": "mono",
+      "route": "/simulations/annals",
+      "detail": "2.27:1 [··0]",
+      "baseline": 2.27
+    },
+    {
+      "id": "creative|mono|/simulations/annals|span.text-stone-500|The first frost. Ten souls, fi|\"The first frost. Ten sou\"",
+      "check": "creative",
+      "theme": "mono",
+      "route": "/simulations/annals",
+      "detail": "5.83:1 [The first frost. Ten sou]",
+      "baseline": 5.83
+    },
+    {
+      "id": "creative|mono|/simulations/spider|span.spider-card-rank|Q|\"Q\"",
+      "check": "creative",
+      "theme": "mono",
+      "route": "/simulations/spider",
+      "detail": "7.12:1 [Q]",
+      "baseline": 7.12
+    },
+    {
+      "id": "creative|mono|/simulations/spider|span.spider-card-rank|Q#2|\"Q\"",
+      "check": "creative",
+      "theme": "mono",
+      "route": "/simulations/spider",
+      "detail": "7.12:1 [Q]",
+      "baseline": 7.12
+    },
+    {
+      "id": "creative|mono|/simulations/spider|span.spider-card-rank|J|\"J\"",
+      "check": "creative",
+      "theme": "mono",
+      "route": "/simulations/spider",
+      "detail": "7.12:1 [J]",
+      "baseline": 7.12
+    },
+    {
+      "id": "creative|mono|/simulations/spider|span.spider-card-rank|8|\"8\"",
+      "check": "creative",
+      "theme": "mono",
+      "route": "/simulations/spider",
+      "detail": "7.12:1 [8]",
+      "baseline": 7.12
+    },
+    {
+      "id": "creative|mono|/simulations/spider|span.spider-card-rank|4|\"4\"",
+      "check": "creative",
+      "theme": "mono",
+      "route": "/simulations/spider",
+      "detail": "7.12:1 [4]",
+      "baseline": 7.12
+    },
+    {
+      "id": "creative|mono|/simulations/spider|span.spider-card-rank|6|\"6\"",
+      "check": "creative",
+      "theme": "mono",
+      "route": "/simulations/spider",
+      "detail": "7.12:1 [6]",
+      "baseline": 7.12
+    },
+    {
+      "id": "creative|mono|/simulations/spider|span.spider-card-rank|K|\"K\"",
+      "check": "creative",
+      "theme": "mono",
+      "route": "/simulations/spider",
+      "detail": "7.12:1 [K]",
+      "baseline": 7.12
+    },
+    {
+      "id": "creative|mono|/simulations/spider|span.spider-card-rank|2|\"2\"",
+      "check": "creative",
+      "theme": "mono",
+      "route": "/simulations/spider",
+      "detail": "7.12:1 [2]",
+      "baseline": 7.12
+    },
+    {
+      "id": "creative|mono|/simulations/spider|span.spider-card-rank|3|\"3\"",
+      "check": "creative",
+      "theme": "mono",
+      "route": "/simulations/spider",
+      "detail": "7.12:1 [3]",
+      "baseline": 7.12
+    },
+    {
+      "id": "creative|mono|/simulations/spider|span.spider-card-rank|J#2|\"J\"",
+      "check": "creative",
+      "theme": "mono",
+      "route": "/simulations/spider",
+      "detail": "7.12:1 [J]",
+      "baseline": 7.12
     }
   ],
   "inactive": [
@@ -591,6 +831,54 @@
       "id": "inactive|light|/simulations/annals|button|exile|\"exile\"",
       "check": "inactive",
       "theme": "light",
+      "route": "/simulations/annals",
+      "detail": "5.48:1 (disabled) [exile]",
+      "baseline": 5.48
+    },
+    {
+      "id": "inactive|mono|/simulations/annals|button|give grain|\"give grain\"",
+      "check": "inactive",
+      "theme": "mono",
+      "route": "/simulations/annals",
+      "detail": "5.48:1 (disabled) [give grain]",
+      "baseline": 5.48
+    },
+    {
+      "id": "inactive|mono|/simulations/annals|button|warn|\"warn\"",
+      "check": "inactive",
+      "theme": "mono",
+      "route": "/simulations/annals",
+      "detail": "5.48:1 (disabled) [warn]",
+      "baseline": 5.48
+    },
+    {
+      "id": "inactive|mono|/simulations/annals|button|protect|\"protect\"",
+      "check": "inactive",
+      "theme": "mono",
+      "route": "/simulations/annals",
+      "detail": "5.48:1 (disabled) [protect]",
+      "baseline": 5.48
+    },
+    {
+      "id": "inactive|mono|/simulations/annals|button|urge alliance|\"urge alliance\"",
+      "check": "inactive",
+      "theme": "mono",
+      "route": "/simulations/annals",
+      "detail": "5.48:1 (disabled) [urge alliance]",
+      "baseline": 5.48
+    },
+    {
+      "id": "inactive|mono|/simulations/annals|button|accuse (of…)|\"accuse (of…)\"",
+      "check": "inactive",
+      "theme": "mono",
+      "route": "/simulations/annals",
+      "detail": "5.48:1 (disabled) [accuse (of…)]",
+      "baseline": 5.48
+    },
+    {
+      "id": "inactive|mono|/simulations/annals|button|exile|\"exile\"",
+      "check": "inactive",
+      "theme": "mono",
       "route": "/simulations/annals",
       "detail": "5.48:1 (disabled) [exile]",
       "baseline": 5.48

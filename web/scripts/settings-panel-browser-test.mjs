@@ -72,7 +72,7 @@ for (const [width, height] of [[320, 568], [375, 667], [430, 740], [500, 834], [
     if (dockAvailable) assert.equal(await page.getByRole("group", { name: "Navigation Style" }).count(), 1);
 
     // Reading-order tab traversal up to Reset.
-    const expected = ["Close settings", "Dark", "Light", ...(dockAvailable ? ["Dock", "Header"] : []), "background-animation-label", "background-motion-speed", "Export settings", "Import settings", "Reset all settings to defaults"];
+    const expected = ["Close settings", "Dark", "Light", "Mono", ...(dockAvailable ? ["Dock", "Header"] : []), "background-animation-label", "background-motion-speed", "Export settings", "Import settings", "Reset all settings to defaults"];
     const seen = [];
     for (let i = 1; i < expected.length; i++) {
       await page.keyboard.press("Tab");
@@ -89,6 +89,11 @@ for (const [width, height] of [[320, 568], [375, 667], [430, 740], [500, 834], [
     assert.equal(await button("Light").getAttribute("aria-pressed"), "true");
     assert.equal(await button("Dark").getAttribute("aria-pressed"), "false");
     await shot(`${width}x${height}-header-light`);
+    await button("Mono").click();
+    assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), "mono");
+    assert.equal(await button("Mono").getAttribute("aria-pressed"), "true");
+    assert.equal(await button("Dark").getAttribute("aria-pressed"), "false");
+    assert.equal(await button("Light").getAttribute("aria-pressed"), "false");
     await button("Dark").click();
     assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), "dark");
 

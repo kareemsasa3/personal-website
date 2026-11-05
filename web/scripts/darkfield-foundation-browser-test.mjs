@@ -3,7 +3,9 @@
 // node scripts/darkfield-foundation-browser-test.mjs [base URL] [Playwright module] [browser executable]
 // DARKFIELD_MODE=check (default): invariants must pass; regressions are compared with the ledger.
 // DARKFIELD_MODE=record: run regression checks only and print ledger candidates (use on the baseline).
-// DARKFIELD_THEMES=dark,light[,mono] selects themes.
+// DARKFIELD_THEMES=dark,light,mono (default) selects themes. Mono is offered in Settings (Phase 6 Task 11), so the default
+// checks it with Dark and Light. The Mono passes (the Phase 4 mark and theme-color checks, the Phase 6 Task 10 hue pass) run
+// inside the theme loop when THEMES includes mono, and as dedicated Mono passes only otherwise (MONO_THEMES).
 // DARKFIELD_VIEWPORT=<width>x<height> selects the viewport (r10; default 1440x900, where the ledger is recorded).
 // DARKFIELD_ARRIVE_FROM=<route> (r10): the route passes reach each route by client-side navigation from this
 // route instead of a direct load, so the stylesheets it loaded stay attached (Step 9 compares arrivals).
@@ -15,7 +17,9 @@ const { chromium } = await import(process.argv[3] || "playwright");
 const browser = await chromium.launch({ headless: true, ...(process.argv[4] ? { executablePath: process.argv[4] } : {}) });
 const base = process.argv[2] || "http://127.0.0.1:4173";
 const MODE = process.env.DARKFIELD_MODE || "check";
-const THEMES = (process.env.DARKFIELD_THEMES || "dark,light").split(",");
+const THEMES = (process.env.DARKFIELD_THEMES || "dark,light,mono").split(",");
+// THEMES itself when it includes mono; otherwise THEMES followed by one dedicated Mono pass.
+const MONO_THEMES = [...new Set([...THEMES, "mono"])];
 const [VIEW_W, VIEW_H] = (process.env.DARKFIELD_VIEWPORT || "1440x900").split("x").map(Number);
 const ARRIVE_FROM = process.env.DARKFIELD_ARRIVE_FROM || null;
 const FIELD = { dark: "rgb(7, 11, 8)", light: "rgb(239, 244, 241)", mono: "rgb(10, 10, 10)" };
@@ -3293,8 +3297,9 @@ if (MODE === "check") {
       const over = await look(chosen.first());
       invariant(over.bg === t["--signal-deep"] && over.marker.startsWith('"›"'), `${theme} settings: hover over Selected ${JSON.stringify(over)}`);
       await page.mouse.move(0, 0);
-      // The other theme option from the keyboard (Space), then back.
-      if (theme !== "mono") {
+      // Another theme option from the keyboard (Space), then back. Mono is offered too (Phase 6 Task 11), so this runs in
+      // every theme.
+      {
         // Held by its label: a locator by aria-pressed would re-resolve to another option once this one is chosen.
         const label = (await page.locator('.settings-segmented__button[aria-pressed="false"]').first().textContent()).trim();
         const other = page.locator(`.settings-segmented__button:text-is("${label}")`);
@@ -3302,7 +3307,7 @@ if (MODE === "check") {
         await other.focus(); await page.keyboard.press("Space"); await frames(page);
         invariant(await page.evaluate(() => document.documentElement.dataset.theme) === name && await other.getAttribute("aria-pressed") === "true",
           `${theme} settings: Space did not choose ${name}`);
-        await page.locator(`.settings-segmented__button:text-is("${theme === "dark" ? "Dark" : "Light"}")`).click(); await page.mouse.move(0, 0); await settle(page);
+        await page.locator(`.settings-segmented__button:text-is("${{ dark: "Dark", light: "Light", mono: "Mono" }[theme]}")`).click(); await page.mouse.move(0, 0); await settle(page);
       }
       const sw = page.locator(".setting-switch");
       invariant(await sw.getAttribute("aria-checked") === "true" && !(await sw.evaluate((e) => e.hasAttribute("disabled"))), `${theme} settings: switch not on`);
@@ -3848,7 +3853,8 @@ if (MODE === "check") {
     }, [painted.toString("base64"), reference.toString("base64")]);
   };
   const PAINT_VIEWS = [[1440, 900], [1181, 900], [768, 900], [767, 900], [375, 812], [320, 812]];
-  for (const theme of [...new Set([...THEMES, "mono"])]) for (const [width, height] of PAINT_VIEWS) for (const scale of [1, 2, 3]) {
+  console.log(`MONO-PASS mark ${THEMES.includes("mono") ? "theme loop" : "dedicated"}`);
+  for (const theme of MONO_THEMES) for (const [width, height] of PAINT_VIEWS) for (const scale of [1, 2, 3]) {
     await withPage({ theme, route: "/", scale }, async (page) => {
       await page.setViewportSize({ width, height }); await page.reload({ waitUntil: "networkidle" });
       await page.evaluate(() => document.fonts.ready); await frames(page);
@@ -3856,7 +3862,7 @@ if (MODE === "check") {
       invariant(seen.equal, `${theme} / ${width}px ${scale}x: the painted mark differs from the reference render ${JSON.stringify(seen)}`);
     });
   }
-  for (const theme of [...new Set([...THEMES, "mono"])]) for (const view of MARK_VIEWS) {
+  for (const theme of MONO_THEMES) for (const view of MARK_VIEWS) {
     await withPage({ theme, route: view.route, scale: view.scale }, async (page) => {
       if (view.width) { await page.setViewportSize({ width: view.width, height: view.height }); await page.reload({ waitUntil: "networkidle" }); }
       await page.evaluate(() => document.fonts.ready);
@@ -3891,7 +3897,7 @@ if (MODE === "check") {
   }
   // Phase 4 Task 3 (§18 favicon containment; r1/SPEC.md §3; P4-8, P4-9): theme-color holds the active theme's field, and the
   // web manifest and every icon it names are served.
-  for (const theme of [...new Set([...THEMES, "mono"])]) {
+  for (const theme of MONO_THEMES) {
     await withPage({ theme, route: "/" }, async (page) => {
       const seen = await page.evaluate(() => ({
         theme: document.documentElement.dataset.theme,
@@ -4155,8 +4161,9 @@ if (MODE === "check") {
       });
     }
   }
-  // Phase 6 Task 10 (§05 Monochrome; README Design principles, principle 3; P6-2, P6-5′, P5-3; ruling P6-T3b): a dedicated
-  // pass with the Mono theme stored, whatever THEMES holds, on every route at load, pointer off the page. The threshold is
+  // Phase 6 Task 10 (§05 Monochrome; README Design principles, principle 3; P6-2, P6-5′, P5-3; ruling P6-T3b): a pass with
+  // the Mono theme stored, on every route at load, pointer off the page. It is the Mono iteration of MONO_THEMES (Task 11):
+  // inside the theme loop when THEMES includes mono, a dedicated pass otherwise; MONO-PASS names which. The threshold is
   // the Mono tokens' largest chroma plus MONO_ROUNDING, read from tokens.css; the Mono tokens' largest chroma must be 0, so
   // a token that gains hue fails here first. Two layers, each failing on hue above the threshold:
   // - DOM: every rendered element and its generated ::before and ::after outside EXCLUDED, on the colours it paints: color
@@ -4504,8 +4511,9 @@ if (MODE === "check") {
       }).map((o) => o.label);
       return { width, height, nativeCounts, governed, subtree: clusters(leaks.subtree), masked, excusedPx, credited };
     };
-    for (const route of ROUTES) {
-      await withPage({ theme: "mono", route }, async (page) => {
+    console.log(`MONO-PASS hue ${THEMES.includes("mono") ? "theme loop" : "dedicated"}`);
+    for (const theme of MONO_THEMES.filter((t) => t === "mono")) for (const route of ROUTES) {
+      await withPage({ theme, route }, async (page) => {
         await page.mouse.move(-1, -1);
         await frames(page);
         const html = await page.evaluate(() => document.documentElement.getAttribute("data-theme"));
