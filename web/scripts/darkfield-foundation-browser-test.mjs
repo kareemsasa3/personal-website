@@ -3480,15 +3480,28 @@ if (MODE === "check") {
   });
 
   // A Journey image changes only when its toggle is activated; pointer inspection leaves the story in place.
+  // Phase 6 R-8 (§12 The six classes, State transition; §12 Reduced motion, by class; ruling P6-Me): the image face lies
+  // over the story at the card's size and is shown by a vertical clip, with no turn of the card or its faces. Under
+  // reduced motion (this page's default) the face is fully shown one double frame after Enter, and the card keeps its size.
   for (const theme of THEMES) await withPage({ theme, route: "/journey" }, async (page) => {
     const card = page.locator(".timeline-flip-container.has-image").first();
     await card.waitFor();
     const toggle = card.locator(".timeline-flip-toggle");
+    const face = () => card.evaluate((c) => {
+      const inner = c.querySelector(".timeline-flip-card"), back = c.querySelector(".timeline-back"), box = inner.getBoundingClientRect();
+      const turned = [inner, c.querySelector(".timeline-front"), back].filter((e) => getComputedStyle(e).transform !== "none").length;
+      return { clip: getComputedStyle(back).clipPath, size: `${box.width}x${box.height}`, turned };
+    });
     invariant((await toggle.getAttribute("aria-pressed")) === "false", `${theme} Journey starts flipped`);
+    const closed = await face();
+    invariant(/^inset\(50%/.test(closed.clip) && closed.turned === 0, `${theme} Journey image face at rest ${JSON.stringify(closed)}`);
     await card.hover(); await frames(page);
     invariant((await toggle.getAttribute("aria-pressed")) === "false", `${theme} Journey flips on hover`);
     await toggle.focus(); await page.keyboard.press("Enter"); await frames(page);
     invariant((await toggle.getAttribute("aria-pressed")) === "true", `${theme} Journey toggle does not flip with Enter`);
+    const open = await face();
+    invariant(open.clip === "inset(0%)" && open.turned === 0 && open.size === closed.size,
+      `${theme} Journey image face not fully shown at once under reduced motion, turned, or the card changed size ${JSON.stringify([closed, open])}`);
   });
 
   // Fix wave (R1, §13 state model): a card's › marker sits in the cell directly before its title's first line, whatever
