@@ -5155,6 +5155,7 @@ Every line number refers to `a16c70f`. Implementers locate code by the anchor, n
 
 ## Revision log
 
+- **r16 (2026-11-06, publication, the dependency advisory and the second integration recorded; docs only).** Added three entries to *Release records*: the branch push and PR #32, the `follow-redirects` advisory fix (PR #33) and its production release, and the second integration with `main`. The *Revision* line under the title is left as it was.
 - **r15 (2026-11-06, integration with `origin/main` recorded; docs only).** Added an *Integration with origin/main* entry to *Release records*: the owner's approval, the merge and its verification. The *Revision* line under the title is left as it was.
 - **r14 (2026-11-05, P4-1 confirmed; docs only).** Recorded the owner's confirmation of P4-1:
   - dated updates on *Required arrangement* item 3, the `darkfield-vendor.test.mjs` row of *Validation model*, and the P4-1 line of *Recorded deviations*;
@@ -5489,4 +5490,25 @@ This section follows the appendix. Its hashes are on the reworded history unless
     - **Rendered output:** every screenshot pair is pixel-identical except `/simulations` (Dark and Light) and `/simulations/rhythm-lab` (all three themes). Those pairs differ only in animated content, which also differs between two captures of the same build: the preview-card animations, and Rhythm Lab's full-viewport rain canvas. With the animations paused and the canvas hidden, they are pixel-identical.
   - **Local note:** the worktree's own `node_modules` predates the merged lockfile; `npm ci` refreshes it before local development.
   - **Not approved here:** push, pull request, merge to `main` and deploy stay open under D9.
+- **Branch published and PR #32 opened (2026-11-06, owner approvals, direct).**
+  - **Push:** the owner pushed `feat/darkfield-foundation` at `d646954`. Only the branch was pushed; the `refs/darkfield/*` recovery refs stay local.
+  - **PR:** PR #32 into `main` was opened as `kareemsasa3`, with the owner-approved title and description, and `kareemsasa` requested as code-owner reviewer.
+  - **Ruleset on `main`:** a pull request with one approval, a code-owner review and resolved threads, plus the required `build-web` check, with no bypass. It allows merge, squash and rebase, but this branch must be merged with a merge commit, so that the appendix's hash map stays valid.
+- **Dependency advisory fix, PR #33 (2026-11-06, owner approvals, direct).**
+  - **Cause:** PR #32's required `build-web` check and the `npm-audit` check failed at `npm audit --audit-level=high`, on the high-severity `follow-redirects` advisory GHSA-mrwp-f3q8-3g9p. It was inherited from `main`, whose lockfile this branch had not changed, and `main`'s scheduled Security run had already failed on 2026-11-02.
+  - **Fix:** made separately from this branch. `b6ab68d` (`fix/follow-redirects-advisory`, from `main` `2c16f65`) is a lockfile-only change, `follow-redirects` 1.16.1 to 1.16.2; it was independently reviewed.
+  - **Merge:** PR #33 was approved by `kareemsasa` and merged by the owner as merge commit `cb52c4b`.
+  - **Release:** CI, Security, the image build and the production deploy for `cb52c4b` succeeded, and the deploy's own health verification passed. Production served the current site plus that lockfile change, with no Darkfield commit.
+  - **Left open:** moderate `minimatch` advisories (GHSA-g3hv-75wg-m249) through `@typescript-eslint`, which need a breaking lint-toolchain upgrade. Owner item.
+- **Second integration with `main`: merged and verified 2026-11-06 (owner approval, direct; run by the controller).**
+  - **The merge:** `23ca1c3` merges `main` `cb52c4b` into `d646954`. It was merged, not rebased, and has no conflicts. The only change is the `follow-redirects` lockfile entry. Both recovery refs are unchanged.
+  - **Targeted verification** on exports with clean `npm ci` installs, against the first integration's verified build:
+    - `npm audit --audit-level=high` passes, with only the moderate advisories above;
+    - the node tests' names and statuses are unchanged, with the three known failures;
+    - typecheck, lint, `npm test`, the generated-articles check and the canonical checks pass;
+    - every built file is byte-identical, so the browser bundle does not change, and it contains no `follow-redirects` or `axios` code;
+    - the seven named browser tests and the Mono record equal the baseline;
+    - screenshots match the baseline's result: they are pixel-identical except for animated regions, and identical when frozen.
+    - The full foundation run was not repeated, because the bundle is byte-identical.
+  - **Not approved here:** pushing this merge, approving or merging PR #32, and deploying all stay open under D9. A push re-runs PR #32's checks and dismisses earlier approvals.
 - **Still open before release:** D9 push, pull request, merge and deploy, each separately approvable. D11(a) is open. The owner decisions and deviations recorded above are unchanged.
