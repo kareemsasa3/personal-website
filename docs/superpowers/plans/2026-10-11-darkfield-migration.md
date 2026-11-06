@@ -88,7 +88,7 @@ D10 is answered inside Task 3; D4 gates only Task 5. D11(b) is decided and alrea
    Public provenance rests only on these identifiers.
 3. **Only runtime assets are published** in this repository (D2b, D11(b)): `tokens.runtime.json` (an allowlist export containing only token names and values), and the six woff2 fonts with their OFL licences. The website build never needs the spec prose, and no specification text is copied into public files. Public documents cite sections (§NN, README sections, `r1/SPEC.md` sections) and state requirements in their own words.
 
-   **Phase 4 deviation (2026-10-21; pending the owner's confirmation, required before any push).** Registered R1 files are published as well: the Favicon group (Phase 4 Task 1, `502f631`, recording the six files already shipped; Task 3, `73c1d51`, adding the three app icons) and the `currentColor` symbol (Task 2, `ddbebf1`). Each is recorded in `SOURCE.json`: the C2PA-stripped files with the `c2pa-strip` transform, and `favicon.ico`, which carries no C2PA data, as a plain copy. Canonical verification checks all of them against the pinned canonical bytes. Basis and cost if not confirmed: the Phase 4 plan, P4-1.
+   **Phase 4 deviation (2026-10-21; pending the owner's confirmation, required before any push).** Registered R1 files are published as well: the Favicon group (Phase 4 Task 1, `502f631`, recording the six files already shipped; Task 3, `73c1d51`, adding the three app icons) and the `currentColor` symbol (Task 2, `ddbebf1`). Each is recorded in `SOURCE.json`: the C2PA-stripped files with the `c2pa-strip` transform, and `favicon.ico`, which carries no C2PA data, as a plain copy. Canonical verification checks all of them against the pinned canonical bytes. Basis and cost if not confirmed: the Phase 4 plan, P4-1. Update 2026-11-05: confirmed (owner, direct); see *Release records* after the appendix.
 4. **The canonical `tokens.json` stays the sole authority for token values.**
    - `tokens.runtime.json` is a deterministic export of it.
    - `tokens.css` is generated from the runtime file and checked for sync.
@@ -399,7 +399,7 @@ export PLAYWRIGHT_BROWSERS_PATH="$DF_TMP/browsers" DF_PW="$DF_TMP/pw/node_module
 
 | Check | Kind | Establishes | Does not establish |
 |---|---|---|---|
-| `darkfield-vendor.test.mjs` | **Invariant** (static, public) | `SOURCE.json` pins the canonical revision, the archives and the canonical `tokens.json` hash. Published files equal their manifest hashes. Only fonts and licences are copied files; the runtime file is declared as an allowlist export. Since Phase 4 (`502f631`, `ddbebf1`, `73c1d51`; a deviation pending the owner's confirmation, see *Required arrangement* item 3), registered R1 files are recorded too: C2PA-stripped copies under the `c2pa-strip` transform, and `favicon.ico` as a plain copy | That the runtime file truly derives from the canonical file (canonical verification only) |
+| `darkfield-vendor.test.mjs` | **Invariant** (static, public) | `SOURCE.json` pins the canonical revision, the archives and the canonical `tokens.json` hash. Published files equal their manifest hashes. Only fonts and licences are copied files; the runtime file is declared as an allowlist export. Since Phase 4 (`502f631`, `ddbebf1`, `73c1d51`; a deviation pending the owner's confirmation, see *Required arrangement* item 3), registered R1 files are recorded too: C2PA-stripped copies under the `c2pa-strip` transform, and `favicon.ico` as a plain copy (confirmed by the owner 2026-11-05; see *Release records*) | That the runtime file truly derives from the canonical file (canonical verification only) |
 | `darkfield-runtime.test.mjs` | **Invariant** (static, public) | `tokens.runtime.json` has exactly the approved keys, per-group value grammar and no private fields. `tokens.css` carries only its two fixed header comments | Value correctness against the canonical file (canonical verification only) |
 | `darkfield-export.test.mjs` | **Invariant** (static, public; r7) | The exporter is a deterministic projection: a synthetic canonical-shaped input reproduces the committed runtime bytes. Keys outside the key grammar and unclassified fields are refused, and refusals repeat neither unknown keys nor injected text | That the committed runtime file derives from the private canonical file |
 | `darkfield-source.test.mjs` | **Invariant** (public, synthetic git repositories; r7) | Canonical verification refuses a plain directory, a directory inside another checkout, a missing or lightweight tag, a tag resolving to another commit, a moved `HEAD` and a malformed pin. It accepts detached and shallow clones at the tag, and reads canonical bytes from the pinned commit rather than the working tree or a replace ref | The identity of the real canonical repository |
@@ -4762,7 +4762,7 @@ Appended 2026-11-05 (r11). One line per deviation: what differs, the ruling and 
 - **DEV-12**: Rhythm Lab at 375 px wide misses the field, surface and void budgets, because the ready-check dialog (`surface-2`, §08 *Layers and overlays*) and the highway fill the viewport. Ruling P6-R7c; no commit (ruling only; measured after R-7, `a5fffb7`). Owner: pending (an R-n would need a narrow-layout redesign).
 - **P2-3**: the Rhythm Lab rain is held as part of the game's native presentation (the owner restored it in `05b1348`), against D3's removal; Phase 2 Task 2 is held with it (P2-6). Ruling: P2-3 reversed; no commit (ruling only). Owner: pending, including Step M's question of the hold against §10.
 - **P3-10**: the disabled boundary is a CSS dashed border in `edge`, an approximation of `dash-provisional`, which a CSS border cannot take. Phase 3 plan reading, accepted by the controller; Phase 3 Task 3, `8457b34` (pre-rebase). Owner: pending (the exact dash, or this deviation).
-- **P4-1**: registered R1 files are published and recorded in `SOURCE.json` (`502f631`, `ddbebf1`, `73c1d51`), beyond the runtime-assets-only arrangement of *Required arrangement* item 3. Ruling I5 (Phase 4 plan review). Owner: confirmation pending, before any push.
+- **P4-1**: registered R1 files are published and recorded in `SOURCE.json` (`502f631`, `ddbebf1`, `73c1d51`), beyond the runtime-assets-only arrangement of *Required arrangement* item 3. Ruling I5 (Phase 4 plan review). Owner: confirmation pending, before any push. Update 2026-11-05: confirmed (owner, direct); see *Release records* after the appendix.
 - **P5-3**: option B; Annals chrome on the parchment sheet renders the Light token set in every theme, and the parchment ground is native; the Mono residual on the sheet (Light-set ink and lines that keep their hue in Mono) is accepted. Ruling confirmed at Phase 5 Task 1; Phase 5 Tasks 21 (`d343e2e`) and 22 (`3c89af9`); its Mono hue is excused only through `MONO_DEVIATIONS` (below). Owner: pending.
 - **P5-2 mirrors**: the Traffic speed-ramp swatches (`.traffic-swatch`), the signal lamps (`.traffic-signal-lamp`) and the Annals legend key cells (`.annals-hand::before`) keep the creative palette's hues, in Mono too; their text is governed. Ruling P5-2; Phase 5 Tasks 10 (`c5c2e15`), 11 (`efa18ba`) and 21 (`d343e2e`). Owner: pending.
 - **P6-5′**: `MEASURE_NATIVE` mirrors the reviewed Phase 5 boundary. `own` entries (`.annals-sheet` under P5-3; `.traffic-swatch` and `.traffic-signal-lamp` under P5-2) exclude only their own paint; the `subtree` entry (`.rhythm-lab-highway`, D6) excludes its subtree except the governed-in subtrees, which stay measured; skipped subtrees are listed. Ruling P6-0b/P6-5′ (Step 0, 2026-10-27); Task 2, `ac34a8a`. Owner: none recorded (controller ruling).
@@ -5155,6 +5155,10 @@ Every line number refers to `a16c70f`. Implementers locate code by the anchor, n
 
 ## Revision log
 
+- **r14 (2026-11-05, P4-1 confirmed; docs only).** Recorded the owner's confirmation of P4-1:
+  - dated updates on *Required arrangement* item 3, the `darkfield-vendor.test.mjs` row of *Validation model*, and the P4-1 line of *Recorded deviations*;
+  - a P4-1 entry in *Release records*, with the confirmed file list and the provenance it keeps.
+  - The *Revision* line under the title is left as it was.
 - **r13 (2026-11-05, release records; docs only).** Recorded the owner's approval of the P6-Ff visual pass and the adoption of the P6-Fc reworded history:
   - dated updates on the two release-blocker lines under *Final review records*;
   - *Release records* after the appendix, whose hashes are on the reworded history.
@@ -5455,4 +5459,17 @@ This section follows the appendix. Its hashes are on the reworded history unless
     - exactly the 13 message lines listed in the appendix differ;
     - the candidate's only file change is the appendix (128 lines added).
   - **Checks after the move:** the branch head is `84c962e`; the working tree is clean; the tree of `fe0caba` equals the pre-rewording tree; and the only file difference from pre-rewording `fea5b74` is the appendix.
+- **P4-1, registered R1 files: confirmed 2026-11-05 (owner, direct).**
+  - **What is confirmed:** publication of exactly these ten registered R1 files:
+    - the Favicon group: `web/public/favicon.ico`, `favicon.svg`, `favicon-16.png`, `favicon-32.png`, `favicon-48.png` and `apple-touch-icon.png`;
+    - the three app icons: `web/public/icon-192.png`, `icon-512.png` and `icon-512-maskable.png`;
+    - the symbol: `web/src/assets/darkfield/darkfield-r1-symbol-currentcolor.svg`.
+  - **Commits:** `540e6f8`, `ac933a9` and `e08f5b2` (pre-rewording `502f631`, `ddbebf1`, `73c1d51`).
+  - **Provenance kept unchanged:**
+    - each file stays recorded in `web/src/styles/darkfield/SOURCE.json` with its canonical source path;
+    - the nine C2PA-stripped copies keep the `c2pa-strip` transform and both hashes; `favicon.ico` stays a plain copy;
+    - canonical verification still checks every file against the pinned canonical bytes;
+    - `darkfield-vendor.test.mjs` still requires each published file to equal its manifest hash.
+  - **Not covered:** any other R1 file, any change to these files, and any publication of the canonical `tokens.json`. Each needs its own approval; D2b and D11(b) are unchanged.
+  - **Effect:** P4-1 no longer blocks a push. Push and every later step remain under D9.
 - **Still open before release:** D9 push, pull request, merge and deploy, each separately approvable. D11(a) is open. The owner decisions and deviations recorded above are unchanged.
