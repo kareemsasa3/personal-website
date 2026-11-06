@@ -5155,6 +5155,7 @@ Every line number refers to `a16c70f`. Implementers locate code by the anchor, n
 
 ## Revision log
 
+- **r15 (2026-11-06, integration with `origin/main` recorded; docs only).** Added an *Integration with origin/main* entry to *Release records*: the owner's approval, the merge and its verification. The *Revision* line under the title is left as it was.
 - **r14 (2026-11-05, P4-1 confirmed; docs only).** Recorded the owner's confirmation of P4-1:
   - dated updates on *Required arrangement* item 3, the `darkfield-vendor.test.mjs` row of *Validation model*, and the P4-1 line of *Recorded deviations*;
   - a P4-1 entry in *Release records*, with the confirmed file list and the provenance it keeps.
@@ -5472,4 +5473,20 @@ This section follows the appendix. Its hashes are on the reworded history unless
     - `darkfield-vendor.test.mjs` still requires each published file to equal its manifest hash.
   - **Not covered:** any other R1 file, any change to these files, and any publication of the canonical `tokens.json`. Each needs its own approval; D2b and D11(b) are unchanged.
   - **Effect:** P4-1 no longer blocks a push. Push and every later step remain under D9.
+- **Integration with `origin/main`: merged and verified 2026-11-06 (owner approval, direct; run by the controller).**
+  - **Remote state:** the owner fetched `main` on 2026-11-06; the remote `main` was `2c16f65`, the same seven commits reviewed earlier (PRs #28, #29 and #31). They change code ownership, the README, a new development guide, and the vite (^8.0.16 to ^8.1.6) and zod (^4.0.5 to ^4.6.7) ranges with the lockfile.
+  - **The merge:** `f83f06c` merges `2c16f65` into `2316a32`. It was merged, not rebased, so every branch hash above stays as adopted. There were no conflicts, and no file is changed on both sides. The merge tree equals `git merge-tree`, and it changes only main's five files. Both recovery refs are unchanged.
+  - **Independent merge review:** PASS. It found no rewritten commit and no spec wording in the message. It raised two documentation mismatches as owner items, not fixed here:
+    - `AGENTS.md` still points to `README.md` for infrastructure commands, which now live in `docs/DEVELOPMENT.md`;
+    - `AGENTS.md` says `npm install` where the guide says `npm ci`.
+  - **Integration verification:** run on exports of `f83f06c`, each with a clean `npm ci` (vite 8.1.6, zod 4.6.7). The reference was a fresh build of pre-rewording `fea5b74`, which resolves vite 8.0.16 and zod 4.3.5.
+    - **Static gate:** typecheck, lint, `npm test` and the generated-articles check pass. The node tests have the same 258 names and statuses as the reference, including the three known non-Darkfield failures.
+    - **Foundation test:** unsharded, check mode, Dark, Light and Mono: passes. Its log is identical to the reference with numbers masked.
+    - **Seven named browser tests:** the same results as the reference against BASE, with the P6-Fk divergences and the known orbital failure only.
+    - **Mono record:** no entries, and equal to the reference record.
+    - **Canonical checks:** the clone is at the pin and clean, `--verify` passes, and the provenance node tests pass.
+    - **Build:** the same file list apart from hashed JavaScript names, and the same route shells, sitemap and fonts. CSS, images and fonts are byte-identical. The JavaScript differs by the zod update (its version is visible in the bundle; the size split between zod and vite is an estimate) and by small code-generation changes attributed to vite (inferred).
+    - **Rendered output:** every screenshot pair is pixel-identical except `/simulations` (Dark and Light) and `/simulations/rhythm-lab` (all three themes). Those pairs differ only in animated content, which also differs between two captures of the same build: the preview-card animations, and Rhythm Lab's full-viewport rain canvas. With the animations paused and the canvas hidden, they are pixel-identical.
+  - **Local note:** the worktree's own `node_modules` predates the merged lockfile; `npm ci` refreshes it before local development.
+  - **Not approved here:** push, pull request, merge to `main` and deploy stay open under D9.
 - **Still open before release:** D9 push, pull request, merge and deploy, each separately approvable. D11(a) is open. The owner decisions and deviations recorded above are unchanged.
