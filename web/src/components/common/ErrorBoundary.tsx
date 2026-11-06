@@ -53,9 +53,9 @@ class ErrorBoundary extends Component<Props, State> {
       // Default fallback UI
       return (
         <div className="error-boundary">
-          <div className="error-content">
-            <h1>Oops! Something went wrong</h1>
-            <p>
+          <div className="error-content df-error df-error--alarm">
+            <h1 className="df-heading-2">Oops! Something went wrong</h1>
+            <p className="df-body">
               We&apos;re sorry, but something unexpected happened. Please try
               refreshing the page or navigating back to the home page.
             </p>
@@ -63,19 +63,21 @@ class ErrorBoundary extends Component<Props, State> {
             <div className="error-actions">
               <button
                 onClick={() => window.location.reload()}
-                className="error-button primary"
+                className="error-button primary df-control df-label"
               >
                 Refresh Page
               </button>
-              <Link to="/" className="error-button secondary">
+              <Link to="/" className="error-button secondary df-control df-label">
                 Go Home
               </Link>
             </div>
 
             {import.meta.env.DEV && this.state.error && (
               <details className="error-details">
-                <summary>Error Details (Development)</summary>
-                <pre className="error-stack">
+                <summary className="df-control df-control--latch df-label">
+                  Error Details (Development)
+                </summary>
+                <pre className="error-stack df-code">
                   {this.state.error.toString()}
                   {this.state.errorInfo?.componentStack}
                 </pre>

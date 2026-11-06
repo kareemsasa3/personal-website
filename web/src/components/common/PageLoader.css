@@ -11,100 +11,98 @@
     justify-content: center;
     align-items: center;
 
-    /* Transparent background with a subtle blur to hint at the content behind it */
-    background: transparent;
-    /* Use your theme's transparent bg */
-    backdrop-filter: blur(5px);
-    -webkit-backdrop-filter: blur(5px);
-
-    /* Smooth fade-in/out for the loader itself */
-    animation: fadeIn 0.3s ease-in-out;
+    background: var(--df-scrim);
+    animation: page-loader-in var(--dur-base) var(--ease-settle);
 }
 
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-
-    to {
-        opacity: 1;
-    }
+/* §12: state transition (create) · a route chunk started loading */
+@keyframes page-loader-in {
+    from { opacity: 0; }
 }
 
+/* The copy that plays the leave once the route has loaded (PageLoader.tsx). */
+.page-loader-overlay--leaving {
+    pointer-events: none;
+    animation: page-loader-out var(--dur-fast) var(--ease-depart) forwards;
+}
+
+.page-loader-overlay--leaving .page-loader__scan {
+    animation: none;
+}
+
+/* §12: state transition (remove) · the route chunk finished loading */
+@keyframes page-loader-out {
+    to { opacity: 0; }
+}
+
+/* §08 Layers and overlays: the loader sits in a raised panel, framed by a hairline, above the dimmed page. */
 .loader-content {
+    box-sizing: border-box;
+    max-width: calc(100vw - 2 * var(--space-4));
+    padding: var(--space-4) var(--space-6);
+    border: var(--stroke-hair) solid var(--edge);
+    border-radius: var(--radius-0);
+    background-color: var(--surface-2);
+}
+
+/* §13 Processing: the state word and the message (the announced status) beside the time spent so far, with a
+   single cell travelling the row's lower edge. */
+.page-loader__row {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: start;
+    column-gap: var(--space-6);
+    padding-bottom: calc(var(--space-2) + var(--stroke-bold));
+}
+
+.page-loader__status {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 1.5rem;
-    /* Increased gap for better spacing */
-    font-family: var(--font-family-mono);
-    /* Use mono font for theme */
+    gap: var(--space-2);
 }
 
-/* --- Thematic Matrix Spinner --- */
-.matrix-spinner {
-    width: 60px;
-    height: 60px;
-    color: var(--primary-color);
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.2rem;
-    font-weight: bold;
+/* §05 State encoding: the waiting state carries the … glyph with its word. */
+.page-loader__state {
+    color: var(--fg-muted);
 }
 
-.matrix-spinner::before,
-.matrix-spinner::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    border: 2px solid transparent;
-    border-top-color: var(--primary-color);
-    animation: matrix-spin 1.5s linear infinite;
+.page-loader__state::before {
+    content: "…";
+    content: "…" / "";
+    margin-inline-end: var(--space-1);
+    font-family: var(--font-mono);
 }
 
-.matrix-spinner::after {
-    border: 2px solid transparent;
-    border-bottom-color: var(--primary-color);
-    animation: matrix-spin 2s linear infinite reverse;
+.page-loader__elapsed {
+    color: var(--fg-faint);
 }
-
-.matrix-spinner-text {
-    text-shadow: 0 0 10px var(--primary-color);
-    animation: flicker 2s linear infinite;
-}
-
-@keyframes matrix-spin {
-    to {
-        transform: rotate(360deg);
-    }
-}
-
-@keyframes flicker {
-    0%, 18%, 22%, 25%, 53%, 57%, 100% {
-        text-shadow:
-            0 0 4px #fff,
-            0 0 11px var(--primary-color),
-            0 0 19px var(--primary-color),
-            0 0 40px var(--primary-color);
-    }
-
-    20%, 24%, 55% {
-        text-shadow: none;
-    }
-}
-
-/* --- End Matrix Spinner --- */
 
 .loading-text {
-    color: var(--text-color);
-    font-size: 1rem;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+    margin: 0;
+    color: var(--fg-muted);
+}
+
+.page-loader__scan {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: var(--cell-w);
+    height: var(--stroke-bold);
+    background: var(--fg-muted);
+    animation: page-loader-scan var(--dur-scan) var(--ease-linear) infinite;
+}
+
+/* §12: scan / inspection · repeats only while the route chunk loads (§13 Processing, row form) */
+@keyframes page-loader-scan {
+    from { left: 0; }
+    to { left: calc(100% - var(--cell-w)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .page-loader-overlay,
+    .page-loader__scan { animation: none; }
+    /* §12 Reduced motion, by class (scan): no travelling cell; the LOADING word stands as the static indicator. */
+    .page-loader__row { padding-bottom: 0; }
+    .page-loader__scan { display: none; }
 }

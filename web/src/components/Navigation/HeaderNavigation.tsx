@@ -11,6 +11,7 @@ import {
 import { useSettings } from "../../contexts/SettingsContext";
 import { useDisclosure } from "../../hooks/useDisclosure";
 import { useHeaderLayout } from "./useHeaderLayout";
+import r1Symbol from "../../assets/darkfield/darkfield-r1-symbol-currentcolor.svg?raw";
 
 const EXPLORE_LABEL_ID = "site-nav-explore-label";
 
@@ -22,6 +23,8 @@ interface HeaderLinkListProps {
   hidden?: boolean;
   labelledBy?: string;
   onNavigate?: () => void;
+  /** The phone layout's core row: the small Instrument label, so the four links fit one row. */
+  compact?: boolean;
 }
 
 const HeaderLinkList = ({
@@ -32,6 +35,7 @@ const HeaderLinkList = ({
   hidden,
   labelledBy,
   onNavigate,
+  compact = false,
 }: HeaderLinkListProps) => (
   <ul
     id={id}
@@ -46,7 +50,7 @@ const HeaderLinkList = ({
         <li key={item.path}>
           <Link
             to={item.path}
-            className={`site-header__link ${isActive ? "active" : ""}`}
+            className={`site-header__link df-control df-control--light ${compact ? "df-label-sm" : "df-label"}${isActive ? " active" : ""}`}
             aria-current={isActive ? "page" : undefined}
             onClick={onNavigate}
           >
@@ -88,16 +92,19 @@ const HeaderNavigation = forwardRef<HTMLElement>(function HeaderNavigation(
       aria-label="Kareem Sasa home"
       aria-current={pathname === "/" ? "page" : undefined}
     >
-      <span className="site-header__brand-mark" aria-hidden="true">
-        KS
-      </span>
-      <span className="site-header__brand-name">Kareem Sasa</span>
+      {/* The registered R1 symbol file (§18), never redrawn here. */}
+      <span
+        className="site-header__brand-mark"
+        aria-hidden="true"
+        dangerouslySetInnerHTML={{ __html: r1Symbol }}
+      />
+      <span className="site-header__brand-name df-heading-3">Kareem Sasa</span>
     </Link>
   );
 
   const coreNav = (
     <nav key="core" className="site-header__nav site-header__core" aria-label="Primary navigation">
-      <HeaderLinkList items={coreNavItems} pathname={pathname} />
+      <HeaderLinkList items={coreNavItems} pathname={pathname} compact={layout === "phone"} />
     </nav>
   );
 
@@ -109,13 +116,13 @@ const HeaderNavigation = forwardRef<HTMLElement>(function HeaderNavigation(
       aria-labelledby={EXPLORE_LABEL_ID}
       {...explore.containerProps}
     >
-      <span id={EXPLORE_LABEL_ID} className="site-header__explore-label">
+      <span id={EXPLORE_LABEL_ID} className="site-header__explore-label df-label">
         Explore
       </span>
       {isExploreDisclosed && (
         <button
           {...explore.buttonProps}
-          className={`site-header__disclosure-toggle ${activeExploreItem ? "active" : ""}`}
+          className="site-header__disclosure-toggle df-control df-control--latch df-label"
         >
           {activeExploreItem && layout !== "phone"
             ? `Explore: ${activeExploreItem.label}`
@@ -141,7 +148,10 @@ const HeaderNavigation = forwardRef<HTMLElement>(function HeaderNavigation(
       aria-label="Primary navigation"
       {...menu.containerProps}
     >
-      <button {...menu.buttonProps} className="site-header__disclosure-toggle">
+      <button
+        {...menu.buttonProps}
+        className="site-header__disclosure-toggle df-control df-control--latch df-label"
+      >
         Menu
         <FontAwesomeIcon className="site-header__caret" icon={faChevronDown} />
       </button>
@@ -151,7 +161,7 @@ const HeaderNavigation = forwardRef<HTMLElement>(function HeaderNavigation(
         hidden={!menu.isOpen}
       >
         <HeaderLinkList items={coreNavItems} pathname={pathname} onNavigate={menu.close} />
-        <span id={EXPLORE_LABEL_ID} className="site-header__panel-heading">
+        <span id={EXPLORE_LABEL_ID} className="site-header__panel-heading df-label">
           Explore
         </span>
         <HeaderLinkList
@@ -168,7 +178,7 @@ const HeaderNavigation = forwardRef<HTMLElement>(function HeaderNavigation(
     <div key="actions" className="site-header__actions">
       <button
         type="button"
-        className={`site-header__settings-button ${isSettingsOpen ? "active" : ""}`}
+        className="site-header__settings-button df-control df-control--latch"
         onClick={toggleSettings}
         aria-label="Open settings"
         aria-pressed={isSettingsOpen}

@@ -1,15 +1,12 @@
 import "./Work.css";
-import { motion } from "framer-motion";
 import {
   professionalContactContent,
   socialContent,
 } from "../../data/siteContent";
 import { workExperienceData } from "../../data/workExperience";
 import WorkDetails from "../../components/WorkDetails";
-import TypeWriterText from "../../components/TypeWriterText";
 import React, { useEffect } from "react";
 import { useLayoutContext, PageSection } from "../../contexts/LayoutContext";
-import { useLocation } from "react-router-dom";
 
 // Create sections outside the component to prevent recreation on every render
 const workSections: PageSection[] = workExperienceData.map((exp) => ({
@@ -25,9 +22,6 @@ const linkedInLink = socialContent.links.find(
 );
 
 const Work = () => {
-  // Get the current location to create a key for TypeWriterText
-  const location = useLocation();
-
   // Get the section management from our context
   const { setSections } = useLayoutContext();
 
@@ -40,36 +34,23 @@ const Work = () => {
   // Check if data is available
   if (!workExperienceData || workExperienceData.length === 0) {
     return (
-      <motion.div
-        className="page-content work-page"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.3 }}
+      <div
+        className="page-content work-page df-body"
       >
         <div>Loading work experience data...</div>
-      </motion.div>
+      </div>
     );
   }
 
   return (
-    <motion.div
-      className="page-content work-page"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.3 }}
+    <div
+      className="page-content work-page df-body"
     >
       <header className="work-header prose-surface">
-        <h1 className="work-title">
-          <TypeWriterText
-            key={`work-title-${location.pathname}`}
-            text="Experience"
-            speed={400}
-            delay={600}
-          />
+        <h1 className="work-title df-heading-1">
+          Experience
         </h1>
-        <p className="work-subtitle">
+        <p className="work-subtitle df-body-lg">
           Professional experience across consulting, delivery, and platform
           engineering work.
         </p>
@@ -95,19 +76,19 @@ const Work = () => {
       </div>
       <section className="work-contact-cta" aria-labelledby="work-contact-title">
         <div>
-          <p className="work-contact-eyebrow">Next Step</p>
-          <h2 id="work-contact-title">{professionalContactContent.title}</h2>
+          <p className="work-contact-eyebrow df-label">Next Step</p>
+          <h2 className="df-heading-2" id="work-contact-title">{professionalContactContent.title}</h2>
           <p>{professionalContactContent.description}</p>
         </div>
         <div className="work-contact-actions">
           {emailLink && (
-            <a className="work-contact-link primary" href={emailLink.url}>
+            <a className="work-contact-link primary df-control df-label" href={emailLink.url}>
               {professionalContactContent.primaryActionLabel}
             </a>
           )}
           {linkedInLink && (
             <a
-              className="work-contact-link"
+              className="work-contact-link df-control df-label"
               href={linkedInLink.url}
               target="_blank"
               rel="noopener noreferrer"
@@ -117,7 +98,7 @@ const Work = () => {
           )}
         </div>
       </section>
-    </motion.div>
+    </div>
   );
 };
 

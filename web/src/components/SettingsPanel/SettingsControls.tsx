@@ -1,4 +1,5 @@
-import type { CSSProperties, ReactNode } from "react";
+import type { ReactNode } from "react";
+import { pageStepHandler } from "../../utils/sliderPageStep";
 
 interface SettingsSectionProps {
   id: string;
@@ -17,7 +18,7 @@ export const SettingsSection = ({
     className={`settings-section ${className}`.trim()}
     aria-labelledby={`${id}-heading`}
   >
-    <h4 id={`${id}-heading`} className="settings-section-title">
+    <h4 id={`${id}-heading`} className="settings-section-title df-label">
       {title}
     </h4>
     {children}
@@ -33,7 +34,7 @@ interface SettingRowProps {
 // A label on the left and a compact control on the right; wraps when narrow.
 export const SettingRow = ({ labelId, label, children }: SettingRowProps) => (
   <div className="setting-row">
-    <span id={labelId} className="setting-label">
+    <span id={labelId} className="setting-label df-label">
       {label}
     </span>
     {children}
@@ -58,7 +59,7 @@ export const SegmentedControl = <T extends string>({
       <button
         key={option.value}
         type="button"
-        className="settings-segmented__button"
+        className="settings-segmented__button df-control df-label"
         aria-pressed={option.value === value}
         onClick={() => onChange(option.value)}
       >
@@ -86,18 +87,18 @@ export const SettingSwitch = ({
   <button
     type="button"
     role="switch"
-    className="setting-switch"
+    className="setting-switch df-control df-control--latch df-label"
     aria-checked={checked}
     aria-labelledby={labelledBy}
     aria-describedby={describedBy}
-    disabled={disabled}
-    onClick={() => onChange(!checked)}
+    // §13 Disabled: stays focusable so the reason (describedBy) can be read; the handler ignores it.
+    aria-disabled={disabled || undefined}
+    onClick={() => {
+      if (!disabled) onChange(!checked);
+    }}
   >
     <span className="setting-switch__state" aria-hidden="true">
       {checked ? "On" : "Off"}
-    </span>
-    <span className="setting-switch__track" aria-hidden="true">
-      <span className="setting-switch__thumb" />
     </span>
   </button>
 );
@@ -129,15 +130,16 @@ export const SettingSlider = ({
   disabled = false,
   onChange,
 }: SettingSliderProps) => {
-  const fill = `${((value - min) / (max - min)) * 100}%`;
+  // Page Up and Page Down move by ten steps (APG; shared with the Traffic sliders); arrows, Home and End are the input's own.
+  const pageStep = pageStepHandler(value, min, max, step, onChange, disabled);
 
   return (
     <div className="setting-slider">
       <div className="setting-slider__head">
-        <label htmlFor={id} className="setting-label">
+        <label htmlFor={id} className="setting-label df-label">
           {label}
         </label>
-        <span className="setting-value" aria-hidden="true">
+        <span className="setting-value df-data" aria-hidden="true">
           {displayValue}
         </span>
       </div>
@@ -149,11 +151,14 @@ export const SettingSlider = ({
         max={max}
         step={step}
         value={value}
-        disabled={disabled}
+        // §13 Disabled: stays focusable so the reason (describedBy) can be read; the value stays put.
+        aria-disabled={disabled || undefined}
         aria-valuetext={spokenValue}
         aria-describedby={describedBy}
-        style={{ "--range-fill": fill } as CSSProperties}
-        onChange={(event) => onChange(Number(event.target.value))}
+        onChange={(event) => {
+          if (!disabled) onChange(Number(event.target.value));
+        }}
+        onKeyDown={pageStep}
       />
     </div>
   );

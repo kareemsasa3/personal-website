@@ -19,9 +19,7 @@
     width: min(100%, var(--settings-sidebar-width, 360px));
     height: 100%;
     max-height: 100%;
-    background: var(--app-overlay);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    background: var(--surface-2);
     display: flex;
     flex-direction: column;
     transform: translateZ(0);
@@ -30,8 +28,8 @@
     -webkit-backface-visibility: hidden;
     overflow: hidden;
     pointer-events: auto;
-    border: 1px solid var(--app-border);
-    border-radius: 18px;
+    border: var(--stroke-hair) solid var(--edge);
+    border-radius: var(--radius-0);
 }
 
 /* Settings Header */
@@ -40,47 +38,25 @@
     justify-content: space-between;
     align-items: center;
     padding: 1rem;
-    border-bottom: 1px solid var(--app-border);
-    background: color-mix(in srgb, var(--app-surface) 85%, transparent);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    border-bottom: var(--stroke-hair) solid var(--rule);
+    background: var(--surface-2);
     flex-shrink: 0;
 }
 
 .settings-header h3 {
     margin: 0;
-    color: var(--text-color);
-    font-size: 1.2rem;
-    font-weight: 600;
+    color: var(--fg);
     display: flex;
     align-items: center;
     gap: 0.5rem;
 }
 
-.settings-header h3::before {
-    content: "[ / ]";
-    font-size: 1.2rem;
-}
-
-.settings-close {
-    background: color-mix(in srgb, var(--app-surface) 75%, transparent);
-    border: 1px solid var(--app-border);
-    color: var(--text-color, #ffffff);
-    font-size: 1.1rem;
-    cursor: pointer;
-    padding: 0.5rem;
-    border-radius: 8px;
-    transition: all 0.3s ease;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: none;
-    outline: none;
-}
-
-.settings-close:hover {
-    background: color-mix(in srgb, var(--app-surface) 92%, transparent);
-    border-color: var(--brand-primary);
-    transform: scale(1.05);
+/* Target size (§13): the close control holds an icon, not a line of text, so the control model's block padding
+   alone can leave it short of three cells on small or coarse-pointer screens. */
+@media (max-width: 768px), (pointer: coarse) {
+    .settings-close {
+        min-block-size: calc(3 * var(--cell-h));
+    }
 }
 
 /* Settings Content */
@@ -99,21 +75,14 @@
    Rows sit directly on the panel, so it is solid: page text behind a
    translucent surface competes with the controls. */
 .settings-panel {
-    background: var(--app-bg);
-    --settings-divider: color-mix(in srgb, var(--app-border) 55%, transparent);
-    --settings-danger: #ff6b6b;
-}
-
-[data-theme="light"] .settings-panel {
-    /* Elevated surface: the light page canvas and content surfaces sit
-       below it, so it reads as floating without heavier chrome. */
-    background: var(--app-surface);
-    --settings-danger: #b42318;
+    background: var(--surface-2);
+    /* Controls on the panel hover one surface step up (§13 Hover). */
+    --df-ground-up: var(--surface-3);
 }
 
 .settings-section {
     padding: 1.1rem 0;
-    border-top: 1px solid var(--settings-divider);
+    border-top: var(--stroke-hair) solid var(--rule);
 }
 
 .settings-section:first-child {
@@ -127,13 +96,7 @@
 
 .settings-section-title {
     margin: 0 0 0.75rem;
-    color: var(--app-text-muted);
-    font-family: var(--font-family-mono);
-    font-size: 0.7rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    line-height: 1;
-    text-transform: uppercase;
+    color: var(--fg-muted);
 }
 
 .settings-section > * + *:not(.settings-section-title) {
@@ -150,128 +113,43 @@
 }
 
 .setting-label {
-    color: var(--app-text);
-    font-size: 0.9rem;
-    font-weight: 600;
-    line-height: 1.3;
+    color: var(--fg);
 }
 
 .setting-static-value,
 .setting-value {
-    color: var(--app-text-secondary);
-    font-family: var(--font-family-mono);
-    font-size: 0.8rem;
+    color: var(--fg-muted);
+    font-family: var(--font-mono);
     font-variant-numeric: tabular-nums;
 }
 
+/* The slider's readout is its value: fg at rest, the faint tier while the slider is disabled (§13). */
 .setting-value {
-    color: var(--brand-primary);
+    color: var(--fg);
 }
 
 .setting-note {
     margin: 0;
-    color: var(--app-text-secondary);
-    font-size: 0.8rem;
-    line-height: 1.45;
+    color: var(--fg-muted);
 }
 
 .settings-section > .setting-note {
     margin-top: 0.5rem;
 }
 
-.settings-panel :is(button, a):focus-visible {
-    outline: 2px solid var(--brand-primary);
-    outline-offset: 2px;
-}
-
-/* Segmented control (theme, navigation style) */
+/* Segmented control (theme, navigation style): each option is a control, Selected by aria-pressed (§13).
+   The group holds no frame of its own; the options' boundaries are spaced so they do not double. */
 .settings-segmented {
     display: inline-flex;
-    gap: 2px;
-    padding: 3px;
-    border: 1px solid color-mix(in srgb, var(--app-border) 75%, transparent);
-    border-radius: 8px;
-    background: color-mix(in srgb, var(--app-bg) 60%, transparent);
+    gap: var(--space-1);
 }
 
 .settings-segmented__button {
     min-width: 4.25rem;
-    min-height: 2rem;
-    padding: 0.4rem 0.7rem;
-    border: 0;
-    border-radius: 6px;
-    background: transparent;
-    color: var(--app-text-secondary);
-    cursor: pointer;
-    font-family: var(--font-family-mono);
-    font-size: 0.72rem;
-    font-weight: 700;
-    line-height: 1;
-    text-transform: uppercase;
 }
 
-.settings-segmented__button:hover {
-    color: var(--app-text);
-}
-
-.settings-segmented__button[aria-pressed="true"] {
-    background: color-mix(in srgb, var(--brand-primary) 16%, transparent);
-    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand-primary) 55%, transparent);
-    color: var(--brand-primary);
-}
-
-/* Switch (background animation) */
-.setting-switch {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.55rem;
-    min-height: 2rem;
-    padding: 0.25rem;
-    border: 0;
-    border-radius: 6px;
-    background: transparent;
-    color: var(--app-text-secondary);
-    cursor: pointer;
-    font-family: var(--font-family-mono);
-    font-size: 0.72rem;
-    font-weight: 700;
-    text-transform: uppercase;
-}
-
-.setting-switch__track {
-    position: relative;
-    width: 2.25rem;
-    height: 1.25rem;
-    border-radius: 999px;
-    background: color-mix(in srgb, var(--app-text-muted) 45%, transparent);
-    transition: background-color 0.2s ease;
-}
-
-.setting-switch__thumb {
-    position: absolute;
-    top: 2px;
-    left: 2px;
-    width: calc(1.25rem - 4px);
-    height: calc(1.25rem - 4px);
-    border-radius: 50%;
-    background: #ffffff;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-    transition: transform 0.2s ease;
-}
-
-.setting-switch[aria-checked="true"] {
-    color: var(--brand-primary);
-}
-
-.setting-switch[aria-checked="true"] .setting-switch__track {
-    background: var(--brand-primary);
-}
-
-.setting-switch[aria-checked="true"] .setting-switch__thumb {
-    transform: translateX(1rem);
-}
-
-/* Slider rows */
+/* Slider (§13 Direct manipulation): the current value is a solid square in signal riding an edge hairline; the
+   track carries no fill. Disabled: the rail is dashed and the handle and readout take the faint tier. */
 .setting-slider__head {
     display: flex;
     align-items: baseline;
@@ -281,8 +159,6 @@
 }
 
 .setting-range {
-    --range-accent: var(--brand-primary);
-    --range-track: color-mix(in srgb, var(--app-text-muted) 35%, transparent);
     display: block;
     width: 100%;
     height: 1.25rem;
@@ -294,96 +170,78 @@
 }
 
 .setting-range::-webkit-slider-runnable-track {
-    height: 4px;
-    border-radius: 999px;
-    background: linear-gradient(
-        to right,
-        var(--range-accent) var(--range-fill, 50%),
-        var(--range-track) var(--range-fill, 50%)
-    );
+    height: 0;
+    border-block-start: var(--stroke-hair) solid var(--edge);
 }
 
 .setting-range::-moz-range-track {
-    height: 4px;
-    border-radius: 999px;
-    background: var(--range-track);
+    height: 0;
+    border-block-start: var(--stroke-hair) solid var(--edge);
 }
 
 .setting-range::-moz-range-progress {
-    height: 4px;
-    border-radius: 999px;
-    background: var(--range-accent);
+    background-color: transparent;
 }
 
 .setting-range::-webkit-slider-thumb {
-    width: 16px;
-    height: 16px;
-    margin-top: -6px;
-    border: 2px solid var(--app-surface);
-    border-radius: 50%;
-    background: var(--range-accent);
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+    width: var(--cell-h);
+    height: var(--cell-h);
+    margin-top: calc(-0.5 * (var(--cell-h) + var(--stroke-hair)));
+    border: 0;
+    border-radius: var(--radius-0);
+    background-color: var(--signal);
     -webkit-appearance: none;
     appearance: none;
 }
 
 .setting-range::-moz-range-thumb {
-    width: 12px;
-    height: 12px;
-    border: 2px solid var(--app-surface);
-    border-radius: 50%;
-    background: var(--range-accent);
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+    width: var(--cell-h);
+    height: var(--cell-h);
+    border: 0;
+    border-radius: var(--radius-0);
+    background-color: var(--signal);
 }
 
-.setting-range:focus-visible {
-    outline: 2px solid var(--brand-primary);
-    outline-offset: 3px;
-    border-radius: 4px;
-}
-
-.settings-panel :is(.setting-range, .setting-switch, button):disabled {
+.setting-range[aria-disabled="true"] {
     cursor: not-allowed;
-    opacity: 0.5;
 }
 
-.setting-range:disabled {
-    --range-accent: var(--app-text-muted);
+.setting-range[aria-disabled="true"]::-webkit-slider-runnable-track {
+    border-block-start-style: dashed;
 }
 
-.setting-slider:has(.setting-range:disabled) .setting-value {
-    color: var(--app-text-muted);
+.setting-range[aria-disabled="true"]::-moz-range-track {
+    border-block-start-style: dashed;
+}
+
+.setting-range[aria-disabled="true"]::-webkit-slider-thumb {
+    background-color: var(--fg-faint);
+}
+
+.setting-range[aria-disabled="true"]::-moz-range-thumb {
+    background-color: var(--fg-faint);
+}
+
+.setting-slider:has(.setting-range[aria-disabled="true"]) .setting-value {
+    color: var(--fg-faint);
+}
+
+/* Forced colours (R-3, DEV-7): the square is a background, which forced colours removes, so the slider hands back to
+   the browser's own control in the user's system colours. The hairline rail still draws inside it, dashed while
+   disabled. */
+@media (forced-colors: active) {
+    .setting-range,
+    .setting-range::-webkit-slider-thumb {
+        -webkit-appearance: revert;
+        appearance: revert;
+    }
 }
 
 /* Dock tuning disclosure */
 .settings-disclosure__toggle {
     display: flex;
-    align-items: center;
-    gap: 0.5rem;
     width: 100%;
-    min-height: 2.25rem;
-    padding: 0.35rem 0;
-    border: 0;
-    background: transparent;
-    color: var(--app-text-secondary);
-    cursor: pointer;
-    font: inherit;
-    font-size: 0.85rem;
-    font-weight: 600;
     text-align: left;
-}
-
-.settings-disclosure__toggle:hover {
-    color: var(--app-text);
-}
-
-.settings-disclosure__icon {
-    font-size: 0.65rem;
-    transition: transform 0.2s ease;
-}
-
-.settings-disclosure__toggle[aria-expanded="true"] .settings-disclosure__icon {
-    transform: rotate(90deg);
 }
 
 .settings-disclosure__panel {
@@ -391,7 +249,7 @@
     gap: 0.9rem;
     margin-top: 0.35rem;
     padding: 0.15rem 0 0.25rem 0.9rem;
-    border-left: 1px solid var(--settings-divider);
+    border-left: var(--stroke-hair) solid var(--rule);
 }
 
 .settings-disclosure__panel[hidden] {
@@ -405,54 +263,41 @@
     gap: 0.5rem;
 }
 
-.settings-action {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.45rem;
-    min-height: 2.25rem;
-    padding: 0.45rem 0.75rem;
-    border: 1px solid color-mix(in srgb, var(--app-border) 80%, transparent);
-    border-radius: 6px;
-    background: transparent;
-    color: var(--app-text);
-    cursor: pointer;
-    font-family: var(--font-family-mono);
-    font-size: 0.78rem;
-    font-weight: 600;
-}
-
+/* The icon sits in the label line ahead of the word and takes the control's colour, so the hover marker
+   stays directly before the label and the pressed inverse reaches the icon. */
 .settings-action svg {
-    color: var(--app-text-muted);
+    margin-inline-end: var(--space-2);
     font-size: 0.8em;
 }
 
-.settings-action:hover {
-    border-color: var(--brand-primary);
-    color: var(--brand-primary);
-}
-
+/* Reset keeps its place at the row's end; it has no fault hue, because no error exists (P3-5). */
 .settings-action--danger {
     margin-left: auto;
-    border-color: color-mix(in srgb, var(--settings-danger) 45%, transparent);
-    color: var(--settings-danger);
 }
 
-.settings-action--danger svg {
-    color: inherit;
+/* Data action status (Phase 5 Task 4): a neutral line under the actions, in the muted reading voice, with no state
+   hue or marker. The live region stays rendered while empty so the next result is announced; it takes space only
+   when it holds text. */
+.settings-status {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
 }
 
-.settings-action--danger:hover {
-    border-color: var(--settings-danger);
-    background: color-mix(in srgb, var(--settings-danger) 10%, transparent);
-    color: var(--settings-danger);
+.settings-status:has(> .settings-status__text:not(:empty)) {
+    margin-top: var(--space-2);
+}
+
+.settings-status__text {
+    flex: 1;
+    margin: 0;
+    color: var(--fg-muted);
 }
 
 /* About */
 .settings-about p {
     margin: 0;
-    color: var(--app-text-secondary);
-    font-size: 0.85rem;
-    line-height: 1.5;
+    color: var(--fg-muted);
 }
 
 .settings-about > * + p:not(.settings-section-title) {
@@ -460,32 +305,17 @@
 }
 
 .settings-about .settings-about__name {
-    color: var(--app-text);
-    font-weight: 600;
+    color: var(--fg);
 }
 
 .settings-about .settings-build {
     margin-top: 0.4rem;
-    color: var(--app-text-muted);
-    font-family: var(--font-family-mono);
-    font-size: 0.78rem;
+    color: var(--fg-muted);
+    font-family: var(--font-mono);
 }
 
-.settings-build a {
-    color: var(--brand-primary);
-    text-decoration: none;
-}
-
-.settings-build a:hover {
-    text-decoration: underline;
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .setting-switch__track,
-    .setting-switch__thumb,
-    .settings-disclosure__icon {
-        transition: none;
-    }
+.settings-build__link {
+    display: inline-block;
 }
 
 /* Mobile Responsive */
@@ -525,20 +355,15 @@
 }
 
 .settings-content::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 4px;
+    background: var(--rule);
 }
 
 .settings-content::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 4px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--edge);
 }
 
 .settings-content::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.3);
+    background: var(--fg-muted);
 }
 
-.settings-header { position: sticky; top: 0; z-index: 1; background: var(--app-surface); }
-
-.settings-close:focus-visible { outline: 2px solid var(--brand-primary); outline-offset: 2px; }
+.settings-header { position: sticky; top: 0; z-index: 1; background: var(--surface-2); }

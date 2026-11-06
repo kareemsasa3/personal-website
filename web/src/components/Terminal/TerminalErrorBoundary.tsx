@@ -32,17 +32,19 @@ class TerminalErrorBoundary extends Component<Props, State> {
 
       return (
         <div className="terminal-error-boundary">
-          <div className="error-message">
-            <h3>Terminal Error</h3>
-            <p>
+          <div className="error-message df-error df-error--alarm">
+            <h3 className="df-heading-2">Terminal Error</h3>
+            <p className="df-body">
               Something went wrong with the terminal. Please refresh the page.
             </p>
-            <button
-              onClick={() => window.location.reload()}
-              className="error-reload-button"
-            >
-              Reload Page
-            </button>
+            <div className="error-actions">
+              <button
+                onClick={() => window.location.reload()}
+                className="error-reload-button df-control df-label"
+              >
+                Reload Page
+              </button>
+            </div>
           </div>
         </div>
       );

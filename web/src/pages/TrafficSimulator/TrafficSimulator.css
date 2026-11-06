@@ -1,16 +1,17 @@
+/* Traffic simulator chrome (Phase 5 Tasks 10 and 11). The road is the subject; everything around it is governed:
+   Narrator prose, Instrument labels, Machine values and the control model on one face on the field (§08), and the
+   legend, chart and tables drawn as Darkfield diagrams (§15). */
 .traffic-container {
-  /* Speed ramp mirrors renderer.ts (validated one-hue ordinal ramp per theme). */
+  /* P3-9 native hold for Phase 5: speed ramp mirrors renderer.ts in each theme. */
   --traffic-speed-0: #eef5fe;
   --traffic-speed-1: #b7d3f6;
   --traffic-speed-2: #6da7ec;
   --traffic-speed-3: #3987e5;
   --traffic-speed-4: #256abf;
-  --traffic-chart-line: #6da7ec;
+  --traffic-chart-line: var(--signal);
   max-width: 1400px;
   margin: 0 auto;
-  color: var(--app-text);
-  font-family: var(--font-family-mono, monospace);
-  line-height: 1.55;
+  color: var(--fg);
 }
 html[data-theme="light"] .traffic-container {
   --traffic-speed-0: #0d366b;
@@ -18,90 +19,78 @@ html[data-theme="light"] .traffic-container {
   --traffic-speed-2: #256abf;
   --traffic-speed-3: #3987e5;
   --traffic-speed-4: #6da7ec;
-  --traffic-chart-line: #256abf;
 }
 .traffic-header {
-  margin-bottom: 1.5rem;
-}
-.traffic-header a {
-  color: var(--brand-primary);
-}
-.traffic-header h1 {
-  color: var(--brand-primary);
-  font-size: clamp(1.7rem, 4vw, 2.8rem);
-  line-height: 1.15;
-  margin: 0.4rem 0 0.75rem;
+  margin-bottom: var(--space-6);
 }
 .traffic-header p {
-  margin: 0.5rem 0;
+  margin: var(--space-2) 0;
 }
+/* An operable breadcrumb: a light control in the label voice. */
+.traffic-back {
+  display: inline-block;
+}
+/* Narrator supporting text (§06): the eyebrow reads as a phrase, so it keeps its own case. */
 .traffic-eyebrow {
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--app-text-secondary);
-  padding-top: 1rem;
+  color: var(--fg-muted);
+  padding-top: var(--space-4);
+}
+.traffic-header h1 {
+  margin: var(--space-2) 0 var(--space-3);
+  color: var(--fg);
+}
+.traffic-header .traffic-lead {
+  color: var(--fg);
+}
+/* One instrument face (§08 Not a dashboard): the regions sit edge to edge on the field (Phase 6 R-7; §05 How much of
+   each), with no gaps and no boxes of their own. The road region is the one closed boundary, the bounded system in
+   edge (§09 L2). Every other region meets its neighbour on a single L1 rule: the controls bar draws the rule below it,
+   the messages, the charts and the context draw the rule above them, each overlapping its neighbour's edge by the
+   rule's width, and the road region (positioned, so painted later) keeps its edge where the two lines coincide. The
+   measurements column has no line of its own: it shares the road region's edge. The two charts share one region, side
+   by side and aligned, with no line between them. A control on the face rises one step on hover (§13 Hover). */
+:is(.traffic-controls, .traffic-workspace, .traffic-messages, .traffic-charts, .traffic-context) {
+  background-color: var(--field);
+  --df-ground-up: var(--surface-1);
 }
 .traffic-panel {
-  background: var(--app-surface);
-  border: 1px solid var(--app-border);
-  border-radius: 8px;
-  padding: 1rem;
+  padding: var(--space-4);
   min-width: 0;
 }
 .traffic-container h2 {
-  font-size: 1rem;
-  margin: 0 0 0.8rem;
-  color: var(--brand-primary);
+  margin: 0 0 var(--space-3);
+  color: var(--fg);
 }
-.traffic-container label {
+/* Field labels: the Instrument name above its field. */
+.traffic-label {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
-  font-size: 0.8rem;
+  gap: var(--space-2);
   min-width: 0;
+  color: var(--fg-muted);
 }
-.traffic-container :is(button, select) {
-  font: inherit;
-  font-size: 0.8rem;
-  color: var(--app-text);
-  border: 1px solid var(--app-border);
-  border-radius: 4px;
-  background: var(--app-bg);
-  min-height: 44px;
-  padding: 0.5rem 0.65rem;
-  max-width: 100%;
-}
-.traffic-container select {
+.traffic-container .df-field {
   width: 100%;
+  max-width: 100%;
+  padding: var(--space-2) var(--space-3);
 }
-.traffic-container button {
-  cursor: pointer;
-}
-.traffic-container button:hover:not(:disabled) {
-  border-color: var(--brand-primary);
-  background: var(--app-surface-elevated);
-}
-.traffic-container button:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-.traffic-container .traffic-primary {
-  border-color: var(--brand-primary);
-  color: var(--brand-primary);
-  font-weight: 700;
-  min-width: 85px;
+/* Target size: fields match the control model's three-cell height on small or coarse-pointer screens. */
+@media (max-width: 768px), (pointer: coarse) {
+  .traffic-container .df-field {
+    min-height: calc(3 * var(--cell-h));
+  }
 }
 .traffic-controls {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  margin-bottom: 1rem;
+  gap: var(--space-4);
+  border-bottom: var(--stroke-hair) solid var(--rule);
+  margin-bottom: calc(-1 * var(--stroke-hair));
 }
 .traffic-control-row {
   display: flex;
   align-items: end;
-  gap: 1rem;
+  gap: var(--space-4);
   flex-wrap: wrap;
 }
 .traffic-control-row > label {
@@ -110,63 +99,163 @@ html[data-theme="light"] .traffic-container {
 .traffic-control-row > label:last-child:not(.traffic-slider) {
   flex: 0 1 200px;
 }
+/* The sliders' row is divided from the actions by one L1 rule inside the controls region. */
 .traffic-sliders {
   align-items: start;
-  border-top: 1px solid var(--app-border);
-  padding-top: 1rem;
+  border-top: var(--stroke-hair) solid var(--rule);
+  padding-top: var(--space-4);
+}
+.traffic-slider {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
 }
 .traffic-slider > span {
   display: flex;
   justify-content: space-between;
-  gap: 0.5rem;
+  align-items: baseline;
+  gap: var(--space-2);
+  color: var(--fg-muted);
 }
+/* The value attached to the slider: Machine text in fg with its unit beside it. Each value sits in a Machine-voice line
+   box (df-data), so the label and value rows keep whole-pixel heights. */
 .traffic-slider output {
-  color: var(--brand-primary);
-  font-variant-numeric: tabular-nums;
   white-space: nowrap;
+  color: var(--fg);
 }
-.traffic-slider input[type="range"] {
-  width: 100%;
-  min-height: 44px;
-  margin: 0;
-  accent-color: var(--brand-primary);
+.traffic-slider output .df-label-sm {
+  color: var(--fg-muted);
 }
 .traffic-slider small {
-  color: var(--app-text-secondary);
-  font-size: 0.7rem;
+  color: var(--fg-muted);
+}
+/* Direct manipulation (§13). The input box stays the whole hit area. Drawn inside it: a hairline in the edge colour
+   along the range the value can take, a heavier mark closing each end, and the value itself as a solid signal-coloured
+   square, the same square as the Settings sliders; nothing fills the hairline behind it. The square's centre travels
+   from half a square in from the left edge to half a square in from the right, so the hairline and its marks are inset
+   by half a square on each side. Focus is the site ring. */
+.traffic-range {
+  --df-range-inset: calc(var(--cell-h) / 2);
+  position: relative;
+  display: block;
+}
+.traffic-slider input[type="range"].df-range {
+  --df-range-rail: linear-gradient(var(--edge), var(--edge));
+  position: relative;
+  appearance: none;
+  -webkit-appearance: none;
+  display: block;
+  width: 100%;
+  min-height: calc(3 * var(--cell-h));
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-0);
+  background-color: transparent;
+  background-image: var(--df-range-rail), var(--df-range-rail), var(--df-range-rail);
+  background-repeat: no-repeat;
+  background-size: var(--stroke-bold) var(--cell-h), var(--stroke-bold) var(--cell-h), calc(100% - var(--cell-h)) var(--stroke-hair);
+  background-position: calc(var(--df-range-inset) - var(--stroke-bold) / 2) center,
+    right calc(var(--df-range-inset) - var(--stroke-bold) / 2) center, var(--df-range-inset) center;
+  cursor: pointer;
+}
+/* One mark per step between the ends (--df-range-steps is the control's own count). Each mark is a box, which the
+   browser lays on whole device pixels, so every mark is a crisp hairline in edge at 1x and 2x (a repeating
+   gradient at a fractional pitch smeared marks across two pixels at a fraction of edge's contrast). The marks sit
+   under the input, so the square passes over them. */
+.traffic-range-ticks {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.traffic-range-ticks > span {
+  position: absolute;
+  inset-block-start: calc(50% - var(--grid-unit) / 2);
+  inset-inline-start: calc(var(--df-range-inset) + (100% - var(--cell-h)) * var(--df-range-tick) / var(--df-range-steps) -
+    var(--stroke-hair) / 2);
+  width: var(--stroke-hair);
+  height: var(--grid-unit);
+  background-color: var(--edge);
+}
+.traffic-slider .df-range::-webkit-slider-runnable-track {
+  height: var(--cell-h);
+  background: transparent;
+}
+.traffic-slider .df-range::-moz-range-track {
+  height: var(--cell-h);
+  background: transparent;
+}
+.traffic-slider .df-range::-moz-range-progress {
+  background-color: transparent;
+}
+.traffic-slider .df-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: var(--cell-h);
+  height: var(--cell-h);
+  border: 0;
+  border-radius: var(--radius-0);
+  background-color: var(--signal);
+}
+.traffic-slider .df-range::-moz-range-thumb {
+  width: var(--cell-h);
+  height: var(--cell-h);
+  border: 0;
+  border-radius: var(--radius-0);
+  background-color: var(--signal);
+}
+/* Forced colours (R-3, DEV-7): the rail and the square are backgrounds, which forced colours removes, so the slider
+   hands back to the browser's own control, painted in the user's system colours. */
+@media (forced-colors: active) {
+  .traffic-slider input[type="range"].df-range,
+  .traffic-slider .df-range::-webkit-slider-thumb {
+    appearance: revert;
+    -webkit-appearance: revert;
+  }
 }
 .traffic-actions {
   display: flex;
-  gap: 0.5rem;
+  gap: var(--space-2);
   flex-wrap: wrap;
 }
+/* No gap between the road region and the measurements: the measurements column takes the former gap as its own
+   leading padding, so the road region keeps its width. */
 .traffic-workspace {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(250px, 300px);
-  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) minmax(calc(250px + var(--space-4)), calc(300px + var(--space-4)));
+  gap: 0;
   align-items: start;
 }
+.traffic-readout-panel {
+  padding-inline-start: var(--space-8);
+}
+/* The road region is the bounded system (§09 L2 boundary). */
 .traffic-field {
+  position: relative;
   padding: 0;
   overflow: hidden;
+  border: var(--stroke-hair) solid var(--edge);
 }
 .traffic-status {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
-  gap: 0.4rem 1rem;
-  padding: 0.7rem 1rem;
-  font-size: 0.75rem;
-  font-variant-numeric: tabular-nums;
-  border-bottom: 1px solid var(--app-border);
+  align-items: baseline;
+  gap: var(--space-1) var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: var(--stroke-hair) solid var(--rule);
+  color: var(--fg-muted);
 }
-.traffic-status > span:first-child {
-  color: var(--brand-primary);
-}
+/* Native (D6): the canvases draw their own pictures; they keep the family, size and line height they inherited before
+   the chrome around them changed. */
 .traffic-canvas,
 .traffic-spacetime {
   display: block;
   width: 100%;
+  font-family: var(--font-mono);
+  font-size: medium;
+  line-height: 1.55;
 }
 .traffic-canvas {
   min-height: 120px;
@@ -176,34 +265,36 @@ html[data-theme="light"] .traffic-container {
   border-radius: 4px;
 }
 .traffic-field-footer {
-  padding: 0.75rem 1rem 1rem;
-  border-top: 1px solid var(--app-border);
+  padding: var(--space-3) var(--space-4) var(--space-4);
+  border-top: var(--stroke-hair) solid var(--rule);
 }
 .traffic-field-footer .traffic-note {
-  margin: 0.6rem 0 0;
+  margin: var(--space-2) 0 0;
 }
+/* The speed key (§15 Data visualisation): each band's name in the label voice, its range as Machine text, and a square
+   swatch that keeps the renderer's ramp (P5-2 hold). */
 .traffic-legend {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem 1rem;
+  gap: var(--space-1) var(--space-4);
   list-style: none;
   margin: 0;
   padding: 0;
-  font-size: 0.75rem;
+  color: var(--fg-muted);
 }
 .traffic-legend li {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: var(--space-2);
 }
 .traffic-legend-range {
-  color: var(--app-text-secondary);
+  color: var(--fg);
 }
 .traffic-swatch {
-  width: 18px;
-  height: 8px;
-  border-radius: 2px;
-  outline: 1px solid var(--app-border);
+  width: var(--cell-w);
+  height: var(--cell-w);
+  border-radius: var(--radius-0);
+  outline: var(--stroke-hair) solid var(--rule);
 }
 .traffic-swatch-0 { background: var(--traffic-speed-0); }
 .traffic-swatch-1 { background: var(--traffic-speed-1); }
@@ -211,126 +302,166 @@ html[data-theme="light"] .traffic-container {
 .traffic-swatch-3 { background: var(--traffic-speed-3); }
 .traffic-swatch-4 { background: var(--traffic-speed-4); }
 .traffic-note {
-  font-size: 0.75rem;
-  color: var(--app-text-secondary);
-  margin: 0.75rem 0;
+  margin: var(--space-3) 0;
+}
+/* Supporting notes are fg-muted; the warning keeps its message in fg. */
+.traffic-note:where(:not(.df-warning)) {
+  color: var(--fg-muted);
 }
 .traffic-readout {
   font-variant-numeric: tabular-nums;
   min-height: 1.2em;
   margin-bottom: 0;
 }
+/* Readouts (§06): an Instrument label beside a Machine value with its unit. Values read fg; while the simulation runs
+   the ones that change take the shared Live value class (grammar.css). */
 .traffic-metrics {
-  margin: 0 0 1.2rem;
-  font-size: 0.8rem;
-  font-variant-numeric: tabular-nums;
+  margin: 0 0 var(--space-6);
 }
 .traffic-metrics > div {
   display: flex;
   justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid var(--app-border);
+  align-items: baseline;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  border-bottom: var(--stroke-hair) solid var(--rule);
 }
 .traffic-metrics dt {
-  color: var(--app-text-secondary);
+  color: var(--fg-muted);
 }
 .traffic-metrics dd {
   margin: 0;
   text-align: right;
   overflow-wrap: anywhere;
+  color: var(--fg-muted);
+}
+/* The elapsed time and the signal countdowns are padded to a constant character count; their leading spaces are kept
+   so the labels beside them hold still (§06 Numeric readout). */
+.traffic-value {
+  color: var(--fg);
+  white-space: pre-wrap;
 }
 .traffic-signals {
   list-style: none;
   margin: 0;
   padding: 0;
-  font-size: 0.8rem;
-  font-variant-numeric: tabular-nums;
+  color: var(--fg-muted);
 }
 .traffic-signals li {
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
-  gap: 0.6rem;
-  padding: 0.4rem 0;
+  gap: var(--space-2);
+  padding: var(--space-1) 0;
 }
+/* The lamp is a square cell; its colour mirrors the renderer's signal colours (P5-2 hold, inline). */
 .traffic-signal-lamp {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
+  width: var(--cell-w);
+  height: var(--cell-w);
+  border-radius: var(--radius-0);
 }
+/* The two charts share one region: side by side and aligned, with no line between them. Each chart's column keeps the
+   inner width it had inside its former hairline box (one hairline of padding stands in for it), so the time-space
+   canvas keeps its width. */
 .traffic-charts {
   display: grid;
   grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
-  gap: 1rem;
-  margin-top: 1rem;
+  gap: var(--space-4);
+  border-top: var(--stroke-hair) solid var(--rule);
+  margin-top: calc(-1 * var(--stroke-hair));
+}
+.traffic-charts > .traffic-panel {
+  padding: calc(var(--space-4) + var(--stroke-hair));
 }
 .traffic-charts .traffic-note {
   margin-top: 0;
 }
+/* The throughput chart (§15 Data visualisation; §09 Line hierarchy, Dash semantics). The value and time axes are tick
+   rails in edge; the gridlines are the grid level, rule at the ghost opacity; there is no chart border. The subject
+   series is the signal step line; the demand line is the comparison series, the one coolant mark on the page, dashed as
+   planned. Ticks and their values are annotations. Every line sits on whole pixels (the component snaps them). */
 .traffic-chart {
   position: relative;
 }
 .traffic-chart svg {
   display: block;
   max-width: 100%;
-  font-size: 11px;
+  cursor: crosshair;
 }
 .traffic-chart-grid {
-  stroke: var(--app-border);
-  stroke-width: 1;
+  stroke: var(--rule);
+  stroke-width: var(--stroke-hair);
+  stroke-opacity: var(--opacity-ghost);
 }
-.traffic-chart-tick,
-.traffic-chart-label {
-  fill: var(--app-text-secondary);
+.traffic-chart-axis {
+  fill: none;
+  stroke: var(--edge);
+  stroke-width: var(--stroke-hair);
+}
+.traffic-chart-tick {
+  fill: var(--fg-faint);
+}
+.traffic-chart-label .df-label-sm {
+  fill: var(--fg-muted);
+}
+.traffic-chart-label-value {
+  fill: var(--fg);
 }
 .traffic-chart-line {
   fill: none;
   stroke: var(--traffic-chart-line);
-  stroke-width: 2;
-  stroke-linejoin: round;
+  stroke-width: var(--stroke-bold);
+  stroke-linejoin: miter;
+  stroke-linecap: butt;
 }
 .traffic-chart-demand {
-  stroke: var(--app-text-secondary);
-  stroke-width: 1;
-  stroke-dasharray: 5 4;
+  stroke: var(--coolant);
+  stroke-width: var(--stroke-hair);
+  stroke-dasharray: var(--dash-provisional);
 }
+/* Inspect (§13): while the pointer is on the plot, the chart adds a dotted measuring line in edge, four edge corners
+   framing the inspected sample, and a node on it; nothing else changes. */
 .traffic-chart-cross {
-  stroke: var(--app-text-secondary);
-  stroke-width: 1;
+  fill: none;
+  stroke: var(--edge);
+  stroke-width: var(--stroke-hair);
+  stroke-dasharray: var(--dash-measure);
 }
-.traffic-chart-dot {
+.traffic-chart-brackets {
+  fill: none;
+  stroke: var(--edge);
+  stroke-width: var(--stroke-hair);
+  stroke-linejoin: miter;
+  stroke-linecap: butt;
+}
+.traffic-chart-node {
   fill: var(--traffic-chart-line);
-  stroke: var(--app-surface);
-  stroke-width: 2;
+  r: var(--grid-half);
 }
+/* The Inspect readout beside the measuring line: Machine values with their units as labels, on surface-2 in an edge
+   boundary. */
 .traffic-chart-tooltip {
   position: absolute;
   top: 0;
-  transform: translateX(-50%);
   display: flex;
   flex-direction: column;
-  padding: 0.35rem 0.55rem;
-  font-size: 0.72rem;
+  padding: var(--space-1) var(--space-2);
   white-space: nowrap;
   pointer-events: none;
-  background: var(--app-surface-elevated, var(--app-surface));
-  border: 1px solid var(--app-border);
-  border-radius: 4px;
+  color: var(--fg-muted);
+  background-color: var(--surface-2);
+  border: var(--stroke-hair) solid var(--edge);
+  border-radius: var(--radius-0);
 }
-.traffic-chart-tooltip span {
-  color: var(--app-text-secondary);
+.traffic-chart-tooltip .df-data {
+  color: var(--fg);
 }
+/* The data tables: column names in the label voice, values as Machine text, one L1 rule under each row. */
 .traffic-table {
-  margin-top: 0.6rem;
-  font-size: 0.75rem;
+  margin-top: var(--space-3);
 }
-.traffic-table summary {
-  cursor: pointer;
-  color: var(--app-text-secondary);
-  min-height: 44px;
-  display: flex;
-  align-items: center;
+.traffic-table > table {
+  margin-top: var(--space-3);
 }
 .traffic-table table {
   width: 100%;
@@ -339,36 +470,132 @@ html[data-theme="light"] .traffic-container {
 }
 .traffic-table :is(th, td) {
   text-align: right;
-  padding: 0.25rem 0.4rem;
-  border-bottom: 1px solid var(--app-border);
+  padding: var(--space-1) var(--space-2);
+  border-bottom: var(--stroke-hair) solid var(--rule);
 }
 .traffic-table :is(th, td):first-child {
   text-align: left;
 }
+.traffic-table th {
+  color: var(--fg-muted);
+}
+.traffic-table td {
+  color: var(--fg);
+}
 .traffic-table caption {
   caption-side: top;
   text-align: left;
-  padding-bottom: 0.35rem;
-  color: var(--app-text-secondary);
+  padding-bottom: var(--space-2);
+  color: var(--fg-muted);
 }
 .traffic-slow-table :is(th, td) {
   text-align: left;
   overflow-wrap: anywhere;
 }
+/* The time-space table is drawn by its creative-owned component, which gives its disclosure and cells no classes. From
+   here they take the voices the type tokens allow without sizes of their own: Machine cells and Instrument column
+   names at the panel's text size, the caption as Narrator text. */
+.traffic-slow-table th {
+  font-family: var(--font-narrow);
+  font-weight: inherit;
+  text-transform: uppercase;
+}
+.traffic-slow-table td {
+  font-family: var(--font-mono);
+  font-feature-settings: "zero";
+}
+/* Its disclosure follows the latched control (§13; grammar.css .df-control--latch): an edge boundary, a lamp cell
+   ahead of the name that fills with signal while the table is open, the hover marker, ground and ink, and the
+   inverse while pressed. */
+.traffic-table > summary:not(.df-control) {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  box-sizing: border-box;
+  padding: var(--space-2) var(--space-3);
+  border: var(--stroke-hair) solid var(--edge);
+  border-radius: var(--radius-0);
+  background-color: transparent;
+  color: var(--fg-muted);
+  font-family: var(--font-narrow);
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color var(--dur-fast) var(--ease-standard), border-color var(--dur-fast) var(--ease-standard),
+    color var(--dur-fast) var(--ease-standard);
+}
+.traffic-table > summary:not(.df-control)::before {
+  content: "";
+  display: flex;
+  align-items: center;
+  align-self: stretch;
+  width: var(--cell-w);
+  margin-inline: calc(-1 * var(--cell-w)) calc(-1 * var(--space-2));
+  font-family: var(--font-mono);
+  pointer-events: none;
+}
+.traffic-table > summary:not(.df-control)::after {
+  content: "";
+  order: -1;
+  flex: none;
+  width: var(--cell-w);
+  height: var(--cell-h);
+  box-sizing: border-box;
+  border: var(--stroke-hair) solid var(--edge);
+}
+.traffic-table[open] > summary:not(.df-control) {
+  color: var(--fg);
+}
+.traffic-table[open] > summary:not(.df-control)::after {
+  background-color: var(--signal);
+  border-color: var(--signal);
+}
+.traffic-table > summary:not(.df-control):hover {
+  background-color: var(--df-ground-up, var(--surface-1));
+  border-color: var(--fg-muted);
+  color: var(--fg);
+}
+.traffic-table > summary:not(.df-control):hover::before {
+  content: "›";
+  content: "›" / "";
+}
+.traffic-table > summary:not(.df-control):is(:active, [data-df-pressed]) {
+  background-color: var(--signal);
+  border-color: var(--signal);
+  color: var(--on-signal);
+  transition: none;
+}
+@media (max-width: 768px), (pointer: coarse) {
+  .traffic-table > summary:not(.df-control) {
+    padding-block: max(var(--space-2), calc((3 * var(--cell-h) - 1lh) / 2 - var(--stroke-hair)));
+  }
+}
 .traffic-context {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 2rem;
-  margin-top: 1rem;
-  font-size: 0.85rem;
+  gap: var(--space-8);
+}
+.traffic-messages,
+.traffic-context {
+  border-top: var(--stroke-hair) solid var(--rule);
+  margin-top: calc(-1 * var(--stroke-hair));
+}
+.traffic-messages {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+}
+.traffic-messages > * {
+  margin: 0;
 }
 .traffic-context p {
-  margin: 0.75rem 0 0;
+  margin: var(--space-3) 0 0;
 }
-.traffic-warning {
-  border-color: var(--brand-primary);
-  font-size: 0.85rem;
-  margin-top: 1rem;
+/* States (§13): the simulation's error and the degraded-playback warning. */
+.traffic-warning,
+.traffic-note.df-warning {
+  padding: var(--space-3) var(--space-4);
 }
 @media (max-width: 1000px) {
   .traffic-charts {
@@ -379,26 +606,26 @@ html[data-theme="light"] .traffic-container {
   .traffic-workspace {
     grid-template-columns: minmax(0, 1fr);
   }
+  .traffic-readout-panel {
+    padding-inline-start: var(--space-4);
+  }
   .traffic-context {
     grid-template-columns: minmax(0, 1fr);
-    gap: 1.4rem;
+    gap: var(--space-6);
   }
 }
 @media (max-width: 480px) {
   .traffic-control-row {
-    gap: 0.8rem;
+    gap: var(--space-3);
   }
   .traffic-control-row > label,
   .traffic-control-row > label:last-child:not(.traffic-slider) {
     flex-basis: 100%;
   }
   .traffic-status {
-    padding: 0.6rem;
+    padding: var(--space-2);
   }
   .traffic-field-footer {
-    padding: 0.75rem;
-  }
-  .traffic-eyebrow {
-    letter-spacing: 0;
+    padding: var(--space-3);
   }
 }

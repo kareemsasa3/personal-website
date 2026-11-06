@@ -1,0 +1,120 @@
+{
+  "system": "Darkfield",
+  "tokensVersion": 1,
+  "canonical": {
+    "location": "github.com/kareemsasa/darkfield",
+    "tag": "tokens-v1-2026-10-09",
+    "commit": "4f02965bfa51eb060c39734608422dde0d288009"
+  },
+  "export": {
+    "archive": "darkfield-design-system.zip",
+    "sha256": "018116bd43d11890f280e6eab615bcdb08e3de0871e44215d1bfa7867346b6b8"
+  },
+  "r1": {
+    "archive": "darkfield-r1.zip",
+    "sha256": "595d8e2ee36b1366286ff678c73ebba66f0e604ee267d8d612dfcc6f1931bb42"
+  },
+  "files": {
+    "src/styles/darkfield/tokens.runtime.json": {
+      "derivedFrom": "tokens.json",
+      "sourceSha256": "942115fc42277c33b45207ff2f20cfd4e2e8283930e1e8afcaed81dcab5a9bcc",
+      "exporter": "scripts/darkfield-export.mjs",
+      "schema": "darkfield-runtime/1",
+      "sha256": "1c489e783a17942c80f211c96d4ac569186080e5935a0e06442d5934022555a3"
+    },
+    "public/fonts/darkfield/Archivo-Variable-Latin.woff2": {
+      "from": "fonts/Archivo-Variable-Latin.woff2",
+      "sha256": "7c59b09511f172d20fbf5feaf7aff9e844460cdb286d8930a1f546b39ed1a5e1"
+    },
+    "public/fonts/darkfield/ArchivoNarrow-Latin-500.woff2": {
+      "from": "fonts/ArchivoNarrow-Latin-500.woff2",
+      "sha256": "2f3cd0d55f98761b967bd97d917b15a24718f89407364f450d95c4e411e4f9de"
+    },
+    "public/fonts/darkfield/ArchivoNarrow-Latin-600.woff2": {
+      "from": "fonts/ArchivoNarrow-Latin-600.woff2",
+      "sha256": "0453a7abd1e469e5c56ac10d2df446ead894ee0f9bae28c5ee79e17ed1200cf8"
+    },
+    "public/fonts/darkfield/IBMPlexMono-Regular.woff2": {
+      "from": "fonts/IBMPlexMono-Regular.woff2",
+      "sha256": "ba204497f16b6d334cee9d1e963a831b73e3a56e1d6300a8489d18df7214b350"
+    },
+    "public/fonts/darkfield/IBMPlexMono-Medium.woff2": {
+      "from": "fonts/IBMPlexMono-Medium.woff2",
+      "sha256": "33faf307fa6031fb4062276d7320a6d632de890cbb347576fd80cfa01077bc25"
+    },
+    "public/fonts/darkfield/IBMPlexMono-SemiBold.woff2": {
+      "from": "fonts/IBMPlexMono-SemiBold.woff2",
+      "sha256": "6a825b4824c01cbb401e829e5a066a1818411bcb3538b5a5792c5ca9b82343c3"
+    },
+    "public/fonts/darkfield/licenses/Archivo-OFL.txt": {
+      "from": "licenses/Archivo-OFL.txt",
+      "sha256": "18aabf190848725e2576eefb5c29ba06aac1029d02132252a7f312eac2e50cf3"
+    },
+    "public/fonts/darkfield/licenses/Archivo-Narrow-OFL.txt": {
+      "from": "licenses/Archivo-Narrow-OFL.txt",
+      "sha256": "18aabf190848725e2576eefb5c29ba06aac1029d02132252a7f312eac2e50cf3"
+    },
+    "public/fonts/darkfield/licenses/IBM-Plex-Mono-OFL.txt": {
+      "from": "licenses/IBM-Plex-Mono-OFL.txt",
+      "sha256": "7e6b2818edbd8f6a01ae80641cc8f16a51080d08fb4e532be3a0b6f74adb07da"
+    },
+    "public/favicon.ico": {
+      "from": "r1/favicon/favicon.ico",
+      "sha256": "04556046ff49b362e09db2fa831e1cc0588324e31541482ce15951510f6caaa0"
+    },
+    "public/favicon.svg": {
+      "from": "r1/favicon/favicon.svg",
+      "transform": "c2pa-strip",
+      "sourceSha256": "57c445e98debd1bb2671f6ac87e1fc98634455679b387ff0c033d2c3dfdf7438",
+      "sha256": "02edfce32fd81132883cf48657be580127e681d672bdb9c7fb78d27c0de8dad5"
+    },
+    "public/favicon-16.png": {
+      "from": "r1/favicon/favicon-16.png",
+      "transform": "c2pa-strip",
+      "sourceSha256": "23eeaac2682c610ee40df5862f2881df699812ac4675fd6834ae1556fc03bdf5",
+      "sha256": "6127ceca6613550fa63b18bf8299b78e852ccca826175f91aed52ce4c18f4cbb"
+    },
+    "public/favicon-32.png": {
+      "from": "r1/favicon/favicon-32.png",
+      "transform": "c2pa-strip",
+      "sourceSha256": "8ef6a98bf220848f4f455c3c69d2456aef3012db32a3183a03ed5b4bdc116891",
+      "sha256": "a4062256b6efc3e93a2da0d5894d60d6557a02c04e28a15e175304513d387045"
+    },
+    "public/favicon-48.png": {
+      "from": "r1/favicon/favicon-48.png",
+      "transform": "c2pa-strip",
+      "sourceSha256": "a69c1ecdd89405e8971c04d83d6fddc35485ce664cf2e89fcd651b2878759513",
+      "sha256": "812250941dcd0ce6adaf6c495060dbeb6a832e4760f38dc344b2dccafc581b41"
+    },
+    "public/apple-touch-icon.png": {
+      "from": "r1/favicon/apple-touch-icon.png",
+      "transform": "c2pa-strip",
+      "sourceSha256": "d07fab010d15c2132e0e8eeadeeb94b06e1ebb2f688e3bd99c0f6d98ba440c27",
+      "sha256": "50277a1caddbf471111e4f9dd24669478c0c0c9f640b5a397b26fd49150f0291"
+    },
+    "public/icon-192.png": {
+      "from": "r1/favicon/icon-192.png",
+      "transform": "c2pa-strip",
+      "sourceSha256": "6af2cb144506987fc35c40333c37f931d5ba91e086f8f3aaef1ec5b704eed3b3",
+      "sha256": "cc87e7160b1e2777e6586b2fca2766741fac2a972dd3921101401f177ae15638"
+    },
+    "public/icon-512.png": {
+      "from": "r1/favicon/icon-512.png",
+      "transform": "c2pa-strip",
+      "sourceSha256": "a39653cf3f558ef2c19c609799faeaf1e4fe41c7fa01bade1b881d81a822a5af",
+      "sha256": "2c0201ef3f05c351e614e21b20034ebab4a738d4334f136a4af436edeff39468"
+    },
+    "public/icon-512-maskable.png": {
+      "from": "r1/favicon/icon-512-maskable.png",
+      "transform": "c2pa-strip",
+      "sourceSha256": "36a64186fd69404600d3b91f1c626a73779cbfb008361859667457a327c807d9",
+      "sha256": "d46081dcceae4276abe01490eb2bc11e1c8356036c94935cebf2a138343a5b29"
+    },
+    "src/assets/darkfield/darkfield-r1-symbol-currentcolor.svg": {
+      "from": "r1/symbol/darkfield-r1-symbol-currentcolor.svg",
+      "transform": "c2pa-strip",
+      "sourceSha256": "527680a1bbc52e79d56f8427fe155bfc5c34d046c34eb766d07b1ee9be8f8ee0",
+      "sha256": "3a3f3211632af10193d8f5e60b1721033d25d275759c35da18019a937838ad5e"
+    }
+  }
+}

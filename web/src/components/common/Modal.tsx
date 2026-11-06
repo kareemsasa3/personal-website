@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useRef } from "react";
 import FocusTrap from "focus-trap-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTimes } from "@fortawesome/free-solid-svg-icons";
 import "./Modal.css";
 import ViewportPortal from "./ViewportPortal";
+import { INSTANT, motionToken } from "../../utils/motionTokens";
 
 interface ModalProps {
   isOpen: boolean;
@@ -31,6 +32,10 @@ const Modal: React.FC<ModalProps> = ({
   type = "info",
   showCloseButton = true,
 }) => {
+  const reduce = useReducedMotion();
+  const enter = reduce ? INSTANT : motionToken("--dur-base", "--ease-settle");
+  const leave = reduce ? INSTANT : motionToken("--dur-fast", "--ease-depart");
+
   const handleConfirm = () => {
     onConfirm?.();
     onClose();
@@ -41,8 +46,12 @@ const Modal: React.FC<ModalProps> = ({
     onClose();
   };
 
+  // A click closes the dialog only when the press both began and ended on the backdrop: a press dragged off where it
+  // started, either way between the backdrop and the dialog, does nothing (§13 Activation).
+  const pressOnBackdrop = useRef(false);
+  const releaseOnBackdrop = useRef(false);
   const handleBackdropClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
+    if (e.target === e.currentTarget && pressOnBackdrop.current && releaseOnBackdrop.current) {
       onClose();
     }
   };
@@ -56,61 +65,60 @@ const Modal: React.FC<ModalProps> = ({
             onKeyDown={(event) => { if (event.key === "Escape") { event.stopPropagation(); onClose(); } }}
             className="modal-overlay"
             initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            // §12: state transition (create) · the dialog opened
+            animate={{ opacity: 1, transition: enter }}
+            // §12: state transition (remove) · the dialog closed
+            exit={{ opacity: 0, transition: leave }}
+            onPointerDown={(event) => { pressOnBackdrop.current = event.target === event.currentTarget; }}
+            onPointerUp={(event) => { releaseOnBackdrop.current = event.target === event.currentTarget; }}
             onClick={handleBackdropClick}
             role="dialog"
             aria-modal="true"
             aria-labelledby="modal-title"
           >
             <motion.div
-              className={`modal-content modal-${type}`}
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className={`modal-content modal-${type} df-cut-md`}
+              initial={{ opacity: 0 }}
+              // §12: state transition (create) · the dialog opened
+              animate={{ opacity: 1, transition: enter }}
+              // §12: state transition (remove) · the dialog closed
+              exit={{ opacity: 0, transition: leave }}
               onClick={(e) => e.stopPropagation()}
             >
               <div className="modal-header">
-                <h2 id="modal-title" className="modal-title">
+                <h2 id="modal-title" className="modal-title df-heading-3">
                   {title}
                 </h2>
                 {showCloseButton && (
-                  <motion.button
-                    className="modal-close"
+                  <button
+                    className="modal-close df-control df-label"
                     onClick={onClose}
                     aria-label="Close modal"
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.95 }}
                   >
                     <FontAwesomeIcon icon={faTimes} />
-                  </motion.button>
+                  </button>
                 )}
               </div>
 
-              <div className="modal-body">{children}</div>
+              <div className="modal-body df-body">{children}</div>
 
               {(onConfirm || onCancel) && (
                 <div className="modal-footer">
                   {onCancel && (
-                    <motion.button
-                      className="modal-button modal-button-secondary"
+                    <button
+                      className="modal-button modal-button-secondary df-control df-label"
                       onClick={handleCancel}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
                     >
                       {cancelText}
-                    </motion.button>
+                    </button>
                   )}
                   {onConfirm && (
-                    <motion.button
-                      className={`modal-button modal-button-${type}`}
+                    <button
+                      className={`modal-button modal-button-${type} df-control df-label`}
                       onClick={handleConfirm}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
                     >
                       {confirmText}
-                    </motion.button>
+                    </button>
                   )}
                 </div>
               )}

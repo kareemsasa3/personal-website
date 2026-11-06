@@ -32,7 +32,7 @@ const { values: args } = parseArgs({
     "plan-only": { type: "boolean", default: false },
   },
 });
-assert.ok(["dark", "light"].includes(args.theme), "--theme must be dark or light");
+assert.ok(["dark", "light", "mono"].includes(args.theme), "--theme must be dark, light or mono");
 assert.ok(["compare", "same-revision"].includes(args.mode), "--mode must be compare or same-revision");
 
 const repoRoot = resolve(import.meta.dirname, "../..");

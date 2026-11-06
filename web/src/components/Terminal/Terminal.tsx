@@ -1,5 +1,6 @@
 import React, {
   useEffect,
+  useLayoutEffect,
   useState,
   useCallback,
   useMemo,
@@ -72,6 +73,13 @@ const Terminal: React.FC<TerminalProps> = ({ isIntro }) => {
   // Input typed before history navigation started, restored past the newest entry
   const historyDraftRef = useRef("");
   const sidecarRef = useRef<HTMLButtonElement>(null);
+  const introRef = useRef<HTMLDivElement>(null);
+  // Where the route intro ends in the viewport, and whether the window still shows its minimum transcript rows when it
+  // is kept clear below it. If it does, the window stays below the intro (Terminal.css), so the page heading is never
+  // covered; if not, the window rises to the site header and the intro is hidden visually (still in the accessibility
+  // tree), so nothing is ever half covered. Measured again whenever the intro, the page around it or the window's
+  // header or the site header changes size, and on scroll.
+  const [introLayout, setIntroLayout] = useState<{ bottom: number; clear: boolean } | null>(null);
   const wasMinimizedRef = useRef(false);
 
   // Handle terminal close
@@ -106,6 +114,58 @@ const Terminal: React.FC<TerminalProps> = ({ isIntro }) => {
       if (restoreFrame !== undefined) cancelAnimationFrame(restoreFrame);
     };
   }, [windowManagement.isMinimized]);
+
+  useLayoutEffect(() => {
+    const intro = introRef.current;
+    if (!intro) return;
+    const container = document.querySelector<HTMLElement>(".terminal-screen .terminal-container");
+    const header = container?.querySelector<HTMLElement>(".terminal-header");
+    const measure = () => {
+      // The intro is hidden by clipping only, so its box (and this measurement) is the same either way.
+      const bottom = Math.ceil(intro.getBoundingClientRect().bottom);
+      let clear = true;
+      if (container && header && container.parentElement) {
+        const box = getComputedStyle(container);
+        const body = container.querySelector<HTMLElement>(".terminal-body");
+        const pad = body ? getComputedStyle(body) : null;
+        const rows = parseFloat(box.getPropertyValue("--terminal-floor-rows")) * parseFloat(box.getPropertyValue("--cell-h"));
+        const needed = header.getBoundingClientRect().height + parseFloat(box.borderTopWidth) + parseFloat(box.borderBottomWidth) +
+          (pad ? parseFloat(pad.paddingTop) + parseFloat(pad.paddingBottom) : 0) + rows;
+        // The space the dock and the device keep at the bottom, resolved where the window's layer defines it.
+        const probe = document.createElement("i");
+        probe.style.cssText = "position: absolute; visibility: hidden; block-size: var(--viewport-safe-bottom);";
+        container.parentElement.append(probe);
+        const safeBottom = probe.getBoundingClientRect().height;
+        probe.remove();
+        clear = window.innerHeight - safeBottom - (bottom + parseFloat(box.getPropertyValue("--grid-gutter"))) >= needed;
+      }
+      setIntroLayout((last) => (last && last.bottom === bottom && last.clear === clear ? last : { bottom, clear }));
+    };
+    measure();
+    // Measured at once and again on the next frame, so the result never depends on whether the site header's own
+    // observer (which moves the page) has run yet.
+    let frame = 0;
+    const observer = new ResizeObserver(() => {
+      measure();
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(measure);
+    });
+    observer.observe(intro);
+    if (intro.parentElement) observer.observe(intro.parentElement);
+    if (header) observer.observe(header);
+    // The site header's height sets where the page (and so the intro) starts. After a resize it settles a step later,
+    // through the header's own size change, which moves the intro without resizing it: watch the header as well.
+    const siteHeader = document.querySelector<HTMLElement>(".site-header");
+    if (siteHeader) observer.observe(siteHeader);
+    window.addEventListener("resize", measure);
+    window.addEventListener("scroll", measure, { passive: true });
+    return () => {
+      observer.disconnect();
+      cancelAnimationFrame(frame);
+      window.removeEventListener("resize", measure);
+      window.removeEventListener("scroll", measure);
+    };
+  }, [isIntro, windowManagement.isMinimized]);
 
   // Use the body scroll lock hook
   useLockBodyScroll(isIntro);
@@ -266,25 +326,22 @@ const Terminal: React.FC<TerminalProps> = ({ isIntro }) => {
         }`}
       >
         {!isIntro && (
-          <div className="terminal-route-intro">
-            {/* Inner wrapper carries the scrim: prose-surface sets position: relative, which would override the intro's absolute positioning */}
-            <div className="prose-surface">
-              <h1 className="terminal-route-title">Terminal</h1>
-              <p className="terminal-route-description">
-                Interactive interface for exploring parts of the site and
-                projects.
-              </p>
-            </div>
+          <div className={`terminal-route-intro${introLayout?.clear === false ? " terminal-route-intro--behind" : ""}`} ref={introRef}>
+            <h1 className="terminal-route-title df-heading-1">Terminal</h1>
+            <p className="terminal-route-description df-body">
+              Interactive interface for exploring parts of the site and
+              projects.
+            </p>
           </div>
         )}
 
         {/* The sidecar for minimized state - NOW a BUTTON */}
         {isStateLoaded && windowManagement.showSidecar && (
           <button
-            className="terminal-sidecar"
+            className="terminal-sidecar df-control df-label"
             ref={sidecarRef}
             onClick={windowManagement.handleMinimize}
-            aria-label="Restore terminal window"
+            aria-label="Terminal minimized — reopen"
           >
             <span className="sidecar-icon" aria-hidden="true">
               &gt;_ Terminal minimized — reopen
@@ -316,7 +373,8 @@ const Terminal: React.FC<TerminalProps> = ({ isIntro }) => {
 
           {/* Main terminal window */}
           {!windowManagement.isMinimized && <TerminalWindow
-            containerStyles={windowManagement.containerStyles}
+            containerStyles={introLayout?.clear ? { ...windowManagement.containerStyles, ["--terminal-intro-bottom" as string]: `${introLayout.bottom}px` }
+              : windowManagement.containerStyles}
             isMaximized={windowManagement.isMaximized}
             isDragging={windowManagement.isDragging}
             currentDirectory={coreState.currentDirectory}

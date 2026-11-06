@@ -1,6 +1,5 @@
 import "./FeaturedProjectsSection.css";
-import { motion, MotionStyle } from "framer-motion";
-import { forwardRef, ForwardedRef } from "react";
+import { forwardRef, ForwardedRef, CSSProperties } from "react";
 import { Link } from "react-router-dom";
 import { caseStudyCards } from "../../../data/caseStudies";
 import { featuredProjectIds } from "../../../data/siteContent";
@@ -14,7 +13,7 @@ interface FeaturedProjectsSectionProps {
   onNavigateToProjects: () => void;
   isNavigatingToCaseStudies: boolean;
   isNavigatingToProjects: boolean;
-  style?: MotionStyle;
+  style?: CSSProperties;
 }
 
 export const FeaturedProjectsSection = forwardRef(
@@ -29,101 +28,83 @@ export const FeaturedProjectsSection = forwardRef(
     ref: ForwardedRef<HTMLElement>
   ) => {
     return (
-      <motion.section
+      <section
         ref={ref}
         className="featured-projects-section"
         role="region"
         aria-labelledby="featured-projects-title"
         style={style}
       >
-        <motion.h2
+        <h2
           id="featured-projects-title"
-          className="section-title"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.6, delay: 0.2 }}
+          className="section-title df-heading-2"
         >
           Featured Systems
-        </motion.h2>
-        <motion.div
+        </h2>
+        <div
           className="featured-projects-grid"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.6, delay: 0.4 }}
         >
-          {featuredProjects.map((caseStudy, index) => (
-            <motion.article
-              key={caseStudy.slug}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.6, delay: 0.6 + index * 0.1 }}
-              whileHover={{
-                y: -8,
-                transition: { duration: 0.3 },
-              }}
-            >
+          {featuredProjects.map((caseStudy) => (
+            <article key={caseStudy.slug}>
               <Link
                 to={`/case-studies/${caseStudy.slug}`}
-                className="featured-project-card interactive-card featured-project-link"
+                className="featured-project-card featured-project-link df-control df-control--card"
                 aria-label={`Read the ${caseStudy.title} case study`}
               >
                 <div className="project-header">
-                  <h3 className="project-title">{caseStudy.title}</h3>
+                  <h3 className="project-title df-heading-3">{caseStudy.title}</h3>
                   <div className="project-badges">
                     <span
-                      className={`status-badge ${caseStudy.status.toLowerCase()}`}
+                      className={`status-badge df-label-sm df-context${
+            caseStudy.status.toLowerCase() === "live" ? " df-context--live" : ""
+          }`}
                     >
                       {caseStudy.status}
                     </span>
                   </div>
                 </div>
-                <p className="project-description">
+                <p className="project-description df-body-sm">
                   {caseStudy.shortDescription}
                 </p>
                 <div className="project-tech">
                   {caseStudy.focusAreas.map((focusArea) => (
-                    <span key={focusArea} className="tech-tag">
+                    <span key={focusArea} className="tech-tag df-label-sm df-context">
                       {focusArea}
                     </span>
                   ))}
                 </div>
                 <div className="featured-project-footer">
-                  <span className="featured-project-link-text">
+                  <span className="featured-project-link-text df-label">
                     Read case study →
                   </span>
                 </div>
               </Link>
-            </motion.article>
+            </article>
           ))}
-        </motion.div>
-        <motion.div
+        </div>
+        <div
           className="featured-projects-cta"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.6, delay: 0.8 }}
         >
           <button
-            className="btn btn-outline"
+            className="btn btn-outline df-control df-label"
             onClick={onNavigateToCaseStudies}
             disabled={isNavigatingToCaseStudies}
+            aria-busy={isNavigatingToCaseStudies}
             aria-label="Read flagship system case studies"
           >
-            {isNavigatingToCaseStudies ? "Loading..." : "Read Case Studies →"}
+            Read Case Studies →
           </button>
           <button
-            className="btn btn-secondary"
+            className="btn btn-secondary df-control df-label"
             onClick={onNavigateToProjects}
             disabled={isNavigatingToProjects}
+            aria-busy={isNavigatingToProjects}
             aria-label="Browse the full project archive"
           >
-            {isNavigatingToProjects ? "Loading..." : "Browse All Projects →"}
+            Browse All Projects →
           </button>
-        </motion.div>
-      </motion.section>
+        </div>
+      </section>
     );
   }
 );

@@ -4,75 +4,29 @@
   position: relative;
   overflow: hidden;
   padding: 1.5rem;
-  background: var(--background-color);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  transition: all 0.3s ease;
-  /* Performance optimizations for animations */
-  transform: translateZ(0);
-  will-change: transform, box-shadow;
+}
+
+/* Static modules share a top seam with their neighbours. */
+.interactive-card:not(a) {
+  border-top: var(--stroke-hair) solid var(--rule);
 }
 
 .interactive-card > * {
   min-width: 0;
 }
 
-.interactive-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(0, 255, 0, 0.1), transparent);
-  transition: left 0.5s ease;
-}
-
-.interactive-card:hover {
-  background: rgba(0, 255, 0, 0.05);
-  border-color: var(--primary-color);
-  box-shadow: 0 0 30px rgba(0, 255, 0, 0.3), 0 10px 40px rgba(0, 0, 0, 0.1);
-  transform: translateY(-4px) scale(1.02);
-}
-
-.interactive-card:hover::before {
-  left: 100%;
-}
-
+/* Lifecycle statuses and tags are context labels (D7): the voice and colour come from
+   .df-label-sm and .df-context; these rules keep layout only. */
 .status-badge {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
   flex: 0 0 auto;
   box-sizing: border-box;
   width: fit-content;
   max-width: 100%;
-  padding: 0.25rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: white;
-  line-height: 1.2;
   overflow-wrap: normal;
   white-space: nowrap;
   word-break: normal;
-}
-
-.status-badge.live {
-  background: #51cf66;
-  color: white;
-}
-
-.status-badge.development {
-  background: #ffd43b;
-  color: #333;
-}
-
-.status-badge.completed {
-  background: #74c0fc;
-  color: white;
 }
 
 .tech-tag {
@@ -81,43 +35,13 @@
   box-sizing: border-box;
   width: fit-content;
   max-width: 100%;
-  padding: 0.25rem 0.75rem;
-  /* Solid dark-green pill with light text: 4.86:1 contrast in both themes.
-     The old pale-green fill with green text was 1.38:1 and needed per-page patches. */
-  background: #2e7d32;
-  border: 1px solid var(--primary-color);
-  border-radius: 15px;
-  color: #f8f9fa;
-  font-size: 0.8rem;
-  font-weight: 500;
-  line-height: 1.25;
   overflow-wrap: normal;
   white-space: normal;
   word-break: normal;
-  transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease;
 }
 
 @media (max-width: 480px) {
   .interactive-card {
     padding: 1rem;
-  }
-}
-
-.tech-tag:hover {
-  /* Darker on hover keeps white text readable (7.87:1) */
-  background: #1b5e20;
-  color: white;
-  transform: translateY(-2px);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .interactive-card,
-  .tech-tag {
-    transition: none;
-  }
-
-  .interactive-card:hover,
-  .tech-tag:hover {
-    transform: none;
   }
 }

@@ -19,8 +19,17 @@ const RhythmLabDialogShell = ({
 }: RhythmLabDialogShellProps) => {
   const panelRef = useRef<HTMLDivElement>(null);
 
+  // Focus moves into the dialog when it opens and returns to the control that opened it when it closes, if that
+  // control is still on the page.
   useEffect(() => {
+    const opener =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
     initialFocusRef.current?.focus();
+    return () => {
+      if (opener?.isConnected) opener.focus();
+    };
   }, [initialFocusRef]);
 
   useEffect(() => {
@@ -72,8 +81,8 @@ const RhythmLabDialogShell = ({
         ref={panelRef}
         className={
           className
-            ? `rhythm-lab-delete-dialog ${className}`
-            : "rhythm-lab-delete-dialog"
+            ? `rhythm-lab-delete-dialog ${className} df-cut-md`
+            : "rhythm-lab-delete-dialog df-cut-md"
         }
         role="dialog"
         aria-modal="true"

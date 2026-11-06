@@ -16,16 +16,16 @@ const CaseStudyBlocks = ({ blocks }: { blocks?: CaseStudyBlock[] }) => {
           case "prose":
             return (
               <div key={key} className="case-study-block">
-                {block.heading && <h3>{block.heading}</h3>}
+                {block.heading && <h3 className="df-heading-3">{block.heading}</h3>}
                 {block.paragraphs.map((paragraph) => (
-                  <p key={paragraph}>{paragraph}</p>
+                  <p key={paragraph} className="df-prose">{paragraph}</p>
                 ))}
               </div>
             );
           case "list":
             return (
               <div key={key} className="case-study-block">
-                {block.heading && <h3>{block.heading}</h3>}
+                {block.heading && <h3 className="df-heading-3">{block.heading}</h3>}
                 <ul className="case-study-list">
                   {block.items.map((item) => (
                     <li key={item}>{item}</li>
@@ -36,14 +36,14 @@ const CaseStudyBlocks = ({ blocks }: { blocks?: CaseStudyBlock[] }) => {
           case "prompts":
             return (
               <div key={key} className="case-study-block">
-                {block.heading && <h3>{block.heading}</h3>}
+                {block.heading && <h3 className="df-heading-3">{block.heading}</h3>}
                 {block.prompts.map((prompt) => (
                   <details key={prompt.label} className="case-study-prompt">
-                    <summary>
-                      <span>{prompt.label}</span>
+                    <summary className="df-control df-control--latch df-body-sm">
+                      <span className="df-label">{prompt.label}</span>
                       <span className="case-study-prompt__meta">{prompt.summary}</span>
                     </summary>
-                    <pre>{prompt.text}</pre>
+                    <pre className="df-code">{prompt.text}</pre>
                   </details>
                 ))}
               </div>
@@ -63,7 +63,7 @@ const CaseStudyBlocks = ({ blocks }: { blocks?: CaseStudyBlock[] }) => {
                     </div>
                   ))}
                 </div>
-                <figcaption>{block.caption}</figcaption>
+                <figcaption className="df-body-sm">{block.caption}</figcaption>
               </figure>
             );
           case "recording":
@@ -79,13 +79,13 @@ const CaseStudyBlocks = ({ blocks }: { blocks?: CaseStudyBlock[] }) => {
           case "comparison":
             return (
               <div key={key} className="case-study-block case-study-comparison">
-                <table>
-                  <caption>{block.caption}</caption>
+                <table className="df-data">
+                  <caption className="df-body-sm">{block.caption}</caption>
                   <thead>
                     <tr>
                       <td />
                       {block.columns.map((column) => (
-                        <th key={column} scope="col">
+                        <th key={column} scope="col" className="df-label">
                           {column}
                         </th>
                       ))}
@@ -94,9 +94,9 @@ const CaseStudyBlocks = ({ blocks }: { blocks?: CaseStudyBlock[] }) => {
                   <tbody>
                     {block.rows.map((row) => (
                       <tr key={row.label}>
-                        <th scope="row">{row.label}</th>
+                        <th scope="row" className="df-body-sm">{row.label}</th>
                         {row.values.map((value, column) => (
-                          <td key={block.columns[column]} data-label={block.columns[column]}>
+                          <td key={block.columns[column]} data-label={block.columns[column]} className="df-data">
                             {value}
                           </td>
                         ))}
@@ -104,7 +104,7 @@ const CaseStudyBlocks = ({ blocks }: { blocks?: CaseStudyBlock[] }) => {
                     ))}
                   </tbody>
                 </table>
-                {block.note && <p className="case-study-comparison__note">{block.note}</p>}
+                {block.note && <p className="case-study-comparison__note df-body-sm">{block.note}</p>}
               </div>
             );
           default:

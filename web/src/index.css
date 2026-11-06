@@ -10,6 +10,7 @@
   Use modern scrollbar-gutter to prevent layout shifts.
 */
 html {
+  /* Browser reset hold: native simulation and game text keeps its existing line box until Phase 5. */
   line-height: 1.15;
   -webkit-text-size-adjust: 100%;
   overflow-x: hidden;
@@ -27,12 +28,11 @@ html {
 */
 body {
   margin: 0;
-  font-family: var(--font-family-primary);
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: var(--app-bg);
-  color: var(--app-text);
-  transition: background-color 0.4s ease, color 0.4s ease, filter 0.2s ease;
+  background-color: var(--field);
+  color: var(--fg);
   /* Ensure minimum height to prevent layout shifts */
   min-height: 100vh;
 }
@@ -86,7 +86,7 @@ hr {
 }
 
 pre {
-  font-family: var(--font-family-mono);
+  font-family: var(--font-mono);
   font-size: 1em;
 }
 
@@ -107,7 +107,7 @@ strong {
 code,
 kbd,
 samp {
-  font-family: var(--font-family-mono);
+  font-family: var(--font-mono);
   font-size: 1em;
 }
 
@@ -141,6 +141,7 @@ optgroup,
 select,
 textarea {
   font-family: inherit;
+  /* Browser reset hold for native controls; Phase 5 lifts their type locally. */
   font-size: 100%;
   line-height: 1.15;
   margin: 0;
@@ -242,58 +243,6 @@ template {
 
 /* Custom Properties */
 :root {
-  --app-bg: #1a1a1a;
-  --app-bg-secondary: #2d2d2d;
-  --app-surface: #2d2d2d;
-  --app-surface-elevated: #404040;
-  --app-overlay: rgba(26, 26, 26, 0.88);
-  --app-text: #f8f9fa;
-  --app-text-secondary: #adb5bd;
-  --app-text-muted: #a0a8b0;
-  --app-border: #495057;
-  --app-shadow: rgba(0, 0, 0, 0.3);
-  --brand-primary: #4CAF50;
-  --brand-primary-soft: #81C784;
-  --brand-primary-medium: #66BB6A;
-  --brand-primary-dark: #388E3C;
-  --bg-canvas-fill: #0f0f0f;
-  --bg-canvas-glyph: 0, 255, 0;
-  --bg-glow-color: rgba(108, 117, 125, 0.10);
-  --bg-grid-major: rgba(129, 199, 132, 0.08);
-  --bg-grid-minor: rgba(129, 199, 132, 0.03);
-  --bg-topology: rgba(129, 199, 132, 0.12);
-  --bg-signal: rgba(129, 199, 132, 0.16);
-  --bg-center-lift: rgba(255, 255, 255, 0.03);
-  --bg-vignette: rgba(0, 0, 0, 0.18);
-
-  /* Color Palette */
-  --primary-color: var(--brand-primary);
-  --primary-color-light: var(--brand-primary-soft);
-  --primary-color-medium: var(--brand-primary-medium);
-  --overlay-color-light: rgba(0, 0, 0, 0.8);
-  --overlay-color-medium: rgba(0, 0, 0, 0.9);
-  --primary-color-dark: var(--brand-primary-dark);
-  --accent-color: #FFD700;
-
-  /* Theme colors - kept as aliases for compatibility */
-  --background-color: var(--app-bg);
-  --background-color-secondary: var(--app-bg-secondary);
-  --background-color-tertiary: var(--app-surface-elevated);
-  --background-color-transparent: rgba(26, 26, 26, 0.7);
-  --background-color-overlay: rgba(26, 26, 26, 0.95);
-  --card-background: var(--app-surface);
-  --panel-bg-color: var(--app-surface);
-  --text-color: var(--app-text);
-  --text-color-secondary: var(--app-text-secondary);
-  --text-secondary: var(--text-color-secondary);
-  --text-color-muted: var(--app-text-muted);
-  --text-muted-color: var(--app-text-muted);
-  --border-color: var(--app-border);
-  --shadow-color: var(--app-shadow);
-
-  /* Typography - Updated to use system UI fonts for better performance and readability */
-  --font-family-primary: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
-  --font-family-mono: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
 
   /* Spacing */
   --spacing-xs: 0.5rem;
@@ -309,9 +258,8 @@ template {
 
   /* Transitions */
   --transition-fast: 0.1s ease-in-out;
-  --transition-normal: 0.3s ease;
   --transition-slow: 0.5s ease-out;
-  --interaction-transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  --interaction-transition: background-color var(--dur-fast) var(--ease-standard), color var(--dur-fast) var(--ease-standard), border-color var(--dur-fast) var(--ease-standard);
 
   /* Z-index layers */
   --z-index-background: -1;
@@ -345,7 +293,7 @@ template {
 }
 
 code {
-  font-family: var(--font-family-mono);
+  font-family: var(--font-mono);
 }
 
 /* Apply transitions only to interactive elements for better performance */
@@ -357,10 +305,15 @@ select {
   transition: var(--interaction-transition);
 }
 
-/* Focus states for accessibility - scoped to interactive elements for better performance */
-:where(a, button, input, textarea, select, [tabindex]):focus-visible {
-  outline: 2px solid var(--primary-color);
+/* Keyboard focus (§13, §17): the focus-ring token, enforced over component rules; glow never
+   stands in for it. box-shadow draws the token's ring; the transparent outline is what forced-
+   colors mode paints, because it discards box-shadow. */
+:is(a, button, input, textarea, select, summary, [tabindex]):focus-visible {
+  outline: 2px solid transparent !important;
   outline-offset: 2px;
+  box-shadow: var(--focus-ring) !important;
+  /* Focus arrives instantly (§13), so no component transition may fade the ring in. */
+  transition: none !important;
 }
 
 /* Set by ThemeContext for the frame the theme tokens change, so every surface
@@ -391,7 +344,7 @@ html.theme-switching *::after {
   padding: var(--page-padding);
   width: 100%;
   box-sizing: border-box;
-  /* clip (not hidden) trims decorative bleed like the prose-surface scrim without creating a scroll container, so sticky descendants still pin */
+  /* clip (not hidden) trims horizontal overflow without creating a scroll container, so sticky descendants still pin */
   overflow-x: clip;
   /* NO height, min-height, or margin rules here! It inherits its size. */
 }
@@ -408,12 +361,9 @@ html.theme-switching *::after {
   }
 }
 
-/* Edgeless scrim: a feathered radial shade that extends past the box so rain behind text is dimmed without drawing a panel */
-.prose-surface:not(.prose-surface--reading) { position: relative; isolation: isolate; }
-.prose-surface:not(.prose-surface--reading)::before { content: ""; position: absolute; inset: -3rem -6rem; z-index: -1; pointer-events: none; background: radial-gradient(closest-side, color-mix(in srgb, var(--app-bg) 88%, transparent) 0%, color-mix(in srgb, var(--app-bg) 78%, transparent) 70%, transparent 100%); }
-/* Start-aligned headers: shrink the box to its text so the centered scrim sits behind the words, not the empty row */
+/* Start-aligned headers: shrink the box to its text */
 .prose-surface--start { width: fit-content; }
-.prose-surface--reading { background: color-mix(in srgb, var(--app-bg) 94%, transparent); backdrop-filter: blur(12px); border-radius: 8px; box-shadow: 0 0 24px 12px color-mix(in srgb, var(--app-bg) 80%, transparent); }
+.prose-surface--reading { background: var(--field); border-radius: var(--radius-0); }
 html { scroll-padding-top: calc(var(--site-header-measured-offset, 0px) + 16px); scroll-padding-bottom: var(--site-dock-safe-space, 0px); }
 :target { scroll-margin-top: 1rem; }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }

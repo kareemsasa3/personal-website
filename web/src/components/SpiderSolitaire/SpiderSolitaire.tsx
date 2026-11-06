@@ -78,6 +78,9 @@ const SpiderSolitaire = () => {
   } = useSpiderSolitaire();
 
   const [dragData, setDragData] = useState<DragData | null>(null);
+  const dealUnavailableReason = stock.length === 0
+    ? "No stock cards remain"
+    : "Fill every column first";
 
   const selectedMap = useMemo(() => {
     if (!selection) return null;
@@ -165,29 +168,33 @@ const SpiderSolitaire = () => {
     <div className="spider-solitaire">
       <div className="spider-header">
         <div className="spider-stats">
-          <span>Moves: {moveCount}</span>
-          <span>Completed: {completedSuits}/8</span>
-          <span>Stock: {Math.floor(stock.length / 10)}</span>
+          <span className="df-data"><span className="df-label-sm">Moves:</span> <span className="df-data">{moveCount}</span></span>
+          <span className="df-data"><span className="df-label-sm">Completed:</span> <span className="df-data">{completedSuits}/8</span></span>
+          <span className="df-data"><span className="df-label-sm">Stock:</span> <span className="df-data">{Math.floor(stock.length / 10)}</span></span>
         </div>
         <div className="spider-actions">
-          <button className="spider-button" onClick={newGame}>
+          <button className="spider-button df-control df-label" onClick={newGame}>
             New Game
           </button>
           <button
-            className="spider-button"
-            onClick={dealCards}
-            disabled={!canDeal}
+            className="spider-button df-control df-label"
+            onClick={() => { if (canDeal) dealCards(); }}
+            aria-disabled={!canDeal || undefined}
+            aria-label="Deal"
+            aria-describedby={!canDeal ? "spider-deal-reason" : undefined}
           >
             Deal
+            {!canDeal && <span id="spider-deal-reason" className="spider-button__reason df-annotation">{dealUnavailableReason}</span>}
           </button>
         </div>
       </div>
 
       {isWon && (
-        <div className="spider-win-banner">You cleared the tableau!</div>
+        <div className="spider-win-banner df-confirmed df-body">You cleared the tableau!</div>
       )}
 
-      <div className="spider-board">
+      {/* Native playfield (D6; P5-5): only the columns and the cards are drawn in it. */}
+      <div className="spider-board" data-df-region="native">
         {tableau.map((column, columnIndex) => {
 
           return (

@@ -21,24 +21,6 @@
   text-align: left;
 }
 
-.capabilities-section .section-title::after {
-  left: 0;
-  transform-origin: left center;
-  animation-name: capabilitiesTitleUnderline;
-}
-
-@keyframes capabilitiesTitleUnderline {
-  from {
-    transform: scaleX(0.75);
-    opacity: 0.7;
-  }
-
-  to {
-    transform: scaleX(1);
-    opacity: 1;
-  }
-}
-
 /* Spec-sheet list: numbered rows with hairline dividers instead of a card row */
 .capabilities-list {
   width: 100%;
@@ -46,7 +28,7 @@
   margin: 2rem auto 0 auto;
   padding: 0;
   list-style: none;
-  border-top: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
+  border-top: var(--stroke-hair) solid var(--rule);
 }
 
 .capability-row {
@@ -55,31 +37,24 @@
   column-gap: 1.5rem;
   align-items: baseline;
   padding: 1.5rem 0;
-  border-bottom: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
+  border-bottom: var(--stroke-hair) solid var(--rule);
   text-align: left;
 }
 
 .capability-index {
-  color: var(--primary-color);
-  font-size: 0.85rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  color: var(--signal-dim);
   font-variant-numeric: tabular-nums;
 }
 
 .capability-row h3 {
   margin: 0;
-  color: var(--text-color);
-  font-size: 1.15rem;
-  font-weight: 600;
-  line-height: 1.35;
+  color: var(--fg);
 }
 
 .capability-row p {
-  max-width: 60ch;
+  max-width: var(--measure-body);
   margin: 0;
-  color: var(--text-secondary);
-  line-height: 1.6;
+  color: var(--fg-muted);
 }
 
 /* Narrow: number + title on one line, description below the title */
@@ -109,9 +84,5 @@
     min-height: auto;
     padding: 0.75rem 0;
     justify-content: flex-start;
-  }
-
-  .capability-row h3 {
-    font-size: 1.05rem;
   }
 }

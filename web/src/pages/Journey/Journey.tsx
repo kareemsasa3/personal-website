@@ -1,8 +1,6 @@
 import { useEffect, useMemo } from "react";
-import { motion } from "framer-motion";
 import { timelineData, TimelineEvent } from "../../data/timelineData";
 import TimelineItem from "../../components/TimelineItem";
-import TypeWriterText from "../../components/TypeWriterText";
 import { useLayoutContext, PageSection } from "../../contexts/LayoutContext";
 import "./Journey.css";
 
@@ -44,23 +42,15 @@ const Journey = () => {
   }, [eraNames, setSections]); // Only depends on eraNames - setSections is stable from context
 
   return (
-    <motion.div
-      className="page-content journey-page"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.3 }}
+    <div
+      className="page-content journey-page df-body"
     >
       <header id="journey-intro" className="journey-header prose-surface prose-surface--start">
-        <h1 className="journey-title">
-          <TypeWriterText text="Background & Journey" speed={80} delay={200} />
+        <h1 className="journey-title df-heading-1">
+          Background &amp; Journey
         </h1>
-        <p className="journey-subtitle">
-          <TypeWriterText
-            text="A narrative of how my work evolved and what I focused on over time."
-            speed={50}
-            delay={1000}
-          />
+        <p className="journey-subtitle df-body-lg">
+          A narrative of how my work evolved and what I focused on over time.
         </p>
       </header>
 
@@ -71,7 +61,7 @@ const Journey = () => {
             id={eraName.toLowerCase().replace(/ & /g, "-").replace(/ /g, "-")}
             className="timeline-era"
           >
-            <h2 className="timeline-era-header">{eraName}</h2>
+            <h2 className="timeline-era-header df-heading-2">{eraName}</h2>
             {eras[eraName].map((item) => {
               // Find the global index of the current item in the flat list.
               // This is a pure calculation based on props and state.
@@ -82,7 +72,7 @@ const Journey = () => {
           </section>
         ))}
       </div>
-    </motion.div>
+    </div>
   );
 };
 

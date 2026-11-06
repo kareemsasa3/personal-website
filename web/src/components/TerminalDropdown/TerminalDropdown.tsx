@@ -130,7 +130,7 @@ const TerminalDropdown: React.FC<TerminalDropdownProps> = ({
   return (
     <div className={`terminal-dropdown ${className}`} ref={dropdownRef}>
       {label && (
-        <label className="terminal-dropdown-label">
+        <label className="terminal-dropdown-label df-label">
           {showPrompt && <span className="terminal-prompt">$</span>} {label}
         </label>
       )}
@@ -138,11 +138,10 @@ const TerminalDropdown: React.FC<TerminalDropdownProps> = ({
         <button
           type="button"
           role="combobox"
-          className={`terminal-dropdown-trigger ${isOpen ? "open" : ""} ${
-            disabled ? "disabled" : ""
-          }`}
+          className="terminal-dropdown-trigger df-control df-label"
           onClick={handleToggle}
-          disabled={disabled}
+          // §13 Disabled keeps focus so the control can still be read; handleToggle ignores activation.
+          aria-disabled={disabled || undefined}
           ref={triggerRef}
           aria-label={`${label ?? "Select"}: ${displayValue}`}
           aria-controls={isOpen ? menuId : undefined}
@@ -162,7 +161,7 @@ const TerminalDropdown: React.FC<TerminalDropdownProps> = ({
         {isOpen && (
           <div className="terminal-dropdown-menu">
             {showMenuChrome && (
-              <div className="terminal-dropdown-header">
+              <div className="terminal-dropdown-header df-code">
                 <span className="terminal-prompt">$</span> cat options.txt
               </div>
             )}
@@ -175,9 +174,8 @@ const TerminalDropdown: React.FC<TerminalDropdownProps> = ({
                   aria-selected={getOptionValue(option) === value}
                   tabIndex={-1}
                   type="button"
-                  className={`terminal-dropdown-option ${
-                    index === highlightedIndex ? "highlighted" : ""
-                  } ${getOptionValue(option) === value ? "selected" : ""}`}
+                  className="terminal-dropdown-option df-control df-label"
+                  data-df-active={index === highlightedIndex || undefined}
                   onClick={() => handleOptionClick(option)}
                   onMouseEnter={() => setHighlightedIndex(index)}
                 >
@@ -191,7 +189,7 @@ const TerminalDropdown: React.FC<TerminalDropdownProps> = ({
               ))}
             </div>
             {showMenuChrome && (
-              <div className="terminal-dropdown-footer">
+              <div className="terminal-dropdown-footer df-annotation">
                 <span className="terminal-comment">
                   # Use ↑↓ to navigate, Enter to select, Esc to close
                 </span>

@@ -1,0 +1,289 @@
+/* web/src/styles/darkfield/grammar.css
+   Shared Darkfield grammar for the site interface (§13 control model, §05 context labels, §06 prose
+   measure, §09 chamfer). Values come only from tokens.css; type styles are the generated .df-* classes. */
+
+/* §08: what lies behind an overlay shows at opacity-dim (P3-1). The scrim is the field at the
+   complementary alpha. Declared on every [data-theme] element too, so a subtree with its own theme
+   derives the scrim from its own field (P5-1). */
+:root, [data-theme] {
+  --df-scrim: color-mix(in srgb, var(--field) calc((1 - var(--opacity-dim)) * 100%), transparent);
+}
+
+/* Idle (§13). --df-ground is the ground the control shows at rest; a container on a surface sets
+   --df-ground-up to the surface one step above its own (§13 Hover). */
+.df-control {
+  position: relative;
+  box-sizing: border-box;
+  padding: var(--space-2) var(--space-3);
+  border: var(--stroke-hair) solid var(--edge);
+  border-radius: var(--radius-0);
+  background-color: var(--df-ground, transparent);
+  color: var(--fg-muted);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color var(--dur-fast) var(--ease-standard), border-color var(--dur-fast) var(--ease-standard),
+    color var(--dur-fast) var(--ease-standard);
+}
+.df-control--card { color: var(--fg); }
+/* Light control: open corner brackets instead of a closed boundary. */
+.df-control--light {
+  --df-bracket: linear-gradient(var(--df-bracket-ink, var(--fg-faint)), var(--df-bracket-ink, var(--fg-faint)));
+  border-color: transparent;
+  background-image: var(--df-bracket), var(--df-bracket), var(--df-bracket), var(--df-bracket),
+    var(--df-bracket), var(--df-bracket), var(--df-bracket), var(--df-bracket);
+  background-origin: border-box;
+  background-repeat: no-repeat;
+  background-position: left top, left top, right top, right top, left bottom, left bottom, right bottom, right bottom;
+  background-size: var(--grid-unit) var(--stroke-hair), var(--stroke-hair) var(--grid-unit), var(--grid-unit) var(--stroke-hair),
+    var(--stroke-hair) var(--grid-unit), var(--grid-unit) var(--stroke-hair), var(--stroke-hair) var(--grid-unit),
+    var(--grid-unit) var(--stroke-hair), var(--stroke-hair) var(--grid-unit);
+}
+
+/* Hover marker: one cell in flow directly before the label, wherever the label sits. Its negative leading
+   margin cancels its width and it has no height, so it takes no space and the label never moves on hover. */
+.df-control::before {
+  content: "";
+  display: inline-block;
+  width: var(--cell-w);
+  height: 0;
+  margin-inline-start: calc(-1 * var(--cell-w));
+  vertical-align: top;
+  font-family: var(--font-mono);
+  pointer-events: none;
+}
+/* A card holds block content, where an in-flow marker would open a line of its own. There the card's title (its one
+   heading) carries the marker instead: out of flow in the card's leading padding, the cell directly before the title's
+   first line, so the marker stays with the title however much sits above it. */
+.df-control--card::before { display: none; }
+.df-control--card :is(h1, h2, h3, h4, h5, h6) { position: relative; }
+.df-control--card :is(h1, h2, h3, h4, h5, h6)::before {
+  content: "";
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-end: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--cell-w);
+  height: 1lh;
+  font-family: var(--font-mono);
+  pointer-events: none;
+}
+
+/* Target size: on small or coarse-pointer screens every non-card control is at least three cells tall. The height
+   comes from block padding sized to the control's own line height (1lh), so the control keeps its component's display and
+   its parent's alignment, and the in-flow marker stays level with the label. */
+@media (max-width: 768px), (pointer: coarse) {
+  .df-control:not(.df-control--card) {
+    padding-block: max(var(--space-2), calc((3 * var(--cell-h) - 1lh) / 2 - var(--stroke-hair)));
+  }
+}
+
+/* Hover (§13, operable): the ground rises a surface step; the boundary turns fg-muted and the label fg; the › marker shows.
+   [data-df-active] is the item a listbox's keyboard cursor rests on (aria-activedescendant): the item Enter will act on. */
+.df-control:is(:hover, [data-df-active]):where(:not(:disabled, [aria-disabled="true"], [aria-busy="true"], .df-control--unavailable)) {
+  background-color: var(--df-ground-up, var(--surface-1));
+  border-color: var(--fg-muted);
+  --df-bracket-ink: var(--fg-muted);
+  color: var(--fg);
+}
+.df-control:is(:hover, [data-df-active]):where(:not(:disabled, [aria-disabled="true"], [aria-busy="true"], .df-control--unavailable))::before,
+.df-control--card:is(:hover, [data-df-active]):where(:not(:disabled, [aria-disabled="true"], [aria-busy="true"], .df-control--unavailable)) :is(h1, h2, h3, h4, h5, h6)::before {
+  content: "›"; content: "›" / "";
+}
+
+/* Selected (§13): the current pick in a set. The ground is the signal-deep band; boundary and label turn signal; a square node marks the upper-right corner. */
+.df-control:is([aria-current]:not([aria-current="false"]), [aria-selected="true"], [aria-pressed="true"]:not(.df-control--latch)) {
+  background-color: var(--signal-deep);
+  border-color: var(--signal);
+  --df-bracket-ink: var(--signal);
+  color: var(--signal);
+}
+.df-control:is([aria-current]:not([aria-current="false"]), [aria-selected="true"], [aria-pressed="true"]:not(.df-control--latch))::after {
+  content: "";
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-end: 0;
+  width: var(--grid-half);
+  height: var(--grid-half);
+  background-color: var(--signal);
+}
+
+/* Light controls keep open brackets, never a closed boundary, in every state but Pressed
+   (three classes: outranks Hover, ties Selected and comes after it). */
+.df-control--light.df-control--light.df-control--light { border-color: transparent; }
+
+/* Latched (§13): a persistent mode. A lamp cell ahead of the label, filled while the mode is on. */
+.df-control--latch { display: inline-flex; align-items: center; gap: var(--space-2); }
+/* In the flex row the marker is an item: it also cancels the gap after it, so it still ends at the label. */
+.df-control--latch::before { margin-inline-end: calc(-1 * var(--space-2)); align-self: stretch; height: auto; display: flex; align-items: center; }
+.df-control--latch::after {
+  content: "";
+  order: -1;
+  flex: none;
+  width: var(--cell-w);
+  height: var(--cell-h);
+  box-sizing: border-box;
+  border: var(--stroke-hair) solid var(--edge);
+}
+.df-control--latch:is([aria-pressed="true"], [aria-checked="true"], [aria-expanded="true"], details[open] > *) { color: var(--fg); }
+.df-control--latch:is([aria-pressed="true"], [aria-checked="true"], [aria-expanded="true"], details[open] > *)::after {
+  background-color: var(--signal);
+  border-color: var(--signal);
+}
+
+/* Forced colours (R-3, DEV-7): forced colours replaces the Selected band, ink and node and the lit lamp with the
+   page's own colours, so neither state would show. Selected takes the system's selected-item colour across the whole
+   control, its node in the selected-item text colour; the label keeps its forced ink, because forced colours draws text
+   on a plate of the page's own colour, where the selected-item text colour can vanish. A latch that is on fills its
+   lamp with the system text colour. */
+@media (forced-colors: active) {
+  .df-control:is([aria-current]:not([aria-current="false"]), [aria-selected="true"], [aria-pressed="true"]:not(.df-control--latch)) {
+    background-color: SelectedItem;
+  }
+  .df-control:is([aria-current]:not([aria-current="false"]), [aria-selected="true"], [aria-pressed="true"]:not(.df-control--latch))::after {
+    background-color: SelectedItemText;
+  }
+  .df-control--latch:is([aria-pressed="true"], [aria-checked="true"], [aria-expanded="true"], details[open] > *)::after {
+    background-color: CanvasText;
+  }
+}
+
+/* Disabled (§13; P3-10) and Unavailable: both ignore hover and press. */
+.df-control:is(:disabled, [aria-disabled="true"]) { border-style: dashed; color: var(--fg-faint); cursor: not-allowed; }
+.df-control--unavailable { border-color: transparent; background-image: none; color: var(--fg-faint); cursor: default; }
+
+/* Processing (§13): the control is waiting on something it set going. Placed after Disabled at equal specificity, it
+   takes over from it: a muted label, a solid frame, and one cell running along the lower edge while the wait lasts.
+   Hover and press leave a busy control alone; the consumer also keeps it disabled, so it cannot be set going twice.
+   The cell uses ::after, which latch lamps and the selection node also use: a busy latch or selected control keeps its
+   own mark and shows no cell. */
+.df-control[aria-busy="true"] { border-style: solid; border-color: var(--edge); color: var(--fg-muted); cursor: progress; }
+.df-control[aria-busy="true"]:where(:not(.df-control--latch, [aria-current]:not([aria-current="false"]), [aria-selected="true"], [aria-pressed="true"]))::after {
+  content: "";
+  position: absolute;
+  inset-block-end: 0;
+  inset-inline-start: 0;
+  width: var(--cell-w);
+  height: var(--stroke-bold);
+  background-color: var(--fg-muted);
+  pointer-events: none;
+  animation: df-processing-scan var(--dur-scan) var(--ease-linear) infinite;
+}
+/* §12: scan / inspection · a navigation this control started is pending (Home.tsx clears busy a few frames after it navigates) */
+@keyframes df-processing-scan {
+  from { inset-inline-start: 0; }
+  to { inset-inline-start: calc(100% - var(--cell-w)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .df-control[aria-busy="true"]:where(:not(.df-control--latch, [aria-current]:not([aria-current="false"]), [aria-selected="true"], [aria-pressed="true"]))::after { display: none; }
+}
+
+/* Pressed (§13): the inverse, shown on contact and held for dur-instant (pressAcknowledge.ts).
+   Pressed and Selected have equal specificity; Pressed wins by coming later in this file. */
+.df-control.df-control:is(:active, [data-df-pressed]):where(:not(:disabled, [aria-disabled="true"], [aria-busy="true"], .df-control--unavailable)) {
+  background-color: var(--signal);
+  border-color: var(--signal);
+  --df-bracket-ink: var(--signal);
+  color: var(--on-signal);
+  transition: none;
+}
+/* Media inside a linked card keeps its own ground and text pairing while the card acknowledges the press, and so does
+   native content in a marked region (D6), which keeps its own ink. */
+.df-control--card.df-control--card:is(:active, [data-df-pressed]) :not(.project-media, .project-media *, [data-df-region], [data-df-region] *) { color: inherit; }
+.df-control--card.df-control--card:is(:active, [data-df-pressed]) .project-media { color: var(--fg); }
+
+/* Value (§13 Channels): a value inside a control reads fg at rest, takes the inverse with the label while pressed and
+   the faint tier with it while disabled or unavailable. */
+.df-control .df-control__value { color: var(--fg); }
+.df-control:is(:disabled, [aria-disabled="true"], .df-control--unavailable) .df-control__value,
+.df-control.df-control:is(:active, [data-df-pressed]):where(:not(:disabled, [aria-disabled="true"], [aria-busy="true"], .df-control--unavailable)) .df-control__value {
+  color: inherit;
+}
+
+/* Context labels (D7; §05 State encoding, §06 Interface label): lifecycle statuses and tags speak in the
+   label voice at the muted tier with no hue. Only Live carries a marker; the word carries the meaning. */
+.df-context { color: var(--fg-muted); }
+.df-context--live::before {
+  content: "•";
+  content: "•" / "";
+  font-family: var(--font-mono);
+  margin-inline-end: var(--space-1);
+}
+
+/* Live value (§05 Semantic prominence, When bright signal appears; §06 Rules, weights): a data value that is changing
+   now reads signal, one weight step above its data style at rest. No generated class carries that weight. */
+.df-data.df-data--live { color: var(--signal); font-weight: 500; }
+
+/* Narrator prose (§06): running text keeps to measure-body. Inline links are operable (§13 Hover). .df-prose-links
+   gives the same link treatment to a full-width container (tables stay outside the measure). */
+.df-prose { max-width: var(--measure-body); }
+:is(.df-prose, .df-prose-links) a {
+  position: relative;
+  color: var(--fg);
+  text-decoration-line: underline;
+  text-decoration-color: var(--edge);
+  text-decoration-thickness: var(--stroke-hair);
+  text-underline-offset: var(--space-1);
+  transition: background-color var(--dur-fast) var(--ease-standard), text-decoration-color var(--dur-fast) var(--ease-standard);
+}
+:is(.df-prose, .df-prose-links) a:hover { background-color: var(--df-ground-up, var(--surface-1)); text-decoration-color: var(--fg-muted); }
+/* DEV-3: no › marker on inline prose links — running text has no free cell before the label (§13 hover) */
+:is(.df-prose, .df-prose-links) a:is(:active, [data-df-pressed]) { background-color: var(--signal); color: var(--on-signal); text-decoration-color: currentColor; transition: none; }
+
+/* Primary-dialog chamfer at the top-left corner (§09 Frames and corners, §17 Chamfers; P3-2). */
+.df-cut-md { position: relative; clip-path: polygon(var(--cut-md) 0, 100% 0, 100% 100%, 0 100%, 0 var(--cut-md)); }
+/* The diagonal starts at the border-box corner (one boundary width outside the padding box its offsets measure from), so,
+   like the straight edges, its outer edge lies on the cut and its width falls inside it, where the clip keeps all of it.
+   A diagonal hairline cannot sit on whole pixels; it antialiases across two. */
+.df-cut-md::before {
+  content: ""; position: absolute; pointer-events: none;
+  inset-block-start: calc(-1 * var(--stroke-hair)); inset-inline-start: calc(-1 * var(--stroke-hair));
+  /* the diagonal of a cut-md square; 1.4142 is the square root of two, not a design value */
+  width: calc(var(--cut-md) * 1.4142); height: var(--stroke-hair); background-color: var(--edge);
+  transform-origin: 0 0; transform: translateY(var(--cut-md)) rotate(-45deg);
+}
+
+/* Error (§13 Error; §05 Alarm, control size): an annunciator cell and a bold fault frame; the message stays fg.
+   The word is the element's own text; the glyph is hidden from assistive technology. */
+.df-error { border: var(--stroke-bold) solid var(--fault); color: var(--fg); }
+.df-error::before {
+  content: "×"; content: "×" / "";
+  display: inline-block; inline-size: var(--cell-w); block-size: var(--cell-h); line-height: var(--cell-h);
+  margin-inline-end: var(--space-2); text-align: center; vertical-align: middle;
+  background-color: var(--fault); color: var(--on-fault); font-family: var(--font-mono);
+}
+/* System-integrity fault (§13 Errors; §05 Alarm): the tile widens to carry the state word, over the fault-deep band. */
+.df-error--alarm { background-color: var(--fault-deep); }
+.df-error--alarm::before { content: "× FAULT"; content: "× FAULT" / ""; inline-size: auto; padding-inline: var(--space-1); font-family: var(--font-narrow); font-weight: 600; letter-spacing: inherit; }
+/* Warning (§13 Warning; §05 Caution): ∆, a hairline caution frame. */
+.df-warning { border: var(--stroke-hair) solid var(--caution); color: var(--fg); }
+.df-warning::before { content: "∆"; content: "∆" / ""; margin-inline-end: var(--space-2); color: var(--caution); font-family: var(--font-mono); }
+/* Confirmed (§13 Confirmed): the › echo marker; boundary and marker arrive at signal and decay to rest (edge, fg-muted). */
+.df-confirmed { border: var(--stroke-hair) solid var(--edge); color: var(--fg); animation: df-confirmed-decay var(--dur-decay) var(--ease-standard); }
+.df-confirmed::before {
+  content: "›"; content: "›" / ""; margin-inline-end: var(--space-2); color: var(--fg-muted); font-family: var(--font-mono);
+  animation: df-confirmed-marker var(--dur-decay) var(--ease-standard);
+}
+/* §12: state transition (afterglow) · a result was confirmed */
+@keyframes df-confirmed-decay { from { border-color: var(--signal); } 50% { border-color: var(--signal-dim); } }
+/* §12: state transition (afterglow) · the echo marker of a confirmed result */
+@keyframes df-confirmed-marker { from { color: var(--signal); } }
+/* §12: state transition (afterglow, reduced) · signal on arrival, one discrete step to rest */
+@keyframes df-confirmed-step { from { border-color: var(--signal); } }
+/* Reduced motion keeps the state: the site-wide reduced rule shortens every animation with !important, so these
+   declarations need their own to hold signal for dur-decay before the single step. */
+@media (prefers-reduced-motion: reduce) {
+  .df-confirmed { animation: df-confirmed-step var(--dur-decay) var(--ease-snap) !important; }
+  .df-confirmed::before { animation: df-confirmed-marker var(--dur-decay) var(--ease-snap) !important; }
+}
+/* Inputs and selects (§13 Idle and Error; §06 typed values are Machine). */
+.df-field {
+  box-sizing: border-box; border: var(--stroke-hair) solid var(--edge); border-radius: var(--radius-0);
+  background-color: var(--field-deep); color: var(--fg); font-family: var(--font-mono);
+}
+.df-field::placeholder { color: var(--fg-faint); }
+/* Disabled (§13; §17 Disabled control): a dashed boundary and the faint tier. aria-disabled keeps the field focusable. */
+.df-field:is(:disabled, [aria-disabled="true"]) { border-style: dashed; color: var(--fg-faint); cursor: not-allowed; }
+/* Invalid (§13 Error): only by aria-invalid, which consumers pair with a .df-error message naming the cause. */
+.df-field[aria-invalid="true"] { border: var(--stroke-bold) solid var(--fault); }

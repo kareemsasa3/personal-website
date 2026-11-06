@@ -54,6 +54,19 @@ const SnakeGame: React.FC = () => {
     changeDirection(directionMap[direction]);
   }, [changeDirection]);
 
+  // A touch button acts on contact (touchstart). The click a browser still sends after a tap is skipped, since React's
+  // touch listeners are passive and preventDefault there cannot cancel it; a click from the keyboard (Enter, with no
+  // pointer behind it) or from a mouse acts, so a press the control acknowledges always moves the snake, once. A mouse
+  // contact clears the flag, so a touch that ended without a click (cancelled, slid off) never swallows a mouse click.
+  const touchedRef = useRef(false);
+  const handleTouchClick = useCallback((event: React.MouseEvent, direction: 'up' | 'down' | 'left' | 'right') => {
+    if (event.detail !== 0 && touchedRef.current) {
+      touchedRef.current = false;
+      return;
+    }
+    handleDirection(direction);
+  }, [handleDirection]);
+
   // High-performance animation loop for snake segments
   useEffect(() => {
     let animationFrameId: number;
@@ -96,11 +109,12 @@ const SnakeGame: React.FC = () => {
   return (
     <div className="snake-game-container" ref={containerRef}>
       <div className="game-scores">
-        <p className="game-score">Score: {score}</p>
-        <p className="game-high-score">High: {highScore}</p>
+        <p className="game-score df-data"><span className="df-label">Score:</span> <span className="df-data">{score}</span></p>
+        <p className="game-high-score df-data"><span className="df-label">High:</span> <span className="df-data">{highScore}</span></p>
       </div>
 
-      <div className="game-board" style={boardStyle}>
+      {/* Native playfield (D6; P5-5): only the snake and the food are drawn in it. */}
+      <div className="game-board" data-df-region="native" style={boardStyle}>
         {snake.map((_segment, index) => (
           <div
             key={index}
@@ -123,58 +137,66 @@ const SnakeGame: React.FC = () => {
             height: CELL_SIZE,
           }}
         />
-
-        {gameState === "gameOver" && (
-          <div className="game-over-overlay">
-            <div className="game-over-content">
-              <h2>Game Over</h2>
-              <p>Final Score: {score}</p>
-              <button onClick={resetGame} className="play-again-button">
-                Play Again
-              </button>
-            </div>
-          </div>
-        )}
-
-        {gameState === "paused" && (
-          <div className="game-overlay">
-            <div className="game-over-content">
-              <h2>Paused</h2>
-              <p>Press Space to resume</p>
-            </div>
-          </div>
-        )}
       </div>
+
+      {gameState === "gameOver" && (
+        <div className="game-over-overlay">
+          <div className="game-over-content df-cut-md">
+            <h2 className="df-heading-2">Game Over</h2>
+            <p className="df-body">Final Score: {score}</p>
+            <button onClick={resetGame} className="play-again-button df-control df-label">
+              Play Again
+            </button>
+          </div>
+        </div>
+      )}
+
+      {gameState === "paused" && (
+        <div className="game-overlay">
+          <div className="game-over-content df-cut-md">
+            <h2 className="df-heading-2">Paused</h2>
+            <p className="df-body">Press Space to resume</p>
+          </div>
+        </div>
+      )}
 
       {/* Mobile touch controls */}
       {isTouchDevice && (
         <div className="touch-controls">
           <button
-            className="touch-btn touch-up"
-            onTouchStart={(e) => { e.preventDefault(); handleDirection('up'); }}
+            className="touch-btn touch-up df-control df-glyph-2x"
+            onTouchStart={(e) => { e.preventDefault(); touchedRef.current = true; handleDirection('up'); }}
+            onClick={(e) => handleTouchClick(e, 'up')}
+            onPointerDown={(e) => { if (e.pointerType === "mouse") touchedRef.current = false; }}
             aria-label="Move up"
           >
             ▲
           </button>
           <div className="touch-middle-row">
             <button
-              className="touch-btn touch-left"
-              onTouchStart={(e) => { e.preventDefault(); handleDirection('left'); }}
+              className="touch-btn touch-left df-control df-glyph-2x"
+              onTouchStart={(e) => { e.preventDefault(); touchedRef.current = true; handleDirection('left'); }}
+              onClick={(e) => handleTouchClick(e, 'left')}
+              onPointerDown={(e) => { if (e.pointerType === "mouse") touchedRef.current = false; }}
               aria-label="Move left"
             >
               ◀
             </button>
             <button
-              className="touch-btn touch-right"
-              onTouchStart={(e) => { e.preventDefault(); handleDirection('right'); }}
+              className="touch-btn touch-right df-control df-glyph-2x"
+              onTouchStart={(e) => { e.preventDefault(); touchedRef.current = true; handleDirection('right'); }}
+              onClick={(e) => handleTouchClick(e, 'right')}
+              onPointerDown={(e) => { if (e.pointerType === "mouse") touchedRef.current = false; }}
               aria-label="Move right"
             >
               ▶
             </button>
           </div>
           <button
-            className="touch-btn touch-down"
-            onTouchStart={(e) => { e.preventDefault(); handleDirection('down'); }}
+            className="touch-btn touch-down df-control df-glyph-2x"
+            onTouchStart={(e) => { e.preventDefault(); touchedRef.current = true; handleDirection('down'); }}
+            onClick={(e) => handleTouchClick(e, 'down')}
+            onPointerDown={(e) => { if (e.pointerType === "mouse") touchedRef.current = false; }}
             aria-label="Move down"
           >
             ▼

@@ -1,26 +1,16 @@
-import React, { useRef, useLayoutEffect, useState } from "react";
-import {
-  motion,
-  useSpring,
-  useTransform,
-  MotionValue,
-  AnimatePresence,
-} from "framer-motion";
+import React, { useState } from "react";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { IconDefinition } from "@fortawesome/fontawesome-svg-core";
+import { INSTANT, motionToken } from "../../utils/motionTokens";
 import "./Dock.css";
-
-const MAGNIFICATION_RANGE = 100; // How far from the center the magnification extends
 
 interface DockIconProps {
   path: string;
   icon: IconDefinition;
   label: string;
   isActive: boolean;
-  mouseX: MotionValue<number | null>;
-  stiffness: number;
-  magnification: number; // percentage (0-100)
   baseSize: number;
 }
 
@@ -29,95 +19,55 @@ const DockIcon: React.FC<DockIconProps> = ({
   icon,
   label,
   isActive,
-  mouseX,
-  stiffness,
-  magnification,
   baseSize,
 }) => {
-  const ref = useRef<HTMLAnchorElement>(null);
-
-  // State to hold the measured position of the icon's center
-  const [iconCenter, setIconCenter] = useState<number | null>(null);
-
   // Tooltip visibility state
   const [isHovered, setIsHovered] = useState(false);
   const [isFocusVisible, setIsFocusVisible] = useState(false);
-
-  // Re-measure the icon's position whenever its size or the window layout changes
-  useLayoutEffect(() => {
-    const measure = () => {
-      if (ref.current) {
-        const rect = ref.current.getBoundingClientRect();
-        setIconCenter(rect.left + rect.width / 2);
-      }
-    };
-    measure(); // Measure on mount and on deps change
-
-    window.addEventListener("resize", measure);
-    return () => window.removeEventListener("resize", measure);
-  }, [baseSize]); // Re-measure if baseSize changes
-
-  // Calculate distance from mouse to icon center using a transform
-  const distance = useTransform(mouseX, (val) => {
-    if (val === null || iconCenter === null) {
-      return Infinity; // No magnification if mouse is not over dock or position not measured
-    }
-    return Math.abs(val - iconCenter);
-  });
-
-  // Calculate the new size based on the distance.
-  // We use a cosine wave for a smooth falloff.
-  const size = useTransform(
-    distance,
-    [0, MAGNIFICATION_RANGE],
-    [baseSize * (1 + magnification / 100), baseSize]
-  );
-
-  // Use a spring to make the size animation smooth
-  const sizeSpring = useSpring(size, {
-    stiffness,
-    damping: 15,
-    mass: 0.1,
-  });
-
-  // Derive font size from the animated size for scalability
-  const fontSizeSpring = useTransform(sizeSpring, (s) => s * 0.6);
+  const reduce = useReducedMotion();
 
   return (
     <div className="dock-icon-container">
       <Link
-        ref={ref}
         to={path}
         aria-label={label}
         aria-current={isActive ? "page" : undefined}
-        className={`dock-nav-link ${isActive ? "active" : ""}`}
+        className="dock-nav-link df-control"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         onFocus={(event) => setIsFocusVisible(event.currentTarget.matches(":focus-visible"))}
         onBlur={() => setIsFocusVisible(false)}
       >
-        <motion.div
+        {/* The icon box is the dock size less the control's one-cell padding; the glyph fits inside it. */}
+        <div
           className="dock-icon"
           style={{
-            width: sizeSpring,
-            height: sizeSpring,
-            fontSize: fontSizeSpring,
+            width: `calc(${baseSize}px - 2 * var(--space-2))`,
+            height: `calc(${baseSize}px - 2 * var(--space-2))`,
+            fontSize: `calc((${baseSize}px - 2 * var(--space-2)) * 0.75)`,
           }}
         >
           <FontAwesomeIcon icon={icon} />
-        </motion.div>
+        </div>
       </Link>
 
       {/* Tooltip */}
       <AnimatePresence>
         {(isHovered || isFocusVisible) && (
           <motion.div
-            className="dock-tooltip"
+            className="dock-tooltip df-label"
             aria-hidden="true"
-            initial={{ opacity: 0, y: 10, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 10, scale: 0.9 }}
-            transition={{ duration: 0.15, ease: "easeOut" }}
+            initial={{ opacity: 0 }}
+            animate={{
+              opacity: 1,
+              // §12: state transition (create) · label shown for the hovered or focused link
+              transition: reduce ? INSTANT : motionToken("--dur-base", "--ease-settle"),
+            }}
+            exit={{
+              opacity: 0,
+              // §12: state transition (remove) · label hidden when the link is no longer hovered or focused
+              transition: reduce ? INSTANT : motionToken("--dur-fast", "--ease-depart"),
+            }}
           >
             {label}
           </motion.div>

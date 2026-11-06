@@ -1,21 +1,20 @@
 /* TerminalWindow.css - Styles for the window chrome component */
 
+/* A terminal region is field-deep under a surface-2 header band (§05 Roles). The window's controls are labelled
+   controls in the shared model (§13); on the band their hover ground rises one surface step above it. */
 .terminal-container {
     display: flex;
     flex-direction: column;
-    background: var(--terminal-window-bg);
-    border: 1px solid var(--terminal-border);
-    border-radius: 8px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-    font-family: 'Courier New', monospace;
-    font-size: 14px;
-    line-height: 1.4;
+    background-color: var(--field-deep);
+    border: var(--stroke-hair) solid var(--edge);
+    font-family: var(--font-mono);
+    /* Clipped, never scrollable: focusing the input cannot scroll the header and its controls out of the window. */
     overflow: hidden;
+    overflow: clip;
     user-select: none;
 }
 
 .terminal-container.maximized {
-    border-radius: 0;
     border: none;
 }
 
@@ -25,12 +24,15 @@
 
 .terminal-header {
     flex-shrink: 0;
-    background: var(--terminal-header-bg);
-    border-bottom: 1px solid var(--terminal-border);
+    background-color: var(--surface-2);
+    --df-ground-up: var(--surface-3);
+    border-bottom: var(--stroke-hair) solid var(--edge);
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    padding: 8px 12px;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
     cursor: grab;
     user-select: none;
 }
@@ -39,56 +41,35 @@
     cursor: grabbing;
 }
 
+/* The controls keep one row at every width: a control narrower than its label wraps the label between its words, and
+   the title moves to a row of its own when it does not fit beside them. */
 .terminal-buttons {
-    flex-shrink: 0;
     display: flex;
-    gap: 8px;
+    flex: 0 1 auto;
+    flex-wrap: nowrap;
+    min-width: 0;
+    gap: var(--space-2);
 }
 
-.terminal-button {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    border: none;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.terminal-button:focus-visible {
-    outline: 2px solid var(--terminal-text-primary);
-    outline-offset: 3px;
-}
-
-.terminal-button.close {
-    background: #ff5f56;
-}
-
-.terminal-button.close:hover {
-    background: #ff4444;
-}
-
-.terminal-button.minimize {
-    background: #ffbd2e;
-}
-
-.terminal-button.minimize:hover {
-    background: #ffcc00;
-}
-
-.terminal-button.maximize {
-    background: #27c93f;
-}
-
-.terminal-button.maximize:hover {
-    background: #00cc00;
-}
-
+/* The title shows the working directory, a machine value: Machine voice (df-data), case kept. */
 .terminal-title {
-    color: var(--terminal-text-primary);
-    font-size: 12px;
-    font-weight: 500;
-    flex: 1;
+    color: var(--fg-muted);
+    flex: 1 1 auto;
+    min-width: 0;
     text-align: center;
-    margin-left: 40px;
-    /* Offset for buttons */
+    overflow-wrap: anywhere;
+}
+
+/* Small or coarse-pointer screens: the band is tighter, and a control whose label wraps keeps the three-cell target
+   from a minimum height rather than from padding sized for one line. */
+@media (max-width: 768px), (pointer: coarse) {
+    .terminal-header {
+        padding-block: var(--space-1);
+        row-gap: var(--space-1);
+    }
+
+    .terminal-buttons .terminal-button {
+        min-block-size: calc(3 * var(--cell-h));
+        padding-block: var(--space-1);
+    }
 }

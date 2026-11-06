@@ -5,13 +5,11 @@ import {
   faUndo,
   faDownload,
   faUpload,
-  faChevronRight,
 } from "@fortawesome/free-solid-svg-icons";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { useLocation } from "react-router-dom";
 import {
   DOCK_SIZE_CONFIG,
-  DOCK_STIFFNESS_CONFIG,
-  MAGNIFICATION_CONFIG,
   BACKGROUND_MOTION_SPEED_CONFIG,
 } from "./settingsConstants";
 import {
@@ -35,15 +33,12 @@ import type { NavigationMode } from "../../contexts/NavigationModeContextTypes";
 import { useWindowSize } from "../../hooks";
 import { Modal, useToast } from "../common";
 import ViewportPortal from "../common/ViewportPortal";
+import { INSTANT, motionToken } from "../../utils/motionTokens";
 import "./SettingsPanel.css";
 
 interface SettingsPanelProps {
   onDockSizeChange: (size: number) => void;
   currentDockSize: number;
-  onDockStiffnessChange: (stiffness: number) => void;
-  currentDockStiffness: number;
-  onMagnificationChange: (magnification: number) => void;
-  currentMagnification: number;
   isAnimationPaused: boolean;
   onAnimationToggle: (paused: boolean) => void;
   isOpen: boolean;
@@ -55,6 +50,7 @@ interface SettingsPanelProps {
 const THEME_OPTIONS: readonly { value: Theme; label: string }[] = [
   { value: "dark", label: "Dark" },
   { value: "light", label: "Light" },
+  { value: "mono", label: "Mono" },
 ];
 
 const NAV_MODE_OPTIONS: readonly { value: NavigationMode; label: string }[] = [
@@ -63,16 +59,12 @@ const NAV_MODE_OPTIONS: readonly { value: NavigationMode; label: string }[] = [
 ];
 
 // Mirrors Dock.tsx: at this width and below the dock fixes its icon size and
-// turns magnification off, so the tuning sliders have no effect.
+// ignores the size setting, so the slider has no effect.
 const DOCK_COMPACT_MAX_WIDTH = 768;
 
 const SettingsPanel: React.FC<SettingsPanelProps> = ({
   onDockSizeChange,
   currentDockSize,
-  onDockStiffnessChange,
-  currentDockStiffness,
-  onMagnificationChange,
-  currentMagnification,
   isAnimationPaused,
   onAnimationToggle,
   isOpen,
@@ -88,17 +80,44 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const [showResetModal, setShowResetModal] = useState(false);
   const [isDockTuningOpen, setIsDockTuningOpen] = useState(false);
+  // The result of the last export or import: a neutral status line beside the data actions (owner decision, Phase 5
+  // Task 4). It is set only once the action has done what it says, and stays until the next action, a dismissal, or
+  // until Settings closes or the page changes. Failures stay error toasts.
+  const [status, setStatus] = useState<{ text: string; from: "export" | "import" } | null>(null);
+  const exportButtonRef = useRef<HTMLButtonElement>(null);
+  const importButtonRef = useRef<HTMLButtonElement>(null);
+  const openRef = useRef(isOpen);
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    openRef.current = isOpen;
+    if (!isOpen) setStatus(null);
+  }, [isOpen]);
+
+  useEffect(() => {
+    setStatus(null);
+  }, [pathname]);
+
+  // A new result clears the line first and is written on the next frame, so the live region changes text even when the
+  // new status repeats the old one, and is announced again.
+  const reportStatus = (next: { text: string; from: "export" | "import" }) => {
+    setStatus(null);
+    requestAnimationFrame(() => {
+      if (openRef.current) setStatus(next);
+    });
+  };
+
+  const dismissStatus = () => {
+    const from = status?.from;
+    setStatus(null);
+    (from === "import" ? importButtonRef : exportButtonRef).current?.focus();
+  };
 
   // Keep controls honest about what the dock and background actually do.
   const isDockTuningInert = windowWidth <= DOCK_COMPACT_MAX_WIDTH;
-  // Reduced motion also turns magnification off, and the responsiveness
-  // spring only animates magnification.
-  const isMagnificationInert = isDockTuningInert || reducedMotion;
   const dockTuningNote = isDockTuningInert
     ? "Dock tuning applies on wider screens."
-    : reducedMotion
-      ? "Magnification and responsiveness are off while your system prefers reduced motion."
-      : undefined;
+    : undefined;
   const motionSpeed =
     typeof backgroundMotionSpeed === "number" ? backgroundMotionSpeed : 1;
 
@@ -135,14 +154,13 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
   };
 
   const confirmResetToDefaults = () => {
+    setStatus(null);
     try {
       // Clear localStorage
       resetAllSettings();
 
       // Reset all settings to defaults using the provided handlers
       onDockSizeChange(DEFAULT_SETTINGS.dockSize);
-      onDockStiffnessChange(DEFAULT_SETTINGS.dockStiffness);
-      onMagnificationChange(DEFAULT_SETTINGS.magnification);
       onAnimationToggle(DEFAULT_SETTINGS.isAnimationPaused);
       onBackgroundMotionSpeedChange?.(
         DEFAULT_SETTINGS.backgroundMotionSpeed ?? 1
@@ -160,6 +178,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
   };
 
   const handleExportSettings = () => {
+    setStatus(null);
     try {
       const settings = { version: SETTINGS_EXPORT_VERSION, ...getAllSettings(theme) };
       const settingsBlob = new Blob([JSON.stringify(settings, null, 2)], {
@@ -176,10 +195,8 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      showSuccess(
-        "Settings Exported",
-        "Your settings have been exported successfully."
-      );
+      // The browser does not report whether the file was saved, only that the download began.
+      reportStatus({ text: "Settings download started", from: "export" });
     } catch (_error) {
       console.error("Failed to export settings:", _error);
       showError(
@@ -196,22 +213,19 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
     input.onchange = (event) => {
       const file = (event.target as HTMLInputElement).files?.[0];
       if (file) {
+        setStatus(null);
         const reader = new FileReader();
         reader.onload = (e) => {
           try {
             const settings = parseSettingsImport(JSON.parse(e.target?.result as string));
             if (settings.dockSize !== undefined) onDockSizeChange(settings.dockSize);
-            if (settings.dockStiffness !== undefined) onDockStiffnessChange(settings.dockStiffness);
-            if (settings.magnification !== undefined) onMagnificationChange(settings.magnification);
             if (settings.theme !== undefined) setTheme(settings.theme);
             if (settings.navMode !== undefined) setNavMode(settings.navMode);
             if (settings.isAnimationPaused !== undefined) onAnimationToggle(settings.isAnimationPaused);
             if (settings.backgroundMotionSpeed !== undefined) onBackgroundMotionSpeedChange?.(settings.backgroundMotionSpeed);
 
-            showSuccess(
-              "Settings Imported",
-              "Settings have been imported successfully."
-            );
+            // Parsed and applied.
+            reportStatus({ text: "Settings imported", from: "import" });
           } catch (error) {
             console.error("Failed to import settings:", error);
             showError(
@@ -234,34 +248,34 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
             {/* Settings Panel */}
             <motion.aside
               className="settings-sidebar"
-              initial={{ x: "100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "100%" }}
-              transition={{ type: "spring", damping: 30, stiffness: 220 }}
+              initial={{ opacity: 0 }}
+              // §12: state transition (create) · the settings panel opened
+              animate={{ opacity: 1, transition: reducedMotion ? INSTANT : motionToken("--dur-base", "--ease-settle") }}
+              // §12: state transition (remove) · the settings panel closed
+              exit={{ opacity: 0, transition: reducedMotion ? INSTANT : motionToken("--dur-fast", "--ease-depart") }}
               role="dialog"
               aria-modal="false"
               aria-labelledby="settings-title"
             >
-              <div className="settings-panel">
+              <div className="settings-panel df-body">
                 <div className="settings-header">
-                  <h3 id="settings-title">Settings</h3>
-                  <motion.button
-                    className="settings-close"
+                  <h3 className="df-heading-3" id="settings-title">Settings</h3>
+                  <button
+                    type="button"
+                    className="settings-close df-control"
                     ref={closeButtonRef}
                     onClick={onClose}
                     aria-label="Close settings"
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.95 }}
                   >
                     <FontAwesomeIcon icon={faTimes} />
-                  </motion.button>
+                  </button>
                 </div>
 
                 <motion.div
                   className="settings-content"
                   initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.1, duration: 0.2 }}
+                  // §12: state transition (create) · the settings content appeared with its panel
+                  animate={{ opacity: 1, transition: reducedMotion ? INSTANT : motionToken("--dur-base", "--ease-settle") }}
                 >
                 <SettingsSection id="settings-appearance" title="Appearance">
                   <SettingRow labelId="settings-theme-label" label="Theme">
@@ -284,11 +298,11 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                         onChange={setNavMode}
                       />
                     ) : (
-                      <span className="setting-static-value">Header</span>
+                      <span className="setting-static-value df-data">Header</span>
                     )}
                   </SettingRow>
                   {!isDockAvailable && (
-                    <p className="setting-note">
+                    <p className="setting-note df-body-sm">
                       The dock is available on screens at least 430 px wide;
                       this screen uses the header.
                     </p>
@@ -299,15 +313,12 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                       <button
                         type="button"
                         id="dock-tuning-toggle"
-                        className="settings-disclosure__toggle"
+                        className="settings-disclosure__toggle df-control df-control--latch df-label"
                         aria-expanded={isDockTuningOpen}
                         aria-controls="dock-tuning-panel"
                         onClick={() => setIsDockTuningOpen((open) => !open)}
                       >
-                        <FontAwesomeIcon
-                          icon={faChevronRight}
-                          className="settings-disclosure__icon"
-                        />
+                        {/* The latch lamp shows open or closed (§13 Latched). */}
                         Dock tuning
                       </button>
                       <div
@@ -318,7 +329,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                         hidden={!isDockTuningOpen}
                       >
                         {dockTuningNote && (
-                          <p id="dock-tuning-note" className="setting-note">
+                          <p id="dock-tuning-note" className="setting-note df-body-sm">
                             {dockTuningNote}
                           </p>
                         )}
@@ -331,26 +342,6 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                           disabled={isDockTuningInert}
                           describedBy={isDockTuningInert ? "dock-tuning-note" : undefined}
                           onChange={onDockSizeChange}
-                        />
-                        <SettingSlider
-                          id="dock-stiffness"
-                          label="Responsiveness"
-                          {...DOCK_STIFFNESS_CONFIG}
-                          value={currentDockStiffness}
-                          displayValue={String(currentDockStiffness)}
-                          disabled={isMagnificationInert}
-                          describedBy={isMagnificationInert ? "dock-tuning-note" : undefined}
-                          onChange={onDockStiffnessChange}
-                        />
-                        <SettingSlider
-                          id="magnification"
-                          label="Magnification"
-                          {...MAGNIFICATION_CONFIG}
-                          value={currentMagnification}
-                          displayValue={`${currentMagnification}%`}
-                          disabled={isMagnificationInert}
-                          describedBy={isMagnificationInert ? "dock-tuning-note" : undefined}
-                          onChange={onMagnificationChange}
                         />
                       </div>
                     </div>
@@ -382,7 +373,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                     onChange={(speed) => onBackgroundMotionSpeedChange?.(speed)}
                   />
                   {reducedMotion && (
-                    <p id="reduced-motion-note" className="setting-note">
+                    <p id="reduced-motion-note" className="setting-note df-body-sm">
                       Your system prefers reduced motion; the background stays
                       still.
                     </p>
@@ -393,7 +384,8 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                   <div className="settings-actions">
                     <button
                       type="button"
-                      className="settings-action"
+                      ref={exportButtonRef}
+                      className="settings-action df-control df-label"
                       onClick={handleExportSettings}
                       aria-label="Export settings"
                     >
@@ -402,7 +394,8 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                     </button>
                     <button
                       type="button"
-                      className="settings-action"
+                      ref={importButtonRef}
+                      className="settings-action df-control df-label"
                       onClick={handleImportSettings}
                       aria-label="Import settings"
                     >
@@ -411,13 +404,28 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                     </button>
                     <button
                       type="button"
-                      className="settings-action settings-action--danger"
+                      className="settings-action settings-action--danger df-control df-label"
                       onClick={handleResetToDefaults}
                       aria-label="Reset all settings to defaults"
                     >
                       <FontAwesomeIcon icon={faUndo} />
                       <span>Reset…</span>
                     </button>
+                  </div>
+                  <div className="settings-status">
+                    <p className="settings-status__text df-body-sm" role="status" aria-live="polite">
+                      {status?.text}
+                    </p>
+                    {status && (
+                      <button
+                        type="button"
+                        className="settings-status__dismiss df-control"
+                        onClick={dismissStatus}
+                        aria-label="Dismiss status"
+                      >
+                        <FontAwesomeIcon icon={faTimes} />
+                      </button>
+                    )}
                   </div>
                 </SettingsSection>
 
@@ -426,7 +434,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                   title="About"
                   className="settings-about"
                 >
-                  <p className="settings-about__name">Personal website</p>
+                  <p className="settings-about__name df-body">Personal website</p>
                   <p>React · TypeScript · Framer Motion</p>
                   <BuildIdentifier />
                 </SettingsSection>

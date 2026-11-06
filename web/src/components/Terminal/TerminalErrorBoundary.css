@@ -3,49 +3,29 @@
     justify-content: center;
     align-items: center;
     min-height: 400px;
-    padding: 2rem;
-    background: #1a1a1a;
-    color: #ffffff;
-    font-family: 'Courier New', monospace;
+    padding: var(--space-8);
+    background-color: var(--field);
+    color: var(--fg);
 }
 
-.error-message {
+/* §13 Errors: a terminal render failure is a system-integrity fault (grammar.css .df-error--alarm); the message and
+   next step read in fg. */
+.terminal-error-boundary .error-message {
     text-align: center;
     max-width: 500px;
-    padding: 2rem;
-    border: 2px solid #ff4444;
-    border-radius: 8px;
-    background: #2a2a2a;
+    padding: var(--space-8);
 }
 
-.error-message h3 {
-    color: #ff4444;
-    margin-bottom: 1rem;
-    font-size: 1.5rem;
+.terminal-error-boundary .error-message h3 {
+    margin-bottom: var(--space-4);
 }
 
-.error-message p {
-    margin-bottom: 1.5rem;
-    line-height: 1.5;
-    color: #cccccc;
+.terminal-error-boundary .error-message p {
+    margin-bottom: var(--space-6);
 }
 
-.error-reload-button {
-    background: #ff4444;
-    color: white;
-    border: none;
-    padding: 0.75rem 1.5rem;
-    border-radius: 4px;
-    cursor: pointer;
-    font-family: inherit;
-    font-size: 1rem;
-    transition: background-color 0.2s;
-}
-
-.error-reload-button:hover {
-    background: #ff6666;
-}
-
-.error-reload-button:active {
-    background: #cc3333;
+/* The control rests on the field, not on the alarm band (as in ErrorBoundary.css). */
+.terminal-error-boundary .error-actions {
+    padding: var(--space-4);
+    background-color: var(--field);
 }

@@ -199,8 +199,8 @@ const TopUI: React.FC<TopUIProps> = ({
       <div className="top-container" ref={containerRef}>
         {/* Header */}
         <div className="top-header">
-          <div className="top-title">System Monitor - Portfolio OS</div>
-          <div className="top-controls">
+          <div className="top-title df-data">System Monitor - Portfolio OS</div>
+          <div className="top-controls df-data">
             <span className="top-control">q: quit</span>
             <span className="top-control">k: kill</span>
             <span className="top-control">↑↓: select</span>
@@ -209,7 +209,7 @@ const TopUI: React.FC<TopUIProps> = ({
         </div>
 
         {/* System Info */}
-        <div className="top-system-info">
+        <div className="top-system-info df-data">
           <div className="top-uptime">
             up {formatUptime(uptime)}, {processes.length} processes
           </div>
@@ -221,7 +221,7 @@ const TopUI: React.FC<TopUIProps> = ({
         </div>
 
         {/* CPU and Memory Summary */}
-        <div className="top-summary">
+        <div className="top-summary df-data">
           <div className="top-cpu-summary">
             <span className="top-label">CPU:</span>
             <span className="top-cpu-user">{cpuInfo.user}% user</span>
@@ -247,7 +247,7 @@ const TopUI: React.FC<TopUIProps> = ({
         </div>
 
         {/* Process Table Header */}
-        <div className="top-table-header">
+        <div className="top-table-header df-label-sm">
           <div
             className="top-col-pid"
             onClick={() =>
@@ -303,8 +303,8 @@ const TopUI: React.FC<TopUIProps> = ({
           {processes.map((process) => (
             <div
               key={process.pid}
-              className={`top-process-row ${
-                selectedPid === process.pid ? "selected" : ""
+              className={`top-process-row df-glyph${
+                selectedPid === process.pid ? " selected" : ""
               }`}
               onClick={() => onSelectProcess(process.pid)}
             >
@@ -325,7 +325,7 @@ const TopUI: React.FC<TopUIProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="top-footer">
+        <div className="top-footer df-data">
           <div className="top-info">
             Press <kbd>q</kbd> to quit, <kbd>k</kbd> to kill selected process
           </div>

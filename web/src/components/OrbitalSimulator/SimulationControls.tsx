@@ -14,14 +14,23 @@ export default function SimulationControls({
   setTrails: (value: boolean) => void;
   editing: boolean;
 }) {
+  // §13 Disabled: Play stays focusable while it cannot act, and names the note or alert that says why.
+  const blocked = editing || Boolean(simulation.error);
+  const reasons = [
+    simulation.error && "orbital-error",
+    editing && "orbital-editing-note",
+  ]
+    .filter(Boolean)
+    .join(" ");
   return (
     <section
       className="orbital-panel orbital-controls"
       aria-label="Simulation controls"
     >
-      <label>
+      <label className="orbital-label df-label-sm">
         <span id="orbital-scenario-label">Scenario</span>
         <select
+          className="df-field df-data"
           aria-labelledby="orbital-scenario-label"
           value={simulation.scenario}
           onChange={(e) => onReset(e.target.value)}
@@ -35,17 +44,23 @@ export default function SimulationControls({
       </label>
       <div className="orbital-actions">
         <button
-          className="orbital-primary"
-          onClick={simulation.toggle}
-          disabled={editing || Boolean(simulation.error)}
+          className="orbital-primary df-control df-label"
+          onClick={() => {
+            if (!blocked) simulation.toggle();
+          }}
+          aria-disabled={blocked || undefined}
+          aria-describedby={reasons || undefined}
         >
           {simulation.playing ? "Pause" : "Play"}
         </button>
-        <button onClick={() => onReset()}>Reset scenario</button>
+        <button className="df-control df-label" onClick={() => onReset()}>
+          Reset scenario
+        </button>
       </div>
-      <label>
+      <label className="orbital-label df-label-sm">
         <span id="orbital-speed-label">Simulation speed</span>
         <select
+          className="df-field df-data"
           aria-labelledby="orbital-speed-label"
           value={simulation.speed}
           onChange={(e) => simulation.setSpeed(Number(e.target.value))}
@@ -57,7 +72,7 @@ export default function SimulationControls({
           ))}
         </select>
       </label>
-      <label className="orbital-checkbox">
+      <label className="orbital-checkbox df-control df-control--latch df-label">
         <input
           type="checkbox"
           checked={trails}

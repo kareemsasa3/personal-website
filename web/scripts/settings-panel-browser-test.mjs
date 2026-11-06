@@ -72,7 +72,7 @@ for (const [width, height] of [[320, 568], [375, 667], [430, 740], [500, 834], [
     if (dockAvailable) assert.equal(await page.getByRole("group", { name: "Navigation Style" }).count(), 1);
 
     // Reading-order tab traversal up to Reset.
-    const expected = ["Close settings", "Dark", "Light", ...(dockAvailable ? ["Dock", "Header"] : []), "background-animation-label", "background-motion-speed", "Export settings", "Import settings", "Reset all settings to defaults"];
+    const expected = ["Close settings", "Dark", "Light", "Mono", ...(dockAvailable ? ["Dock", "Header"] : []), "background-animation-label", "background-motion-speed", "Export settings", "Import settings", "Reset all settings to defaults"];
     const seen = [];
     for (let i = 1; i < expected.length; i++) {
       await page.keyboard.press("Tab");
@@ -89,6 +89,11 @@ for (const [width, height] of [[320, 568], [375, 667], [430, 740], [500, 834], [
     assert.equal(await button("Light").getAttribute("aria-pressed"), "true");
     assert.equal(await button("Dark").getAttribute("aria-pressed"), "false");
     await shot(`${width}x${height}-header-light`);
+    await button("Mono").click();
+    assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), "mono");
+    assert.equal(await button("Mono").getAttribute("aria-pressed"), "true");
+    assert.equal(await button("Dark").getAttribute("aria-pressed"), "false");
+    assert.equal(await button("Light").getAttribute("aria-pressed"), "false");
     await button("Dark").click();
     assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), "dark");
 
@@ -144,29 +149,40 @@ for (const [width, height, inert] of [[500, 834, true], [768, 1024, true], [820,
     assert.equal(await toggle.getAttribute("aria-expanded"), "true");
     await tuning.waitFor();
     const size = page.getByRole("slider", { name: "Size" });
-    const responsiveness = page.getByRole("slider", { name: "Responsiveness" });
-    const magnification = page.getByRole("slider", { name: "Magnification" });
+    // Dock magnification and its spring tuning were retired; their sliders must not return.
+    for (const name of ["Responsiveness", "Magnification"]) assert.equal(await page.getByRole("slider", { name }).count(), 0, `${name} slider is gone`);
     const note = page.locator("#dock-tuning-note");
     if (inert) {
-      for (const slider of [size, responsiveness, magnification]) {
-        assert.ok(await slider.isDisabled(), "Dock tuning is disabled where the dock ignores it");
-        assert.equal(await slider.getAttribute("aria-describedby"), "dock-tuning-note");
-      }
+      assert.ok(await size.isDisabled(), "Dock tuning is disabled where the dock ignores it");
+      assert.equal(await size.getAttribute("aria-describedby"), "dock-tuning-note");
       assert.equal((await note.textContent()).trim(), "Dock tuning applies on wider screens.");
+      // §13 Disabled, at this narrow width directly: Size reports aria-disabled rather than the disabled attribute, so it
+      // keeps focus and its reason can be read; the keyboard and the pointer leave its value, readout and the dock alone.
+      assert.equal(await size.getAttribute("aria-disabled"), "true");
+      assert.equal(await size.evaluate((el) => el.hasAttribute("disabled")), false, "Size uses aria-disabled, not the disabled attribute");
+      const readout = page.locator(".setting-slider:has(#dock-size) .setting-value");
+      const [value, shown] = [await size.getAttribute("aria-valuetext"), await readout.textContent()];
+      const iconWidth = () => page.locator(".dock-icon").first().evaluate((el) => el.getBoundingClientRect().width);
+      const icon = await iconWidth();
+      await size.focus();
+      assert.ok(await size.evaluate((el) => document.activeElement === el), "disabled Size keeps focus");
+      for (const key of ["ArrowRight", "End", "PageUp", "Home"]) {
+        await page.keyboard.press(key);
+        assert.equal(await size.getAttribute("aria-valuetext"), value, `${key} moved the disabled Size slider`);
+      }
+      const box = await size.boundingBox();
+      await page.mouse.click(box.x + box.width - 2, box.y + box.height / 2);
+      assert.equal(await size.getAttribute("aria-valuetext"), value, "a click moved the disabled Size slider");
+      assert.equal(await readout.textContent(), shown, "the disabled Size readout changed");
+      assert.equal(await iconWidth(), icon, "the dock changed size while tuning is disabled");
     } else {
       assert.equal(await note.count(), 0);
-      for (const slider of [size, responsiveness, magnification]) assert.ok(!(await slider.isDisabled()));
+      assert.ok(!(await size.isDisabled()));
       const before = await page.locator(".dock-icon").first().evaluate((el) => el.getBoundingClientRect().width);
       await size.focus();
       for (let i = 0; i < 10; i++) await page.keyboard.press("ArrowRight");
       assert.equal(await size.getAttribute("aria-valuetext"), "50 px");
       await page.waitForFunction((w) => document.querySelector(".dock-icon").getBoundingClientRect().width > w, before);
-      await responsiveness.focus();
-      await page.keyboard.press("ArrowRight");
-      assert.equal(await responsiveness.getAttribute("aria-valuetext"), "450");
-      await magnification.focus();
-      await page.keyboard.press("ArrowRight");
-      assert.equal(await magnification.getAttribute("aria-valuetext"), "50%");
       // Collapse and reopen: values persist.
       await toggle.click();
       assert.ok(await tuning.isHidden());
@@ -197,9 +213,8 @@ for (const [width, height] of [[1440, 900], [375, 667]]) {
     if (width > 768) {
       await button("Dock tuning").click();
       assert.ok(!(await page.getByRole("slider", { name: "Size" }).isDisabled()), "Size still applies under reduced motion");
-      assert.ok(await page.getByRole("slider", { name: "Magnification" }).isDisabled());
-      assert.ok(await page.getByRole("slider", { name: "Responsiveness" }).isDisabled());
-      assert.ok((await page.locator("#dock-tuning-note").textContent()).includes("reduced motion"));
+      for (const name of ["Magnification", "Responsiveness"]) assert.equal(await page.getByRole("slider", { name }).count(), 0, `${name} slider is gone`);
+      assert.equal(await page.locator("#dock-tuning-note").count(), 0);
     }
     await shot(`${width}x${height}-reduced-motion`);
     console.log(`PASS reduced motion ${width}x${height}: overridden controls disabled and explained`);
@@ -211,17 +226,73 @@ await withPage({ width: 1440, height: 900 }, async (page) => {
   const { button, panel, focused, reachable, open } = helpers(page);
   await open();
 
+  // Export and import report success as a neutral status line beside the actions, not a toast (owner decision, Phase 5
+  // Task 4): a polite live region, set only after the action succeeded, kept until the next action, a dismissal, Settings
+  // closing or a page change. Failures stay error toasts.
+  const status = page.locator(".settings-status__text");
+  // A result is written one frame after its action (so a repeat is announced again).
+  const statusIs = (text) => page.waitForFunction((t) => document.querySelector(".settings-status__text")?.textContent.trim() === t, text);
+  assert.equal(await status.getAttribute("role"), "status");
+  assert.equal(await status.getAttribute("aria-live"), "polite");
+  assert.equal((await status.textContent()).trim(), "", "no status before any action");
   const [download] = await Promise.all([page.waitForEvent("download"), button("Export settings").click()]);
   const exported = JSON.parse(await readFile(await download.path(), "utf8"));
   assert.equal(exported.version, 1);
-  for (const key of ["dockSize", "dockStiffness", "magnification", "isAnimationPaused", "navMode", "theme", "backgroundMotionSpeed"]) assert.ok(key in exported, `Export includes ${key}`);
-  await page.getByText("Settings Exported").waitFor();
+  for (const key of ["dockSize", "isAnimationPaused", "navMode", "theme", "backgroundMotionSpeed"]) assert.ok(key in exported, `Export includes ${key}`);
+  // The browser only reports that a download began, so the status says no more than that.
+  await statusIs("Settings download started");
+  assert.equal(await page.locator(".toast").count(), 0, "no success toast for export");
+  // No lifetime: still there after longer than a toast lives.
+  await page.waitForTimeout(5000);
+  assert.equal((await status.textContent()).trim(), "Settings download started", "the status persists");
+  // A repeated export is announced again: the live region's text is cleared and written afresh, not left untouched.
+  await status.evaluate((e) => { window.dfStatusLog = []; new MutationObserver(() => window.dfStatusLog.push(e.textContent.trim()))
+    .observe(e, { childList: true, characterData: true, subtree: true }); });
+  await Promise.all([page.waitForEvent("download"), button("Export settings").click()]);
+  await page.waitForFunction(() => window.dfStatusLog.at(-1) === "Settings download started");
+  const log = await page.evaluate(() => window.dfStatusLog);
+  assert.ok(log.includes("") && log.at(-1) === "Settings download started", `repeated export re-announces: ${JSON.stringify(log)}`);
 
-  const [chooser] = await Promise.all([page.waitForEvent("filechooser"), button("Import settings").click()]);
-  await chooser.setFiles({ name: "settings.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify({ version: 1, theme: "light", backgroundMotionSpeed: 1.5 })) });
-  await page.getByText("Settings Imported").waitFor();
+  const importFile = async (buffer) => {
+    const [chooser] = await Promise.all([page.waitForEvent("filechooser"), button("Import settings").click()]);
+    await chooser.setFiles({ name: "settings.json", mimeType: "application/json", buffer });
+  };
+  // A failed import: the error toast, and no success status (the previous one is replaced by the new action).
+  await importFile(Buffer.from("not settings"));
+  await page.locator(".toast").getByText("Import Failed").waitFor();
+  assert.equal((await status.textContent()).trim(), "", "no success status after a failed import");
+  assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), "dark", "a failed import applies nothing");
+
+  await importFile(Buffer.from(JSON.stringify({ version: 1, theme: "light", backgroundMotionSpeed: 1.5 })));
+  await page.waitForFunction(() => document.querySelector(".settings-status__text")?.textContent.trim() === "Settings imported");
   assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), "light");
   assert.equal(await page.getByRole("slider", { name: "Speed" }).getAttribute("aria-valuetext"), "1.5 times");
+  assert.equal(await page.locator(".toast").getByText("Settings Imported").count(), 0, "no success toast for import");
+
+  // Dismissed from the keyboard: Tab from Import reaches Reset, then the dismiss control; Enter clears the status and
+  // returns focus to the action that produced it.
+  await button("Import settings").focus();
+  await page.keyboard.press("Tab"); await page.keyboard.press("Tab");
+  const dismiss = button("Dismiss status");
+  assert.ok(await focused(dismiss), "the dismiss control follows the actions in keyboard order");
+  assert.ok(await dismiss.evaluate((e) => e.matches(".df-control")), "the dismiss control is a df-control");
+  await page.keyboard.press("Enter");
+  assert.equal((await status.textContent()).trim(), "");
+  assert.equal(await dismiss.count(), 0);
+  assert.ok(await focused(button("Import settings")), "focus returns to Import after dismissing");
+
+  // Cleared when Settings closes, and when the page changes.
+  await button("Export settings").click();
+  await statusIs("Settings download started");
+  await page.keyboard.press("Escape");
+  await panel.waitFor({ state: "detached" });
+  await open();
+  assert.equal((await page.locator(".settings-status__text").textContent()).trim(), "", "status cleared when Settings closed");
+  await button("Export settings").click();
+  await statusIs("Settings download started");
+  await page.evaluate(() => { history.pushState({}, "", "/writing"); dispatchEvent(new PopStateEvent("popstate")); });
+  await page.waitForFunction(() => location.pathname === "/writing");
+  await page.waitForFunction(() => !document.querySelector(".settings-status__text")?.textContent.trim());
 
   await button("Reset all settings to defaults").click();
   const reset = page.getByRole("dialog", { name: "Reset Settings", exact: true });

@@ -1,14 +1,19 @@
 
+/* The page root is governed (D6 ruling): it takes the site's family and fg. Everything it renders sits on the sheet. */
 .annals-page {
   background: transparent;
-  color: #1c1917;
-  color-scheme: light;
-  font-family: Georgia, Cambria, "Times New Roman", Times, serif;
+  color: var(--fg);
+  font-family: inherit;
 }
 
 /* The page wrapper stays transparent so the site backdrop shows through;
    the ledger carries its own parchment surface and stays legible on the
    dark and light site themes alike. */
+
+/* Native parchment (D6 ruling): keeps its own shadow, held at the legacy values the bridge carried. */
+.annals-page { --annals-sheet-shadow: rgba(0, 0, 0, 0.3); }
+[data-theme="light"] .annals-page { --annals-sheet-shadow: rgba(0, 0, 0, 0.08); }
+
 .annals-sheet {
   background: radial-gradient(
     circle at 20% 10%,
@@ -17,24 +22,30 @@
   );
   border: 1px solid rgba(68, 64, 60, 0.35);
   border-radius: var(--border-radius-md, 8px);
-  box-shadow: 0 8px 24px var(--shadow-color, rgba(0, 0, 0, 0.3));
+  box-shadow: 0 8px 24px var(--annals-sheet-shadow);
 }
+
+/* Pinned before the root was lifted (Phase 5 Task 21): the parchment keeps the ink, the serif stack and the colour scheme
+   it inherited from the page, so the narrative it holds reads as it did; every governed element on it sets its own voice.
+   The sheet also carries data-theme="light" (P5-3, ruled): the chrome on it renders the paper token set. */
+.annals-sheet {
+  color: #1c1917;
+  font-family: Georgia, Cambria, "Times New Roman", Times, serif;
+  color-scheme: light;
+}
+
+/* The six narrative markers (D6 ruling) keep what they inherited from the page, by their own pins: the serif stack where
+   no mono ancestor sets theirs, the page's ink where they carry no colour class, and the light colour scheme. */
+.annals-page [data-df-region]:not(.font-mono *) { font-family: Georgia, Cambria, "Times New Roman", Times, serif; }
+.annals-page div[data-df-region] { color: #1c1917; }
+.annals-page [data-df-region] { color-scheme: light; }
 
 .annals-page * {
   box-sizing: border-box;
 }
 
-.annals-page button,
-.annals-page input {
-  font: inherit;
-}
-
 .annals-page button {
   cursor: pointer;
-}
-
-.annals-page button:disabled {
-  cursor: not-allowed;
 }
 
 .annals-page .max-w-5xl { max-width: 64rem; }
@@ -150,9 +161,6 @@
 .annals-page .hover\:bg-yellow-50:hover { background-color: #fefce8; }
 .annals-page .hover\:text-stone-50:hover { color: #fafaf9; }
 
-.annals-page .ring-1 {
-  box-shadow: 0 0 0 1px var(--annals-ring-color, currentColor);
-}
 .annals-page .ring-yellow-400 { --annals-ring-color: #facc15; }
 .annals-page .ring-yellow-500 { --annals-ring-color: #eab308; }
 
@@ -205,8 +213,100 @@
  .annals-sheet > footer { margin-top: .75rem; }
 }
 .annals-page .text-stone-500 { color: #635d58; }
-.annals-page button[aria-pressed="true"] { outline: 2px solid #713f12; outline-offset: 1px; }
-.annals-page button:focus-visible { outline: 2px solid #075985; outline-offset: 2px; }
 
-.annals-page .annals-living button { gap: .5rem; }
-.annals-page .annals-living button > span:last-child { white-space: nowrap; }
+/* Governed Annals chrome (D6 ruling) */
+/* Phase 5 Task 21. On the sheet these read the paper token set (P5-3). Voices (§06): the title is a heading, the year a
+   Machine readout with its label beside it, the census, the fork legend and the log Machine text, section names
+   Instrument labels, and the phrases inside a heading, the hints and the footer Narrator text. Labels and supporting
+   text are fg-muted at rest. State words (§05 State encoding): an available hand is signal, a spent one held. Every element
+   keeps its first class (ids pair on it). Where that class is a type utility whose size or leading differs from the voice,
+   the voice is carried by an inner span, so the line renders the voice; the container sets the voice's family so its own
+   line box agrees. */
+.annals-sheet .annals-heading,
+.annals-sheet .annals-readout,
+.annals-sheet .annals-data { color: var(--fg); }
+.annals-sheet .annals-label,
+.annals-sheet .annals-phrase,
+.annals-sheet .annals-hint { color: var(--fg-muted); }
+.annals-sheet .annals-available { color: var(--signal); }
+.annals-sheet .annals-heading,
+.annals-sheet .annals-hint { font-family: var(--font-sans); }
+/* The year's label sits beside its value with a cell of its own, clear of the value's tracking. */
+.annals-sheet .annals-readout > span { margin-inline-end: var(--space-1); }
+.annals-sheet .annals-footer { border-top: var(--stroke-hair) solid var(--rule); }
+/* Legends (§15): their words are fg; each key keeps the narrative's own ink (P5-2: a native-palette mirror is a hold), the
+   chronicle's gold for a line of the player's hand and the fates list's grey for the baseline. */
+.annals-sheet .annals-hand { color: var(--fg); }
+.annals-sheet .annals-hand::before {
+  content: "";
+  display: inline-block;
+  inline-size: var(--cell-w);
+  block-size: var(--cell-w);
+  margin-inline-end: var(--space-1);
+  background: #a16207;
+}
+.annals-sheet .annals-legend { border-top: var(--stroke-hair) solid var(--rule); }
+.annals-sheet .annals-legend > span { color: var(--fg); }
+.annals-sheet .annals-key--hand { color: #a16207; }
+.annals-sheet .annals-key--baseline { color: #635d58; }
+/* The intervention log: Machine rows on the deep field between two structure seams (§09 L1), square. */
+.annals-sheet .annals-log {
+  background-color: var(--field-deep);
+  border-block: var(--stroke-hair) solid var(--rule);
+}
+.annals-sheet .annals-log > div { color: var(--fg); }
+/* The watched soul is a person's mark (§05 Rationing the secondary hues): an ion-deep band in an ion boundary with its
+   words in fg, while the soul lives and after it falls. */
+.annals-sheet .annals-banner {
+  background-color: var(--ion-deep);
+  border: var(--stroke-hair) solid var(--ion);
+  color: var(--fg);
+}
+/* Phase 5 Task 22. Controls (§13 control model; §06 voices): every button on the sheet is a df-control, in the label voice,
+   or in the Narrator voice where its text is longer than a label (the advance and the roster rows); the seed field is
+   Machine text and its name a label. The controls rest on the field of the token set the sheet renders, an opaque ground,
+   and step up one surface on hover. A verb with no hand to spend is Disabled (aria-disabled, so it stays focusable; its
+   reason is the spent phrase it is described by). A pressed verb and the watched or chosen soul are Selected through
+   aria-pressed; focus is the site's ring. */
+.annals-sheet .annals-control {
+  --df-ground: var(--field);
+  --df-ground-up: var(--surface-1);
+}
+/* The seed field takes the same target size as the controls on its row on small or coarse-pointer screens: block padding
+   sized to its own line height, as the grammar gives every non-card control. Its desktop height is unchanged. */
+@media (max-width: 768px), (pointer: coarse) {
+  .annals-sheet .annals-field {
+    padding-block: max(var(--space-2), calc((3 * var(--cell-h) - 1lh) / 2 - var(--stroke-hair)));
+  }
+}
+/* A roster row holds one line: the soul's name, epithet and house are its label; its trait and age are values; its state
+   glyph (★ watched, · not) is a marker that takes fg so it reads apart from the label. Both are fg at rest and invert with
+   the label while pressed. The hover marker sits out of flow in the row's leading padding, the cell directly before the
+   glyph, so the row keeps its own spacing. */
+.annals-sheet .annals-soul { gap: var(--space-2); }
+.annals-sheet .annals-soul::before {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: calc(var(--space-3) - var(--cell-w));
+  height: auto;
+  margin-inline-start: 0;
+  display: flex;
+  align-items: center;
+}
+.annals-sheet .annals-soul span { color: inherit; }
+.annals-sheet .annals-soul .annals-value { color: var(--fg); }
+.annals-sheet .annals-soul:is(:active, [data-df-pressed]) .annals-value { color: inherit; }
+.annals-sheet .annals-soul > span:last-child { white-space: nowrap; }
+/* The verb hint keeps two lines of its voice whatever it says, so the roster below it never moves as it changes. */
+.annals-sheet .annals-reason > span {
+  display: block;
+  min-block-size: 2lh;
+}
+/* The chronicle's and the fork's frames (§09 Frames and corners): square, a structure line. Under the native chronicle
+   and fates list, their grounds are the field of the token set the sheet renders, opaque, as the controls rest on. */
+.annals-sheet .annals-frame {
+  border-color: var(--rule);
+  background-color: var(--field);
+}
+/* The fork's house counts: their words are fg; each key keeps the narrative's ink (P5-2), as in the fork legend. */
+.annals-sheet .annals-count { color: var(--fg); }

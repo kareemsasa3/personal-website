@@ -25,12 +25,16 @@ const DockExploreStack = ({ items, pathname, baseSize }: DockExploreStackProps) 
     >
       <button
         {...stack.buttonProps}
-        className={`dock-explore__toggle ${activeItem ? "active" : ""}`}
+        className="dock-explore__toggle df-control df-control--latch"
         aria-label={activeItem ? `Explore: ${activeItem.label}` : "Explore"}
       >
         <div
           className="dock-icon"
-          style={{ width: baseSize, height: baseSize, fontSize: baseSize * 0.6 }}
+          style={{
+            width: `calc(${baseSize}px - 2 * var(--space-2))`,
+            height: `calc(${baseSize}px - 2 * var(--space-2))`,
+            fontSize: `calc((${baseSize}px - 2 * var(--space-2)) * 0.75)`,
+          }}
         >
           <FontAwesomeIcon icon={faCompass} />
         </div>
@@ -43,7 +47,7 @@ const DockExploreStack = ({ items, pathname, baseSize }: DockExploreStackProps) 
             <li key={item.path}>
               <Link
                 to={item.path}
-                className={`dock-explore__link ${isActive ? "active" : ""}`}
+                className="dock-explore__link df-control df-label"
                 aria-current={isActive ? "page" : undefined}
                 onClick={stack.close}
               >

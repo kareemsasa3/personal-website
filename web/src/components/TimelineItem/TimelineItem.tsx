@@ -3,6 +3,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { TimelineEvent } from "../../data/timelineData";
 import { useTheme } from "../../contexts/ThemeContext";
+import { INSTANT, motionToken } from "../../utils/motionTokens";
 import "./TimelineItem.css";
 
 interface TimelineItemProps {
@@ -17,30 +18,13 @@ const TimelineItem: React.FC<TimelineItemProps> = ({ data, isLeft }) => {
   const { theme } = useTheme();
   const reduceMotion = useReducedMotion();
 
-  const itemVariants = {
-    hidden: { opacity: 0, x: reduceMotion ? 0 : isLeft ? -100 : 100 },
-    visible: {
-      opacity: 1,
-      x: 0,
-      transition: { duration: 0.6, ease: "easeOut" },
-    },
-  };
-
-  const flipVariants = {
-    front: { rotateY: 0 },
-    back: { rotateY: 180 },
-  };
-
-  const handleMouseEnter = () => {
-    if (loadedImageUrl) {
-      setIsFlipped(true);
-    }
-  };
-
-  const handleMouseLeave = () => {
-    if (loadedImageUrl) {
-      setIsFlipped(false);
-    }
+  // The image face lies over the text face at the card's size; only a vertical clip moves, from the face's middle out
+  // to its edges and back, so the card never changes size.
+  const imageFaceVariants = {
+    // §12: state transition (reveal) · card shows its image
+    shown: { clipPath: "inset(0% 0% 0% 0%)", transition: reduceMotion ? INSTANT : motionToken("--dur-base", "--ease-settle") },
+    // §12: state transition (conceal) · card shows its text again
+    hidden: { clipPath: "inset(50% 0% 50% 0%)", transition: reduceMotion ? INSTANT : motionToken("--dur-fast", "--ease-depart") },
   };
 
   // Resolve the preferred and fallback image URLs based on theme
@@ -53,8 +37,8 @@ const TimelineItem: React.FC<TimelineItemProps> = ({ data, isLeft }) => {
     if (typeof image === "string") {
       return { preferred: image, fallback: null as string | null };
     }
-    const preferred = theme === "dark" ? image.dark : image.light;
-    const fallback = theme === "dark" ? image.light : image.dark;
+    const preferred = theme === "light" ? image.light : image.dark;
+    const fallback = theme === "light" ? image.dark : image.light;
     return { preferred, fallback };
   }, [image, theme]);
 
@@ -88,13 +72,7 @@ const TimelineItem: React.FC<TimelineItemProps> = ({ data, isLeft }) => {
   }, [preferredAndFallbackUrls]);
 
   return (
-    <motion.div
-      className={`timeline-item ${isLeft ? "left" : "right"}`}
-      variants={itemVariants}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, amount: 0.5 }}
-    >
+    <div className={`timeline-item ${isLeft ? "left" : "right"}`}>
       <div className={`timeline-icon-wrapper ${category}`}>
         <FontAwesomeIcon icon={icon} />
       </div>
@@ -103,34 +81,23 @@ const TimelineItem: React.FC<TimelineItemProps> = ({ data, isLeft }) => {
         className={`timeline-flip-container ${
           loadedImageUrl ? "has-image" : ""
         }`}
-        onPointerEnter={(event) => { if (event.pointerType === "mouse") handleMouseEnter(); }}
-        onPointerLeave={(event) => { if (event.pointerType === "mouse") handleMouseLeave(); }}
-
       >
-        <motion.div
-          className="timeline-flip-card"
-          variants={flipVariants}
-          animate={isFlipped ? "back" : "front"}
-          transition={{ duration: reduceMotion ? 0 : 0.6, ease: "easeInOut" }}
-          style={{ transformStyle: "preserve-3d" }}
-        >
+        <div className="timeline-flip-card">
           {/* Front of card */}
-          <motion.div
-            className="timeline-content timeline-front"
-            style={{ backfaceVisibility: "hidden" }}
-          >
-            <span className="timeline-date">{date}</span>
-            <h3 className="timeline-item-title">{title}</h3>
-            <p className="timeline-item-description">{description}</p>
-          </motion.div>
+          <div className="timeline-content timeline-front">
+            <span className="timeline-date df-annotation">{date}</span>
+            <h3 className="timeline-item-title df-heading-3">{title}</h3>
+            <p className="timeline-item-description df-body">{description}</p>
+          </div>
 
-          {/* Back of card */}
+          {/* Back of card: the image face, laid over the front */}
           {loadedImageUrl && (
             <motion.div
               className="timeline-content timeline-back"
+              variants={imageFaceVariants}
+              initial={false}
+              animate={isFlipped ? "shown" : "hidden"}
               style={{
-                backfaceVisibility: "hidden",
-                transform: "rotateY(180deg)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -152,10 +119,10 @@ const TimelineItem: React.FC<TimelineItemProps> = ({ data, isLeft }) => {
               />
             </motion.div>
           )}
-        </motion.div>
-        {loadedImageUrl && <button className="timeline-flip-toggle" aria-pressed={isFlipped} aria-label={`${isFlipped ? "Show story" : "View image"}: ${title}`} onClick={() => setIsFlipped(v => !v)}>{isFlipped ? "Show story" : "View image"} ↻</button>}
+        </div>
+        {loadedImageUrl && <button className="timeline-flip-toggle df-control df-control--latch df-label" aria-pressed={isFlipped} aria-label={`${isFlipped ? "Show story" : "View image"}: ${title}`} onClick={() => setIsFlipped(v => !v)}>{isFlipped ? "Show story" : "View image"} ↻</button>}
       </div>
-    </motion.div>
+    </div>
   );
 };
 

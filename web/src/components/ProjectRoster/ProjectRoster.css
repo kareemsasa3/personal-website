@@ -12,22 +12,13 @@ with globally bundled card/badge styles.
 */
 
 .project-roster {
-    --roster-accent: var(--terminal-primary, #4CAF50);
-    --roster-rule: var(--border-color);
-    --roster-status-live: #51cf66;
-    --roster-status-development: #ffd43b;
-    --roster-status-demo-ready: #74c0fc;
-    --roster-status-maintenance: #b197fc;
-    --roster-status-completed: #8fa3b8;
-
     width: 100%;
     max-width: 960px;
     margin: 0 auto;
     padding: 0;
     list-style: none;
-    border-bottom: 1px solid var(--roster-rule);
-    font-family: var(--terminal-font, 'Courier New', 'Monaco', 'Menlo', monospace);
-    color: var(--text-color);
+    border-bottom: var(--stroke-hair) solid var(--rule);
+    color: var(--fg);
 }
 
 .project-roster__sr-only {
@@ -43,16 +34,14 @@ with globally bundled card/badge styles.
 }
 
 .project-roster__item {
-    border-top: 1px solid var(--roster-rule);
+    border-top: var(--stroke-hair) solid var(--rule);
     padding: 1.75rem 1.25rem;
-    transition: background-color 0.25s ease;
+    transition: background-color var(--dur-fast) var(--ease-standard);
 }
 
 .project-roster__item[data-expanded="true"] {
     margin-block: 0.5rem;
-    background: color-mix(in srgb, var(--app-surface) 45%, transparent);
-    border-radius: 10px;
-    border-top-color: transparent;
+    border-radius: var(--radius-0);
 }
 
 .project-roster__article {
@@ -79,11 +68,7 @@ with globally bundled card/badge styles.
     align-items: center;
     gap: 0.4rem 0.9rem;
     margin: 0 0 0.55rem;
-    color: var(--text-secondary);
-    font-size: 0.78rem;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
+    color: var(--fg-muted);
 }
 
 .project-roster__meta-item {
@@ -93,80 +78,28 @@ with globally bundled card/badge styles.
     min-width: 0;
 }
 
-/* Separator belongs to the preceding item so a wrapped line can never start with one. */
-.project-roster__meta-item:not(:last-child)::after {
-    content: '';
-    display: inline-block;
-    flex: 0 0 auto;
-    width: 3px;
-    height: 3px;
-    margin-left: 0.9rem;
-    border-radius: 999px;
-    background: var(--text-secondary);
-    opacity: 0.6;
-}
-
+/* Fields are separated by the row's column gap alone (§06 metadata grammar), so a drawn separator never sits beside
+   the Live marker. */
 .project-roster__meta-item:first-child {
-    color: var(--roster-accent);
+    color: var(--fg-muted);
 }
 
 .project-roster__status {
-    gap: 0.45rem;
-    text-transform: none;
-    letter-spacing: 0.02em;
-    font-weight: 600;
-    color: var(--text-color);
     white-space: normal;
-}
-
-.project-roster__status-dot {
-    flex: 0 0 auto;
-    width: 0.5rem;
-    height: 0.5rem;
-    border-radius: 999px;
-    background: var(--roster-status-color, var(--text-secondary));
-    box-shadow: 0 0 8px color-mix(in srgb, var(--roster-status-color, transparent) 55%, transparent);
-}
-
-.project-roster__status--live {
-    --roster-status-color: var(--roster-status-live);
-}
-
-.project-roster__status--development,
-.project-roster__status--active-development {
-    --roster-status-color: var(--roster-status-development);
-}
-
-.project-roster__status--demo-ready {
-    --roster-status-color: var(--roster-status-demo-ready);
-}
-
-.project-roster__status--maintenance {
-    --roster-status-color: var(--roster-status-maintenance);
-}
-
-.project-roster__status--completed {
-    --roster-status-color: var(--roster-status-completed);
 }
 
 .project-roster__title {
     grid-area: title;
     margin: 0;
-    color: var(--roster-accent);
-    font-size: 1.45rem;
-    font-weight: 700;
-    line-height: 1.2;
-    text-shadow: 0 0 10px color-mix(in srgb, var(--roster-accent) 55%, transparent);
+    color: var(--fg);
     overflow-wrap: anywhere;
 }
 
 .project-roster__deck {
     grid-area: deck;
-    max-width: 62ch;
+    max-width: var(--measure-body);
     margin: 0.55rem 0 0;
-    color: var(--text-secondary);
-    font-size: 1rem;
-    line-height: 1.55;
+    color: var(--fg-muted);
 }
 
 .project-roster__actions {
@@ -178,35 +111,11 @@ with globally bundled card/badge styles.
     min-width: 0;
 }
 
+/* Boundary, colour and states come from .df-control: the toggle is a latch (aria-expanded), the actions plain idle
+   controls, Case study first in the row (D8). */
 .project-roster__toggle,
 .project-roster__action {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.45rem;
-    min-height: 2.5rem;
-    padding: 0.5rem 1rem;
-    border-radius: 999px;
-    font-family: inherit;
-    font-size: 0.82rem;
-    font-weight: 700;
-    letter-spacing: 0.03em;
-    text-decoration: none;
     white-space: nowrap;
-    cursor: pointer;
-    transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
-}
-
-.project-roster__toggle {
-    border: 1px solid var(--roster-accent);
-    background: var(--roster-accent);
-    color: var(--terminal-background, #1a1a1a);
-    box-shadow: 0 0 12px color-mix(in srgb, var(--roster-accent) 35%, transparent);
-}
-
-.project-roster__toggle:hover,
-.project-roster__toggle[aria-expanded="true"] {
-    box-shadow: 0 0 18px color-mix(in srgb, var(--roster-accent) 55%, transparent);
 }
 
 .project-roster__toggle-icon {
@@ -215,30 +124,6 @@ with globally bundled card/badge styles.
     justify-content: center;
     width: 1rem;
     font-size: 1rem;
-    line-height: 1;
-}
-
-.project-roster__action {
-    border: 1px solid var(--border-color);
-    background: color-mix(in srgb, var(--app-surface) 80%, transparent);
-    color: var(--text-color);
-}
-
-.project-roster__action:hover {
-    border-color: var(--roster-accent);
-    color: var(--roster-accent);
-}
-
-.project-roster__action--primary {
-    border-color: color-mix(in srgb, var(--roster-accent) 58%, transparent);
-    background: color-mix(in srgb, var(--roster-accent) 16%, transparent);
-    color: var(--roster-accent);
-}
-
-.project-roster__toggle:focus-visible,
-.project-roster__action:focus-visible {
-    outline: 2px solid var(--roster-accent);
-    outline-offset: 3px;
 }
 
 /* Detail panel -------------------------------------------------------- */
@@ -246,31 +131,13 @@ with globally bundled card/badge styles.
 .project-roster__detail {
     margin-top: 1.4rem;
     padding: 0.25rem 0 0.25rem 1.25rem;
-    border-left: 2px solid var(--roster-accent);
-}
-
-.project-roster__detail:not([hidden]) {
-    animation: project-roster-reveal 0.2s ease-out;
-}
-
-@keyframes project-roster-reveal {
-    from {
-        opacity: 0;
-        transform: translateY(-6px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    border-left: var(--stroke-hair) solid var(--rule);
 }
 
 .project-roster__description {
-    max-width: 72ch;
+    max-width: var(--measure-body);
     margin: 0;
-    color: var(--text-color);
-    font-size: 1rem;
-    line-height: 1.65;
+    color: var(--fg);
 }
 
 .project-roster__detail-grid {
@@ -286,11 +153,7 @@ with globally bundled card/badge styles.
 
 .project-roster__detail-heading {
     margin: 0 0 0.7rem;
-    color: var(--roster-accent);
-    font-size: 0.85rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    color: var(--fg-muted);
 }
 
 .project-roster__tags,
@@ -300,23 +163,16 @@ with globally bundled card/badge styles.
     list-style: none;
 }
 
+/* Tags are context labels (D7): voice and colour come from .df-label-sm and .df-context; the list gap keeps them apart. */
 .project-roster__tags {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.4rem;
+    gap: var(--space-3);
 }
 
 .project-roster__tag {
     display: inline-flex;
     max-width: 100%;
-    padding: 0.28rem 0.6rem;
-    border: 1px solid color-mix(in srgb, var(--roster-accent) 55%, transparent);
-    border-radius: 4px;
-    background: color-mix(in srgb, var(--roster-accent) 10%, transparent);
-    color: var(--text-color);
-    font-size: 0.8rem;
-    font-weight: 500;
-    line-height: 1.25;
     overflow-wrap: anywhere;
 }
 
@@ -328,9 +184,7 @@ with globally bundled card/badge styles.
 .project-roster__point {
     position: relative;
     padding-left: 1rem;
-    color: var(--text-color);
-    font-size: 0.9rem;
-    line-height: 1.5;
+    color: var(--fg);
 }
 
 .project-roster__point::before {
@@ -340,8 +194,8 @@ with globally bundled card/badge styles.
     left: 0;
     width: 0.35rem;
     height: 0.35rem;
-    border-radius: 999px;
-    background: var(--roster-accent);
+    border-radius: var(--radius-0);
+    background: var(--fg-muted);
 }
 
 .project-roster__detail-actions {
@@ -378,18 +232,8 @@ with globally bundled card/badge styles.
         padding-inline: 0.75rem;
     }
 
-    .project-roster__title {
-        font-size: 1.25rem;
-    }
-
-    .project-roster__deck {
-        font-size: 0.95rem;
-    }
-
     .project-roster__toggle,
     .project-roster__action {
-        min-height: 44px;
-        padding: 0.6rem 1rem;
         white-space: normal;
     }
 
@@ -404,14 +248,8 @@ with globally bundled card/badge styles.
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .project-roster__item,
-    .project-roster__toggle,
-    .project-roster__action {
+    .project-roster__item {
         transition: none;
-    }
-
-    .project-roster__detail:not([hidden]) {
-        animation: none;
     }
 }
 

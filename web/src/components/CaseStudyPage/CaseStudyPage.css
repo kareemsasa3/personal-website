@@ -2,17 +2,11 @@
   width: 100%;
   max-width: 1280px;
   margin: 0 auto;
-  font-family: "Courier New", "Monaco", "Menlo", monospace;
   min-width: 0;
 }
 
 .case-study-container > * + * {
   margin-top: 1.5rem;
-}
-
-.case-study-hero,
-.case-study-section {
-  backdrop-filter: blur(8px);
 }
 
 .case-study-breadcrumbs {
@@ -21,72 +15,55 @@
   gap: 0.5rem;
   align-items: center;
   margin-bottom: 1.5rem;
-  color: var(--text-secondary, rgba(255, 255, 255, 0.7));
-  font-size: 0.9rem;
+  color: var(--fg-muted);
 }
 
 .case-study-breadcrumbs a {
-  color: var(--primary-color);
   text-decoration: none;
-}
-
-.case-study-breadcrumbs a:hover {
-  text-decoration: underline;
 }
 
 .case-study-eyebrow {
   margin: 0 0 0.75rem;
-  color: var(--primary-color);
-  font-size: 0.85rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  color: var(--fg-muted);
 }
 
 .case-study-title {
   margin: 0;
-  color: var(--text-color);
-  font-size: clamp(2.4rem, 6vw, 4.5rem);
-  line-height: 1.05;
+  color: var(--fg);
   overflow-wrap: anywhere;
 }
 
 .case-study-summary {
-  max-width: 760px;
   margin: 1rem 0 0;
-  color: var(--text-color);
-  font-size: 1.05rem;
-  line-height: 1.8;
+  color: var(--fg);
   overflow-wrap: anywhere;
 }
 
 .case-study-focus-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
+  gap: var(--space-3);
   margin-top: 1.5rem;
 }
 
 .case-study-section h2,
 .case-studies-header h1 {
   margin: 0 0 1rem;
-  color: var(--text-color);
-  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  color: var(--fg);
 }
 
 .case-study-section h3,
 .case-study-card h3 {
   margin: 0 0 0.75rem;
-  color: var(--text-color);
-  font-size: 1.15rem;
+  color: var(--fg);
 }
 
 .case-study-section p,
 .case-study-list li,
 .case-study-card p,
-.case-studies-header p {
-  color: var(--text-color);
-  line-height: 1.8;
+.case-studies-header p:not(.case-study-eyebrow) {
+  max-width: var(--measure-body);
+  color: var(--fg);
   overflow-wrap: anywhere;
 }
 
@@ -112,7 +89,7 @@
 .case-study-artifact-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: var(--space-3);
   margin-bottom: 0.75rem;
 }
 
@@ -121,34 +98,19 @@
   box-sizing: border-box;
   width: fit-content;
   max-width: 100%;
-  padding: 0.25rem 0.55rem;
-  border: 1px solid var(--border-color);
-  border-radius: 999px;
-  color: var(--primary-color);
-  font-size: 0.72rem;
-  font-weight: 700;
-  line-height: 1.2;
-  text-transform: uppercase;
   white-space: nowrap;
   word-break: normal;
 }
 
 .case-study-artifact-note {
+  max-width: var(--measure-body);
   margin-top: 0.75rem;
-  color: var(--text-secondary, rgba(255, 255, 255, 0.7));
-  font-size: 0.92rem;
+  color: var(--fg-muted);
 }
 
 .case-study-artifact-link {
   display: inline-flex;
   margin-top: 0.75rem;
-  color: var(--primary-color);
-  font-weight: 700;
-  text-decoration: none;
-}
-
-.case-study-artifact-link:hover {
-  text-decoration: underline;
 }
 
 .case-study-links {
@@ -157,19 +119,32 @@
   gap: 1rem;
 }
 
+/* Label and action share their first line's baseline, so a label's first line starts at the top of the control whether it
+   wraps or not, and the marker below meets it there. */
 .case-study-link {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
   gap: 1rem;
   min-width: 0;
-  padding: 1rem 1.25rem;
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  background: color-mix(in srgb, var(--app-surface) 86%, transparent);
-  color: var(--text-color);
-  text-decoration: none;
-  transition: border-color 0.3s ease, background 0.3s ease, transform 0.3s ease;
+}
+
+/* The marker sits in the leading padding, one line tall, level with the label's first line however many lines the label
+   wraps to: its top is the control's block padding (grammar.css), the same at every width. */
+.case-study-link::before {
+  position: absolute;
+  inset-block-start: var(--space-2);
+  inset-inline-start: var(--space-1);
+  display: flex;
+  align-items: center;
+  height: 1lh;
+  margin-inline-start: 0;
+}
+
+@media (max-width: 768px), (pointer: coarse) {
+  .case-study-link::before {
+    inset-block-start: max(var(--space-2), calc((3 * var(--cell-h) - 1lh) / 2 - var(--stroke-hair)));
+  }
 }
 
 /* The label absorbs the squeeze; the action (View, Open, unavailable note) wraps only
@@ -183,17 +158,6 @@
   overflow-wrap: normal;
 }
 
-.case-study-link:hover {
-  border-color: var(--primary-color);
-  background: rgba(0, 255, 0, 0.05);
-  transform: translateY(-2px);
-}
-
-.case-study-link.disabled {
-  opacity: 0.72;
-  cursor: default;
-}
-
 .case-studies-page .case-study-container > * + * {
   margin-top: 2rem;
 }
@@ -203,7 +167,7 @@
 }
 
 .case-studies-header p {
-  max-width: 760px;
+  max-width: var(--measure-body);
   margin: 0;
 }
 
@@ -219,7 +183,6 @@
   gap: 1rem;
   height: 100%;
   text-decoration: none;
-  color: inherit;
 }
 
 /* Title and status badge share the first row; the description spans the full card width
@@ -267,14 +230,10 @@
 }
 
 .case-study-card-link {
-  color: var(--primary-color);
-  font-weight: 700;
+  color: inherit;
 }
 
 @media (max-width: 768px) {
-  .case-study-title {
-    font-size: clamp(2rem, 10vw, 3rem);
-  }
 
   .case-study-links,
   .case-study-grid,
@@ -299,23 +258,20 @@
   }
 
   .case-study-link {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 0.35rem;
-    padding: 0.9rem 1rem;
+    display: block;
+  }
+
+  .case-study-link span:last-child {
+    display: block;
+    margin-top: var(--space-1);
   }
 }
 
 .case-study-flow { margin: 1rem 0; }
 .case-study-flow ol { display: flex; flex-wrap: wrap; gap: 1rem; padding: 0; list-style: none; }
-.case-study-flow li { border: 1px solid var(--app-border); padding: .65rem; }
-.case-study-flow li + li::before { content: "→ "; color: var(--brand-primary); }
-.case-study-flow figcaption, .case-study-flow p { color: var(--app-text-secondary); font-size: .85rem; }
-.case-study-link.disabled { cursor: default; border-style: dashed; background: transparent; box-shadow: none; }
-.case-study-link.disabled:hover { transform: none; border-color: var(--app-border); }
-
-.case-study-link.disabled:hover { color: var(--app-text-secondary); background: transparent; }
-
+.case-study-flow li { border-top: var(--stroke-hair) solid var(--rule); padding: .65rem; }
+.case-study-flow li + li::before { content: "→ "; color: var(--signal-dim); }
+.case-study-flow figcaption, .case-study-flow p { color: var(--fg-muted); }
 /* Span the hero card so the loop fills the width beside the left-aligned copy and dense terminal text stays legible */
 .case-study-hero-media { margin-top: 1.5rem; }
 
@@ -323,35 +279,35 @@
 .case-study-block { margin-top: 1.5rem; }
 .case-study-block > h3 { margin-bottom: 0.5rem; }
 
-.case-study-prompt { margin-top: 0.75rem; border: 1px solid var(--app-border); border-radius: 8px; background: var(--app-surface); }
-.case-study-prompt summary { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.25rem 1rem; min-height: 44px; padding: 0.5rem 1rem; color: var(--text-color); font-weight: 700; cursor: pointer; }
-.case-study-prompt__meta { color: var(--app-text-secondary); font-size: 0.8rem; font-weight: 400; }
-.case-study-prompt pre { margin: 0; padding: 0.75rem 1rem 1rem; border-top: 1px solid var(--app-border); color: var(--text-color); font-family: inherit; font-size: 0.85rem; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; }
+.case-study-prompt { margin-top: 0.75rem; border-top: var(--stroke-hair) solid var(--rule); }
+.case-study-prompt summary { display: flex; flex-wrap: wrap; align-items: center; row-gap: var(--space-1); }
+.case-study-prompt__meta { margin-inline-start: auto; color: inherit; }
+.case-study-prompt pre { margin: 0; padding: 0.75rem 1rem 1rem; border: var(--stroke-hair) solid var(--edge); color: var(--fg); white-space: pre-wrap; overflow-wrap: anywhere; }
 
 /* Stills never grow past their own size, so the figure shrinks to its row of stills and
    centers; the caption wraps to that width instead of widening the figure. */
 .case-study-figure { width: fit-content; max-width: 100%; margin-left: auto; margin-right: auto; }
 .case-study-figure__images { display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem; align-items: flex-start; }
 .case-study-figure__item { flex: 1 1 280px; min-width: 0; }
-.case-study-figure figcaption { contain: inline-size; max-width: 760px; margin-top: 0.75rem; color: var(--app-text-secondary); font-size: 0.85rem; line-height: 1.6; }
+.case-study-figure figcaption { contain: inline-size; max-width: var(--measure-body); margin-top: 0.75rem; color: var(--fg-muted); }
 
 .case-study-comparison { overflow-x: auto; }
-.case-study-comparison table { width: 100%; border-collapse: collapse; font-size: 0.85rem; line-height: 1.5; }
-.case-study-comparison caption { padding-bottom: 0.5rem; color: var(--text-color); font-weight: 700; text-align: left; }
-.case-study-comparison :is(th, td) { padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--app-border); color: var(--text-color); text-align: left; vertical-align: top; overflow-wrap: break-word; }
-.case-study-comparison thead th { color: var(--primary-color); }
-.case-study-comparison tbody th { width: 30%; color: var(--app-text-secondary); font-weight: 400; }
-.case-study-comparison__note { margin-top: 0.75rem; color: var(--app-text-secondary); font-size: 0.85rem; }
+.case-study-comparison table { width: 100%; border-collapse: collapse; }
+.case-study-comparison caption { padding-bottom: 0.5rem; color: var(--fg); text-align: left; }
+.case-study-comparison :is(th, td) { padding: 0.5rem 0.6rem; border-bottom: var(--stroke-hair) solid var(--rule); color: var(--fg); text-align: left; vertical-align: top; overflow-wrap: break-word; }
+.case-study-comparison thead th { color: var(--signal-dim); }
+.case-study-comparison tbody th { width: 30%; color: var(--fg-muted); }
+.case-study-comparison__note { margin-top: 0.75rem; color: var(--fg-muted); }
 
 /* Narrow screens: one block per row, each value labelled with its column. */
 @media (max-width: 560px) {
   .case-study-comparison :is(table, tbody, tr, th, td) { display: block; width: auto; }
   .case-study-comparison caption { display: block; }
   .case-study-comparison thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-  .case-study-comparison tr { padding: 0.6rem 0; border-bottom: 1px solid var(--app-border); }
+  .case-study-comparison tr { padding: 0.6rem 0; border-bottom: var(--stroke-hair) solid var(--rule); }
   .case-study-comparison :is(th, td) { padding: 0.15rem 0; border: 0; }
-  .case-study-comparison tbody th { width: auto; color: var(--text-color); font-weight: 700; }
-  .case-study-comparison td::before { content: attr(data-label) ": "; color: var(--primary-color); }
+  .case-study-comparison tbody th { width: auto; color: var(--fg); }
+  .case-study-comparison td::before { content: attr(data-label) ": "; color: var(--signal-dim); }
 }
 
 /* Keep empty tracks so a short row of cards matches the width of a full one */
@@ -367,6 +323,5 @@
 
 .case-studies-header h2 {
   margin: 0 0 1rem;
-  color: var(--text-color);
-  font-size: clamp(1.5rem, 3vw, 2rem);
+  color: var(--fg);
 }

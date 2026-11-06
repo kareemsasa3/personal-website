@@ -1,5 +1,5 @@
 import { useLocation, useNavigationType, useOutlet } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Suspense, useMemo, useState, useEffect, useRef } from "react";
 import AppBackground from "../AppBackground/AppBackground";
 import SiteNavigation from "../Navigation/SiteNavigation";
@@ -9,23 +9,12 @@ import { MarkAppReady, RouteLoadingFallback } from "../common";
 import ErrorBoundary from "../common/ErrorBoundary";
 import { useLayoutContext } from "../../contexts/LayoutContext";
 import { useNavigationMode } from "../../contexts/NavigationModeContext";
+import { INSTANT, motionToken } from "../../utils/motionTokens";
 import "./Layout.css";
 
 const pageVariants = {
-  initial: {
-    opacity: 0,
-    y: 20,
-  },
-  in: {
-    opacity: 1,
-    y: 0,
-  },
-};
-
-const pageTransition = {
-  type: "tween",
-  ease: "anticipate",
-  duration: 0.4, // Slightly longer duration to allow sections to settle
+  initial: { opacity: 0 },
+  in: { opacity: 1 },
 };
 
 // AnimatePresence keeps the exiting wrapper mounted while it animates out, but
@@ -41,9 +30,10 @@ const FrozenOutlet = () => {
 const Layout = () => {
   const location = useLocation();
   const navigationType = useNavigationType();
-  const { mainContentAreaRef } = useLayoutContext();
+  const { mainContentAreaRef, sections } = useLayoutContext();
   const { navMode } = useNavigationMode();
   const pendingScrollReset = useRef(false);
+  const reduce = useReducedMotion();
 
   // Memoize the key to prevent unnecessary re-renders
   const pageKey = useMemo(() => location.pathname, [location.pathname]);
@@ -75,7 +65,8 @@ const Layout = () => {
       <AppBackground />
 
       {/* This is now the top-level container for all INTERACTIVE content */}
-      <div className={`layout-foreground nav-mode-${navMode}`}>
+      {/* has-section-rail: the page lists its sections, so the rail shows and the content clears it. */}
+      <div className={`layout-foreground nav-mode-${navMode}${sections.length > 0 ? " has-section-rail" : ""}`}>
         <GlobalScrollProgress />
         <SiteNavigation />
         <GlobalSectionNavigation />
@@ -96,7 +87,8 @@ const Layout = () => {
                 initial="initial"
                 animate="in"
                 variants={pageVariants}
-                transition={pageTransition}
+                // §12: state transition (create) · the route changed
+                transition={reduce ? INSTANT : motionToken("--dur-base", "--ease-settle")}
                 style={{ width: "100%", minHeight: "100%" }}
               >
                 <Suspense fallback={<RouteLoadingFallback />}>

@@ -26,6 +26,7 @@ const TerminalWindow: React.FC<TerminalWindowProps> = ({
   onMaximize,
   className = "",
 }) => {
+  const maximizeLabel = isMaximized ? "Restore terminal" : "Maximize terminal";
   return (
     <div
       className={`terminal-container ${isMaximized ? "maximized" : ""} ${
@@ -35,27 +36,32 @@ const TerminalWindow: React.FC<TerminalWindowProps> = ({
       onMouseDown={onMouseDown}
     >
       <div className="terminal-header">
+        {/* The controls show their accessible names as their labels (P5-7). The name stays an aria-label with the
+            same words, so it keeps its case where the label voice renders the visible text in capitals. */}
         <div className="terminal-buttons">
           <button
-            className="terminal-button close"
+            className="terminal-button close df-control df-label"
             onClick={onClose}
-            title="Close terminal"
             aria-label="Close terminal"
-          />
+          >
+            Close terminal
+          </button>
           <button
-            className="terminal-button minimize"
+            className="terminal-button minimize df-control df-label"
             onClick={onMinimize}
-            title="Minimize terminal"
             aria-label="Minimize terminal"
-          />
+          >
+            Minimize terminal
+          </button>
           <button
-            className="terminal-button maximize"
+            className="terminal-button maximize df-control df-label"
             onClick={onMaximize}
-            title={isMaximized ? "Restore terminal" : "Maximize terminal"}
-            aria-label={isMaximized ? "Restore terminal" : "Maximize terminal"}
-          />
+            aria-label={maximizeLabel}
+          >
+            {maximizeLabel}
+          </button>
         </div>
-        <div className="terminal-title">
+        <div className="terminal-title df-data">
           portfolio@kareem-sasa:
           {currentDirectory === "/" ? "~" : currentDirectory}
           {isDragging && " (dragging)"}

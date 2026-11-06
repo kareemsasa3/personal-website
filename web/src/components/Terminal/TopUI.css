@@ -1,34 +1,43 @@
 /* Top UI Styles */
+/* A terminal region over the dimmed page (§08 Layers and overlays; §05 Roles): the panel is field-deep under a
+   surface-2 header band, with the key line as a surface-2 band at the foot. Every text is Machine (df-data, or
+   df-glyph for the process rows on the cell grid); the column headers are Instrument (df-label-sm). */
 .top-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100vh;
-    background: rgba(0, 0, 0, 0.95);
+    background: var(--df-scrim);
     z-index: 10000;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
+    font-family: var(--font-mono);
 }
 
+/* The process columns sit on whole cells (§07 The cell), so the rows' characters keep their columns: the fixed columns
+   are whole cells wide, and each row's end padding takes the width left over below a whole cell, so the flexible
+   COMMAND column is whole cells wide too. */
 .top-container {
+    --top-pad: var(--space-4);
+    --top-columns: calc(8 * var(--cell-w)) 2fr calc(8 * var(--cell-w)) calc(8 * var(--cell-w)) calc(10 * var(--cell-w))
+        calc(10 * var(--cell-w)) calc(6 * var(--cell-w)) calc(15 * var(--cell-w));
     width: 95%;
     max-width: 1200px;
     height: 95vh;
-    background: var(--terminal-window-bg);
-    border: 1px solid var(--terminal-border);
-    border-radius: 4px;
+    background-color: var(--field-deep);
+    border: var(--stroke-hair) solid var(--edge);
+    color: var(--fg);
     display: flex;
     flex-direction: column;
     overflow: hidden;
 }
 
 .top-header {
-    background: var(--terminal-header-bg);
-    padding: 12px 16px;
-    border-bottom: 1px solid var(--terminal-border);
+    background-color: var(--surface-2);
+    padding: var(--space-3) var(--space-4);
+    border-bottom: var(--stroke-hair) solid var(--edge);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -36,16 +45,13 @@
 }
 
 .top-title {
-    color: var(--terminal-text-primary);
-    font-weight: bold;
-    font-size: 16px;
+    color: var(--fg);
 }
 
 .top-controls {
     display: flex;
-    gap: 16px;
-    font-size: 12px;
-    color: #888;
+    gap: var(--space-4);
+    color: var(--fg-muted);
 }
 
 .top-control {
@@ -53,98 +59,56 @@
 }
 
 .top-system-info {
-    background: var(--terminal-header-bg);
-    padding: 8px 16px;
-    border-bottom: 1px solid #333;
+    padding: var(--space-2) var(--space-4);
+    border-bottom: var(--stroke-hair) solid var(--rule);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 12px;
-    color: #ccc;
+    color: var(--fg);
     flex-shrink: 0;
 }
 
-.top-uptime, .top-load, .top-time {
-    color: var(--terminal-text-primary);
-}
-
 .top-summary {
-    background: var(--terminal-header-bg);
-    padding: 8px 16px;
-    border-bottom: 1px solid #333;
+    padding: var(--space-2) var(--space-4);
+    border-bottom: var(--stroke-hair) solid var(--rule);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 12px;
-    color: #ccc;
+    color: var(--fg);
     flex-shrink: 0;
 }
 
 .top-cpu-summary, .top-memory-summary {
     display: flex;
-    gap: 12px;
+    gap: var(--space-3);
     align-items: center;
 }
 
 .top-label {
-    color: var(--terminal-text-primary);
-    font-weight: bold;
+    color: var(--fg-muted);
 }
 
-.top-cpu-user {
-    color: #4ecdc4;
-}
-
-.top-cpu-system {
-    color: #ff6b6b;
-}
-
-.top-cpu-idle {
-    color: #95e1d3;
-}
-
-.top-cpu-iowait {
-    color: #f39c12;
-}
-
-.top-memory-total {
-    color: #4ecdc4;
-}
-
-.top-memory-used {
-    color: #ff6b6b;
-}
-
-.top-memory-free {
-    color: #95e1d3;
-}
-
-.top-memory-cached {
-    color: #f39c12;
-}
-
+/* Column headers are labels at rest (fg-muted); the one under the pointer reads fg. */
 .top-table-header {
-    background: var(--terminal-header-bg);
-    padding: 8px 16px;
-    border-bottom: 1px solid var(--terminal-border);
+    padding: var(--space-2) var(--top-pad);
+    padding-inline-end: calc(var(--top-pad) + mod(100% - 2 * var(--top-pad), var(--cell-w)));
+    border-bottom: var(--stroke-hair) solid var(--edge);
     display: grid;
-    grid-template-columns: 60px 2fr 80px 80px 100px 100px 60px 100px;
-    gap: 8px;
-    font-size: 12px;
-    font-weight: bold;
-    color: var(--terminal-text-primary);
+    grid-template-columns: var(--top-columns);
+    gap: var(--cell-w);
+    color: var(--fg-muted);
     flex-shrink: 0;
     cursor: pointer;
 }
 
 .top-table-header>div:hover {
-    color: #4ecdc4;
+    color: var(--fg);
 }
 
 .top-table-body {
     flex: 1;
     overflow-y: auto;
-    background: var(--terminal-window-bg);
+    background-color: var(--field-deep);
 }
 
 .top-table-body::-webkit-scrollbar {
@@ -152,85 +116,97 @@
 }
 
 .top-table-body::-webkit-scrollbar-track {
-    background: var(--terminal-header-bg);
+    background: var(--surface-2);
 }
 
 .top-table-body::-webkit-scrollbar-thumb {
-    background: var(--terminal-text-primary);
-    border-radius: 4px;
+    background: var(--fg);
 }
 
 .top-process-row {
-    padding: 4px 16px;
+    position: relative;
+    padding: var(--space-1) var(--top-pad);
+    padding-inline-end: calc(var(--top-pad) + mod(100% - 2 * var(--top-pad), var(--cell-w)));
     display: grid;
-    grid-template-columns: 60px 2fr 80px 80px 100px 100px 60px 100px;
-    gap: 8px;
-    font-size: 12px;
-    color: #ffffff;
-    border-bottom: 1px solid #333;
+    grid-template-columns: var(--top-columns);
+    gap: var(--cell-w);
+    color: var(--fg);
     cursor: pointer;
-    transition: background-color 0.2s ease;
+    transition: background-color var(--dur-fast) var(--ease-standard);
 }
 
 .top-process-row:hover {
-    background: var(--terminal-header-bg);
+    background-color: var(--surface-1);
 }
 
+/* Selected row (§17 Composite recipes): the signal-deep band, fg text, the key column (PID) in signal and a square
+   signal node in the row's leading padding. */
 .top-process-row.selected {
-    background: var(--terminal-selection-bg);
-    color: var(--terminal-selection-text);
+    background-color: var(--signal-deep);
+    color: var(--fg);
 }
 
-.top-process-row.selected .top-col-cpu,
-.top-process-row.selected .top-col-memory {
-    color: #1a1a1a;
+.top-process-row.selected .top-col-pid {
+    color: var(--signal);
+}
+
+.top-process-row.selected::before {
+    content: "";
+    position: absolute;
+    inset-inline-start: calc((var(--top-pad) - var(--grid-half)) / 2);
+    inset-block-start: calc(50% - var(--grid-half) / 2);
+    width: var(--grid-half);
+    height: var(--grid-half);
+    border-radius: var(--radius-0);
+    background-color: var(--signal);
 }
 
 .top-col-pid {
-    color: #888;
     text-align: right;
 }
 
+.top-process-row .top-col-pid {
+    color: var(--fg-muted);
+}
+
 .top-col-name {
-    color: var(--terminal-text-primary);
-    font-weight: bold;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
-.top-col-cpu {
-    color: #ff6b6b;
-    text-align: right;
-    font-weight: bold;
-}
-
+.top-col-cpu,
 .top-col-memory {
-    color: #4ecdc4;
     text-align: right;
-    font-weight: bold;
 }
 
 .top-col-vsz, .top-col-rss {
-    color: #888;
     text-align: right;
 }
 
+.top-process-row .top-col-vsz,
+.top-process-row .top-col-rss,
+.top-process-row .top-col-time {
+    color: var(--fg-muted);
+}
+
+/* On the selected row every cell but the key column reads fg (Selected row recipe). */
+.top-process-row.selected :is(.top-col-vsz, .top-col-rss, .top-col-time) {
+    color: var(--fg);
+}
+
 .top-col-state {
-    color: #f39c12;
     text-align: center;
-    font-weight: bold;
 }
 
 .top-col-time {
-    color: #888;
     text-align: center;
 }
 
 .top-footer {
-    background: var(--terminal-header-bg);
-    padding: 12px 16px;
-    border-top: 1px solid var(--terminal-border);
+    background-color: var(--surface-2);
+    padding: var(--space-3) var(--space-4);
+    border-top: var(--stroke-hair) solid var(--edge);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -239,120 +215,82 @@
 
 .top-info {
     text-align: center;
-    color: #888;
-    font-size: 12px;
+    color: var(--fg-muted);
 }
 
 .top-info kbd {
-    background: var(--terminal-window-bg);
-    border: 1px solid #555;
-    border-radius: 3px;
-    padding: 2px 6px;
-    font-size: 11px;
-    color: var(--terminal-text-primary);
+    font: inherit;
+    background: none;
+    border: var(--stroke-hair) solid var(--edge);
+    padding: 0 var(--space-1);
+    color: var(--fg);
 }
 
 .top-refresh {
-    color: var(--terminal-text-primary);
-    font-size: 12px;
-    font-weight: bold;
+    color: var(--fg);
 }
 
 /* Responsive design */
 @media (max-width: 768px) {
     .top-container {
+        --top-columns: calc(6 * var(--cell-w)) 1fr calc(8 * var(--cell-w)) calc(8 * var(--cell-w)) calc(8 * var(--cell-w))
+            calc(8 * var(--cell-w)) calc(5 * var(--cell-w)) calc(15 * var(--cell-w));
+        --top-pad: var(--space-3);
         width: 98%;
         height: 98vh;
     }
 
     .top-header {
-        padding: 8px 12px;
+        padding: var(--space-2) var(--space-3);
         flex-direction: column;
-        gap: 8px;
+        gap: var(--space-2);
         align-items: flex-start;
     }
 
     .top-controls {
-        font-size: 11px;
-        gap: 12px;
+        gap: var(--space-3);
     }
 
     .top-system-info {
-        padding: 6px 12px;
+        padding: var(--space-2) var(--space-3);
         flex-direction: column;
-        gap: 4px;
+        gap: var(--space-1);
         align-items: flex-start;
     }
 
     .top-summary {
-        padding: 6px 12px;
+        padding: var(--space-2) var(--space-3);
         flex-direction: column;
-        gap: 8px;
+        gap: var(--space-2);
         align-items: flex-start;
     }
 
     .top-cpu-summary, .top-memory-summary {
         flex-wrap: wrap;
-        gap: 8px;
-    }
-
-    .top-table-header {
-        padding: 6px 12px;
-        grid-template-columns: 50px 1fr 60px 60px 80px 80px 50px 80px;
-        gap: 4px;
-        font-size: 11px;
-    }
-
-    .top-process-row {
-        padding: 3px 12px;
-        grid-template-columns: 50px 1fr 60px 60px 80px 80px 50px 80px;
-        gap: 4px;
-        font-size: 11px;
+        gap: var(--space-2);
     }
 
     .top-footer {
-        padding: 8px 12px;
+        padding: var(--space-2) var(--space-3);
         flex-direction: column;
-        gap: 8px;
+        gap: var(--space-2);
     }
 }
 
-/* Animation for process updates */
-@keyframes processUpdate {
-    0% {
-        background: rgba(0, 255, 0, 0.1);
-    }
-
-    100% {
-        background: transparent;
-    }
+/* §12: state transition (afterglow) · a value in the row was replaced; the new value starts bright and fades back to rest
+   Unreached: no code sets .updating, so this rule never applies today; it is on the owner dead-code list. */
+@keyframes top-afterglow {
+    from { color: var(--signal); }
+    50% { color: var(--signal-dim); }
 }
 
-.top-process-row.updating {
-    animation: processUpdate 0.5s ease-out;
+.top-process-row.updating > * {
+    animation: top-afterglow var(--dur-decay) var(--ease-standard);
 }
 
-/* Matrix-style glow effect */
-.top-container::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: radial-gradient(circle at 20% 80%, rgba(0, 255, 0, 0.05) 0%, transparent 50%),
-        radial-gradient(circle at 80% 20%, rgba(0, 255, 0, 0.03) 0%, transparent 50%);
-    pointer-events: none;
-    z-index: -1;
-    animation: matrixGlow 10s ease-in-out infinite;
-}
-
-@keyframes matrixGlow {
-    0%, 100% {
-        opacity: 0.3;
-    }
-
-    50% {
-        opacity: 0.6;
+@media (prefers-reduced-motion: reduce) {
+    /* §12 Reduced motion, by class: no afterglow animation; the row shows its new values directly. */
+    .top-process-row.updating > * {
+        animation: none;
     }
 }

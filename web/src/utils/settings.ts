@@ -3,8 +3,6 @@
 export interface UserSettings {
   // Dock settings
   dockSize: number;
-  dockStiffness: number;
-  magnification: number;
 
   // Animation settings
   isAnimationPaused: boolean;
@@ -16,14 +14,12 @@ export interface UserSettings {
 
   // Theme can be included in exported settings, but runtime ownership
   // lives in ThemeContext rather than this persistence utility.
-  theme?: "light" | "dark";
+  theme?: "light" | "dark" | "mono";
 }
 
 // Default settings
 export const DEFAULT_SETTINGS: UserSettings = {
   dockSize: 40,
-  dockStiffness: 400,
-  magnification: 40,
   isAnimationPaused: false,
   isSettingsOpen: false,
   navMode: "header",
@@ -65,18 +61,12 @@ const validateDockSettings = (settings: unknown) => {
   if (!settings || typeof settings !== "object") return false;
 
   const settingsObj = settings as Record<string, unknown>;
-  const { dockSize, dockStiffness, magnification } = settingsObj;
+  const { dockSize } = settingsObj;
 
   return (
     typeof dockSize === "number" &&
     dockSize >= 40 &&
-    dockSize <= 60 &&
-    typeof dockStiffness === "number" &&
-    dockStiffness >= 200 &&
-    dockStiffness <= 600 &&
-    typeof magnification === "number" &&
-    magnification >= 20 &&
-    magnification <= 100
+    dockSize <= 60
   );
 };
 
@@ -93,8 +83,6 @@ export const getDockSettings = (): Partial<UserSettings> => {
       if (validateDockSettings(parsed)) {
         return {
           dockSize: parsed.dockSize,
-          dockStiffness: parsed.dockStiffness,
-          magnification: parsed.magnification,
         };
       }
     }
@@ -131,7 +119,7 @@ export const getSettingsOpen = (): boolean => {
 // Settings setters
 export const setDockSettings = (
   settings: Partial<
-    Pick<UserSettings, "dockSize" | "dockStiffness" | "magnification">
+    Pick<UserSettings, "dockSize">
   >
 ) => {
   try {
@@ -171,7 +159,7 @@ export const setSettingsOpen = (open: boolean) => {
 
 // Get all non-theme settings. Theme can be passed in by the caller when exporting.
 export const getAllSettings = (
-  theme?: "light" | "dark"
+  theme?: "light" | "dark" | "mono"
 ): UserSettings => {
   return {
     ...DEFAULT_SETTINGS,
@@ -213,7 +201,7 @@ export function parseSettingsImport(value: unknown): Partial<UserSettings> {
   const data = value as Record<string, unknown>;
   if (data.version !== undefined && data.version !== SETTINGS_EXPORT_VERSION) throw new Error("Unsupported settings version");
   const result: Partial<UserSettings> = {};
-  const ranges = { dockSize: [40, 60], dockStiffness: [200, 600], magnification: [20, 100], backgroundMotionSpeed: [.5, 2] } as const;
+  const ranges = { dockSize: [40, 60], backgroundMotionSpeed: [.5, 2] } as const;
   for (const key of Object.keys(ranges) as (keyof typeof ranges)[]) {
     const supplied = data[key] !== undefined ? data[key] : (key === "backgroundMotionSpeed" ? data.matrixSpeed : undefined);
     if (supplied === undefined) continue;
@@ -222,7 +210,7 @@ export function parseSettingsImport(value: unknown): Partial<UserSettings> {
     result[key] = supplied;
   }
   if (data.theme !== undefined) {
-    if (data.theme !== "dark" && data.theme !== "light") throw new Error("Invalid theme");
+    if (data.theme !== "dark" && data.theme !== "light" && data.theme !== "mono") throw new Error("Invalid theme");
     result.theme = data.theme;
   }
   if (data.navMode !== undefined) {

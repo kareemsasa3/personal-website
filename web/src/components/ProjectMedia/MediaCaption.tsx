@@ -15,12 +15,12 @@ const MediaCaption = ({
   className,
   as: Element = "div",
 }: MediaCaptionProps) => (
-  <Element id={id} className={["project-media__caption", className].filter(Boolean).join(" ")}>
+  <Element id={id} className={["project-media__caption", "df-body-sm", className].filter(Boolean).join(" ")}>
     <p>
-      <span className="project-media__caption-term">Shows</span> {video.label}
+      <span className="project-media__caption-term df-label-sm">Shows</span> {video.label}
     </p>
     <p>
-      <span className="project-media__caption-term">Why it matters</span>{" "}
+      <span className="project-media__caption-term df-label-sm">Why it matters</span>{" "}
       {video.significance}
     </p>
   </Element>

@@ -1,26 +1,19 @@
 import { useState, useEffect, useReducer } from "react";
-import { useMotionValue } from "framer-motion";
 import { z } from "zod";
 
 // Schema validation for dock settings
 const DockSettingsSchema = z.object({
   dockSize: z.number().min(40).max(60),
-  dockStiffness: z.number().min(200).max(600),
-  magnification: z.number().min(20).max(100),
 });
 
 // Unified state interface
 interface DockState {
   dockSize: number;
-  dockStiffness: number;
-  magnification: number;
 }
 
 type DockAction =
   | { type: "SET_ALL_SETTINGS"; payload: DockState }
-  | { type: "SET_DOCK_SIZE"; payload: number }
-  | { type: "SET_STIFFNESS"; payload: number }
-  | { type: "SET_MAGNIFICATION"; payload: number };
+  | { type: "SET_DOCK_SIZE"; payload: number };
 
 // Unified reducer for all dock state
 function dockReducer(state: DockState, action: DockAction): DockState {
@@ -29,10 +22,6 @@ function dockReducer(state: DockState, action: DockAction): DockState {
       return { ...state, ...action.payload };
     case "SET_DOCK_SIZE":
       return { ...state, dockSize: action.payload };
-    case "SET_STIFFNESS":
-      return { ...state, dockStiffness: action.payload };
-    case "SET_MAGNIFICATION":
-      return { ...state, magnification: action.payload };
     default:
       return state;
   }
@@ -40,13 +29,10 @@ function dockReducer(state: DockState, action: DockAction): DockState {
 
 export const useDock = () => {
   const [shiftAmount, setShiftAmount] = useState(0);
-  const mouseX = useMotionValue<number | null>(null);
 
   // Unified state management
   const [state, dispatch] = useReducer(dockReducer, {
     dockSize: 40,
-    dockStiffness: 400,
-    magnification: 40,
   });
 
   // Load saved settings from localStorage with schema validation
@@ -70,16 +56,12 @@ export const useDock = () => {
   // Decoupled side effect: Save settings to localStorage when they change
   useEffect(() => {
     try {
-      const settingsToSave = {
-        dockSize: state.dockSize,
-        dockStiffness: state.dockStiffness,
-        magnification: state.magnification,
-      };
+      const settingsToSave = { dockSize: state.dockSize };
       localStorage.setItem("dockSettings", JSON.stringify(settingsToSave));
     } catch (error) {
       console.warn("Failed to save dock settings:", error);
     }
-  }, [state.dockSize, state.dockStiffness, state.magnification]);
+  }, [state.dockSize]);
 
   // Decoupled side effect: Update CSS variable when dock size changes
   useEffect(() => {
@@ -120,23 +102,14 @@ export const useDock = () => {
   // Simplified action handlers
   const handleDockSizeChange = (newSize: number) =>
     dispatch({ type: "SET_DOCK_SIZE", payload: newSize });
-  const handleDockStiffnessChange = (newStiffness: number) =>
-    dispatch({ type: "SET_STIFFNESS", payload: newStiffness });
-  const handleMagnificationChange = (newMagnification: number) =>
-    dispatch({ type: "SET_MAGNIFICATION", payload: newMagnification });
 
   return {
     // State
     dockSize: state.dockSize,
-    dockStiffness: state.dockStiffness,
-    magnification: state.magnification,
     shiftAmount,
-    mouseX,
 
     // Actions
     handleDockSizeChange,
-    handleDockStiffnessChange,
-    handleMagnificationChange,
   };
 };
 

@@ -4,9 +4,10 @@ const BuildIdentifier = () => {
   const { text, href, accessibleName } = getBuildLabel();
 
   return (
-    <p className="settings-build">
+    <p className="settings-build df-annotation">
       {href ? (
         <a
+          className="settings-build__link df-control df-control--light"
           href={href}
           target="_blank"
           rel="noopener noreferrer"

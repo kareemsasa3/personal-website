@@ -56,3 +56,15 @@
 .nav-mode-dock .app-content { padding-bottom: calc(var(--site-dock-safe-space, 120px) + env(safe-area-inset-bottom)); }
 .nav-mode-header .app-content { padding-bottom: 0; }
 .layout-foreground [id] { scroll-margin-top: 1rem; }
+
+/* §08 Layers and overlays: while a menu is open (the header's Explore or Menu panel, the dock's Explore stack, a
+   dropdown: each opener reports aria-expanded), what lies behind it dims to the scrim. The scrim sits above the page and below the navigation, which holds
+   the menu and its opener; an open dropdown rises above it. A press on the scrim lands outside the menu, so the menu
+   closes as before. No blur, and no fade: like the menus' latches, it appears whole. */
+.layout-foreground:has(:is(.site-header, .dock-container, .terminal-dropdown) [aria-expanded="true"])::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-index-overlay);
+    background-color: var(--df-scrim);
+}

@@ -197,19 +197,19 @@ const TutorialStepRunner = ({
       <div className="rhythm-lab-tutorial-prompt">
         <p
           ref={stepLabelRef}
-          className="rhythm-lab-tutorial-step"
+          className="rhythm-lab-tutorial-step df-label"
           tabIndex={-1}
         >
           Tutorial {stepNumber} / {stepCount}
         </p>
         <div>
-          <p className="rhythm-lab-tutorial-headline">{headline}</p>
-          {detail && <p className="rhythm-lab-tutorial-detail">{detail}</p>}
+          <p className="rhythm-lab-tutorial-headline df-heading-2">{headline}</p>
+          {detail && <p className="rhythm-lab-tutorial-detail df-body">{detail}</p>}
         </div>
         {outcome && (
           <button
             ref={actionRef}
-            className="rhythm-lab-secondary-action rhythm-lab-tutorial-action"
+            className="rhythm-lab-secondary-action rhythm-lab-tutorial-action df-control df-label"
             type="button"
             onClick={outcome === "passed" ? onPassed : onRetry}
           >
@@ -323,13 +323,13 @@ const RhythmLabTutorial = ({
       >
         <div className="rhythm-lab-overlay">
           <div className="rhythm-lab-overlay-panel">
-            <p>Tutorial complete</p>
-            <h2>You&rsquo;re ready.</h2>
+            <p className="df-body-sm">Tutorial complete</p>
+            <h2 className="df-heading-2">You&rsquo;re ready.</h2>
             <div className="rhythm-lab-summary-actions">
               {canPlayStarter && (
                 <button
                   ref={completeActionRef}
-                  className="rhythm-lab-primary-action"
+                  className="rhythm-lab-primary-action df-control df-label"
                   type="button"
                   onClick={onPlayStarter}
                 >
@@ -338,21 +338,21 @@ const RhythmLabTutorial = ({
               )}
               <button
                 ref={canPlayStarter ? undefined : completeActionRef}
-                className="rhythm-lab-secondary-action"
+                className="rhythm-lab-secondary-action df-control df-label"
                 type="button"
                 onClick={replay}
               >
                 Replay tutorial
               </button>
               <button
-                className="rhythm-lab-secondary-action"
+                className="rhythm-lab-secondary-action df-control df-label"
                 type="button"
                 onClick={onExit}
               >
                 Back to Rhythm Lab
               </button>
             </div>
-            <span>A/S/D | J/K/L | Arrow keys | tap zones</span>
+            <span className="df-body-sm">A/S/D | J/K/L | Arrow keys | tap zones</span>
           </div>
         </div>
       </RhythmHighway>

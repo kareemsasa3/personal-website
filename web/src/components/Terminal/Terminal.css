@@ -1,42 +1,15 @@
 /* Terminal.css - Refactored for Theming and Maintainability */
 
-/* --- Dark Theme (Default) --- */
-:root {
-  --terminal-text-primary: #4CAF50;
-  /* Classic green on black */
-  --terminal-text-muted: #888;
-  --terminal-text-error: #ff6b6b;
-  --terminal-text-success: #50fa7b;
-  --terminal-text-info: #8be9fd;
-  --terminal-window-bg: rgba(26, 26, 26, 0.95);
-  --terminal-header-bg: #2a2a2a;
-  --terminal-border: rgba(76, 175, 80, 0.4);
-  --terminal-selection-bg: var(--terminal-text-primary);
-  --terminal-selection-text: #1a1a1a;
-}
-
-/* --- Light Theme --- */
-[data-theme="light"] {
-  --terminal-text-primary: #000000;
-  /* Black text for readability */
-  --terminal-text-muted: #5c6773;
-  --terminal-text-error: #d73a49;
-  --terminal-text-success: #22863a;
-  --terminal-text-info: #000000;
-  --terminal-window-bg: rgba(250, 250, 250, 0.95);
-  --terminal-header-bg: #e1e4e8;
-  --terminal-border: rgba(30, 36, 51, 0.3);
-  --terminal-selection-bg: var(--terminal-text-primary);
-  --terminal-selection-text: #fafafa;
-}
+/* Every terminal stylesheet, the overlays included, reads the Darkfield tokens directly: no terminal colour alias is
+   defined. The --terminal-* variables below are the window's layout, not colours. */
 
 .terminal-screen {
   position: relative;
   width: 100%;
   height: 100vh;
   background: transparent;
-  color: var(--terminal-text-primary);
-  font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
+  color: var(--fg);
+  font-family: var(--font-mono);
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -65,43 +38,50 @@
   pointer-events: none;
 }
 
+/* The route intro is Narrator (§06): a heading and its supporting text, set by the df-heading-1 and df-body styles. */
 .terminal-route-title {
   margin: 0;
-  color: var(--terminal-text-primary);
-  font-size: clamp(1.8rem, 4vw, 2.6rem);
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  color: var(--fg);
 }
 
 .terminal-route-description {
-  margin: 0.75rem 0 0;
-  color: var(--terminal-text-muted);
-  font-size: 1rem;
-  line-height: 1.6;
+  margin: var(--space-3) 0 0;
+  color: var(--fg-muted);
+}
+
+/* The window has risen over the intro (too little room below it for the transcript floor): the intro is clipped away
+   whole, not half covered, and stays in the accessibility tree. */
+.terminal-route-intro--behind {
+  clip-path: inset(50%);
 }
 
 .terminal-screen.route-mode .terminal-container {
   /* Position is now handled by inline styles */
 }
 
-/* Terminal Container - Basic dimensions and positioning */
+/* Terminal Container - Basic dimensions and positioning. The window's top edge stays below the site header and, while
+   the transcript floor still fits there, below the route intro (--terminal-intro-bottom, measured in Terminal.tsx), a
+   grid gutter clear of it; its height shrinks to the room left. --terminal-floor-rows is the fewest transcript rows the
+   window keeps (a site choice). */
 .terminal-container {
-  --terminal-safe-top: var(--viewport-safe-top);
+  --terminal-floor-rows: 4;
+  --terminal-safe-top: max(var(--viewport-safe-top), calc(var(--terminal-intro-bottom, 0px) + var(--grid-gutter)));
   --terminal-safe-bottom: var(--viewport-safe-bottom);
+  --terminal-available-height: calc(100dvh - var(--terminal-safe-top) - var(--terminal-safe-bottom));
   --terminal-window-width: min(90%, 800px);
-  --terminal-window-height: min(70dvh, 600px, var(--viewport-available-height));
+  --terminal-window-height: min(70dvh, 600px, var(--terminal-available-height));
   width: var(--terminal-window-width);
   max-width: 800px;
   height: var(--terminal-window-height);
-  max-height: min(600px, var(--viewport-available-height));
-  background: var(--terminal-window-bg);
-  border-radius: 8px;
-  border: 1px solid var(--terminal-border);
+  max-height: min(600px, var(--terminal-available-height));
+  background-color: var(--field-deep);
+  border: var(--stroke-hair) solid var(--edge);
   overflow: hidden;
+  overflow: clip;
   /* Position follows the safe viewport immediately, including during resize. */
-  transition: width 0.3s ease, height 0.3s ease, opacity 0.3s ease,
-    background 0.3s ease, border-color 0.3s ease;
+  transition: width var(--dur-base) var(--ease-standard), height var(--dur-base) var(--ease-standard),
+    opacity var(--dur-base) var(--ease-standard), background var(--dur-base) var(--ease-standard),
+    border-color var(--dur-base) var(--ease-standard);
   will-change: transform, opacity, background, border-color;
   /* Allow text selection in terminal content */
   user-select: text;
@@ -115,11 +95,10 @@
   height: 100dvh;
   max-width: 100%;
   max-height: 100dvh;
-  border-radius: 0;
   border: none;
   left: 0;
   top: 0;
-  background: var(--terminal-window-bg);
+  background-color: var(--field-deep);
 }
 
 /* Scrollbar styles for terminal body */
@@ -128,18 +107,16 @@
 }
 
 .terminal-screen .terminal-body::-webkit-scrollbar-track {
-  background: var(--terminal-header-bg);
-  border-radius: 4px;
+  background: var(--surface-2);
 }
 
 .terminal-screen .terminal-body::-webkit-scrollbar-thumb {
-  background: var(--terminal-text-primary);
-  border-radius: 4px;
-  transition: background 0.3s ease;
+  background: var(--fg);
+  transition: background var(--dur-fast) var(--ease-standard);
 }
 
 .terminal-screen .terminal-body::-webkit-scrollbar-thumb:hover {
-  background: var(--terminal-text-muted);
+  background: var(--fg-muted);
 }
 
 /* Terminal Sidecar (minimized state indicator) */
@@ -150,54 +127,10 @@
   transform: translateY(-50%);
   width: 60px;
   height: 60px;
-  background: var(--terminal-window-bg);
-  border: 2px solid var(--terminal-border);
-  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
   z-index: 999;
-  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-    background 0.3s ease,
-    border-color 0.3s ease;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-  /* Button reset styles */
-  padding: 0;
-  margin: 0;
-  font-family: inherit;
-  font-size: inherit;
-  line-height: inherit;
-  color: inherit;
-  background-color: var(--terminal-window-bg);
-  border: 2px solid var(--terminal-border);
-  outline: none;
-}
-
-.terminal-sidecar:hover {
-  transform: translateY(-50%) scale(1.1);
-  box-shadow: 0 6px 30px rgba(0, 0, 0, 0.4);
-}
-
-.sidecar-icon {
-  font-size: 24px;
-  color: var(--terminal-text-primary);
-  animation: pulse 2s infinite;
-  transition: color 0.3s ease;
-}
-
-.sidecar-icon:hover {
-  animation: none;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-
-  50% {
-    opacity: 0.7;
-  }
 }
 
 /* Responsive Design */
@@ -209,7 +142,7 @@
 
   .terminal-container {
     --terminal-window-width: min(95%, 800px);
-    --terminal-window-height: min(80dvh, 600px, var(--viewport-available-height));
+    --terminal-window-height: min(80dvh, 600px, var(--terminal-available-height));
   }
 
   .terminal-container.maximized {
@@ -223,14 +156,6 @@
     left: 15px;
   }
 
-  .sidecar-icon {
-    font-size: 20px;
-  }
-}
-
-/* Typewriter text animation */
-.typewriter-text {
-  display: inline-block;
 }
 
 /* Selection styles */
@@ -240,13 +165,13 @@
 }
 
 .terminal-screen ::selection {
-  background: var(--terminal-selection-bg);
-  color: var(--terminal-selection-text);
+  background: var(--signal-deep);
+  color: var(--fg);
 }
 
 .terminal-screen ::-moz-selection {
-  background: var(--terminal-selection-bg);
-  color: var(--terminal-selection-text);
+  background: var(--signal-deep);
+  color: var(--fg);
 }
 
 /* Prevent text selection in draggable areas */
@@ -259,5 +184,4 @@
 }
 
 .terminal-screen.route-mode { height: calc(100dvh - var(--site-header-measured-offset, 0px) - var(--site-dock-safe-space, 0px)); min-height: 28rem; }
-.terminal-screen .terminal-sidecar { position: relative; inset: auto; width: min(90%, 36rem); height: auto; padding: 1.5rem; transform: none; background: var(--terminal-window-bg); border: 1px solid var(--terminal-border); border-radius: 8px; color: var(--terminal-text-primary); }
-.terminal-sidecar .sidecar-icon { font-size: 1rem; }
+.terminal-screen .terminal-sidecar { position: relative; inset: auto; width: min(90%, 36rem); height: auto; padding: var(--space-6); transform: none; }

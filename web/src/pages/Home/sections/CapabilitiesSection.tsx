@@ -1,16 +1,15 @@
 import "./CapabilitiesSection.css";
-import { motion, MotionStyle } from "framer-motion";
-import { forwardRef, ForwardedRef } from "react";
+import { forwardRef, ForwardedRef, CSSProperties } from "react";
 import { capabilitiesContent } from "../../../data/siteContent";
 
 interface CapabilitiesSectionProps {
-  style?: MotionStyle;
+  style?: CSSProperties;
 }
 
 export const CapabilitiesSection = forwardRef(
   ({ style }: CapabilitiesSectionProps, ref: ForwardedRef<HTMLElement>) => {
     return (
-      <motion.section
+      <section
         ref={ref}
         className="capabilities-section"
         role="region"
@@ -18,43 +17,31 @@ export const CapabilitiesSection = forwardRef(
         style={style}
       >
         <div className="capabilities-content">
-          <motion.h2
+          <h2
             id="capabilities-title"
-            className="section-title"
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.6, delay: 0.2 }}
+            className="section-title df-heading-2"
           >
             {capabilitiesContent.title}
-          </motion.h2>
-          <motion.ul
+          </h2>
+          <ul
             className="capabilities-list prose-surface"
             aria-label="Engineering capabilities"
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.6, delay: 0.4 }}
           >
             {capabilitiesContent.items.map((item, index) => (
-              <motion.li
+              <li
                 key={item.title}
                 className="capability-row"
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-100px" }}
-                transition={{ duration: 0.6, delay: 0.5 + index * 0.08 }}
               >
-                <span className="capability-index" aria-hidden="true">
+                <span className="capability-index df-data" aria-hidden="true">
                   {String(index + 1).padStart(2, "0")}
                 </span>
-                <h3>{item.title}</h3>
+                <h3 className="df-heading-3">{item.title}</h3>
                 <p>{item.description}</p>
-              </motion.li>
+              </li>
             ))}
-          </motion.ul>
+          </ul>
         </div>
-      </motion.section>
+      </section>
     );
   }
 );

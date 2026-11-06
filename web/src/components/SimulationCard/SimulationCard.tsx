@@ -21,7 +21,7 @@ const SimulationCard: React.FC<SimulationCardProps> = ({
     switch (previewType) {
       case "snake":
         return (
-          <div className="snake-preview" aria-hidden="true">
+          <div className="snake-preview" aria-hidden="true" data-df-region="native">
             <div className="snake-segment-preview"></div>
             <div className="snake-segment-preview"></div>
             <div className="snake-segment-preview"></div>
@@ -30,7 +30,7 @@ const SimulationCard: React.FC<SimulationCardProps> = ({
         );
       case "spider":
         return (
-          <div className="spider-preview" aria-hidden="true">
+          <div className="spider-preview" aria-hidden="true" data-df-region="native">
             <div className="spider-preview-column spider-preview-column-tall">
               <div className="spider-preview-card spider-preview-card-back"></div>
               <div className="spider-preview-card spider-preview-card-back"></div>
@@ -58,7 +58,7 @@ const SimulationCard: React.FC<SimulationCardProps> = ({
         );
       case "rhythm-lab":
         return (
-          <div className="rhythm-preview" aria-hidden="true">
+          <div className="rhythm-preview" aria-hidden="true" data-df-region="native">
             <div className="rhythm-lane">
               <span className="rhythm-note rhythm-note-one"></span>
             </div>
@@ -73,7 +73,7 @@ const SimulationCard: React.FC<SimulationCardProps> = ({
         );
       case "annals":
         return (
-          <div className="annals-preview" aria-hidden="true">
+          <div className="annals-preview" aria-hidden="true" data-df-region="native">
             <div className="annals-preview-masthead"></div>
             <div className="annals-preview-line"></div>
             <div className="annals-preview-line annals-preview-line-hand"></div>
@@ -84,7 +84,7 @@ const SimulationCard: React.FC<SimulationCardProps> = ({
         );
       case "orbital":
         return (
-          <svg viewBox="0 0 240 140" width="240" height="140" aria-hidden="true" style={{ maxWidth: "100%", color: "var(--brand-primary)" }}>
+          <svg viewBox="0 0 240 140" width="240" height="140" aria-hidden="true" data-df-region="native" style={{ maxWidth: "100%", color: "var(--terminal-primary)" }}>
             <ellipse cx="120" cy="70" rx="90" ry="45" fill="none" stroke="currentColor" opacity="0.6" />
             <ellipse cx="120" cy="70" rx="52" ry="26" fill="none" stroke="currentColor" opacity="0.4" />
             <circle cx="120" cy="70" r="10" fill="currentColor" />
@@ -94,7 +94,7 @@ const SimulationCard: React.FC<SimulationCardProps> = ({
         );
       case "traffic":
         return (
-          <svg viewBox="0 0 240 140" width="240" height="140" aria-hidden="true" style={{ maxWidth: "100%", color: "var(--brand-primary)" }}>
+          <svg viewBox="0 0 240 140" width="240" height="140" aria-hidden="true" data-df-region="native" style={{ maxWidth: "100%", color: "var(--terminal-primary)" }}>
             <line x1="10" y1="70" x2="230" y2="70" stroke="currentColor" opacity="0.4" strokeDasharray="8 8" />
             <rect x="10" y="44" width="220" height="52" fill="none" stroke="currentColor" opacity="0.6" />
             <rect x="150" y="38" width="4" height="64" fill="currentColor" />
@@ -114,13 +114,13 @@ const SimulationCard: React.FC<SimulationCardProps> = ({
 
   if (isComingSoon || !isAvailable) {
     return (
-      <div className="simulation-card coming-soon">
+      <div className="simulation-card coming-soon df-control df-control--card df-control--unavailable">
         <div className="simulation-card-content">
-          <h3>{title}</h3>
+          <h3 className="df-heading-3">{title}</h3>
           {statusLabel ? (
-            <div className="simulation-card-badge">{statusLabel}</div>
+            <div className="simulation-card-badge df-label-sm df-context">{statusLabel}</div>
           ) : null}
-          <p>{description}</p>
+          <p className="df-body-sm">{description}</p>
           <div className="simulation-preview">{renderPreview()}</div>
         </div>
       </div>
@@ -133,37 +133,37 @@ const SimulationCard: React.FC<SimulationCardProps> = ({
         href={externalUrl}
         target="_blank"
         rel="noreferrer"
-        className="simulation-card"
+        className="simulation-card df-control df-control--card"
       >
         <div className="simulation-card-content">
-          <h3>{title}</h3>
+          <h3 className="df-heading-3">{title}</h3>
           {modeLabel ? (
-            <div className="simulation-card-badge">{modeLabel}</div>
+            <div className="simulation-card-badge df-label-sm df-context">{modeLabel}</div>
           ) : null}
           {statusLabel ? (
-            <div className="simulation-card-badge">{statusLabel}</div>
+            <div className="simulation-card-badge df-label-sm df-context">{statusLabel}</div>
           ) : null}
-          <p>{description}</p>
+          <p className="df-body-sm">{description}</p>
           <div className="simulation-preview">{renderPreview()}</div>
-          <div className="launch-button">Launch</div>
+          <div className="launch-button df-label">Launch</div>
         </div>
       </a>
     );
   }
 
   return (
-    <Link to={path} className="simulation-card">
+    <Link to={path} className="simulation-card df-control df-control--card">
       <div className="simulation-card-content">
-        <h3>{title}</h3>
+        <h3 className="df-heading-3">{title}</h3>
         {modeLabel ? (
-          <div className="simulation-card-badge">{modeLabel}</div>
+          <div className="simulation-card-badge df-label-sm df-context">{modeLabel}</div>
         ) : null}
         {statusLabel ? (
-          <div className="simulation-card-badge">{statusLabel}</div>
+          <div className="simulation-card-badge df-label-sm df-context">{statusLabel}</div>
         ) : null}
-        <p>{description}</p>
+        <p className="df-body-sm">{description}</p>
         <div className="simulation-preview">{renderPreview()}</div>
-        <div className="launch-button">Launch</div>
+        <div className="launch-button df-label">Launch</div>
       </div>
     </Link>
   );

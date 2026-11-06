@@ -4,13 +4,11 @@ import { Link } from "react-router-dom";
 import { Project } from "../../data/projects";
 import { caseStudyByProjectId } from "../../data/caseStudies";
 import ProjectMedia from "../ProjectMedia";
+import { INSTANT, motionToken } from "../../utils/motionTokens";
 
 const STATUS_LABELS: Partial<Record<Project["status"], string>> = {
   Development: "In progress",
 };
-
-const statusModifier = (status: string) =>
-  status.toLowerCase().replace(/\s+/g, "-");
 
 interface ProjectRosterDetailProps {
   project: Project;
@@ -27,19 +25,19 @@ const ProjectRosterDetail = ({
 
   return (
     <div id={detailId} className="project-roster__detail">
-      <p className="project-roster__description">{project.description}</p>
+      <p className="project-roster__description df-body">{project.description}</p>
 
       <div className="project-roster__detail-grid">
         <section
           className="project-roster__detail-section"
           aria-labelledby={stackId}
         >
-          <h4 id={stackId} className="project-roster__detail-heading">
+          <h4 id={stackId} className="project-roster__detail-heading df-label">
             Tech stack
           </h4>
           <ul className="project-roster__tags" role="list">
             {project.techStack.map((tech) => (
-              <li key={tech} className="project-roster__tag">
+              <li key={tech} className="project-roster__tag df-label-sm df-context">
                 {tech}
               </li>
             ))}
@@ -50,12 +48,12 @@ const ProjectRosterDetail = ({
           className="project-roster__detail-section"
           aria-labelledby={highlightsId}
         >
-          <h4 id={highlightsId} className="project-roster__detail-heading">
+          <h4 id={highlightsId} className="project-roster__detail-heading df-label">
             Highlights
           </h4>
           <ul className="project-roster__points" role="list">
             {project.highlights.map((point, index) => (
-              <li key={`${detailId}-highlight-${index}`} className="project-roster__point">
+              <li key={`${detailId}-highlight-${index}`} className="project-roster__point df-body-sm">
                 {point}
               </li>
             ))}
@@ -66,12 +64,12 @@ const ProjectRosterDetail = ({
           className="project-roster__detail-section"
           aria-labelledby={featuresId}
         >
-          <h4 id={featuresId} className="project-roster__detail-heading">
+          <h4 id={featuresId} className="project-roster__detail-heading df-label">
             Features
           </h4>
           <ul className="project-roster__points" role="list">
             {project.features.map((point, index) => (
-              <li key={`${detailId}-feature-${index}`} className="project-roster__point">
+              <li key={`${detailId}-feature-${index}`} className="project-roster__point df-body-sm">
                 {point}
               </li>
             ))}
@@ -85,7 +83,7 @@ const ProjectRosterDetail = ({
             href={project.liveUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="project-roster__action"
+            className="project-roster__action df-control df-label"
           >
             Live demo
             <span className="project-roster__sr-only">
@@ -126,51 +124,54 @@ const ProjectRosterItem = ({ project }: ProjectRosterItemProps) => {
             />
           )}
           <p className="project-roster__meta">
-            <span className="project-roster__meta-item">{project.category}</span>
-            <span className="project-roster__meta-item">{project.date}</span>
+            <span className="project-roster__meta-item df-label-sm">{project.category}</span>
+            <span className="project-roster__meta-item df-data">{project.date}</span>
             <span
-              className={`project-roster__meta-item project-roster__status project-roster__status--${statusModifier(
-                project.status
-              )}`}
+              className={`project-roster__meta-item project-roster__status df-label-sm df-context${
+                statusLabel.toLowerCase() === "live" ? " df-context--live" : ""
+              }`}
             >
-              <span className="project-roster__status-dot" aria-hidden="true" />
               {statusLabel}
             </span>
           </p>
-          <h3 id={titleId} className="project-roster__title">
+          <h3 id={titleId} className="project-roster__title df-heading-3">
             {project.title}
           </h3>
-          <p className="project-roster__deck">{project.shortDescription}</p>
+          <p className="project-roster__deck df-body">{project.shortDescription}</p>
 
           <div className="project-roster__actions">
-            <button
-              type="button"
-              className="project-roster__toggle"
-              aria-expanded={isExpanded}
-              aria-controls={detailId}
-              onClick={() => setIsExpanded((value) => !value)}
-            >
-              {isExpanded ? "Hide details" : "Details"}
-              <span className="project-roster__sr-only">{` for ${project.title}`}</span>
-              <span className="project-roster__toggle-icon" aria-hidden="true">
-                {isExpanded ? "−" : "+"}
-              </span>
-            </button>
+            {/* D8: the primary action is an idle control placed first in the row. */}
             {caseStudy && (
               <Link
                 to={`/case-studies/${caseStudy.slug}`}
-                className="project-roster__action project-roster__action--primary"
+                className="project-roster__action project-roster__action--primary df-control df-label"
               >
                 Case study
                 <span className="project-roster__sr-only">{` for ${project.title}`}</span>
               </Link>
             )}
+            <button
+              type="button"
+              className="project-roster__toggle df-control df-control--latch df-label"
+              aria-expanded={isExpanded}
+              aria-controls={detailId}
+              onClick={() => setIsExpanded((value) => !value)}
+            >
+              {/* The label and its screen-reader suffix share one inline box, so the suffix never sits at the row's start. */}
+              <span className="project-roster__toggle-label">
+                {isExpanded ? "Hide details" : "Details"}
+                <span className="project-roster__sr-only">{` for ${project.title}`}</span>
+              </span>
+              <span className="project-roster__toggle-icon" aria-hidden="true">
+                {isExpanded ? "−" : "+"}
+              </span>
+            </button>
             {project.githubUrl && (
               <a
                 href={project.githubUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="project-roster__action"
+                className="project-roster__action df-control df-label"
               >
                 Code
                 <span className="project-roster__sr-only">
@@ -182,9 +183,20 @@ const ProjectRosterItem = ({ project }: ProjectRosterItemProps) => {
         </div>
 
         <AnimatePresence initial={false}>
-          {isExpanded && <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: reduceMotion ? 0 : .18 }} style={{ overflow: "hidden" }}>
-            <ProjectRosterDetail project={project} detailId={detailId} />
-          </motion.div>}
+          {isExpanded && (
+            <motion.div
+              // The panel holds its full height from the first frame; only a vertical clip moves, from the panel's
+              // middle out to its edges and back.
+              initial={{ clipPath: "inset(50% 0% 50% 0%)" }}
+              // §12: state transition (reveal) · detail panel opened
+              animate={{ clipPath: "inset(0% 0% 0% 0%)", transition: reduceMotion ? INSTANT : motionToken("--dur-base", "--ease-settle") }}
+              // §12: state transition (conceal) · detail panel closed
+              exit={{ clipPath: "inset(50% 0% 50% 0%)", transition: reduceMotion ? INSTANT : motionToken("--dur-fast", "--ease-depart") }}
+              style={{ overflow: "hidden" }}
+            >
+              <ProjectRosterDetail project={project} detailId={detailId} />
+            </motion.div>
+          )}
         </AnimatePresence>
       </article>
     </li>

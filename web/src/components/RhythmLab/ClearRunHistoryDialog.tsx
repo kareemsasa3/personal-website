@@ -26,9 +26,9 @@ const ClearRunHistoryDialog = ({
       onCancel={onCancel}
       initialFocusRef={cancelRef}
     >
-      <span className="rhythm-lab-modal-kicker">Clear history</span>
-      <h2 id={titleId}>Clear run history?</h2>
-      <div id={descriptionId} className="rhythm-lab-delete-dialog-copy">
+      <span className="rhythm-lab-modal-kicker df-label">Clear history</span>
+      <h2 id={titleId} className="df-heading-3">Clear run history?</h2>
+      <div id={descriptionId} className="rhythm-lab-delete-dialog-copy df-body">
         <p>
           This will permanently remove {runLabel} from this browser and reset
           history-based analytics.
@@ -41,14 +41,14 @@ const ClearRunHistoryDialog = ({
       <div className="rhythm-lab-delete-dialog-actions">
         <button
           ref={cancelRef}
-          className="rhythm-lab-secondary-action"
+          className="rhythm-lab-secondary-action df-control df-label"
           type="button"
           onClick={onCancel}
         >
           Cancel
         </button>
         <button
-          className="rhythm-lab-danger-button"
+          className="rhythm-lab-danger-button df-control df-label"
           type="button"
           onClick={onConfirm}
         >

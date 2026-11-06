@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
 import { useEffect, useMemo } from "react";
-import TypeWriterText from "../TypeWriterText";
 import { CaseStudy, CaseStudySectionId, sectionTitle } from "../../data/caseStudies";
 import { projectsData } from "../../data/projects";
 import ProjectMedia from "../ProjectMedia";
@@ -49,26 +48,26 @@ const CaseStudyPage = ({ caseStudy }: CaseStudyPageProps) => {
   }, [sections, setSections]);
 
   return (
-    <div className="page-content case-study-page">
+    <div className="page-content case-study-page df-body">
       <div className="case-study-container">
         <section id="hero" className="case-study-hero interactive-card">
-          <div className="case-study-breadcrumbs">
-            <Link to="/case-studies">Case Studies</Link>
+          <div className="case-study-breadcrumbs df-body-sm">
+            <Link className="df-control df-control--light df-label" to="/case-studies">Case Studies</Link>
             <span>/</span>
             <span>{caseStudy.title}</span>
           </div>
           <header className="case-study-hero-copy">
-            <p className="case-study-eyebrow">
+            <p className="case-study-eyebrow df-label">
               {caseStudy.kind === "experiment" ? "Experiment Case Study" : "Engineering Case Study"}
             </p>
-            <h1 className="case-study-title">
-              <TypeWriterText text={caseStudy.title} speed={60} />
+            <h1 className="case-study-title df-heading-1">
+              {caseStudy.title}
             </h1>
-            <p className="case-study-summary">{caseStudy.shortDescription}</p>
+            <p className="case-study-summary df-prose df-body-lg">{caseStudy.shortDescription}</p>
           </header>
           <div className="case-study-focus-list">
             {caseStudy.focusAreas.map((focusArea) => (
-              <span key={focusArea} className="tech-tag">
+              <span key={focusArea} className="tech-tag df-label-sm df-context">
                 {focusArea}
               </span>
             ))}
@@ -84,26 +83,26 @@ const CaseStudyPage = ({ caseStudy }: CaseStudyPageProps) => {
         </section>
 
         <section id="problem" className="case-study-section prose-surface">
-          <h2>{sectionTitle(caseStudy, "problem", "Problem")}</h2>
+          <h2 className="df-heading-2">{sectionTitle(caseStudy, "problem", "Problem")}</h2>
           {before("problem")}
-          <p>{caseStudy.problem}</p>
+          <p className="df-prose">{caseStudy.problem}</p>
           {after("problem")}
         </section>
 
         <section id="constraints" className="case-study-section">
-          <h2>{sectionTitle(caseStudy, "constraints", "Constraints")}</h2>
+          <h2 className="df-heading-2">{sectionTitle(caseStudy, "constraints", "Constraints")}</h2>
           {before("constraints")}
           <div className="case-study-grid case-study-constraints-grid">
-            <article className="interactive-card">
-              <h3>{constraintTitles[0]}</h3>
+            <article className="interactive-card df-body-sm">
+              <h3 className="df-heading-3">{constraintTitles[0]}</h3>
               <p>{caseStudy.constraints.technicalLimitations}</p>
             </article>
-            <article className="interactive-card">
-              <h3>{constraintTitles[1]}</h3>
+            <article className="interactive-card df-body-sm">
+              <h3 className="df-heading-3">{constraintTitles[1]}</h3>
               <p>{caseStudy.constraints.environment}</p>
             </article>
-            <article className="interactive-card">
-              <h3>{constraintTitles[2]}</h3>
+            <article className="interactive-card df-body-sm">
+              <h3 className="df-heading-3">{constraintTitles[2]}</h3>
               <p>{caseStudy.constraints.tradeoffs}</p>
             </article>
           </div>
@@ -111,19 +110,19 @@ const CaseStudyPage = ({ caseStudy }: CaseStudyPageProps) => {
         </section>
 
         <section id="architecture" className="case-study-section prose-surface">
-          <h2>{sectionTitle(caseStudy, "architecture", "Architecture")}</h2>
+          <h2 className="df-heading-2">{sectionTitle(caseStudy, "architecture", "Architecture")}</h2>
           {before("architecture")}
           {caseStudy.slug === "erebus" && (
             <figure className="case-study-flow">
-              <figcaption>Event and inference flow</figcaption>
+              <figcaption className="df-body-sm">Event and inference flow</figcaption>
               <ol aria-label="Erebus architecture">
                 <li>Emitters</li><li>Append-only event history</li>
                 <li>Belief engine</li><li>Search &amp; inspection</li>
               </ol>
-              <p>Inspection exposes both raw event history and inferred state.</p>
+              <p className="df-body-sm">Inspection exposes both raw event history and inferred state.</p>
             </figure>
           )}
-          <ul className="case-study-list">
+          <ul className="case-study-list df-prose">
             {caseStudy.architecture.map((item) => (
               <li key={item}>{item}</li>
             ))}
@@ -132,12 +131,12 @@ const CaseStudyPage = ({ caseStudy }: CaseStudyPageProps) => {
         </section>
 
         <section id="decisions" className="case-study-section">
-          <h2>{sectionTitle(caseStudy, "decisions", "Key Technical Decisions")}</h2>
+          <h2 className="df-heading-2">{sectionTitle(caseStudy, "decisions", "Key Technical Decisions")}</h2>
           {before("decisions")}
           <div className="case-study-grid">
             {caseStudy.keyTechnicalDecisions.map((decision) => (
-              <article key={decision.title} className="interactive-card">
-                <h3>{decision.title}</h3>
+              <article key={decision.title} className="interactive-card df-body-sm">
+                <h3 className="df-heading-3">{decision.title}</h3>
                 <p>{decision.rationale}</p>
               </article>
             ))}
@@ -146,7 +145,7 @@ const CaseStudyPage = ({ caseStudy }: CaseStudyPageProps) => {
         </section>
 
         <section id="implementation" className="case-study-section">
-          <h2>
+          <h2 className="df-heading-2">
             {sectionTitle(
               caseStudy,
               "implementation",
@@ -156,8 +155,8 @@ const CaseStudyPage = ({ caseStudy }: CaseStudyPageProps) => {
           {before("implementation")}
           <div className="case-study-grid">
             {caseStudy.implementationHighlights.map((highlight) => (
-              <article key={highlight.title} className="interactive-card">
-                <h3>{highlight.title}</h3>
+              <article key={highlight.title} className="interactive-card df-body-sm">
+                <h3 className="df-heading-3">{highlight.title}</h3>
                 <p>{highlight.detail}</p>
               </article>
             ))}
@@ -166,11 +165,11 @@ const CaseStudyPage = ({ caseStudy }: CaseStudyPageProps) => {
         </section>
 
         <section id="outcome" className="case-study-section prose-surface">
-          <h2>
+          <h2 className="df-heading-2">
             {sectionTitle(caseStudy, "outcome", caseStudy.slug === "erebus" ? "Current Outcome" : "Outcome")}
           </h2>
           {before("outcome")}
-          <ul className="case-study-list">
+          <ul className="case-study-list df-prose">
             {caseStudy.outcome.map((item) => (
               <li key={item}>{item}</li>
             ))}
@@ -179,22 +178,22 @@ const CaseStudyPage = ({ caseStudy }: CaseStudyPageProps) => {
         </section>
 
         <section id="evidence" className="case-study-section">
-          <h2>Evidence</h2>
+          <h2 className="df-heading-2">Evidence</h2>
           <div className="case-study-grid">
             {caseStudy.artifacts.map((artifact) => (
-              <article key={artifact.title} className="interactive-card">
+              <article key={artifact.title} className="interactive-card df-body-sm">
                 <div className="case-study-artifact-meta">
-                  <span>{artifact.kind}</span>
-                  <span>{artifact.status}</span>
+                  <span className="df-label-sm df-context">{artifact.kind}</span>
+                  <span className="df-label-sm df-context">{artifact.status}</span>
                 </div>
-                <h3>{artifact.title}</h3>
+                <h3 className="df-heading-3">{artifact.title}</h3>
                 <p>{artifact.description}</p>
                 {artifact.note && (
-                  <p className="case-study-artifact-note">{artifact.note}</p>
+                  <p className="case-study-artifact-note df-body-sm">{artifact.note}</p>
                 )}
                 {artifact.href && (
                   <a
-                    className="case-study-artifact-link"
+                    className="case-study-artifact-link df-control df-label"
                     href={artifact.href}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -209,12 +208,12 @@ const CaseStudyPage = ({ caseStudy }: CaseStudyPageProps) => {
         </section>
 
         <section id="links" className="case-study-section prose-surface">
-          <h2>Links</h2>
+          <h2 className="df-heading-2">Links</h2>
           <div className="case-study-links">
             {caseStudy.links.map((link) => {
               if (link.unavailable) {
                 return (
-                  <div key={link.label} className="case-study-link disabled">
+                  <div key={link.label} className="case-study-link disabled df-control df-control--unavailable df-body-sm">
                     <span>{link.label}</span>
                     <span>{link.unavailableLabel ?? "Not public yet"}</span>
                   </div>
@@ -225,21 +224,21 @@ const CaseStudyPage = ({ caseStudy }: CaseStudyPageProps) => {
                 return (
                   <a
                     key={link.label}
-                    className="case-study-link"
+                    className="case-study-link df-control df-body-sm"
                     href={link.href}
                     target="_blank"
                     rel="noreferrer"
                   >
                     <span>{link.label}</span>
-                    <span>Open</span>
+                    <span className="df-label">Open</span>
                   </a>
                 );
               }
 
               return (
-                <Link key={link.label} className="case-study-link" to={link.href}>
+                <Link key={link.label} className="case-study-link df-control df-body-sm" to={link.href}>
                   <span>{link.label}</span>
-                  <span>View</span>
+                  <span className="df-label">View</span>
                 </Link>
               );
             })}

@@ -10,54 +10,40 @@
 }
 
 .article-breadcrumbs,
-.article-eyebrow,
 .article-meta {
   margin: 0;
-  font-size: 0.78rem;
-  color: var(--app-text-muted);
+  color: var(--fg-muted);
 }
 
 .article-eyebrow {
-  color: var(--brand-primary);
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
+  margin: 0;
+  color: var(--fg-muted);
 }
 
 .article-series {
   margin: 0.15rem 0 0;
-  font-size: 0.78rem;
-  color: var(--app-text-secondary);
+  color: var(--fg-muted);
 }
 
 .article-title {
   margin: 0.4rem 0 0.4rem;
-  font-size: clamp(1.6rem, 4vw, 2.4rem);
-  line-height: 1.2;
 }
 
 .article-subtitle {
   margin: 0 0 0.6rem;
-  max-width: 68ch;
-  color: var(--app-text-secondary);
-  font-size: 1rem;
-  line-height: 1.5;
+  max-width: var(--measure-body);
+  color: var(--fg-muted);
 }
 
 .article-layout {
   display: block;
 }
 
-/* Body: quiet, long-form, ~68ch measure. */
+/* Body: quiet, long-form, ~var(--measure-body) measure. */
 .article-body,
 .article-prose {
   min-width: 0;
-  color: var(--app-text);
-  font-size: 1rem;
-  line-height: 1.75;
-}
-
-.article-body {
-  max-width: 68ch;
+  color: var(--fg);
 }
 
 .article-body h2 {
@@ -70,7 +56,7 @@
 .article-body h3 {
   margin: 1.75rem 0 0.5rem;
   font-size: 1.1rem;
-  color: var(--app-text-secondary);
+  color: var(--fg-muted);
 }
 
 .article-body p,
@@ -78,16 +64,32 @@
   margin: 0 0 1.1rem;
 }
 
+/* Full-width provenance containers keep their tables wide; their own paragraphs still take the measure (§06). */
+.article-prose > p {
+  max-width: var(--measure-body);
+}
+
 .article-body blockquote {
   margin: 1.5rem 0;
   padding: 0.25rem 0 0.25rem 1rem;
-  border-left: 3px solid var(--brand-primary);
-  color: var(--app-text-secondary);
+  border-left: var(--stroke-hair) solid var(--edge);
+  color: var(--fg-muted);
+}
+
+.article-body hr,
+.article-prose hr {
+  border: 0;
+  border-top: var(--stroke-hair) solid var(--rule);
+}
+
+/* The body's closing rules would stand a few lines above the seam that opens the next region (the series links or the
+   provenance), reading as two seams: that seam alone closes the body. */
+.article-body > hr:not(:has(~ :not(hr))) {
+  display: none;
 }
 
 .article-body a,
 .article-prose a {
-  color: var(--brand-primary);
   overflow-wrap: anywhere;
 }
 
@@ -97,16 +99,16 @@
   max-width: 100%;
   overflow-x: auto;
   padding: 1rem;
-  border: 1px solid var(--app-border);
-  border-radius: 6px;
-  background: var(--app-bg-secondary);
+  border: var(--stroke-hair) solid var(--edge);
+  border-radius: var(--radius-0);
+  background: var(--field-deep);
   font-size: 0.82rem;
   line-height: 1.5;
 }
 
 .article-body code,
 .article-prose code {
-  font-family: "Courier New", "Monaco", "Menlo", monospace;
+  font-family: var(--font-mono);
   font-size: 0.88em;
 }
 
@@ -115,8 +117,6 @@
   max-width: 100%;
   overflow-x: auto;
   margin: 1.25rem 0;
-  border: 1px solid var(--app-border);
-  border-radius: 6px;
 }
 
 .article-table table {
@@ -129,13 +129,13 @@
 .article-table th,
 .article-table td {
   padding: 0.55rem 0.7rem;
-  border-bottom: 1px solid var(--app-border);
+  border-bottom: var(--stroke-hair) solid var(--rule);
   text-align: left;
   vertical-align: top;
 }
 
 .article-table th {
-  color: var(--brand-primary);
+  color: var(--signal-dim);
   white-space: nowrap;
 }
 
@@ -143,16 +143,11 @@
 .article-toc {
   margin-bottom: 1.5rem;
   padding: 0.75rem 1rem;
-  border: 1px solid var(--app-border);
-  border-radius: 6px;
-  background: var(--app-bg-secondary);
-  font-size: 0.85rem;
+  border-top: var(--stroke-hair) solid var(--rule);
 }
 
 .article-toc summary {
-  cursor: pointer;
-  color: var(--brand-primary);
-  font-weight: 650;
+  display: flex;
 }
 
 .article-toc ol {
@@ -168,57 +163,44 @@
 }
 
 .article-toc a {
-  color: var(--app-text-secondary);
-  text-decoration: none;
-}
-
-.article-toc a:hover,
-.article-toc a:focus-visible {
-  color: var(--brand-primary);
-  text-decoration: underline;
+  display: block;
 }
 
 /* Provenance: a visually distinct region after the conclusion. */
 .article-provenance {
   padding-top: 1.5rem;
-  border-top: 2px solid var(--app-border);
+  border-top: var(--stroke-hair) solid var(--rule);
 }
 
 .article-provenance > h2 {
   margin: 0 0 0.4rem;
-  color: var(--brand-primary);
-  font-size: 1.15rem;
+  color: var(--signal-dim);
 }
 
 .article-provenance-note {
-  max-width: 68ch;
+  max-width: var(--measure-body);
   margin: 0 0 1.25rem;
-  color: var(--app-text-muted);
-  font-size: 0.85rem;
+  color: var(--fg-muted);
 }
 
+/* Each section opens on a seam and keeps the region's left edge: no inset left over from a boxed card. */
 .article-provenance-section {
   margin-bottom: 1rem;
-  padding: 0.85rem 1rem;
-  border: 1px solid var(--app-border);
-  border-radius: 6px;
+  padding-block: 0.85rem;
+  border-top: var(--stroke-hair) solid var(--rule);
 }
 
-.article-provenance-section > h3,
+.article-provenance-section > h3 {
+  margin: 0;
+}
+
 .article-provenance-section > summary {
   margin: 0;
-  color: var(--app-text);
-  font-size: 0.95rem;
-  font-weight: 650;
-}
-
-.article-provenance-section > summary {
-  cursor: pointer;
+  display: flex;
 }
 
 .article-provenance-section .article-prose {
   margin-top: 0.85rem;
-  font-size: 0.9rem;
 }
 
 /* Previous/next within a series: the reading order the newest-first feed
@@ -228,39 +210,34 @@
   justify-content: space-between;
   gap: 1rem;
   padding-top: 1.25rem;
-  border-top: 1px solid var(--app-border);
+  border-top: var(--stroke-hair) solid var(--rule);
 }
 
 .article-series-link {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
+  display: block;
   max-width: 48%;
-  color: var(--brand-primary);
-  text-decoration: none;
 }
 
 .article-series-link--next {
   margin-left: auto;
-  text-align: right;
 }
 
 .article-series-link-label {
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--app-text-muted);
+  color: inherit;
+}
+
+.article-series-link > span:last-child {
+  display: block;
 }
 
 .article-footer {
   padding-top: 1.25rem;
-  border-top: 1px solid var(--app-border);
+  border-top: var(--stroke-hair) solid var(--rule);
 }
 
 .article-footer h2 {
   margin: 0 0 0.75rem;
-  font-size: 1rem;
-  color: var(--app-text-secondary);
+  color: var(--fg-muted);
 }
 
 .article-footer ul {
@@ -272,21 +249,20 @@
 }
 
 .article-footer a {
-  color: var(--brand-primary);
+  color: var(--signal-dim);
   text-decoration: none;
 }
 
 .article-footer-kind {
   display: block;
-  color: var(--app-text-muted);
-  font-size: 0.78rem;
+  color: var(--fg-muted);
 }
 
 /* Sticky sidebar where there is room beside the prose measure. */
 @media (min-width: 1200px) {
   .article-layout {
     display: grid;
-    grid-template-columns: minmax(0, 68ch) minmax(0, 1fr);
+    grid-template-columns: minmax(0, var(--measure-body)) minmax(0, 1fr);
     gap: 2.5rem;
     align-items: start;
   }
@@ -303,7 +279,6 @@
 
   .article-toc summary {
     list-style: none;
-    cursor: default;
   }
 
   .article-toc summary::-webkit-details-marker {
@@ -318,7 +293,7 @@
 
 @media (max-width: 480px) {
   .article-provenance-section {
-    padding: 0.75rem;
+    padding-block: 0.75rem;
   }
 
   .article-table table {
@@ -327,6 +302,4 @@
 }
 
 .article-body h2 { scroll-margin-top: 1rem; }
-.article-toc a[aria-current="location"] { color: var(--brand-primary); font-weight: 700; text-decoration: underline; }
-.article-series a { color: var(--brand-primary); }
 @media (min-width: 1200px) { .article-toc { top: calc(var(--site-header-measured-offset, 0px) + 1rem); max-height: calc(100dvh - var(--site-header-measured-offset, 0px) - var(--site-dock-safe-space, 0px) - 2rem); overflow-y: auto; } }

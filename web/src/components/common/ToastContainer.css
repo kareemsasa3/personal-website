@@ -1,25 +1,24 @@
 .toast-container {
     position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 10001;
+    top: var(--space-4);
+    right: var(--space-4);
+    z-index: var(--layer-overlay);
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: var(--space-3);
     pointer-events: none;
-    max-width: 400px;
+    width: min(400px, calc(100vw - 2 * var(--space-4)));
 }
 
 .toast-container .toast {
     pointer-events: auto;
 }
 
-/* Responsive design */
 @media (max-width: 768px) {
     .toast-container {
-        top: 10px;
-        right: 10px;
-        left: 10px;
-        max-width: none;
+        top: var(--space-2);
+        right: var(--space-2);
+        left: var(--space-2);
+        width: auto;
     }
 }

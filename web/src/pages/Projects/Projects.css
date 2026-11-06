@@ -2,25 +2,10 @@
 ========================================
 PROJECTS PAGE: PORTFOLIO-FIRST LAYOUT
 ----------------------------------------
-Projects route styling that keeps the
-terminal brand as an accent, not the
-primary comprehension layer.
+Projects route styling with Darkfield
+roles for page chrome and content.
 ========================================
 */
-
-:root {
-    --terminal-primary: #4CAF50;
-    --terminal-font: 'Courier New', 'Monaco', 'Menlo', monospace;
-}
-
-[data-theme="light"] {
-    --terminal-primary: var(--brand-primary);
-    --terminal-text-light: #2c2c2c;
-    --terminal-text-muted: #6a6a6a;
-    --terminal-error: #d73a49;
-    --terminal-background: #ffffff;
-    --terminal-header-bg: #f5f5f5;
-}
 
 .visually-hidden {
     position: absolute;
@@ -37,7 +22,6 @@ primary comprehension layer.
     width: 100%;
     max-width: 1400px;
     margin: 0 auto;
-    font-family: var(--terminal-font);
     min-width: 0;
 }
 
@@ -50,44 +34,20 @@ primary comprehension layer.
 
 .projects-eyebrow {
     margin: 0 0 0.9rem;
-    color: var(--terminal-primary, #4CAF50);
-    font-size: 0.9rem;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
+    color: var(--fg-muted);
 }
 
 .projects-title {
     position: relative;
     margin: 0;
-    color: var(--text-color);
-    font-family: var(--terminal-font);
-    font-size: clamp(2.25rem, 5vw, 3.75rem);
-    font-weight: 700;
-    line-height: 1.15;
-    text-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+    color: var(--fg);
     overflow-wrap: anywhere;
 }
 
-.projects-title::after {
-    content: '';
-    position: absolute;
-    bottom: -10px;
-    left: 50%;
-    width: 60px;
-    height: 3px;
-    background: linear-gradient(90deg, var(--primary-color), #000000);
-    border-radius: 2px;
-    transform: translateX(-50%);
-    animation: titleUnderline 2s ease-in-out infinite alternate;
-}
-
 .projects-subtitle {
-    max-width: 760px;
+    max-width: var(--measure-body);
     margin: 1.5rem auto 0;
-    color: var(--text-secondary);
-    font-size: 1.1rem;
-    line-height: 1.7;
+    color: var(--fg-muted);
     overflow-wrap: anywhere;
 }
 
@@ -108,17 +68,12 @@ primary comprehension layer.
     border-radius: 10px;
     font-weight: 700;
     text-decoration: none;
-    transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
-}
-
-.projects-cta:hover {
-    transform: translateY(-2px);
+    transition: border-color 0.25s ease, background 0.25s ease;
 }
 
 .projects-cta-primary {
-    background: var(--primary-color-dark);
+    background: var(--signal-deep);
     color: #fff;
-    box-shadow: 0 8px 24px rgba(175, 42, 42, 0.28);
 }
 
 .roster-section {
@@ -133,17 +88,13 @@ primary comprehension layer.
 
 .projects-section-title {
     margin: 0;
-    color: var(--text-color);
-    font-size: clamp(1.8rem, 3vw, 2.5rem);
-    font-weight: 700;
-    text-shadow: 0 0 18px rgba(0, 255, 0, 0.2);
+    color: var(--fg);
 }
 
 .projects-section-subtitle {
+    max-width: var(--measure-body);
     margin: 0.9rem auto 0;
-    color: var(--text-secondary);
-    line-height: 1.7;
-    font-size: 1rem;
+    color: var(--fg-muted);
 }
 
 .projects-controls {
@@ -154,9 +105,7 @@ primary comprehension layer.
     gap: 1.5rem;
     margin-bottom: 2rem;
     padding: 1.5rem;
-    border: 1px solid color-mix(in srgb, var(--border-color) 80%, transparent);
-    border-radius: 14px;
-    background: color-mix(in srgb, var(--card-background) 90%, transparent);
+    border-top: var(--stroke-hair) solid var(--rule);
 }
 
 .filters-section {
@@ -186,83 +135,35 @@ primary comprehension layer.
     margin-bottom: 3rem;
 }
 
+/* Boundary, colour and states come from .df-control: the first two filter the roster (Selected by aria-pressed),
+   the third opens the coverage dialog (a latch). The value and its label stack in one body, so the in-flow
+   marker sits one cell before that body; in this flex row the marker spans the row and centres its glyph. */
 .stat-card {
-    position: relative;
-    padding: 1.5rem;
-    border: 2px solid var(--border-color);
-    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
     overflow: hidden;
-    background: var(--card-background);
-    box-shadow: 0 2px 8px var(--shadow-color);
-    color: inherit;
-    font-family: inherit;
-    font-size: inherit;
-    text-align: center;
-    outline: none;
-    transition: transform 0.3s ease, border-color 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
-    cursor: pointer;
 }
 
 .stat-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(0, 255, 0, 0.08), transparent);
-    transition: left 0.5s ease;
+    align-self: stretch;
+    height: auto;
+    display: flex;
+    align-items: center;
 }
 
-.stat-card:hover {
-    background: color-mix(in srgb, var(--primary-color-light) 70%, transparent);
-    border-color: var(--terminal-primary, #4CAF50);
-    box-shadow: 0 8px 25px var(--shadow-color), 0 0 16px rgba(0, 255, 0, 0.2);
-    transform: translateY(-2px);
-}
-
-.stat-card:hover::before {
-    left: 100%;
-}
-
-.stat-card:active {
-    box-shadow: 0 0 15px rgba(0, 255, 0, 0.2);
-    transform: translateY(0);
-}
-
-.stat-card[aria-pressed="true"] {
-    background: color-mix(in srgb, var(--primary-color-light) 75%, transparent);
-    border-color: var(--terminal-primary, #4CAF50);
-    box-shadow: 0 0 18px rgba(0, 255, 0, 0.28), 0 8px 25px var(--shadow-color);
-    transform: translateY(-1px);
-}
-
-.stat-card[aria-pressed="true"]::after {
-    content: '✓';
-    position: absolute;
-    top: 0.5rem;
-    right: 0.5rem;
-    color: var(--terminal-primary, #4CAF50);
-    font-size: 1.2rem;
-    font-weight: bold;
-    text-shadow: 0 0 10px var(--terminal-primary, #4CAF50);
+.stat-card__body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 0;
+    text-align: center;
 }
 
 .stat-number {
     display: block;
     margin-bottom: 0.5rem;
-    color: var(--terminal-primary, #4CAF50);
-    font-size: 2.5rem;
-    font-weight: 700;
-    line-height: 1;
-    text-shadow: 0 0 10px var(--terminal-primary, #4CAF50);
-}
-
-.stat-label {
-    color: var(--text-color);
-    font-size: 0.9rem;
-    font-weight: 600;
-    letter-spacing: 0.02em;
 }
 
 .projects-content {
@@ -271,23 +172,18 @@ primary comprehension layer.
 
 .no-projects {
     padding: 4rem 2rem;
-    background: var(--card-background);
-    border: 2px solid color-mix(in srgb, var(--terminal-primary, #4CAF50) 60%, transparent);
-    border-radius: 12px;
-    box-shadow: 0 2px 8px var(--shadow-color);
+    border-top: var(--stroke-hair) solid var(--rule);
     text-align: center;
 }
 
 .no-projects h3 {
     margin: 0 0 1rem 0;
-    color: var(--text-color);
-    font-size: 1.5rem;
+    color: var(--fg);
 }
 
 .no-projects p {
     margin: 0;
-    color: var(--text-secondary);
-    font-size: 1rem;
+    color: var(--fg-muted);
 }
 
 .tech-stack-modal {
@@ -299,8 +195,7 @@ primary comprehension layer.
     left: 0;
     width: 100%;
     height: 100dvh;
-    background: rgba(0, 0, 0, 0.8);
-    backdrop-filter: blur(5px);
+    background: var(--df-scrim);
     cursor: pointer;
 }
 
@@ -310,13 +205,12 @@ primary comprehension layer.
     max-width: 800px;
     width: 90%;
     max-height: min(80dvh, calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 2rem));
-    background: var(--card-background);
-    border: 2px solid var(--terminal-primary, #4CAF50);
-    border-radius: 12px;
-    box-shadow: 0 0 22px rgba(0, 255, 0, 0.22), 0 8px 25px var(--shadow-color);
+    /* A primary overlay (§08 Layers and overlays): surface-2, an edge boundary and the cut-md chamfer (.df-cut-md). */
+    background: var(--surface-2);
+    border: var(--stroke-hair) solid var(--edge);
     overflow: hidden;
-    transition: background 0.3s ease, border-color 0.3s ease;
     cursor: default;
+    --df-ground-up: var(--surface-3);
 }
 
 .tech-stack-header {
@@ -325,35 +219,12 @@ primary comprehension layer.
     align-items: center;
     flex-shrink: 0;
     padding: 1rem 1.5rem;
-    background: var(--terminal-header-bg, #2a2a2a);
-    border-bottom: 1px solid var(--terminal-primary, #4CAF50);
+    border-bottom: var(--stroke-hair) solid var(--rule);
 }
 
 .tech-stack-header h3 {
     margin: 0;
-    color: var(--text-color);
-    font-size: 1.2rem;
-}
-
-.close-tech-stack {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.5rem 1rem;
-    background: var(--card-background);
-    border: 1px solid color-mix(in srgb, var(--terminal-primary, #4CAF50) 70%, transparent);
-    border-radius: 8px;
-    box-shadow: 0 2px 4px var(--shadow-color);
-    color: var(--text-color);
-    font-size: 0.9rem;
-    transition: transform 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
-    cursor: pointer;
-}
-
-.close-tech-stack:hover {
-    background: var(--primary-color-light);
-    box-shadow: 0 0 10px rgba(0, 255, 0, 0.24), 0 4px 12px var(--shadow-color);
-    transform: translateY(-1px);
+    color: var(--fg);
 }
 
 .tech-stack-grid {
@@ -372,12 +243,12 @@ primary comprehension layer.
 }
 
 .tech-stack-grid::-webkit-scrollbar-track {
-    background: var(--terminal-header-bg, #2a2a2a);
+    background: var(--surface-2);
 }
 
 .tech-stack-grid::-webkit-scrollbar-thumb {
-    background: var(--terminal-primary, #4CAF50);
-    border-radius: 4px;
+    background: var(--fg-muted);
+    border-radius: var(--radius-0);
 }
 
 .tech-item {
@@ -386,36 +257,18 @@ primary comprehension layer.
     align-items: center;
     gap: 1rem;
     padding: 0.75rem;
-    background: var(--card-background);
-    border: 1px solid var(--border-color);
-    border-radius: 10px;
-    box-shadow: 0 2px 4px var(--shadow-color);
-    transition: all 0.3s ease;
+    border-top: var(--stroke-hair) solid var(--rule);
+    transition: border-color var(--dur-fast) var(--ease-standard);
 }
 
 
 
 .tech-name {
-    color: var(--terminal-primary, #4CAF50);
-    font-size: 0.95rem;
-    font-weight: 600;
+    color: var(--fg);
 }
 
 .tech-count {
-    color: var(--terminal-text-muted, #666);
-    font-size: 0.8rem;
-}
-
-@keyframes titleUnderline {
-    from {
-        width: 60px;
-        opacity: 0.7;
-    }
-
-    to {
-        width: 80px;
-        opacity: 1;
-    }
+    color: var(--fg-muted);
 }
 
 @media (max-width: 1024px) {
@@ -432,10 +285,6 @@ primary comprehension layer.
     .projects-hero {
         margin-bottom: 3rem;
         padding-top: 1rem;
-    }
-
-    .projects-title {
-        font-size: clamp(1.65rem, 6vw, 2rem);
     }
 
     .projects-hero,
@@ -462,14 +311,6 @@ primary comprehension layer.
         gap: 1rem;
     }
 
-    .stat-card {
-        padding: 1rem;
-    }
-
-    .stat-number {
-        font-size: 2rem;
-    }
-
     .tech-stack-content {
         width: 95%;
         max-height: min(90dvh, calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 2rem));
@@ -488,13 +329,6 @@ primary comprehension layer.
 }
 
 @media (max-width: 480px) {
-    .projects-title {
-        font-size: clamp(1.2rem, 5.7vw, 1.45rem);
-    }
-
-    .projects-subtitle {
-        font-size: 1rem;
-    }
 
     .projects-hero-actions {
         flex-direction: column;
@@ -524,18 +358,9 @@ primary comprehension layer.
     .projects-stats {
         grid-template-columns: 1fr;
     }
-
-    .stat-number {
-        font-size: 1.75rem;
-    }
-
-    .stat-label {
-        font-size: 0.8rem;
-    }
 }
 
 .projects-hero { margin-bottom: 1.5rem; padding: 1rem 0; }
 .projects-section-heading { margin-bottom: 1rem; }
 .projects-controls { padding: .75rem; gap: .75rem; margin-bottom: 1rem; }
-.stat-card:focus-visible { outline: 2px solid var(--brand-primary); outline-offset: 3px; }
-.tech-item, .tech-item:hover { cursor: default; transform: none; box-shadow: none; }
+.tech-item { cursor: default; }

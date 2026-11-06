@@ -384,11 +384,10 @@ const RhythmLab = () => {
       pausePlayback();
       resetChartRuntimeForSongChange();
       void selectSong(songId);
-      focusGame();
+      // Focus stays with the saved-songs trigger (SongControls returns it there); lane keys are read on the window.
     },
     [
       activeSongId,
-      focusGame,
       pausePlayback,
       resetChartRuntimeForSongChange,
       selectSong,
@@ -666,6 +665,11 @@ const RhythmLab = () => {
         : "Starter chart - silent static clock";
   const isActiveSession = phase === "playing" || phase === "paused" || isRecording;
   const isHotStreak = phase === "playing" && combo >= 10;
+  // Live (§05): the HUD values change only while the run plays.
+  const hudLive =
+    phase === "playing" && !isPausedAfterVisibilityChange && !isRecording
+      ? " df-data--live"
+      : "";
   const activeChartModeLabel =
     activeChartMode === "recorded" && recordedChart ? "Recorded" : "Starter";
   const chartBestLabel = bestRun
@@ -720,14 +724,14 @@ const RhythmLab = () => {
               className="rhythm-lab-active-bar"
               aria-label="Tutorial controls"
             >
-              <Link className="rhythm-lab-back-link" to="/simulations">
+              <Link className="rhythm-lab-back-link df-control df-control--light df-label" to="/simulations">
                 Simulations
               </Link>
               {/* Spacer; the prompt band already shows the tutorial step. */}
               <div className="rhythm-lab-active-context" />
               <div className="rhythm-lab-active-actions">
                 <button
-                  className="rhythm-lab-compact-action"
+                  className="rhythm-lab-compact-action df-control df-label"
                   type="button"
                   onClick={exitTutorial}
                 >
@@ -752,14 +756,14 @@ const RhythmLab = () => {
             />
           ) : (
             <>
-              <p className="rhythm-lab-eyebrow">
+              <p className="rhythm-lab-eyebrow df-body-sm">
                 Interaction Systems Experiment
               </p>
               <div className="rhythm-lab-title-row">
-                <Link className="rhythm-lab-back-link" to="/simulations">
+                <Link className="rhythm-lab-back-link df-control df-control--light df-label" to="/simulations">
                   Simulations
                 </Link>
-                <h1>Rhythm Lab</h1>
+                <h1 className="df-heading-2">Rhythm Lab</h1>
               </div>
               <div className="rhythm-lab-audio-panel">
                   <div
@@ -771,7 +775,7 @@ const RhythmLab = () => {
                       type="button"
                       role="tab"
                       aria-selected={setupTab === "setup"}
-                      className={setupTab === "setup" ? "is-active" : ""}
+                      className="df-control df-label"
                       onClick={() => setSetupTab("setup")}
                     >
                       Setup
@@ -780,7 +784,7 @@ const RhythmLab = () => {
                       type="button"
                       role="tab"
                       aria-selected={setupTab === "history"}
-                      className={setupTab === "history" ? "is-active" : ""}
+                      className="df-control df-label"
                       onClick={() => setSetupTab("history")}
                     >
                       History
@@ -789,7 +793,7 @@ const RhythmLab = () => {
                       type="button"
                       role="tab"
                       aria-selected={setupTab === "analytics"}
-                      className={setupTab === "analytics" ? "is-active" : ""}
+                      className="df-control df-label"
                       onClick={() => setSetupTab("analytics")}
                     >
                       Analytics
@@ -862,7 +866,7 @@ const RhythmLab = () => {
                         }}
                       />
                       {importStatus && (
-                        <p className="rhythm-lab-import-status" role="status">
+                        <p className="rhythm-lab-import-status df-body-sm" role="status">
                           {importStatus}
                         </p>
                       )}
@@ -889,9 +893,18 @@ const RhythmLab = () => {
         </div>
         {!isTutorialActive && (
           <div className="rhythm-lab-hud" aria-live="polite">
-            <span>Score {score}</span>
-            <span>Combo {combo}</span>
-            <span>Best {maxCombo}</span>
+            <span>
+              <span className="rhythm-lab-hud-label df-label-sm">Score</span>{" "}
+              <span className={`rhythm-lab-hud-value df-data${hudLive}`}>{score}</span>
+            </span>
+            <span>
+              <span className="rhythm-lab-hud-label df-label-sm">Combo</span>{" "}
+              <span className={`rhythm-lab-hud-value df-data${hudLive}`}>{combo}</span>
+            </span>
+            <span>
+              <span className="rhythm-lab-hud-label df-label-sm">Best</span>{" "}
+              <span className={`rhythm-lab-hud-value df-data${hudLive}`}>{maxCombo}</span>
+            </span>
           </div>
         )}
       </header>

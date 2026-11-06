@@ -201,6 +201,24 @@ const main = async () => {
     "active Twitter image metadata"
   );
 
+  // Web manifest and theme-color (Darkfield Phase 4 Task 3): every shell carries both tags from the base
+  // template, and the build ships the manifest and the three app icons it names.
+  for (const [label, html] of [
+    ["homepage", homepage],
+    ["article shell", articleShells["the-machine-should-explain-itself"]],
+  ]) {
+    assertIncludes(html, '<link rel="manifest" href="/manifest.webmanifest" />', `${label} manifest link`);
+    assertIncludes(html, '<meta name="theme-color" content="', `${label} theme-color`);
+  }
+  const manifest = JSON.parse(await readBuildFile("manifest.webmanifest"));
+  for (const icon of manifest.icons) await readBuildFile(icon.src.slice(1));
+  for (const path of ["icon-192.png", "icon-512.png", "icon-512-maskable.png"]) {
+    if (!manifest.icons.some((icon) => icon.src === `/${path}`)) {
+      throw new Error(`Expected the manifest to name /${path}`);
+    }
+    await readBuildFile(path);
+  }
+
   // Homepage static shell. Without JavaScript the root must still say who the
   // site belongs to, name the featured systems, and link to the primary
   // destinations and public contact channels the hydrated homepage exposes.
