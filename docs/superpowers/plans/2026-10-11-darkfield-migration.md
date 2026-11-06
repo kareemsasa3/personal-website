@@ -4797,8 +4797,8 @@ Appended 2026-11-05 (r11). One line per deviation: what differs, the ruling and 
 ### Final review records (2026-11-05)
 
 Appended 2026-11-05 (r12). The final whole-branch review of `b4283dc..d874e45` (local, outside this repository) returned READY WITH FIXES. These are the controller's rulings on it; none is an owner approval, and this record resolves nothing.
-- **Release blocker, P6-Fc** (commit messages): the messages of `de60b7d`, `dcf31bf`, `f92fd52`, `8a652b3` and `52b73af`, with `600272b` from the earlier list and `5207787` listed for checking, are reworded on a candidate ref, `refs/darkfield/reworded-candidate`, made after every other commit, with a backup ref of the branch, a tree-equality proof for every commit, an old-to-new hash map committed as a docs appendix on the candidate, and an independent disclosure re-scan of all messages. `feat/darkfield-foundation` is not moved. Adopting the candidate re-hashes history, including every hash this plan cites, and is an owner release step. Owner: pending.
-- **Release blocker, P6-Ff** (owner visual pass): every Human row of *Validation model* was closed by agent inspection; an owner visual pass is required before release. Screenshot set: `$DF_TMP/phase6/owner-visual/`. Owner: pending.
+- **Release blocker, P6-Fc** (commit messages): the messages of `de60b7d`, `dcf31bf`, `f92fd52`, `8a652b3` and `52b73af`, with `600272b` from the earlier list and `5207787` listed for checking, are reworded on a candidate ref, `refs/darkfield/reworded-candidate`, made after every other commit, with a backup ref of the branch, a tree-equality proof for every commit, an old-to-new hash map committed as a docs appendix on the candidate, and an independent disclosure re-scan of all messages. `feat/darkfield-foundation` is not moved. Adopting the candidate re-hashes history, including every hash this plan cites, and is an owner release step. Owner: pending. Update 2026-11-05: adopted (owner, direct); see *Release records* after the appendix.
+- **Release blocker, P6-Ff** (owner visual pass): every Human row of *Validation model* was closed by agent inspection; an owner visual pass is required before release. Screenshot set: `$DF_TMP/phase6/owner-visual/`. Owner: pending. Update 2026-11-05: approved (owner, direct), static screenshots only; see *Release records* after the appendix.
 - **Owner item, M-2** (copy): the terminal's minimized-state label "Terminal minimized — reopen" (`6b86d15`) is new visitor-facing copy without owner sign-off. Owner: pending (confirm or revert).
 - **Owner item, M-3** (dead-code cleanup list): `.rhythm-lab-audio-resume` in `RhythmLab.css` (rounded; nothing renders it), `.annals-page .rounded` in `Annals.css` (an unused utility), the `.projects-cta-primary` literal colour rule in `Projects.css` (dead, P3-8) and `toggleTheme` in `ThemeContext.tsx` (no caller). Owner: pending.
 - **Owner item, P5-T24a** (`35b70da`): two of the six closed boxes allowed in `P5_FRAMED` rest on a review PASS only. The Rhythm Lab setup face (`.rhythm-lab-header`) is now on `field` after R-7 (`a5fffb7`); the Annals chronicle (`.annals-chronicle`) is on opaque `field` after R-6 (`e10e34a`). Whether either entry is still needed is unverified, and no test changes here. Owner: pending (a basis for each entry, or its removal).
@@ -5155,6 +5155,10 @@ Every line number refers to `a16c70f`. Implementers locate code by the anchor, n
 
 ## Revision log
 
+- **r13 (2026-11-05, release records; docs only).** Recorded the owner's approval of the P6-Ff visual pass and the adoption of the P6-Fc reworded history:
+  - dated updates on the two release-blocker lines under *Final review records*;
+  - *Release records* after the appendix, whose hashes are on the reworded history.
+  - The *Revision* line under the title is left as it was.
 - **r12 (2026-11-05, final whole-branch review: records; docs only).** Added, with two r11 lines corrected under P6-T13c (DEV-12's §08 heading; the chamfer-reading line now dates its one chamfer to Phase 3 Task 10 and names the overlays that use the class since):
   - *Phase 6*: R-9 (`8859716`) and R-10 (`abe0d0b`) after R-8.
   - *Recorded deviations*: the P5 T17, P5-T20a and P5 T22 scope records and the ledger baseline note (P6-Fe).
@@ -5432,3 +5436,23 @@ Old to new hash, from the first reworded commit (`8a652b3`) to the end of the br
 | `8859716` | `271ef71` |
 | `abe0d0b` | `2928f84` |
 | `fea5b74` | `fe0caba` |
+
+## Release records (2026-11-05)
+
+This section follows the appendix. Its hashes are on the reworded history unless marked "pre-rewording". These records note owner approvals and controller checks; they resolve nothing else.
+
+- **P6-Ff, owner visual pass: approved 2026-11-05 (owner, direct).**
+  - **What was reviewed:** the 259-screenshot contact sheet (`$DF_TMP/phase6/owner-visual/`, local) of tree `9430bca`. That tree is pre-rewording `fea5b74` and `fe0caba` here. It covered Dark, Light and Mono at desktop and phone widths, plus Settings open, forced colours, reduced motion and the no-JavaScript route shell.
+  - **What it accepts:** composition, readability, theme consistency, responsive layouts and the preservation of independently authored creative surfaces.
+  - **Scope:** static screenshots only. Live-interaction checks the owner has not shown stay open: hover, pressed and focus behaviour in a live browser; the headed-browser Tab-out check of the descent and observing frames (P6-T7b); Firefox and Safari (all checks ran in Chromium); real-device checks (the apple-touch icon inset on iOS, forced colours on Windows); and the production checks after deploy.
+- **P6-Fc, reworded history: adopted 2026-11-05 (owner, direct approval; run by the controller).**
+  - **The move:** `git reset --keep refs/darkfield/reworded-candidate` moved `feat/darkfield-foundation` from pre-rewording `fea5b74` to `84c962e`.
+  - **Recovery ref:** `refs/darkfield/backup-pre-reword` keeps pre-rewording `fea5b74` and is not moved or deleted. `refs/darkfield/reworded-candidate` stays at `84c962e`.
+  - **Checks before the move:**
+    - the worktree, branch and clean tree;
+    - all 118 rebuilt commits paired with the originals, each with the same tree, the same author and committer lines, and parents mapped;
+    - no merges in the range, and no signatures to lose;
+    - exactly the 13 message lines listed in the appendix differ;
+    - the candidate's only file change is the appendix (128 lines added).
+  - **Checks after the move:** the branch head is `84c962e`; the working tree is clean; the tree of `fe0caba` equals the pre-rewording tree; and the only file difference from pre-rewording `fea5b74` is the appendix.
+- **Still open before release:** D9 push, pull request, merge and deploy, each separately approvable. D11(a) is open. The owner decisions and deviations recorded above are unchanged.
