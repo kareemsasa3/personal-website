@@ -141,6 +141,12 @@ const checkContentSecurityPolicy = async () => {
   if (/'unsafe-(inline|eval)'/.test(scriptSrc)) {
     throw new Error(`CSP script-src must not allow unsafe-inline or unsafe-eval: ${scriptSrc}`);
   }
+  // A nonce is only safe if it changes per response, so it must be nginx's $request_id.
+  for (const nonce of scriptSrc.match(/'nonce-[^']*'/g) ?? []) {
+    if (nonce !== "'nonce-$request_id'") {
+      throw new Error(`CSP nonce must be the per-request 'nonce-$request_id', found ${nonce}`);
+    }
+  }
   const allowed = new Set(scriptSrc.match(/'sha256-[A-Za-z0-9+/=]+'/g)?.map((h) => h.slice(1, -1)) ?? []);
 
   const executable = /^(?:|text\/javascript|application\/javascript|module)$/i;
