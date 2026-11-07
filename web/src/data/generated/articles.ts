@@ -4,8 +4,9 @@
 //
 // Trust boundary: this HTML is injected into static route shells unescaped.
 // That is safe only because the source is first-party markdown committed to
-// this repository. If article content ever comes from anywhere else, HTML
-// sanitisation becomes mandatory before injection.
+// this repository, and because the build fails if DOMPurify would remove
+// anything from it. If article content ever comes from anywhere else, sanitise
+// it before injection instead of relying on that gate.
 
 export interface ArticleTocEntry {
   id: string;
