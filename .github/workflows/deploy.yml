@@ -68,16 +68,14 @@ jobs:
         if: ${{ env.PROD_DOMAIN != '' }}
         env:
           DOMAIN: ${{ env.PROD_DOMAIN }}
-          ORIGIN_IP: ${{ secrets.PROD_ORIGIN_IP }}
+        # Through Cloudflare, like the checks below and like visitors. The origin
+        # is firewalled to Cloudflare's IP ranges, so a runner cannot reach it
+        # directly; the deploy script already checks the site from the server.
         run: |
           set -e
           echo "Waiting for public app health at https://$DOMAIN ..."
           for i in {1..60}; do
-            if [ -n "$ORIGIN_IP" ]; then
-              curl -fsS -m 10 --resolve "$DOMAIN:443:$ORIGIN_IP" "https://$DOMAIN/health" >/dev/null && ok=1 || ok=0
-            else
-              curl -fsS -m 5 "https://$DOMAIN/health" >/dev/null && ok=1 || ok=0
-            fi
+            curl -fsS -m 10 "https://$DOMAIN/health" >/dev/null && ok=1 || ok=0
             if [ "$ok" -eq 1 ]; then
               echo "Public app health endpoint healthy."
               echo "Verifying Grafana is not publicly exposed..."
