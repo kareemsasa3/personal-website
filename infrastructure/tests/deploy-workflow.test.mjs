@@ -113,6 +113,40 @@ test("the deploy step passes inputs through the environment, not into the script
   assert.match(step.run, /bash -s"?\s*\\?\s*\n?\s*< infrastructure\/prod\/deploy-release\.sh/);
 });
 
+test("the deploy passes the pinned host key from its own secret", () => {
+  assert.equal(deployStep.with.known_hosts, "${{ secrets.PROD_SSH_KNOWN_HOSTS }}");
+  assert.equal(action.inputs.known_hosts.required, true);
+  const configure = action.runs.steps.find((s) => s.name === "Configure SSH");
+  assert.equal(configure.env.KNOWN_HOSTS_RAW, "${{ inputs.known_hosts }}");
+  assert.doesNotMatch(configure.run, /inputs\.known_hosts/, "the multi-line secret is never spliced into the script");
+});
+
+test("every SSH connection verifies the host key against the pinned file only", () => {
+  const text = read(".github/actions/ssh-deploy/action.yml");
+  assert.doesNotMatch(text, /StrictHostKeyChecking=(no|accept-new|off)/i);
+  assert.doesNotMatch(text, /UserKnownHostsFile=\/dev\/null/);
+  assert.doesNotMatch(text, /ssh-keyscan/, "the host key never comes from the network at deploy time");
+
+  const scripts = action.runs.steps.map((s) => s.run ?? "").join("\n");
+  const optionSets = [...scripts.matchAll(/^\s*SSH_OPTS="([^"]*)"/gm)].map((m) => m[1]);
+  assert.equal(optionSets.length, 2, "one option set for the sync and one for the deploy");
+  for (const opts of optionSets) {
+    assert.match(opts, /-o StrictHostKeyChecking=yes(\s|$)/);
+    assert.match(opts, /-o UserKnownHostsFile=~\/\.ssh\/deploy_known_hosts(\s|$)/);
+    assert.match(opts, /-o GlobalKnownHostsFile=\/dev\/null(\s|$)/);
+    assert.match(opts, /-o KnownHostsCommand=none(\s|$)/);
+    assert.match(opts, /-o VerifyHostKeyDNS=no(\s|$)/);
+    assert.match(opts, /-o UpdateHostKeys=no(\s|$)/);
+  }
+
+  // Every ssh command starts its own line (the sync's follows a `tar ... | \`).
+  const sshCalls = scripts.split("\n").map((line) => line.trim()).filter((line) => /(^|[|;&]\s*)ssh\s/.test(line));
+  assert.equal(sshCalls.length, 3, "the sync, deploy and diagnostics SSH calls");
+  for (const call of sshCalls) {
+    assert.match(call, /ssh (-\S+ )*\$SSH_OPTS /, `SSH call without the verified options: ${call}`);
+  }
+});
+
 test("rendered compose configuration, which holds secrets, is never uploaded", () => {
   const text = read(".github/actions/ssh-deploy/action.yml");
   assert.doesNotMatch(text, /upload-artifact/);
