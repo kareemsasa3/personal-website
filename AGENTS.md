@@ -38,7 +38,7 @@ This repository contains a frontend-only personal website and the Docker/nginx i
 
 Run app commands from `web/` unless noted otherwise.
 
-- `npm install` - install frontend dependencies from `web/package-lock.json` after a fresh checkout or dependency change.
+- `npm ci` - install frontend dependencies exactly from `web/package-lock.json` after a fresh checkout. Use `npm install` only when intentionally updating dependencies, and review the resulting lockfile changes.
 - `npm run dev` - start the Vite development server for normal frontend development.
 - `npm run typecheck` - run TypeScript without emitting files; use for TypeScript, route, component, data model, and config changes.
 - `npm run lint` - run ESLint on `src`, `eslint.config.js`, and `vite.config.ts`; use for code changes before reporting completion.
@@ -51,7 +51,7 @@ Run app commands from `web/` unless noted otherwise.
 
 Node: CI uses Node 20. Some local tests (`darkfield-settings.test.mjs`, `scroll-progress.test.mjs`) import `.ts` modules and need Node 22.18 or later; CI does not run them.
 
-Infrastructure commands are documented in `README.md` and `infrastructure/README.md`; do not run or change them unless the task is about Docker, nginx, SSL, monitoring, or deployment.
+Development setup and infrastructure commands are documented in `docs/DEVELOPMENT.md` and `infrastructure/README.md`; do not run or change them unless the task is about Docker, nginx, SSL, monitoring, or deployment.
 
 ## Verification Expectations
 
