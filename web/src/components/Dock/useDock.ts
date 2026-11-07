@@ -1,6 +1,11 @@
 import { useState, useEffect, useReducer } from "react";
 import { z } from "zod";
 
+// Zod probes for eval support (Function("")) to compile fast parsers. The site's
+// Content-Security-Policy does not allow eval, so skip the probe instead of
+// raising a CSP violation on every page that parses dock settings.
+z.config({ jitless: true });
+
 // Schema validation for dock settings
 const DockSettingsSchema = z.object({
   dockSize: z.number().min(40).max(60),
