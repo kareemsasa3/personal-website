@@ -11,8 +11,30 @@ How a release reaches production, and how to put a previous release back.
 
 Both triggers run the same steps:
 
-1. The `ssh-deploy` action syncs `infrastructure/` to the host.
-2. It streams `infrastructure/prod/deploy-release.sh` to the host.
+1. The `ssh-deploy` action verifies the host's SSH key. See [Host-key verification](#host-key-verification).
+2. It syncs `infrastructure/` to the host.
+3. It streams `infrastructure/prod/deploy-release.sh` to the host.
+
+## Host-key verification
+
+Every SSH connection the deploy makes checks the server's host key against the `PROD_SSH_KNOWN_HOSTS` secret, and only that secret. It runs with `StrictHostKeyChecking=yes`. The deploy never scans the host for its key, and never trusts a key the first time it sees one.
+
+The deploy stops before it opens any connection when the secret is missing, holds a line that is not a valid `host keytype key` entry, or has no entry for the configured host and port. It stops at the first connection when the server presents any other key. Nothing is synced and no credentials are sent.
+
+The secret is one or more lines in `known_hosts` format.
+
+- On port 22, the host field is the `PROD_HOST` value: `203.0.113.7 ssh-ed25519 AAAA...`.
+- On any other port, the host field is `[PROD_HOST]:PROD_PORT`: `[203.0.113.7]:2222 ssh-ed25519 AAAA...`.
+
+To capture the key, or to replace it after the server's host key changes:
+
+1. On the server, through a channel you already trust, such as the provider's console or an existing verified SSH session, print the key and its fingerprint:
+   `cat /etc/ssh/ssh_host_ed25519_key.pub` and `ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub`.
+2. Build the line from the host field above plus the first two fields of that file: the key type and the key.
+3. Check the line before you store it. Save it to a file and run `ssh-keygen -lf <file>`. The fingerprint must match step 1.
+4. Store it as the repository secret `PROD_SSH_KNOWN_HOSTS`.
+
+A deploy logs the fingerprint it trusted. A rebuilt server, or a change to `PROD_HOST` or `PROD_PORT`, needs a new secret before the next deploy.
 
 ## What a deploy does on the host
 
@@ -192,4 +214,5 @@ A new host, or a host whose certificate is missing, needs a one-time provisionin
 - `infrastructure/tests/deploy-workflow.test.mjs` evaluates the deploy job's own `if:` and `with:` expressions against push, pull-request, fork, failed-build, and dispatch events. It runs in CI.
 - `infrastructure/tests/deploy-release.test.sh` runs `deploy-release.sh` against a simulated host. It covers digest pinning against `.env`, each failure that must happen before disruption, the certificate states, rollback, and restoring the previous image when a release is unhealthy. One case renders the real production compose files with the real Docker Compose. It runs in CI.
 - `infrastructure/tests/restore-web-release.test.sh` runs the emergency restore against a simulated host. It checks the refusals (no image, a tag, a short digest, an image missing from the host, no Compose v2, no network, no `.env` or `DOMAIN_NAME`, compose resolving another image), the read-only preflight, a restore that never pulls or logs in, an unhealthy result, and a real Compose render against `WEB_IMAGE=:latest`. It also checks that nothing automated references the script. It runs in CI.
+- `infrastructure/tests/ssh-deploy-host-key.test.sh` runs the `ssh-deploy` action's own step scripts against a local sshd, in an Ubuntu 24.04 container with no network. It covers a matching key on port 22 and on a custom port, hashed entries, and an impostor key, including one already in the default `known_hosts` files or supplied by a `KnownHostsCommand` in client config. It also covers missing, malformed, truncated and wrong-host or wrong-port entries. Each rejection must leave nothing synced and nothing deployed. It is not run in CI. It needs Docker, and network access the first time it builds its image.
 - `infrastructure/tests/deploy-rehearsal.sh` runs the script against real Docker, using the production compose files and two published releases. It deploys, rolls forward and rolls back, and checks that failures leave every running container untouched. It then removes the web container, stops nginx, and restores with `restore-web-release.sh`, without GitHub, registry credentials or Grafana values. It is not run in CI. It pulls the full image set, uses local ports, and refuses to run where `portfolio-*-prod` containers exist.

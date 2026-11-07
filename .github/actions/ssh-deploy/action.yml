@@ -13,6 +13,12 @@ inputs:
   ssh_key:
     description: SSH private key (ed25519)
     required: true
+  known_hosts:
+    description: >-
+      The server's host key in known_hosts format, captured and verified out of band.
+      It is the only trusted host key. For a port other than 22 the host field must
+      be [host]:port.
+    required: true
   ghcr_username:
     description: GHCR username
     required: true
@@ -40,6 +46,10 @@ runs:
   steps:
     - name: Configure SSH
       shell: bash
+      env:
+        HOST_RAW: ${{ inputs.host }}
+        PORT_RAW: ${{ inputs.port }}
+        KNOWN_HOSTS_RAW: ${{ inputs.known_hosts }}
       run: |
         mkdir -p ~/.ssh
         chmod 700 ~/.ssh
@@ -62,8 +72,58 @@ runs:
           echo "WARNING: SSH key appears invalid or passphrase-protected. Ensure an unencrypted OpenSSH ed25519 private key is provided in secrets." >&2
           echo "Key header (first line): $(head -n1 ~/.ssh/id_ed25519 2>/dev/null || echo 'N/A')" >&2
         fi
-        # Best-effort host key prefetch; do not fail if host is unreachable
-        ssh-keyscan -T 10 -p "${{ inputs.port }}" "${{ inputs.host }}" >> ~/.ssh/known_hosts 2>/dev/null || true
+
+        # Host authentication. The known_hosts input, verified out of band, is the
+        # only trusted host key. Nothing is learned from the network (no
+        # key scan, no trust on first use), and every SSH call below uses
+        # StrictHostKeyChecking=yes against this file alone (other known_hosts
+        # files, KnownHostsCommand and DNS lookups are switched off). Any problem with it
+        # stops the deploy before a connection is made.
+        HOST=$(printf "%s" "$HOST_RAW" | tr -d ' \t\r\n')
+        PORT=$(printf "%s" "$PORT_RAW" | tr -d ' \t\r\n')
+        if [ -z "$PORT" ]; then PORT=22; fi
+        KNOWN_HOSTS_FILE=~/.ssh/deploy_known_hosts
+        printf "%s\n" "$KNOWN_HOSTS_RAW" | tr -d '\r' > "$KNOWN_HOSTS_FILE"
+        chmod 600 "$KNOWN_HOSTS_FILE"
+
+        # Each entry must be "[@marker] hosts keytype key [comment]" with a key
+        # that parses. ssh-keygen alone is not enough: -l accepts a file with
+        # invalid lines beside a valid one, and -F matches on the host field only.
+        KEY_CHECK=$(mktemp ~/.ssh/key_check.XXXXXX)
+        entries=0
+        lineno=0
+        while IFS= read -r line || [ -n "$line" ]; do
+          lineno=$((lineno + 1))
+          read -r -a fields <<< "$line"
+          if [ "${#fields[@]}" -eq 0 ] || [[ "${fields[0]}" == \#* ]]; then continue; fi
+          if [[ "${fields[0]}" == @* ]]; then fields=("${fields[@]:1}"); fi
+          if [ "${#fields[@]}" -lt 3 ]; then
+            echo "ERROR: known_hosts line $lineno is not a 'host keytype key' entry." >&2
+            rm -f "$KEY_CHECK"
+            exit 1
+          fi
+          printf "%s %s\n" "${fields[1]}" "${fields[2]}" > "$KEY_CHECK"
+          if ! ssh-keygen -l -f "$KEY_CHECK" >/dev/null 2>&1; then
+            echo "ERROR: known_hosts line $lineno does not hold a valid public key." >&2
+            rm -f "$KEY_CHECK"
+            exit 1
+          fi
+          entries=$((entries + 1))
+        done < "$KNOWN_HOSTS_FILE"
+        rm -f "$KEY_CHECK"
+        if [ "$entries" -eq 0 ]; then
+          echo "ERROR: known_hosts is empty. Set the PROD_SSH_KNOWN_HOSTS secret to the server's verified host key line." >&2
+          exit 1
+        fi
+
+        # ssh looks up "host" on port 22 and "[host]:port" on any other port.
+        if [ "$PORT" = 22 ]; then LOOKUP="$HOST"; else LOOKUP="[$HOST]:$PORT"; fi
+        if ! ssh-keygen -F "$LOOKUP" -f "$KNOWN_HOSTS_FILE" >/dev/null; then
+          echo "ERROR: known_hosts has no entry for the deploy host on port $PORT. For a port other than 22 the host field must be [host]:port." >&2
+          exit 1
+        fi
+        echo "Trusted host key fingerprint(s):"
+        ssh-keygen -l -F "$LOOKUP" -f "$KNOWN_HOSTS_FILE" | grep -v '^#' | awk '{print "  " $2, $3}'
 
     - name: Sync deployment files to server
       shell: bash
@@ -75,7 +135,7 @@ runs:
         USER=$(printf "%s" "$USER_RAW" | tr -d ' \t\r\n')
         PORT=$(printf "%s" "$PORT_RAW" | tr -d ' \t\r\n')
         if [ -z "$PORT" ]; then PORT=22; fi
-        SSH_OPTS="-4 -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=60 -o ConnectionAttempts=3 -o ServerAliveInterval=15 -o ServerAliveCountMax=4 -o PreferredAuthentications=publickey -o PubkeyAuthentication=yes -o IPQoS=none"
+        SSH_OPTS="-4 -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile=~/.ssh/deploy_known_hosts -o GlobalKnownHostsFile=/dev/null -o KnownHostsCommand=none -o VerifyHostKeyDNS=no -o UpdateHostKeys=no -o CheckHostIP=no -o ConnectTimeout=60 -o ConnectionAttempts=3 -o ServerAliveInterval=15 -o ServerAliveCountMax=4 -o PreferredAuthentications=publickey -o PubkeyAuthentication=yes -o IPQoS=none"
         echo "Syncing infrastructure/ to server..."
         tar -czf - infrastructure | \
           ssh $SSH_OPTS -p "$PORT" "$USER@$HOST" \
@@ -121,7 +181,7 @@ runs:
           (echo > "/dev/tcp/$HOST/$PORT") >/dev/null 2>&1 || true
         fi
 
-        SSH_OPTS="-i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=60 -o ConnectionAttempts=3 -o ServerAliveInterval=15 -o ServerAliveCountMax=4 -o PreferredAuthentications=publickey -o PubkeyAuthentication=yes -o IPQoS=none"
+        SSH_OPTS="-i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile=~/.ssh/deploy_known_hosts -o GlobalKnownHostsFile=/dev/null -o KnownHostsCommand=none -o VerifyHostKeyDNS=no -o UpdateHostKeys=no -o CheckHostIP=no -o ConnectTimeout=60 -o ConnectionAttempts=3 -o ServerAliveInterval=15 -o ServerAliveCountMax=4 -o PreferredAuthentications=publickey -o PubkeyAuthentication=yes -o IPQoS=none"
 
         # The remote command line is parsed by the remote shell, so quote each value.
         REMOTE_ENV="$(printf '%q=%q ' \

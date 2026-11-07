@@ -55,6 +55,7 @@ jobs:
           user: ${{ secrets.PROD_USER }}
           port: ${{ secrets.PROD_PORT }}
           ssh_key: ${{ secrets.PROD_SSH_KEY }}
+          known_hosts: ${{ secrets.PROD_SSH_KNOWN_HOSTS }}
           ghcr_username: ${{ github.actor }}
           ghcr_token: ${{ github.token }}
           grafana_admin_user: ${{ secrets.GRAFANA_ADMIN_USER }}
