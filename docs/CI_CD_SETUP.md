@@ -10,10 +10,13 @@ Configure these GitHub Actions secrets:
 PROD_HOST
 PROD_USER
 PROD_SSH_KEY
+PROD_SSH_KNOWN_HOSTS
 PROD_PORT
 GHCR_USERNAME
 GHCR_TOKEN
 ```
+
+`PROD_SSH_KNOWN_HOSTS` holds the server's verified SSH host key, and deploys fail without it. See [Host-key verification](infrastructure/DEPLOYMENT_AND_ROLLBACK.md#host-key-verification).
 
 ## Build and Deploy Model
 
