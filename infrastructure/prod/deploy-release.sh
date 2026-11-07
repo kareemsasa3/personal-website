@@ -255,6 +255,14 @@ log "Web release is serving"
 log "Post-up: nginx config test"
 docker exec "$NGINX_CONTAINER" nginx -t || fail "nginx config test failed; the web release is serving"
 
+# Compose does not recreate nginx when its bind-mounted config changes, so a synced
+# config change only takes effect on a reload. The reload is graceful (open
+# connections finish on the old workers) and runs only after the test above passes.
+log "Reloading nginx"
+docker exec "$NGINX_CONTAINER" nginx -s reload || fail "nginx reload failed; the web release is serving"
+wait_for web_serving "$WEB_IMAGE" || fail "the site is not serving after the nginx reload"
+log "nginx reloaded and serving"
+
 monitoring_healthy() {
   curl -fsS -m 5 http://localhost:9090/-/healthy >/dev/null 2>&1 &&
     curl -fsS -m 5 http://localhost:3000/api/health >/dev/null 2>&1

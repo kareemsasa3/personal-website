@@ -51,6 +51,11 @@ case "$cmd" in
       *compose.project*) case "$name" in foreign*) echo other-project ;; *) echo personal-website ;; esac ;;
     esac ;;
   ps) for c in ${STUB_CONTAINERS:-}; do echo "$c"; done ;;
+  exec)
+    case "$*" in
+      *" nginx -t") exit "${STUB_NGINX_TEST_STATUS:-0}" ;;
+      *" nginx -s reload") exit "${STUB_NGINX_RELOAD_STATUS:-0}" ;;
+    esac ;;
   run) exit "${STUB_CERT_CHECK_STATUS:-0}" ;;
   compose)
     args=("$@"); files=(); sub=""
@@ -151,6 +156,29 @@ if [ -n "$REAL_DOCKER" ] && "$REAL_DOCKER" compose version >/dev/null 2>&1; then
 else
   echo "skip real compose precedence: docker compose not available"
 fi
+
+setup nginx-reload
+run_deploy
+test_line="$(grep -n 'exec portfolio-nginx-prod nginx -t$' "$STATE/calls" | head -1 | cut -d: -f1 || true)"
+reload_line="$(grep -n 'exec portfolio-nginx-prod nginx -s reload$' "$STATE/calls" | head -1 | cut -d: -f1 || true)"
+if [ "$STATUS" -ne 0 ]; then bad "nginx reload" "exit $STATUS: $OUTPUT"
+elif [ -z "$reload_line" ]; then bad "nginx reload" "nginx was not reloaded"
+elif [ -z "$test_line" ] || [ "$test_line" -gt "$reload_line" ]; then bad "nginx reload" "reload ran before the config test"
+elif ! grep -qF "nginx reloaded and serving" <<<"$OUTPUT"; then bad "nginx reload" "no serving check after the reload"
+else pass "nginx reloads the synced config after its config test passes"; fi
+
+setup nginx-test-fails
+run_deploy STUB_NGINX_TEST_STATUS=1
+if [ "$STATUS" -eq 0 ]; then bad "nginx test fails" "deploy succeeded"
+elif grep -q 'nginx -s reload' "$STATE/calls"; then bad "nginx test fails" "nginx was reloaded after a failed config test"
+elif ! grep -qF "nginx config test failed" <<<"$OUTPUT"; then bad "nginx test fails" "unclear report: $OUTPUT"
+else pass "a failed nginx config test fails the deploy without a reload"; fi
+
+setup nginx-reload-fails
+run_deploy STUB_NGINX_RELOAD_STATUS=1
+if [ "$STATUS" -eq 0 ]; then bad "nginx reload fails" "deploy succeeded"
+elif ! grep -qF "nginx reload failed" <<<"$OUTPUT"; then bad "nginx reload fails" "unclear report: $OUTPUT"
+else pass "a failed nginx reload fails the deploy"; fi
 
 setup render-mismatch
 run_deploy STUB_RENDER_IMAGE="$WEB_REPO:latest"

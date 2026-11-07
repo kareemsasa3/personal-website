@@ -62,8 +62,9 @@ A deploy logs the fingerprint it trusted. A rebuilt server, or a change to `PROD
 
    The proxy's `/health` endpoint is answered by nginx itself, so it does not show that the web container is up.
 11. If the release does not become healthy, the script switches `web` back to the previously recorded image and fails the deploy.
-12. It runs `nginx -t` and the monitoring health checks.
-13. It appends the release to `~/personal-website/.deploy/releases.log` and writes `~/personal-website/.deploy/current-web-image`. These files live outside `infrastructure/`, so a sync does not overwrite them.
+12. It runs `nginx -t`, then reloads nginx and checks that the site still serves. Compose does not recreate nginx when its bind-mounted config changes, so without the reload a synced nginx config change would not take effect until nginx next restarted. The reload is graceful: open connections finish on the old workers. A failed config test fails the deploy without a reload, and the running nginx keeps its previous config.
+13. It runs the monitoring health checks.
+14. It appends the release to `~/personal-website/.deploy/releases.log` and writes `~/personal-website/.deploy/current-web-image`. These files live outside `infrastructure/`, so a sync does not overwrite them.
 
 A failed pull, an unavailable or mismatched image, an invalid compose configuration, a missing certificate, or a directory that cannot be created fails the deploy and leaves the running stack untouched.
 
