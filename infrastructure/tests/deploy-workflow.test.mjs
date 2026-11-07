@@ -147,6 +147,13 @@ test("every SSH connection verifies the host key against the pinned file only", 
   }
 });
 
+test("the production health check goes through the public URL, never the origin IP", () => {
+  const step = job.steps.find((s) => s.name === "Verify production health");
+  assert.ok(step, "Verify production health step");
+  assert.doesNotMatch(JSON.stringify(step), /PROD_ORIGIN_IP|--resolve/);
+  assert.match(step.run, /curl -fsS -m 10 "https:\/\/\$DOMAIN\/health"/);
+});
+
 test("rendered compose configuration, which holds secrets, is never uploaded", () => {
   const text = read(".github/actions/ssh-deploy/action.yml");
   assert.doesNotMatch(text, /upload-artifact/);
