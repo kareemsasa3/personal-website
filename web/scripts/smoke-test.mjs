@@ -957,6 +957,18 @@ const main = async () => {
 
   await checkContentSecurityPolicy();
 
+  // RFC 9116: Contact and Expires are required, and an expired file is invalid.
+  const securityTxt = await readBuildFile(".well-known/security.txt");
+  assertIncludes(securityTxt, "Contact: mailto:", "security.txt contact");
+  assertIncludes(securityTxt, "Canonical: https://kareemsasa.dev/.well-known/security.txt", "security.txt canonical");
+  const expires = securityTxt.match(/^Expires: (\S+)$/m)?.[1];
+  if (!expires || Number.isNaN(Date.parse(expires))) {
+    throw new Error("security.txt needs an RFC 3339 Expires line");
+  }
+  if (Date.parse(expires) <= Date.now()) {
+    throw new Error(`security.txt expired on ${expires}; set a new Expires date within the next year`);
+  }
+
   console.log("Smoke test passed.");
 };
 

@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useLayoutEffect, useState, useCallback } from "react";
 import { useTheme } from "../../contexts/useTheme";
+import { grepHighlightHtml } from "./grepHighlight";
 import "./TerminalView.css";
 
 interface CommandHistoryItem {
@@ -191,14 +192,7 @@ const TerminalView: React.FC<TerminalViewProps> = ({
           <div key={index} className={`history-line df-glyph ${line.type || ""}`}>
             {line.highlightedText ? (
               <span
-                dangerouslySetInnerHTML={{
-                  __html: line.highlightedText.replace(
-                    // Grep emits ANSI escape characters around each match.
-                    // eslint-disable-next-line no-control-regex
-                    /\x1b\[1;31m(.*?)\x1b\[0m/g,
-                    '<span class="grep-highlight">$1</span>'
-                  ),
-                }}
+                dangerouslySetInnerHTML={{ __html: grepHighlightHtml(line.highlightedText) }}
               />
             ) : (
               line.text
