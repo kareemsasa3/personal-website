@@ -15,9 +15,10 @@ This repository contains a frontend-only personal website and the Docker/nginx i
 - `web/src/components/` contains shared UI and feature components, including layout, navigation, terminal, project/work details, simulations, backgrounds, and settings.
 - `web/src/data/` contains site content, navigation, route metadata, structured data, case studies, projects, work experience, simulations data, terminal file-system data, and related content models.
 - `web/src/contexts/`, `web/src/hooks/`, `web/src/providers/`, `web/src/utils/`, and `web/src/types/` contain shared application state, helpers, and types.
-- `web/src/index.css`, `web/src/App.css`, `web/src/styles/components.css`, and feature CSS files provide styling. The site is migrating from a terminal/Matrix theme to Darkfield; see the migration plan for phase status.
+- `web/src/index.css`, `web/src/App.css`, `web/src/styles/components.css`, and feature CSS files provide styling. The Darkfield migration from the former terminal/Matrix theme is merged to `main` (PR #32); the migration plan records its release history and the items still open.
 - `infrastructure/` contains Docker Compose, nginx, SSL, production, and optional monitoring support. Production serves the built frontend behind nginx; there is no active backend API, database, queue, or session service.
-- `docs/`, `web/docs/`, and `website-audit-report.md` contain project, infrastructure, architecture, audit, and remediation notes.
+- `web/src/content/articles/` contains the published Writing articles (`/writing`, `/writing/:slug`).
+- `docs/`, `web/docs/`, and `docs/audits/` contain project, infrastructure, architecture, audit, and remediation notes. `docs/audits/` is mostly gitignored; `docs/audits/website-audit-report.md` is local-only and absent from fresh clones.
 
 ## Operating Rules
 
@@ -25,7 +26,7 @@ This repository contains a frontend-only personal website and the Docker/nginx i
 - Keep changes small and scoped to the request. Avoid opportunistic cleanup.
 - Do not rewrite copy, positioning, or visual direction unless the user explicitly asks.
 - Darkfield is the governing design system for the site's own interface on every visitor-facing route; no page is categorically exempt. The governed interface includes navigation, page chrome, layout, headings and prose presentation, controls, menus, interaction states and focus, captions and legends, loading and error states, typography, colour, motion, transitions and atmosphere. New and changed site UI follows Darkfield, and every visual value comes from Darkfield's `tokens.json`. `tokens.runtime.json`, the generated `tokens.css` and the licensed Darkfield fonts are committed in this repository; site CSS reads Darkfield values only through `tokens.css` custom properties. `tokens.runtime.json` is a deterministic allowlist export of the private canonical `tokens.json`, which is never copied into this repository. Independently authored creative work keeps its own identity and is not restyled: independent artwork and animations, project artifacts and media, experimental and historical evidence (recordings, screenshots, evidence images), and native simulation and game visuals (canvas renders, playfields). Darkfield governs the interface around them. Do not add new Matrix-theme styling (neon glow, rounded cards, hover lift, decorative rain on reading or working surfaces).
-- `docs/superpowers/plans/2026-10-11-darkfield-migration.md` is the authoritative local reference for Darkfield migration sequencing, scope boundaries, constraints, validation and decision gates. Follow its phase order and gates; do not start a migration task or infer an unapproved decision without the owner's instruction.
+- `docs/superpowers/plans/2026-10-11-darkfield-migration.md` is the authoritative local reference for Darkfield scope boundaries, constraints, validation, decision gates and release records. Its *Status* section near the top predates the merge; read *Release records* for the current state. Do not act on an item it lists as open, or infer an unapproved decision, without the owner's instruction.
 - Do not perform broad refactors during audit or remediation tasks.
 - Keep docs/audits separate from implementation unless instructed.
 - Do not modify infrastructure, deployment, package scripts, dependencies, or generated assets unless the task explicitly requires it.
@@ -37,7 +38,7 @@ This repository contains a frontend-only personal website and the Docker/nginx i
 
 Run app commands from `web/` unless noted otherwise.
 
-- `npm install` - install frontend dependencies from `web/package-lock.json` after a fresh checkout or dependency change.
+- `npm ci` - install frontend dependencies exactly from `web/package-lock.json` after a fresh checkout. Use `npm install` only when intentionally updating dependencies, and review the resulting lockfile changes.
 - `npm run dev` - start the Vite development server for normal frontend development.
 - `npm run typecheck` - run TypeScript without emitting files; use for TypeScript, route, component, data model, and config changes.
 - `npm run lint` - run ESLint on `src`, `eslint.config.js`, and `vite.config.ts`; use for code changes before reporting completion.
@@ -45,8 +46,12 @@ Run app commands from `web/` unless noted otherwise.
 - `npm run preview` - preview the production build locally after `npm run build` when runtime behavior needs checking.
 - `npm run test:smoke` - build and run the smoke test script in `web/scripts/smoke-test.mjs`; use for metadata, sitemap, route-shell, or deploy-regression changes.
 - `npm test` - runs the smoke test via `npm run test:smoke`.
+- `npm run build:articles` - regenerates `src/data/generated/articles.ts` from `src/content/articles/`; runs automatically before `npm run build`.
+- `node --test scripts/<name>.test.mjs` - runs one unit test file. Browser tests (`scripts/*-browser-test.mjs`) run as `node scripts/<name>-browser-test.mjs [base-url] [playwright-module-path] [chromium-executable]` against a running preview (default `http://127.0.0.1:4173`).
 
-Infrastructure commands are documented in `README.md` and `infrastructure/README.md`; do not run or change them unless the task is about Docker, nginx, SSL, monitoring, or deployment.
+Node: CI uses Node 20. Some local tests (`darkfield-settings.test.mjs`, `scroll-progress.test.mjs`) import `.ts` modules and need Node 22.18 or later; CI does not run them.
+
+Development setup and infrastructure commands are documented in `docs/DEVELOPMENT.md` and `infrastructure/README.md`; do not run or change them unless the task is about Docker, nginx, SSL, monitoring, or deployment.
 
 ## Verification Expectations
 
@@ -55,6 +60,8 @@ Infrastructure commands are documented in `README.md` and `infrastructure/README
 - TypeScript/component changes: run `npm run typecheck` and `npm run lint`. Run `npm run build` when routes, lazy imports, assets, metadata, or production behavior may be affected.
 - Route/page changes: run `npm run typecheck`, `npm run lint`, and `npm run build`. Also review `web/src/routes/index.tsx`, `web/src/data/navigation.ts`, `web/src/data/routeMetadata.ts`, `web/public/sitemap.xml`, and route-shell generation in `web/vite.config.ts` for drift.
 - Dependency/config changes: confirm the package script or config actually exists, run `npm install` when lockfile updates are required, then run `npm run typecheck`, `npm run lint`, `npm run build`, and `npm test` as applicable.
+- Test coverage: CI runs lint, typecheck, the article sync check and `npm test` (the smoke test) only. It runs no `scripts/*.test.mjs` or browser tests, so run the relevant ones locally; for Darkfield, CSS or token changes, run the `scripts/darkfield-*.test.mjs` files.
+- Article changes: add or edit articles through the `essay-intake` skill, run `npm run build:articles`, and commit the regenerated `src/data/generated/articles.ts`; CI fails if it is out of date.
 - Docs-only changes: `git diff --check` or a targeted `git diff -- <file>` is usually sufficient unless docs include executable commands that need validation.
 
 ## Project-Specific Notes
@@ -78,8 +85,8 @@ Infrastructure commands are documented in `README.md` and `infrastructure/README
 - Shared layout and navigation components live under `web/src/components/Layout` and `web/src/components/Navigation`.
 - The terminal experience uses `web/src/components/Terminal`, terminal hooks in `web/src/hooks/`, and terminal-related types/data under `web/src/types` and `web/src/data`.
 - Build output is configured in `web/vite.config.ts`; route fallback shells and generated sitemap behavior are also handled there.
-- Audit/remediation history is documented in `website-audit-report.md`. Architecture and refactoring notes are under `web/docs/`. Infrastructure and CI/CD notes are under `docs/` and `infrastructure/README.md`.
-- Temporary audit refresh documents may be used as working artifacts without being committed. Preserve `website-audit-report.md` as historical context unless explicitly told otherwise.
+- Audit/remediation history is documented in `docs/audits/website-audit-report.md` (local-only, gitignored). Architecture and refactoring notes are under `web/docs/`. Infrastructure and CI/CD notes are under `docs/` and `infrastructure/README.md`.
+- Temporary audit refresh documents may be used as working artifacts without being committed. Preserve `docs/audits/website-audit-report.md` as historical context unless explicitly told otherwise.
 - Production deployment assumes a built frontend image served by nginx through Docker Compose, with optional Prometheus/Grafana monitoring. Public monitoring exposure and sourcemap behavior were part of prior remediation notes.
 - Darkfield specification: the canonical, versioned export is the private repository `kareemsasa/darkfield`, tag `tokens-v1-2026-10-09` (commit `4f02965bfa51eb060c39734608422dde0d288009`); the R1 production spec is `r1/SPEC.md` there, and `tokens.json` is at its root. Reading it requires access to the `kareemsasa` account. Read the cited sections there before Darkfield work; never reconstruct the spec from memory or appearance.
 - Published Darkfield runtime assets and `SOURCE.json` live under `web/src/styles/darkfield/` and `web/public/fonts/darkfield/`. `tokens.runtime.json` is exported from the private canonical `tokens.json` by `web/scripts/darkfield-export.mjs`, only in an authorized environment; the canonical file is never copied here. `tokens.css` is generated by `node web/scripts/darkfield-tokens.mjs`. Neither file is edited by hand. Phase 1's legacy-variable bridge (`bridge.css`) was retired in Phase 5. `web/scripts/darkfield-limits.mjs` and `web/scripts/darkfield-measure.mjs` run only locally against the private canonical clone; their outputs and any limit values stay outside this repository.

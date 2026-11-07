@@ -17,6 +17,8 @@ Phases 2–6 replace the bridge with real Darkfield grammar, surface by surface.
 
 ## Status
 
+> **Note (2026-11-07):** this section records the plan's state before release and is kept as written. PR #32 was merged to `main` as `d90b43c` and deployed to production on 2026-11-06. For the current state, read [Release records](#release-records-2026-11-05), whose last entry lists what is still open.
+
 **Established by the owner (2026-10-11):**
 - **D1 is approved.** Darkfield is the governing design system across the entire personal website.
 - **The authority is the complete Darkfield specification** (README thesis and principles, §03–§19, `tokens.json`, plates, assets), not merely the R1 mark spec.
@@ -5155,6 +5157,7 @@ Every line number refers to `a16c70f`. Implementers locate code by the anchor, n
 
 ## Revision log
 
+- **r17 (2026-11-07, merge and production deploy recorded; docs only).** Added a *PR #32 merged and deployed to production* entry to *Release records*, verified from GitHub, and replaced *Still open before release* with *Still open after release*. Added a dated note at the top of *Status* pointing to *Release records*; the section itself is unchanged. The *Revision* line under the title is left as it was.
 - **r16 (2026-11-06, publication, the dependency advisory and the second integration recorded; docs only).** Added three entries to *Release records*: the branch push and PR #32, the `follow-redirects` advisory fix (PR #33) and its production release, and the second integration with `main`. The *Revision* line under the title is left as it was.
 - **r15 (2026-11-06, integration with `origin/main` recorded; docs only).** Added an *Integration with origin/main* entry to *Release records*: the owner's approval, the merge and its verification. The *Revision* line under the title is left as it was.
 - **r14 (2026-11-05, P4-1 confirmed; docs only).** Recorded the owner's confirmation of P4-1:
@@ -5511,4 +5514,9 @@ This section follows the appendix. Its hashes are on the reworded history unless
     - screenshots match the baseline's result: they are pixel-identical except for animated regions, and identical when frozen.
     - The full foundation run was not repeated, because the bundle is byte-identical.
   - **Not approved here:** pushing this merge, approving or merging PR #32, and deploying all stay open under D9. A push re-runs PR #32's checks and dismisses earlier approvals.
-- **Still open before release:** D9 push, pull request, merge and deploy, each separately approvable. D11(a) is open. The owner decisions and deviations recorded above are unchanged.
+- **PR #32 merged and deployed to production (2026-11-06).** Verified on 2026-11-07 from the GitHub pull request and run records, including the deploy log.
+  - **Review and merge:** `kareemsasa` approved PR #32 at head `aad198e` (22:03:57Z), and `kareemsasa3` merged it at 22:04:26Z as merge commit `d90b43c` (parents `cb52c4b` and `aad198e`). It was merged with a merge commit, as the ruleset entry above requires, so the appendix's hash map stays valid.
+  - **Deploy:** run `42302167607` (*CD - Deploy to Production*) deployed `d90b43c` and succeeded. It released `ghcr.io/kareemsasa3/personal-website/web@sha256:222803f3b60aeda2086d3ebbcaef945cbe59b1aae002d62789370364247792f6`. The web container reported healthy, and the public `/health` check passed.
+  - **Rollback target:** the previous web image, `web@sha256:74e06b3d0b51d0a48f3f54472dac94bd05e7fa4c38df7bd2a14b58f590e7fb75`, is the PR #33 release of `cb52c4b` (run `42295383605`), which contains no Darkfield commit. Restore by registry digest; see `docs/infrastructure/DEPLOYMENT_AND_ROLLBACK.md`.
+  - **Observed after deploy (2026-11-07):** `https://kareemsasa.dev/manifest.webmanifest` is served as `application/octet-stream`. Owner item.
+- **Still open after release (as of 2026-11-07):** D11(a); the checks listed as open in P6-Ff's *Scope* above, none of which this record closes; the `minimatch` moderate advisories; and the `.webmanifest` content type. The owner decisions and deviations recorded above are unchanged. D9's push, pull request, merge and deploy are complete.
