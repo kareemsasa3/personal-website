@@ -1,4 +1,5 @@
 import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { readdir, readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
@@ -118,6 +119,54 @@ const assertBreadcrumb = (nodes, canonicalPath, expectedNames) => {
         expectedNames
       )}, got ${JSON.stringify(actualNames)}`
     );
+  }
+};
+
+// The production CSP allows inline scripts only by hash. Every executable inline
+// script in the build must be listed in the nginx policy's script-src, and every
+// listed hash must belong to one, so editing an inline script cannot silently
+// fall out of the policy.
+const checkContentSecurityPolicy = async () => {
+  const nginxConf = await readFile(
+    resolve(projectRoot, "../infrastructure/nginx/conf.d/default.conf"),
+    "utf8"
+  );
+  const headers = [...nginxConf.matchAll(/add_header\s+(Content-Security-Policy(?:-Report-Only)?)\s+"([^"]+)"/g)];
+  if (headers.length !== 1) {
+    throw new Error(`Expected one Content-Security-Policy header in nginx config, found ${headers.length}`);
+  }
+  const policy = headers[0][2];
+  const scriptSrc = policy.split(";").map((d) => d.trim()).find((d) => d.startsWith("script-src "));
+  if (!scriptSrc) throw new Error("CSP has no script-src directive");
+  if (/'unsafe-(inline|eval)'/.test(scriptSrc)) {
+    throw new Error(`CSP script-src must not allow unsafe-inline or unsafe-eval: ${scriptSrc}`);
+  }
+  const allowed = new Set(scriptSrc.match(/'sha256-[A-Za-z0-9+/=]+'/g)?.map((h) => h.slice(1, -1)) ?? []);
+
+  const executable = /^(?:|text\/javascript|application\/javascript|module)$/i;
+  const found = new Map();
+  for (const file of await findFilesByExtension(buildDir, ".html")) {
+    const html = await readFile(file, "utf8");
+    for (const [, attributes, body] of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)) {
+      if (/\bsrc\s*=/i.test(attributes)) continue;
+      const type = attributes.match(/\btype\s*=\s*["']?([^"'\s>]+)/i)?.[1] ?? "";
+      if (!executable.test(type)) continue;
+      const hash = `sha256-${createHash("sha256").update(body, "utf8").digest("base64")}`;
+      if (!found.has(hash)) found.set(hash, file.replace(`${buildDir}/`, ""));
+    }
+  }
+
+  const missing = [...found].filter(([hash]) => !allowed.has(hash));
+  if (missing.length) {
+    throw new Error(
+      `Inline scripts missing from the CSP script-src in infrastructure/nginx/conf.d/default.conf: ${missing
+        .map(([hash, file]) => `'${hash}' (${file})`)
+        .join(", ")}`
+    );
+  }
+  const stale = [...allowed].filter((hash) => !found.has(hash));
+  if (stale.length) {
+    throw new Error(`CSP script-src lists hashes no built inline script has: ${stale.join(", ")}`);
   }
 };
 
@@ -899,6 +948,8 @@ const main = async () => {
       throw new Error(`Series members are not in ascending part order on the writing index: ${JSON.stringify(memberPositions)}`);
     }
   });
+
+  await checkContentSecurityPolicy();
 
   console.log("Smoke test passed.");
 };
