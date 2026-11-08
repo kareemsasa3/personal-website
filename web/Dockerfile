@@ -13,10 +13,6 @@ RUN npm ci
 # Copy source code
 COPY . .
 
-# Build-time environment for Vite
-ARG VITE_TURNSTILE_SITE_KEY
-ENV VITE_TURNSTILE_SITE_KEY=$VITE_TURNSTILE_SITE_KEY
-
 # Exact commit this image is built from; shown in Settings > About.
 # Left empty outside CI, where the build reports "Development build".
 ARG BUILD_SHA=
