@@ -148,7 +148,7 @@ const staticRouteMetadata: RouteMetadata[] = [
 
 const caseStudyRouteMetadata: RouteMetadata[] = caseStudiesData.map((caseStudy) => ({
   path: `/case-studies/${caseStudy.slug}`,
-  title: `${caseStudy.title} Case Study - Kareem Sasa`,
+  title: `${caseStudy.searchTitle} - Kareem Sasa`,
   description: caseStudy.shortDescription,
   canonicalPath: `/case-studies/${caseStudy.slug}`,
   sitemap: { changefreq: "monthly", priority: "0.8" },
@@ -156,7 +156,7 @@ const caseStudyRouteMetadata: RouteMetadata[] = caseStudiesData.map((caseStudy) 
 
 const proceduralAnimationRouteMetadata: RouteMetadata[] = proceduralAnimationsData.map((piece) => ({
   path: `/procedural-animations/${piece.slug}`,
-  title: `${piece.title} - Kareem Sasa`,
+  title: `${piece.title} - Procedural Animation - Kareem Sasa`,
   description: piece.description,
   canonicalPath: `/procedural-animations/${piece.slug}`,
   sitemap: { changefreq: "monthly", priority: "0.3" },

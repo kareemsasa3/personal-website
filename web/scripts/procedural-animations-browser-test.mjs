@@ -73,7 +73,7 @@ for (const [width, height] of [[1600, 900], [390, 844]]) {
         pageScrolls: de.scrollHeight > de.clientHeight || de.scrollWidth > de.clientWidth,
       };
     });
-    assert.equal(layout.title, `${piece.title} - Kareem Sasa`, `${label}: document title`);
+    assert.equal(layout.title, `${piece.title} - Procedural Animation - Kareem Sasa`, `${label}: document title`);
     assert.equal(layout.robots, null, `${label}: canonical route must stay indexable`);
     assert.equal(layout.iframeTitle, `${piece.title}, procedural animation`, `${label}: iframe title`);
     assert.equal(layout.iframeSrc, `/procedural-animations/${piece.slug}/piece.html`, `${label}: iframe src`);

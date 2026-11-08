@@ -18,10 +18,14 @@ const routes = [
   "/",
   "/projects",
   "/experience",
+  "/work",
   "/case-studies",
   "/case-studies/where-the-specification-lived",
   "/case-studies/aether",
+  "/case-studies/erebus",
+  "/case-studies/arachne",
   "/simulations",
+  "/simulations/annals",
   "/simulations/traffic-simulator",
   "/writing/what-the-second-agent-is-for",
   "/procedural-animations",
@@ -55,7 +59,7 @@ for (const route of routes) {
     assert.notEqual(new URL(expected.canonical).pathname, "/", `${slashed}: shell canonical is not the homepage`);
   }
   // The canonical names the URL production serves without a redirect.
-  assert.equal(new URL(expected.canonical).pathname, slashed, `${slashed}: canonical is the served URL`);
+  assert.equal(new URL(expected.canonical).pathname, route === "/work" ? "/experience/" : slashed, `${slashed}: canonical is the served URL`);
 
   for (const spelling of route === "/" ? ["/"] : [slashed, route]) {
     await page.goto(`${base}${spelling}`, { waitUntil: "networkidle" });
