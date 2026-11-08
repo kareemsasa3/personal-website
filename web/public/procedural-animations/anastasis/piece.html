@@ -13,7 +13,7 @@
 </style>
 <style>
 :root{
-  --bg:#080913; --ink:#e9ebf3; --ink-dim:#9aa1ba; --ink-faint:#646a82;
+  --bg:#030403; --ink:#e9ebf3; --ink-dim:#9aa1ba; --ink-faint:#646a82;
   --violet:#8c6bff; --blue:#4f8bff; --line:rgba(205,210,238,.18); --line-strong:rgba(215,220,245,.42);
   --display:"Michroma","Eurostile","Microgramma","Arial Black",sans-serif;
   --serif:"Instrument Serif","Iowan Old Style",Georgia,serif;
@@ -23,9 +23,9 @@
   color-scheme:dark;
 }
 @media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){ --bg:#080913; --ink:#e9ebf3; --ink-dim:#9aa1ba; --line:rgba(205,210,238,.18); }
+  :root:not([data-theme="light"]){ --bg:#030403; --ink:#e9ebf3; --ink-dim:#9aa1ba; --line:rgba(205,210,238,.18); }
 }
-:root[data-theme="dark"]{ --bg:#080913; --ink:#e9ebf3; --ink-dim:#9aa1ba; --line:rgba(205,210,238,.18); }
+:root[data-theme="dark"]{ --bg:#030403; --ink:#e9ebf3; --ink-dim:#9aa1ba; --line:rgba(205,210,238,.18); }
 *,*::before,*::after{box-sizing:inherit}
 html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
 body{height:100%;margin:0;background:var(--bg);color:var(--ink);overflow:hidden;font-family:var(--serif);-webkit-font-smoothing:antialiased}
@@ -37,7 +37,7 @@ body{height:100%;margin:0;background:var(--bg);color:var(--ink);overflow:hidden;
 .lbl{position:absolute;left:0;top:0;opacity:0;will-change:transform,opacity}
 .lbl .dot{position:absolute;width:7px;height:7px;margin:-3.5px 0 0 -3.5px;border-radius:50%;background:var(--ink);box-shadow:0 0 0 3px rgba(140,107,255,.30),0 0 14px rgba(120,140,255,.55)}
 .lbl .lead{position:absolute;left:0;top:0;width:96px;height:1px;transform-origin:0 0;transform:rotate(-36deg);background:linear-gradient(90deg,rgba(233,235,243,.75),rgba(233,235,243,.18))}
-.lbl .txt{position:absolute;left:82px;top:-90px;padding:5px 9px 6px;border-radius:4px;background:rgba(7,8,17,.6);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);white-space:nowrap;text-shadow:0 1px 14px rgba(0,0,0,.85),0 0 2px rgba(0,0,0,.6)}
+.lbl .txt{position:absolute;left:82px;top:-90px;padding:5px 9px 6px;border-radius:4px;background:rgba(7,11,8,.6);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);white-space:nowrap;text-shadow:0 1px 14px rgba(0,0,0,.85),0 0 2px rgba(0,0,0,.6)}
 .lbl.flip .lead{transform:rotate(-144deg)}
 .lbl.flip .txt{left:auto;right:82px;text-align:right}
 .lbl .nm{font-family:var(--display);font-size:11.5px;letter-spacing:.035em;color:var(--ink);line-height:1.35}
@@ -65,7 +65,7 @@ body{height:100%;margin:0;background:var(--bg);color:var(--ink);overflow:hidden;
 /* controls */
 #bar{position:fixed;left:0;right:0;bottom:0;padding:26px clamp(14px,3.4vw,40px) calc(16px + env(safe-area-inset-bottom,0px));
   display:flex;align-items:center;gap:14px;
-  background:linear-gradient(to top,rgba(5,6,13,.92) 0%,rgba(5,6,13,.62) 55%,rgba(5,6,13,0) 100%)}
+  background:linear-gradient(to top,rgba(3,4,3,.92) 0%,rgba(3,4,3,.62) 55%,rgba(3,4,3,0) 100%)}
 #bar button{font:inherit;color:var(--ink);background:transparent;border:1px solid var(--line);cursor:pointer;transition:border-color .2s,background-color .2s,color .2s}
 #bar button:hover{border-color:var(--line-strong);background:rgba(255,255,255,.04)}
 #bar button:focus-visible,#scrub:focus-visible{outline:2px solid var(--blue);outline-offset:3px}
@@ -171,9 +171,9 @@ renderer.toneMapping=T.ACESFilmicToneMapping;
 renderer.toneMappingExposure=1.05;
 renderer.shadowMap.enabled=true;
 renderer.shadowMap.type=T.PCFSoftShadowMap;
-renderer.setClearColor(0x04050a,1);
+renderer.setClearColor(0x030403,1);
 var scene=new T.Scene();
-scene.fog=new T.FogExp2(0x090a14,0.0034);
+scene.fog=new T.FogExp2(0x090b09,0.0034);
 var camera=new T.PerspectiveCamera(30,1,1,4000);
 if(T.RoomEnvironment){try{var pm=new T.PMREMGenerator(renderer);scene.environment=pm.fromScene(new T.RoomEnvironment(),0.04).texture;pm.dispose();}catch(e){}}
 
@@ -674,7 +674,7 @@ var fanLightB=new T.PointLight(0x4a62ff,0,44,2);fanLightB.position.set(12.5,3.5,
 var ramLight=new T.PointLight(0x6a5cff,0,20,2);ramLight.position.set(-3.3,18.9,5.4);root.add(ramLight);
 var bgMat=new T.ShaderMaterial({side:T.BackSide,depthWrite:false,uniforms:{uK:{value:1},uV:{value:0}},
   vertexShader:'varying vec3 vP;void main(){vP=normalize(position);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
-  fragmentShader:'varying vec3 vP;uniform float uK;uniform float uV;void main(){float y=vP.y;vec3 top=vec3(0.005,0.0055,0.011);vec3 hor=vec3(0.015,0.016,0.032);vec3 bot=vec3(0.004,0.004,0.008);'+
+  fragmentShader:'varying vec3 vP;uniform float uK;uniform float uV;void main(){float y=vP.y;vec3 top=vec3(0.00468,0.00623,0.00468);vec3 hor=vec3(0.0137,0.0182,0.0137);vec3 bot=vec3(0.00347,0.00462,0.00347);'+
   'vec3 c=y>0.0?mix(hor,top,smoothstep(0.0,0.55,y)):mix(hor,bot,smoothstep(0.0,0.3,-y));c+=uV*vec3(0.028,0.013,0.06)*exp(-pow(y*3.2,2.0));gl_FragColor=vec4(c*uK,1.0);}'});
 scene.add(new T.Mesh(new T.SphereGeometry(1800,48,24),bgMat));
 var glow=new T.Mesh(new T.PlaneGeometry(190,190),new T.MeshBasicMaterial({map:glowTex,transparent:true,blending:T.AdditiveBlending,depthWrite:false,opacity:0.2,fog:false}));

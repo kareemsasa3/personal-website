@@ -8,9 +8,9 @@ Source artifact
   SHA-256  b53d8da9b8cec3b307f1ed4a01de74e632bed6e420d6bc5b28734d109888fb4f
 
 The original is kept unchanged outside this repository. piece.html is that
-file with exactly the five edits below and nothing else; every other byte is
+file with exactly the six edits below and nothing else; every other byte is
 identical, including the title, copy, error text, labels, controls, keyboard
-handling, timing, camera, materials and diagnostics.
+handling, timing, camera, materials, lights and diagnostics.
 
 Edits in piece.html
 -------------------
@@ -45,6 +45,22 @@ B1 (behaviour)  Source line 909, before:
                 power-on, including while paused and after the timeline ended.
                 With reduced motion off, the expression is the original
                 dt*Pnow. Approved by the owner on 2026-10-22.
+V1 (visual)     The piece's ground takes the hue of the site's Darkfield dark
+                theme. Each colour keeps its luminance; only the blue-violet
+                tint moves to the green-black of --field-deep (#030403) and
+                --field (#070b08). Before -> after:
+                  --bg (source lines 12, 22, 24)    #080913 -> #030403
+                  bar gradient (line 64)             rgba(5,6,13,a) -> rgba(3,4,3,a)
+                  label backing (line 36)            rgba(7,8,17,.6) -> rgba(7,11,8,.6)
+                  clear colour (line 169)            0x04050a -> 0x030403
+                  fog colour (line 171)              0x090a14 -> 0x090b09
+                  background sphere (line 672), linear RGB:
+                    top  (0.005,0.0055,0.011)  -> (0.00468,0.00623,0.00468)
+                    hor  (0.015,0.016,0.032)   -> (0.0137,0.0182,0.0137)
+                    bot  (0.004,0.004,0.008)   -> (0.00347,0.00462,0.00347)
+                The sphere's brightening with the lights, the violet power-on
+                band, the floor glow, the lights and all materials are
+                unchanged. Approved by the owner on 2026-11-08.
 
 three.js (vendor/three-r128/)
 -----------------------------
