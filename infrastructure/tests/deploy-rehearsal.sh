@@ -143,6 +143,35 @@ if [ "$STATUS" -eq 0 ] && [ "$(running_digest)" = "$A_DIGEST" ] && serving; then
   pass "rollback to release A by commit and digest"
 else bad "rollback" "status $STATUS, running $(running_digest): $(tail -n 3 <<<"$OUTPUT")"; fi
 
+# --- nginx.conf is a single-file mount ------------------------------------------
+# The sync replaces files (a new inode), and a single-file mount keeps showing the
+# container the file it started with, so a changed nginx.conf must be tested and
+# then loaded by restarting nginx. Replace the file the way the sync does.
+replace_nginx_conf() {
+  { cat "$TMP/nginx.conf.orig"; printf '%s\n' "$1"; } > "$TMP/nginx.conf.new"
+  mv "$TMP/nginx.conf.new" "$PROJECT/infrastructure/nginx/nginx.conf"
+}
+cp "$PROJECT/infrastructure/nginx/nginx.conf" "$TMP/nginx.conf.orig"
+
+before="$(stack_fingerprint)"
+replace_nginx_conf "this_is_not_an_nginx_directive on;"
+deploy SHA="$A_SHA" EXPECTED_DIGEST="$A_DIGEST"
+expect_untouched "a changed nginx.conf that fails its test leaves nginx running untouched" \
+  "nginx was not restarted and keeps its previous config" "$before"
+
+nginx_before="$(stack_fingerprint | grep '^/portfolio-nginx-prod ')"
+replace_nginx_conf "# rehearsal marker"
+deploy SHA="$A_SHA" EXPECTED_DIGEST="$A_DIGEST"
+if [ "$STATUS" -ne 0 ]; then bad "changed nginx.conf" "status $STATUS: $(tail -n 3 <<<"$OUTPUT")"
+elif ! grep -qF "nginx restarted with the new nginx.conf and serving" <<<"$OUTPUT"; then
+  bad "changed nginx.conf" "no restart reported: $(tail -n 3 <<<"$OUTPUT")"
+elif ! docker exec portfolio-nginx-prod grep -q "rehearsal marker" /etc/nginx/nginx.conf; then
+  bad "changed nginx.conf" "nginx does not see the new nginx.conf"
+elif [ "$(stack_fingerprint | grep '^/portfolio-nginx-prod ')" = "$nginx_before" ]; then
+  bad "changed nginx.conf" "nginx was not restarted"
+elif ! serving; then bad "changed nginx.conf" "site stopped serving"
+else pass "a changed nginx.conf is tested, then loaded by restarting nginx"; fi
+
 # --- Emergency restore: no GitHub, no deploy script, no registry, no secrets -----
 restore() {
   STATUS=0

@@ -62,7 +62,10 @@ A deploy logs the fingerprint it trusted. A rebuilt server, or a change to `PROD
 
    The proxy's `/health` endpoint is answered by nginx itself, so it does not show that the web container is up.
 11. If the release does not become healthy, the script switches `web` back to the previously recorded image and fails the deploy.
-12. It runs `nginx -t`, then reloads nginx and checks that the site still serves. Compose does not recreate nginx when its bind-mounted config changes, so without the reload a synced nginx config change would not take effect until nginx next restarted. The reload is graceful: open connections finish on the old workers. A failed config test fails the deploy without a reload, and the running nginx keeps its previous config.
+12. It loads the synced nginx config. Compose does not recreate nginx when a bind-mounted file changes, and the two mounts behave differently:
+   - `conf.d/` is a directory mount, so nginx sees replaced files. When `nginx.conf` is unchanged, the deploy runs `nginx -t`, then a graceful reload (open connections finish on the old workers), then checks that the site still serves.
+   - `nginx.conf` is a single-file mount. The sync replaces the file, and a single-file mount keeps showing the container the file it started with, so a reload would re-read the old one. When the synced `nginx.conf` differs from the one nginx sees, the deploy tests the synced config in a throwaway `nginx:alpine` container (no network, with the synced `nginx.conf`, `conf.d` and `ssl`). It then restarts nginx, which interrupts requests for a second or two, confirms nginx now sees the new file, and checks that the site serves.
+   - A failed test fails the deploy, and nginx keeps its previous config.
 13. It runs the monitoring health checks.
 14. It appends the release to `~/personal-website/.deploy/releases.log` and writes `~/personal-website/.deploy/current-web-image`. These files live outside `infrastructure/`, so a sync does not overwrite them.
 

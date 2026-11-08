@@ -252,16 +252,42 @@ if [ "$started" = 0 ] || ! wait_for web_serving "$WEB_IMAGE"; then
 fi
 log "Web release is serving"
 
-log "Post-up: nginx config test"
-docker exec "$NGINX_CONTAINER" nginx -t || fail "nginx config test failed; the web release is serving"
+# Compose does not recreate nginx when its bind-mounted config changes, so synced
+# config must be loaded explicitly, and how depends on the file:
+# - conf.d/ is a directory mount, so the container sees replaced files and a
+#   graceful reload loads them.
+# - nginx.conf is a single-file mount. The sync replaces the file (a new inode),
+#   and a single-file mount keeps showing the container the file it started
+#   with, so a reload would re-read the old nginx.conf. When the synced
+#   nginx.conf differs from the one nginx sees, the synced config is tested in a
+#   throwaway container and nginx is restarted to mount it.
+NGINX_DIR="$PROJECT_DIR/infrastructure/nginx"
+synced_conf="$(sha256sum "$NGINX_DIR/nginx.conf" | cut -d' ' -f1)"
+seen_conf() { docker exec "$NGINX_CONTAINER" sha256sum /etc/nginx/nginx.conf | cut -d' ' -f1; }
+running_conf="$(seen_conf)" || fail "could not read nginx.conf inside $NGINX_CONTAINER; the web release is serving"
 
-# Compose does not recreate nginx when its bind-mounted config changes, so a synced
-# config change only takes effect on a reload. The reload is graceful (open
-# connections finish on the old workers) and runs only after the test above passes.
-log "Reloading nginx"
-docker exec "$NGINX_CONTAINER" nginx -s reload || fail "nginx reload failed; the web release is serving"
-wait_for web_serving "$WEB_IMAGE" || fail "the site is not serving after the nginx reload"
-log "nginx reloaded and serving"
+if [ "$running_conf" != "$synced_conf" ]; then
+  log "Post-up: nginx.conf changed; testing the synced nginx config"
+  docker run --rm --network none \
+    -v "$NGINX_DIR/nginx.conf:/etc/nginx/nginx.conf:ro" \
+    -v "$NGINX_DIR/conf.d:/etc/nginx/conf.d:ro" \
+    -v "$NGINX_DIR/ssl:/etc/nginx/ssl:ro" \
+    nginx:alpine nginx -t ||
+    fail "the synced nginx config failed its test; nginx was not restarted and keeps its previous config. The web release is serving"
+  log "Restarting nginx to load the new nginx.conf"
+  docker restart "$NGINX_CONTAINER" >/dev/null || fail "nginx restart failed"
+  [ "$(seen_conf)" = "$synced_conf" ] || fail "nginx still sees the previous nginx.conf after restarting"
+  wait_for web_serving "$WEB_IMAGE" || fail "the site is not serving after the nginx restart"
+  log "nginx restarted with the new nginx.conf and serving"
+else
+  log "Post-up: nginx config test"
+  docker exec "$NGINX_CONTAINER" nginx -t || fail "nginx config test failed; the web release is serving"
+  # Graceful: open connections finish on the old workers.
+  log "Reloading nginx"
+  docker exec "$NGINX_CONTAINER" nginx -s reload || fail "nginx reload failed; the web release is serving"
+  wait_for web_serving "$WEB_IMAGE" || fail "the site is not serving after the nginx reload"
+  log "nginx reloaded and serving"
+fi
 
 monitoring_healthy() {
   curl -fsS -m 5 http://localhost:9090/-/healthy >/dev/null 2>&1 &&
