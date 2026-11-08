@@ -55,8 +55,22 @@ case "$cmd" in
     case "$*" in
       *" nginx -t") exit "${STUB_NGINX_TEST_STATUS:-0}" ;;
       *" nginx -s reload") exit "${STUB_NGINX_RELOAD_STATUS:-0}" ;;
+      *" sha256sum /etc/nginx/nginx.conf")
+        # nginx sees the synced nginx.conf, unless the case says it drifted and
+        # nginx has not been restarted since (or keeps the old file regardless).
+        if { [ "${STUB_NGINX_CONF_DRIFT:-0}" = 1 ] && [ ! -f "$S/nginx-restarted" ]; } ||
+          [ "${STUB_NGINX_CONF_STAYS_OLD:-0}" = 1 ]; then
+          echo "$(printf '0%.0s' {1..64})  /etc/nginx/nginx.conf"
+        else
+          sha256sum "$PROJECT_DIR/infrastructure/nginx/nginx.conf" | sed 's|  .*|  /etc/nginx/nginx.conf|'
+        fi ;;
     esac ;;
-  run) exit "${STUB_CERT_CHECK_STATUS:-0}" ;;
+  restart) touch "$S/nginx-restarted"; exit "${STUB_RESTART_STATUS:-0}" ;;
+  run)
+    case "$*" in
+      *"nginx:alpine nginx -t") exit "${STUB_CONF_TEST_STATUS:-0}" ;;
+      *) exit "${STUB_CERT_CHECK_STATUS:-0}" ;;
+    esac ;;
   compose)
     args=("$@"); files=(); sub=""
     while [ $# -gt 0 ]; do
@@ -165,7 +179,33 @@ if [ "$STATUS" -ne 0 ]; then bad "nginx reload" "exit $STATUS: $OUTPUT"
 elif [ -z "$reload_line" ]; then bad "nginx reload" "nginx was not reloaded"
 elif [ -z "$test_line" ] || [ "$test_line" -gt "$reload_line" ]; then bad "nginx reload" "reload ran before the config test"
 elif ! grep -qF "nginx reloaded and serving" <<<"$OUTPUT"; then bad "nginx reload" "no serving check after the reload"
+elif grep -q '^docker restart ' "$STATE/calls"; then bad "nginx reload" "nginx was restarted although nginx.conf did not change"
 else pass "nginx reloads the synced config after its config test passes"; fi
+
+setup nginx-conf-changed
+run_deploy STUB_NGINX_CONF_DRIFT=1
+conf_test_line="$(grep -n 'docker run --rm --network none .*nginx:alpine nginx -t$' "$STATE/calls" | head -1 | cut -d: -f1 || true)"
+restart_line="$(grep -n '^docker restart portfolio-nginx-prod$' "$STATE/calls" | head -1 | cut -d: -f1 || true)"
+if [ "$STATUS" -ne 0 ]; then bad "nginx.conf changed" "exit $STATUS: $OUTPUT"
+elif [ -z "$restart_line" ]; then bad "nginx.conf changed" "nginx was not restarted"
+elif [ -z "$conf_test_line" ] || [ "$conf_test_line" -gt "$restart_line" ]; then bad "nginx.conf changed" "restarted without testing the synced config first"
+elif ! grep -q -- "-v $PROJECT/infrastructure/nginx/nginx.conf:/etc/nginx/nginx.conf:ro" "$STATE/calls"; then bad "nginx.conf changed" "the test did not use the synced nginx.conf"
+elif grep -q 'nginx -s reload' "$STATE/calls"; then bad "nginx.conf changed" "reloaded instead of restarting"
+elif ! grep -qF "nginx restarted with the new nginx.conf and serving" <<<"$OUTPUT"; then bad "nginx.conf changed" "no serving check after the restart"
+else pass "a changed nginx.conf is tested in a throwaway container, then loaded by restarting nginx"; fi
+
+setup nginx-conf-test-fails
+run_deploy STUB_NGINX_CONF_DRIFT=1 STUB_CONF_TEST_STATUS=1
+if [ "$STATUS" -eq 0 ]; then bad "nginx.conf test fails" "deploy succeeded"
+elif grep -q '^docker restart ' "$STATE/calls"; then bad "nginx.conf test fails" "nginx was restarted with a config that failed its test"
+elif ! grep -qF "nginx was not restarted and keeps its previous config" <<<"$OUTPUT"; then bad "nginx.conf test fails" "unclear report: $OUTPUT"
+else pass "a changed nginx.conf that fails its test leaves nginx running untouched"; fi
+
+setup nginx-conf-stays-old
+run_deploy STUB_NGINX_CONF_STAYS_OLD=1
+if [ "$STATUS" -eq 0 ]; then bad "nginx.conf stays old" "deploy succeeded"
+elif ! grep -qF "nginx still sees the previous nginx.conf after restarting" <<<"$OUTPUT"; then bad "nginx.conf stays old" "unclear report: $OUTPUT"
+else pass "a restart that does not load the new nginx.conf fails the deploy"; fi
 
 setup nginx-test-fails
 run_deploy STUB_NGINX_TEST_STATUS=1
