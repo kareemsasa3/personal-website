@@ -14,6 +14,8 @@ execFileSync(process.execPath, ["--import", resolve(projectRoot, "scripts/route-
 execFileSync(process.execPath, ["--import", resolve(projectRoot, "scripts/route-metadata-test-loader.mjs"), resolve(projectRoot, "scripts/scroll-progress.test.mjs")], { stdio: "inherit" });
 execFileSync(process.execPath, ["--import", resolve(projectRoot, "scripts/route-metadata-test-loader.mjs"), resolve(projectRoot, "scripts/simulation-routes.test.mjs")], { stdio: "inherit" });
 
+execFileSync(process.execPath, ["--import", resolve(projectRoot, "scripts/route-metadata-test-loader.mjs"), resolve(projectRoot, "scripts/seo-output.test.mjs")], { stdio: "inherit" });
+
 const readBuildFile = async (relativePath) =>
   readFile(resolve(buildDir, relativePath), "utf8");
 

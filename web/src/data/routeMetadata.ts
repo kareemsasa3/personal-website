@@ -83,6 +83,14 @@ const staticRouteMetadata: RouteMetadata[] = [
     sitemap: { changefreq: "monthly", priority: "0.4" },
   },
   {
+    path: "/simulations/annals",
+    title: "The Annals: Deterministic Dynastic Simulation - Kareem Sasa",
+    description:
+      "A deterministic dynastic chronicle: replay a seed, intervene in the lives of its houses, and compare how grain, grudges, and consequences shape their history.",
+    canonicalPath: "/simulations/annals",
+    sitemap: { changefreq: "monthly", priority: "0.3" },
+  },
+  {
     path: "/simulations/orbital-simulator",
     title: "Orbital Simulator - Kareem Sasa",
     description: "Explore gravitational dynamics with interactive planetary orbits, binary stars, and three-body encounters. Change mass and velocity to see orbital behavior emerge.",
