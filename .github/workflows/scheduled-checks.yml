@@ -1,0 +1,109 @@
+name: Scheduled checks
+
+# Weekly checks for things that expire or drift without any code change.
+# A failed scheduled run makes GitHub email the account that last changed this
+# schedule. GitHub disables schedules in public repositories after 60 days
+# without repository activity (it emails first; any push re-enables them).
+on:
+  schedule:
+    - cron: "0 15 * * 1" # Mondays 15:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  security-txt:
+    name: security.txt expiry
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail when security.txt expires within 60 days
+        run: |
+          set -euo pipefail
+          body="$(curl -fsS -m 20 https://kareemsasa.dev/.well-known/security.txt)"
+          expires="$(printf '%s\n' "$body" | tr -d '\r' | sed -n 's/^Expires: *//p' | head -1)"
+          if [ -z "$expires" ]; then
+            echo "::error::security.txt has no Expires line"
+            exit 1
+          fi
+          days=$(( ( $(date -d "$expires" +%s) - $(date +%s) ) / 86400 ))
+          echo "security.txt expires $expires ($days days from now)"
+          if [ "$days" -lt 60 ]; then
+            echo "::error::security.txt expires in $days days ($expires). Set a new Expires date (within a year) in web/public/.well-known/security.txt."
+            exit 1
+          fi
+
+  cloudflare-ips:
+    name: Cloudflare IP ranges vs firewall
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Fail when Cloudflare's published ranges differ from the firewall list
+        run: |
+          set -euo pipefail
+          live="$( { curl -fsS -m 20 https://www.cloudflare.com/ips-v4; echo; curl -fsS -m 20 https://www.cloudflare.com/ips-v6; echo; } \
+            | tr -d '\r' | grep -v '^[[:space:]]*$' | sort -u)"
+          pinned="$(grep -vE '^[[:space:]]*(#|$)' infrastructure/cloudflare-ips.txt | sort -u)"
+          if [ "$(printf '%s\n' "$live" | wc -l)" -lt 10 ]; then
+            echo "::error::Cloudflare returned an implausibly short IP list; not comparing."
+            printf '%s\n' "$live"
+            exit 1
+          fi
+          if [ "$live" != "$pinned" ]; then
+            echo "::error::Cloudflare's IP ranges changed. Update the DigitalOcean firewall (inbound 80 and 443) and infrastructure/cloudflare-ips.txt together."
+            echo "Lines starting with + are new at Cloudflare; - are no longer published:"
+            diff <(printf '%s\n' "$pinned") <(printf '%s\n' "$live") | grep -E '^[<>]' | sed 's/^</-/; s/^>/+/' || true
+            exit 1
+          fi
+          echo "Cloudflare's $(printf '%s\n' "$live" | wc -l) ranges match infrastructure/cloudflare-ips.txt."
+
+  origin-certificate:
+    name: Origin certificate expiry
+    runs-on: ubuntu-latest
+    # Production SSH secrets: only on the default branch.
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Fail when the served origin certificate expires within 21 days
+        env:
+          SSH_KEY: ${{ secrets.PROD_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.PROD_SSH_KNOWN_HOSTS }}
+          HOST_RAW: ${{ secrets.PROD_HOST }}
+          USER_RAW: ${{ secrets.PROD_USER }}
+          PORT_RAW: ${{ secrets.PROD_PORT }}
+        run: |
+          set -euo pipefail
+          HOST="$(printf '%s' "$HOST_RAW" | tr -d ' \t\r\n')"
+          USER="$(printf '%s' "$USER_RAW" | tr -d ' \t\r\n')"
+          PORT="$(printf '%s' "$PORT_RAW" | tr -d ' \t\r\n')"
+          if [ -z "$PORT" ]; then PORT=22; fi
+
+          install -d -m 700 ~/.ssh
+          # The same key formats the ssh-deploy action accepts: raw or base64.
+          if printf '%s' "$SSH_KEY" | grep -q -- "BEGIN OPENSSH PRIVATE KEY"; then
+            printf '%s' "$SSH_KEY" | sed 's/\\n/\n/g' > ~/.ssh/id_ed25519
+          else
+            printf '%s' "$SSH_KEY" | tr -d '\r' | base64 -d > ~/.ssh/id_ed25519 2>/dev/null || true
+            if ! grep -q -- "BEGIN OPENSSH PRIVATE KEY" ~/.ssh/id_ed25519 2>/dev/null; then
+              printf '%s' "$SSH_KEY" | sed 's/\\n/\n/g' > ~/.ssh/id_ed25519
+            fi
+          fi
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$KNOWN_HOSTS" | tr -d '\r' > ~/.ssh/deploy_known_hosts
+
+          # The pinned host key is the only trust source, as in the deploy.
+          SSH_OPTS="-i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile=~/.ssh/deploy_known_hosts -o GlobalKnownHostsFile=/dev/null -o KnownHostsCommand=none -o VerifyHostKeyDNS=no -o UpdateHostKeys=no -o CheckHostIP=no -o ConnectTimeout=30"
+          # Read-only: the certificate nginx is serving, fetched on the server
+          # itself because the origin firewall admits only Cloudflare.
+          # shellcheck disable=SC2086 # SSH_OPTS is a list of options
+          cert="$(ssh $SSH_OPTS -p "$PORT" "$USER@$HOST" \
+            "echo | openssl s_client -connect 127.0.0.1:443 -servername kareemsasa.dev 2>/dev/null | openssl x509")"
+          end="$(printf '%s\n' "$cert" | openssl x509 -noout -enddate | cut -d= -f2)"
+          subject="$(printf '%s\n' "$cert" | openssl x509 -noout -subject)"
+          days=$(( ( $(date -d "$end" +%s) - $(date +%s) ) / 86400 ))
+          echo "Origin certificate ($subject) expires $end ($days days from now)"
+          if [ "$days" -lt 21 ]; then
+            echo "::error::The origin certificate expires in $days days ($end). Certbot renews at 30 days left, so renewal has been failing: check infrastructure/logs/certbot/cron.log on the server. Cloudflare (Full strict) will serve 526 errors once it expires."
+            exit 1
+          fi

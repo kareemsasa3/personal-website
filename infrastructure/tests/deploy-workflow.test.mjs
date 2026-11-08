@@ -5,7 +5,7 @@
 //   node infrastructure/tests/deploy-workflow.test.mjs
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { createRequire } from "node:module";
 
 const root = new URL("../../", import.meta.url);
@@ -152,6 +152,47 @@ test("the production health check goes through the public URL, never the origin 
   assert.ok(step, "Verify production health step");
   assert.doesNotMatch(JSON.stringify(step), /PROD_ORIGIN_IP|--resolve/);
   assert.match(step.run, /curl -fsS -m 10 "https:\/\/\$DOMAIN\/health"/);
+});
+
+test("no workflow or action anywhere weakens SSH host-key verification", () => {
+  const files = [
+    ...readdirSync(new URL(".github/workflows/", root)).map((f) => `.github/workflows/${f}`),
+    ...readdirSync(new URL(".github/actions/", root)).map((d) => `.github/actions/${d}/action.yml`),
+  ];
+  let optionSets = 0;
+  for (const file of files) {
+    const text = read(file);
+    assert.doesNotMatch(text, /StrictHostKeyChecking=(no|accept-new|off)/i, file);
+    assert.doesNotMatch(text, /UserKnownHostsFile=\/dev\/null/, file);
+    assert.doesNotMatch(text, /ssh-keyscan/, file);
+    for (const [, opts] of text.matchAll(/^\s*SSH_OPTS="([^"]*)"/gm)) {
+      optionSets += 1;
+      for (const required of [
+        "StrictHostKeyChecking=yes",
+        "UserKnownHostsFile=~/.ssh/deploy_known_hosts",
+        "GlobalKnownHostsFile=/dev/null",
+        "KnownHostsCommand=none",
+        "VerifyHostKeyDNS=no",
+        "UpdateHostKeys=no",
+      ]) {
+        assert.match(opts, new RegExp(`-o ${required.replace(/[.*+?^${}()|[\]\\/]/g, "\\$&")}(\\s|$)`), `${file}: ${required}`);
+      }
+    }
+  }
+  assert.equal(optionSets, 3, "the deploy's two option sets and the scheduled certificate check's");
+});
+
+test("the scheduled checks use production secrets only from main, on schedule or dispatch", () => {
+  const scheduled = yaml.load(read(".github/workflows/scheduled-checks.yml"));
+  assert.deepEqual(Object.keys(scheduled.on).sort(), ["schedule", "workflow_dispatch"]);
+  assert.deepEqual(scheduled.permissions, { contents: "read" });
+  for (const [name, job] of Object.entries(scheduled.jobs)) {
+    const usesSecrets = /secrets\./.test(JSON.stringify(job));
+    if (usesSecrets) assert.equal(job.if, "github.ref == 'refs/heads/main'", `${name} uses secrets`);
+  }
+  const step = scheduled.jobs["origin-certificate"].steps[0];
+  assert.equal(step.env.KNOWN_HOSTS, "${{ secrets.PROD_SSH_KNOWN_HOSTS }}");
+  assert.doesNotMatch(step.run, /\$\{\{/, "secrets reach the script only through env");
 });
 
 test("rendered compose configuration, which holds secrets, is never uploaded", () => {
