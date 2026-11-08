@@ -210,6 +210,37 @@ Deploys no longer provision certificates. Renewal is handled by the daily cron j
 
 A new host, or a host whose certificate is missing, needs a one-time provisioning step before the first deploy, for example with `infrastructure/prod/lets-encrypt-setup.sh`. A deploy that finds no certificate stops and names that step, instead of stopping port 80 and requesting a certificate on its own.
 
+## Origin firewall
+
+A DigitalOcean cloud firewall on the droplet admits:
+- inbound TCP 2222 (SSH) from anywhere, because deploys connect from GitHub Actions runners, whose addresses change;
+- inbound TCP 80 and 443 only from Cloudflare's IP ranges.
+
+Outbound traffic is unrestricted. The ranges are listed in `infrastructure/cloudflare-ips.txt`, which mirrors the firewall: change both together.
+
+To edit the firewall safely:
+1. Edit the rules while the firewall is detached from the droplet.
+2. Check every source entry. The Sources box keeps only the last entry of a pasted comma-separated list.
+3. Attach the firewall and immediately check `https://kareemsasa.dev/` through Cloudflare. A request that hangs means Cloudflare cannot reach the origin, and visitors would get 522 errors.
+4. If it hangs, detach the droplet at once. That restores the previous state.
+
+## Scheduled checks
+
+`.github/workflows/scheduled-checks.yml` runs every Monday at 15:00 UTC, and can be started from the Actions tab. When a scheduled run fails, GitHub emails the account that last changed its schedule.
+
+| Job | Fails when |
+|---|---|
+| `security-txt` | the live `security.txt` expires within 60 days |
+| `cloudflare-ips` | Cloudflare's published ranges differ from `infrastructure/cloudflare-ips.txt` |
+| `origin-certificate` | the certificate nginx serves expires within 21 days |
+
+**`origin-certificate`:**
+- **How it connects:** it uses the deploy's SSH secrets and the pinned host key, and runs `openssl s_client` against `127.0.0.1:443` on the server. The firewall admits only Cloudflare, so a runner cannot fetch the certificate directly.
+- **Why 21 days:** certbot renews at 30 days left, so a failure here means renewal has been failing for over a week.
+- **Where it runs:** only on `main`.
+
+GitHub disables schedules in public repositories after 60 days without repository activity. It emails first, and any push re-enables them.
+
 ## Tests
 
 - `infrastructure/tests/deploy-workflow.test.mjs` evaluates the deploy job's own `if:` and `with:` expressions against push, pull-request, fork, failed-build, and dispatch events. It runs in CI.
