@@ -113,9 +113,9 @@ Fonts (fonts/)
 
 Gallery poster (web/public/media/anastasis-card.webp)
 -----------------------------------------------------
-  An authentic frame rendered by this piece.html in a local production
-  preview, captured 2026-11-07. The capture predates edit D4, which changes
-  only the canvas's focusability, not what is rendered.
+  An authentic frame rendered by this piece.html, with all six edits, in a
+  local production preview, captured 2026-11-08 by the same procedure as the
+  original 2026-11-07 poster, after edit V1 changed the ground.
 
   Frame         timeline 37.5 s, paused there through the piece's own seek
                 hook; cinematic camera on and exploded view off (both the
@@ -126,8 +126,8 @@ Gallery poster (web/public/media/anastasis-card.webp)
   Renderer      headless Chromium 155.0.8059.12 (Playwright 1.64.0-alpha),
                 WebGL through ANGLE / SwiftShader
   Capture       PNG screenshot of the full viewport, 1920x1080
-                SHA-256 5bfb34d9316be3e9d8ba0497af9bc907294c734b39bda7ad32db940932dc4c5b
+                SHA-256 241c29230c5f3d757787f8cc6e2fc871a45f187535e82747eb1dee01a3eedd2d
   Processing    resized to 960x540 and encoded as WebP, quality 92
                 (ImageMagick 7.1.2-35); no crop, retouching or colour change
-  Result        960x540 WebP, 50,958 bytes
-                SHA-256 1cce5d3a8220184d3fab03a30113b889a19f31a0c0dc9af7b041c4cac585acf1
+  Result        960x540 WebP, 52,550 bytes
+                SHA-256 bac6840ecd98ff828860204f22640ea2d6c956cbcc0570db04f25ec6fd2ea512
