@@ -124,7 +124,7 @@ const staticRouteMetadata: RouteMetadata[] = [
     path: "/procedural-animations",
     title: "Procedural Animations - Kareem Sasa",
     description:
-      "Procedural motion pieces and computational animation: self-contained works where movement is generated in code rather than keyframed by hand.",
+      "Computational animation: self-contained, code-driven explorations of motion, from procedural systems to choreographed three-dimensional scenes.",
     canonicalPath: "/procedural-animations",
     sitemap: { changefreq: "monthly", priority: "0.4" },
   },
