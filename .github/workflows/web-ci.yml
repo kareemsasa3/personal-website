@@ -78,8 +78,6 @@ jobs:
           push: false
           tags: |
             web:ci
-          build-args: |
-            VITE_TURNSTILE_SITE_KEY=
 
       - name: Build and push web image (GHCR, main only)
         if: github.ref == 'refs/heads/main'
@@ -92,7 +90,6 @@ jobs:
             ghcr.io/${{ github.repository }}/web:${{ github.ref_name }}
             ghcr.io/${{ github.repository }}/web:latest
           build-args: |
-            VITE_TURNSTILE_SITE_KEY=${{ secrets.VITE_TURNSTILE_SITE_KEY }}
             BUILD_SHA=${{ github.sha }}
 
       - name: Scan web image with Trivy (local)
@@ -114,15 +111,3 @@ jobs:
           format: table
           severity: CRITICAL
           exit-code: 1
-
-      # Alternative: build from within the web directory
-      # - name: Build (working-directory: web)
-      #   uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
-      #   with:
-      #     context: ./web
-      #     file: ./web/Dockerfile
-      #     load: true
-      #     tags: web:ci
-      #     build-args: |
-      #       VITE_TURNSTILE_SITE_KEY=${{ secrets.VITE_TURNSTILE_SITE_KEY }}
-      #       VITE_AI_BACKEND_URL=${{ secrets.VITE_AI_BACKEND_URL }}
