@@ -32,7 +32,7 @@ Public portfolio, project archive, case-study surface, and professional contact 
 - [Snake - Kareem Sasa](https://kareemsasa.dev/simulations/snake): Discrete grid simulation with wrap-around topology, state-driven growth mechanics, and collision detection.
 - [Spider Solitaire - Kareem Sasa](https://kareemsasa.dev/simulations/spider): Constraint-based card sequencing system with tableau state management, multi-column drag validation, and completion detection.
 - [Rhythm Lab - Kareem Sasa](https://kareemsasa.dev/simulations/rhythm-lab): Three-lane input timing system with chart authoring, recording sessions, real-time feedback scoring, and run analytics.
-- [Procedural Animations - Kareem Sasa](https://kareemsasa.dev/procedural-animations): Procedural motion pieces and computational animation: self-contained works where movement is generated in code rather than keyframed by hand.
+- [Procedural Animations - Kareem Sasa](https://kareemsasa.dev/procedural-animations): Computational animation: self-contained, code-driven explorations of motion, from procedural systems to choreographed three-dimensional scenes.
 - [Terminal - Kareem Sasa](https://kareemsasa.dev/terminal): An interactive terminal layer for exploring portfolio content, projects, and work history through a command-driven interface.
 - [Aether Case Study - Kareem Sasa](https://kareemsasa.dev/case-studies/aether): Linux audio-analysis daemon that publishes live frequency-band state through a sequence-versioned shared-memory region for independent local consumers.
 - [Erebus Case Study - Kareem Sasa](https://kareemsasa.dev/case-studies/erebus): Event-driven Linux coordination layer that records system context, infers higher-level state, and makes troubleshooting replayable.

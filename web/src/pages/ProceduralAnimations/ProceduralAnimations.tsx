@@ -15,10 +15,9 @@ const ProceduralAnimations = () => {
             Procedural Animations
           </h1>
           <p className="df-body-lg">
-            Self-contained motion pieces where movement is generated in code
-            from rules, time, and noise rather than keyframed by hand. The
-            simulations model systems to explore; these pieces are composed to
-            be watched.
+            Code-driven explorations of motion, from procedural systems to
+            choreographed three-dimensional scenes. The simulations model
+            systems to explore; these pieces are composed to be watched.
           </p>
         </header>
 

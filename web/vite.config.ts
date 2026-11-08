@@ -341,7 +341,7 @@ const primaryRouteShellDetails: Record<
     eyebrow: "Computational Motion",
     heading: "Procedural Animations",
     highlights: [
-      "Self-contained motion pieces where movement is generated in code from rules, time, and noise.",
+      "Self-contained, code-driven explorations of motion, from procedural systems to choreographed three-dimensional scenes.",
       `Includes ${proceduralAnimationsData.map((piece) => piece.title).join(", ")}.`,
     ],
     links: [
