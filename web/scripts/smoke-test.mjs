@@ -1,7 +1,7 @@
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { readdir, readFile } from "node:fs/promises";
-import { resolve } from "node:path";
+import { readdir, readFile, stat } from "node:fs/promises";
+import { dirname, resolve, sep } from "node:path";
 
 const projectRoot = resolve(import.meta.dirname, "..");
 const buildDir = resolve(projectRoot, "build");
@@ -173,6 +173,38 @@ const checkContentSecurityPolicy = async () => {
   const stale = [...allowed].filter((hash) => !found.has(hash));
   if (stale.length) {
     throw new Error(`CSP script-src lists hashes no built inline script has: ${stale.join(", ")}`);
+  }
+};
+
+// Every local <script src> in a built page must resolve to a non-empty file in the
+// build. A missing file is served as the SPA's index.html, which the browser refuses
+// to run. This happened in production when a .gitignore rule kept a vendored script
+// out of the commit while it still existed in the local working tree.
+const checkLocalScriptReferences = async () => {
+  const missing = [];
+  let checked = 0;
+  for (const file of await findFilesByExtension(buildDir, ".html")) {
+    const html = await readFile(file, "utf8");
+    for (const [, attributes] of html.matchAll(/<script\b([^>]*)>/gi)) {
+      const src = attributes.match(/\bsrc\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'>]+))/i);
+      if (!src) continue;
+      const value = (src[1] ?? src[2] ?? src[3]).trim();
+      // Skip URLs with a scheme (https:, data:, blob:) and protocol-relative URLs.
+      if (/^(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(value)) continue;
+      const path = value.split(/[?#]/)[0];
+      const target = path.startsWith("/") ? resolve(buildDir, `.${path}`) : resolve(dirname(file), path);
+      checked += 1;
+      const size = target.startsWith(`${buildDir}${sep}`)
+        ? await stat(target).then((s) => (s.isFile() ? s.size : 0), () => 0)
+        : 0;
+      if (size === 0) missing.push(`${value} (in ${file.replace(`${buildDir}/`, "")})`);
+    }
+  }
+  if (checked === 0) {
+    throw new Error("Found no local <script src> in any built page; the script reference check read nothing");
+  }
+  if (missing.length) {
+    throw new Error(`Built pages reference local scripts that are missing or empty in the build: ${missing.join(", ")}`);
   }
 };
 
@@ -957,6 +989,7 @@ const main = async () => {
   });
 
   await checkContentSecurityPolicy();
+  await checkLocalScriptReferences();
 
   // RFC 9116: Contact and Expires are required, and an expired file is invalid.
   const securityTxt = await readBuildFile(".well-known/security.txt");
