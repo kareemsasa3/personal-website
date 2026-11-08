@@ -41,4 +41,11 @@ export const proceduralAnimationsData: ProceduralAnimation[] = [
     poster: "/media/one-quiet-day-card.webp",
     artifactPath: "/procedural-animations/one-quiet-day/piece.html",
   },
+  {
+    slug: "anastasis",
+    title: "ANASTASIS",
+    description: "A procedural 3D assembly of the workstation behind the work.",
+    poster: "/media/anastasis-card.webp",
+    artifactPath: "/procedural-animations/anastasis/piece.html",
+  },
 ];

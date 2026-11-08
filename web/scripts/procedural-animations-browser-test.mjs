@@ -21,6 +21,7 @@ const pieces = [
   { slug: "descent", title: "DESCENT", api: "DESCENT" },
   { slug: "observing", title: "Observing", api: "__seek" },
   { slug: "one-quiet-day", title: "One Quiet Day", api: "OQD" },
+  { slug: "anastasis", title: "ANASTASIS", api: "__anastasis" },
 ];
 
 const open = async ({ width = 1600, height = 900, reducedMotion = "no-preference" } = {}) => {
@@ -162,7 +163,8 @@ for (const [width, height] of [[1600, 900], [390, 844]]) {
     observing: () => S.ambient === true,
     "one-quiet-day": () => window.OQD.App.mot === 0.35,
   };
-  for (const piece of pieces) {
+  // ANASTASIS keeps its preference in a closure, so its probe is the fan check below.
+  for (const piece of pieces.filter((p) => p.slug in checks)) {
     await page.goto(`${base}/procedural-animations/${piece.slug}/`);
     const frame = await pieceFrame(page, piece);
     if (piece.slug === "one-quiet-day") await frame.waitForFunction(() => window.OQD.ready);
@@ -171,6 +173,78 @@ for (const [width, height] of [[1600, 900], [390, 844]]) {
   assert.deepEqual(problems, [], problems.join("\n"));
   console.log("PASS reduced motion: each artifact applies its own handling inside the frame");
   await context.close();
+}
+
+// ANASTASIS fan check. The published copy differs from the source in one behaviour edit: under reduced
+// motion its fan rotors stop (`var spin=reduceMotion?0:dt*Pnow;`). Paused past power-on, with the piece's
+// own overlays hidden, the rotors are the only real-time motion left on the canvas under reduced motion
+// (checked when the piece was added). So: a control copy with that edit reverted must change between two
+// samples (the check detects rotation, and where it changes is the rotor region); the published copy must
+// not change there under reduced motion; and in normal mode it must still change there. Tests may drive
+// the piece's __anastasis hook; the site never references it.
+{
+  const fanGate = "var spin=reduceMotion?0:dt*Pnow;";
+  const sampleCanvas = async ({ reducedMotion, control = false }) => {
+    const { context, page, problems } = await open({ width: 1280, height: 720, reducedMotion });
+    if (control) {
+      await page.route("**/procedural-animations/anastasis/piece.html", async (route) => {
+        const response = await route.fetch();
+        const body = await response.text();
+        assert.equal(body.split(fanGate).length, 2, "piece.html holds the fan gate exactly once");
+        await route.fulfill({ response, body: body.replace(fanGate, "var spin=dt*Pnow;") });
+      });
+    }
+    await page.goto(`${base}/procedural-animations/anastasis/`);
+    const frame = await pieceFrame(page, pieces.find((piece) => piece.slug === "anastasis"));
+    await frame.evaluate(() => {
+      window.__anastasis.seek(38);
+      for (const id of ["title", "labels", "bar", "hint"]) document.getElementById(id).style.visibility = "hidden";
+    });
+    await page.waitForTimeout(2500);
+    // A clipped page screenshot of the frame (the piece's canvas fills it). An element screenshot would wait
+    // for two stable animation frames, which a software-rendered WebGL scene may not deliver in time.
+    const clip = await (await page.$("iframe.animation-piece__frame")).boundingBox();
+    const shots = [await page.screenshot({ clip })];
+    await page.waitForTimeout(1200);
+    shots.push(await page.screenshot({ clip }));
+    assert.deepEqual(problems, [], problems.join("\n"));
+    await context.close();
+    return shots;
+  };
+  // Pixels that differ between two PNGs: their count and bounding box, optionally within a box.
+  const changed = async ([a, b], within) => {
+    const page = await browser.newPage();
+    const result = await page.evaluate(async ([a64, b64, box]) => {
+      const load = async (s) => createImageBitmap(await (await fetch(`data:image/png;base64,${s}`)).blob());
+      const [ia, ib] = await Promise.all([load(a64), load(b64)]);
+      const ctx = new OffscreenCanvas(ia.width, ia.height).getContext("2d");
+      ctx.drawImage(ia, 0, 0);
+      const da = ctx.getImageData(0, 0, ia.width, ia.height).data;
+      ctx.drawImage(ib, 0, 0);
+      const db = ctx.getImageData(0, 0, ia.width, ia.height).data;
+      const [bx0, by0, bx1, by1] = box ?? [0, 0, ia.width - 1, ia.height - 1];
+      let count = 0, x0 = Infinity, y0 = Infinity, x1 = -1, y1 = -1;
+      for (let y = by0; y <= by1; y++) {
+        for (let x = bx0; x <= bx1; x++) {
+          const i = (y * ia.width + x) * 4;
+          if (da[i] !== db[i] || da[i + 1] !== db[i + 1] || da[i + 2] !== db[i + 2]) {
+            count++; x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y);
+          }
+        }
+      }
+      return { count, box: count ? [x0, y0, x1, y1] : null };
+    }, [a.toString("base64"), b.toString("base64"), within ?? null]);
+    await page.close();
+    return result;
+  };
+
+  const control = await changed(await sampleCanvas({ reducedMotion: "reduce", control: true }));
+  assert.ok(control.count > 0, "control (fan gate reverted): the rotors turn under reduced motion, so the check detects rotation");
+  const reduced = await changed(await sampleCanvas({ reducedMotion: "reduce" }), control.box);
+  assert.equal(reduced.count, 0, `published copy: the rotor region ${JSON.stringify(control.box)} is still under reduced motion`);
+  const normal = await changed(await sampleCanvas({ reducedMotion: "no-preference" }), control.box);
+  assert.ok(normal.count > 0, "published copy: the rotor region still moves in normal mode");
+  console.log(`PASS ANASTASIS fan check: rotor region ${JSON.stringify(control.box)} changes ${control.count} px in the control, 0 under reduced motion, ${normal.count} px in normal mode`);
 }
 
 // Fullscreen, activated from the keyboard, puts the piece (not the page) into fullscreen and

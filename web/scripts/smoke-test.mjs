@@ -614,6 +614,7 @@ const main = async () => {
     ["descent", "DESCENT"],
     ["observing", "Observing"],
     ["one-quiet-day", "One Quiet Day"],
+    ["anastasis", "ANASTASIS"],
   ];
   for (const [slug, title] of proceduralAnimationPieces) {
     const path = `/procedural-animations/${slug}`;
