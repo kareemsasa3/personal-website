@@ -3924,7 +3924,7 @@ if (MODE === "check") {
   // Phase 6 Task 5: the other three pieces joined ROUTES, so the completeness invariant below lists them here.
   // Phase 6 Task 6: the sweep and the frame check below run on every route of ROUTES; P5_ROUTES serves the invariants below.
   const P5_ROUTES = ["/darkfield-404-probe", "/procedural-animations", "/procedural-animations/mechanical-time",
-    "/procedural-animations/descent", "/procedural-animations/observing", "/procedural-animations/one-quiet-day", "/case-studies/aether", "/simulations",
+    "/procedural-animations/descent", "/procedural-animations/observing", "/procedural-animations/one-quiet-day", "/procedural-animations/anastasis", "/case-studies/aether", "/simulations",
     "/simulations/orbital-simulator", "/simulations/traffic-simulator", "/terminal", "/simulations/snake",
     "/simulations/spider", "/simulations/rhythm-lab", "/simulations/annals",
     "/projects", "/case-studies", "/case-studies/erebus", "/case-studies/arachne", "/case-studies/where-the-specification-lived"];
@@ -5408,7 +5408,7 @@ if (MODE === "check") {
   // leaving by Shift+Tab removes it; a click into the piece shows none. The piece still receives its own keys. On a phone
   // the bar's controls keep their ring inside the viewport, icon-only Fullscreen is at least three cells wide, and the
   // title wraps instead of losing letters.
-  const PIECES = ["mechanical-time", "descent", "observing", "one-quiet-day"];
+  const PIECES = ["mechanical-time", "descent", "observing", "one-quiet-day", "anastasis"];
   const pieceReady = (page) => page.waitForFunction(() => { const f = document.querySelector("iframe.animation-piece__frame");
     return f?.contentDocument?.readyState === "complete" && /piece\.html$/.test(f.contentWindow.location.pathname); });
   const inFrame = () => document.activeElement?.tagName === "IFRAME";
