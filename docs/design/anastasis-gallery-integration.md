@@ -14,6 +14,24 @@ Status: **design approved; implementation not authorized.**
 - Still open, at implementation time: verification items O6 and O7, and the review gates G1–G3 (section 5).
 - Nothing is implemented: no animation change, no vendored file, no route, test or data change, no implementation commit.
 
+### Implementation record (2026-11-07)
+
+The status above is as approved on 2026-10-22. On 2026-11-07 the owner authorized implementation, pushing and a pull request. Implementation is on branch `feat/anastasis-gallery`, from `main` at `3c52d85`. Merging and deploying still need separate approval.
+
+- **O5.** Darkfield is merged to `main` (PR #32) and deployed, and this branch starts clean from `main`.
+- **O6, done.** The font files, sizes and hashes are in `PROVENANCE.txt`. Both OFL texts, from a pinned `google/fonts` commit, were read in full; neither declares a Reserved Font Name.
+- **O7, done.** Paused at 38 s under reduced motion, a copy without B1 changes only at the rotors: the cooler front fan, both case fans, the PSU fan behind its grille, and case-fan blades seen through the chassis vent slots. No panel surface changes.
+- **G3, checked.** The O4 frame works at 960×540 with no crop. The owner confirms it in review.
+- **G1 and G2, open.** The generated AI-context files and the gallery copy are not part of this branch.
+
+Deviations from this design:
+
+- **CSP.** Production has enforced a Content-Security-Policy since PR #39, after this design was written. It allows inline scripts only by hash (2.3 recorded no CSP). The piece's inline script therefore needs its hash in `infrastructure/nginx/conf.d/default.conf`. That contradicts 6.1 and acceptance criterion 16, which leave infrastructure unchanged. The owner approved the one-hash change on 2026-11-07, as its own commit.
+- **Edit D4 (click focus).** The Darkfield suite found that a click on the piece did not move focus into its frame, so the piece's keyboard controls did nothing after a click. three.js r128 OrbitControls cancels the default on `pointerdown` and then calls the canvas's `focus()`, which does nothing on a canvas without a `tabindex`. The other four pieces focus on click. The owner approved one more delivery edit to the published copy on 2026-11-07: `renderer.domElement.tabIndex=-1;` after the canvas is added to `#stage`. The list in 6.2 is therefore D1–D4 and B1, and `PROVENANCE.txt` records D4.
+- **Darkfield suite.** Beyond `PIECES` (6.6), the route also joins `P5_ROUTES`, because that suite requires every piece route there.
+- **Fan check region (6.6).** The rotor region is not fixed in advance. The test takes it from the pixels that change in the negative control, a copy of the published file with B1 reverted. The published copy must not change there under reduced motion, and must change there in normal mode.
+- **Validation.** Typecheck, lint, `npm test` and the procedural-animations browser suite pass with D4. The visual check ran before D4, which changes no rendering. The Darkfield foundation suite passes in all four shards. Shards 1–3 ran before D4, which changes only `piece.html`; the ANASTASIS route is in shard 4, which was re-run after D4. Shard 2 timed out loading `/journey` while the shards ran in parallel, and passed when re-run alone.
+
 ## Evidence labels
 
 - **[code]**: read in this repository at the ref named (`main` = `origin/main` `b4283dc`; `df` = `feat/darkfield-foundation` `6ee0d6c`).
