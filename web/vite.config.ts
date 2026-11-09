@@ -239,6 +239,7 @@ const primaryRouteShellPaths = [
   "/experience",
   "/journey",
   "/simulations",
+  "/simulations/annals",
   "/simulations/orbital-simulator",
   "/simulations/traffic-simulator",
   "/simulations/snake",
@@ -279,15 +280,25 @@ const primaryRouteShellDetails: Record<
     heading: "Simulations",
     highlights: [
       "Interactive systems exploring state, rules, feedback loops, and emergent behavior.",
-      "Includes Orbital Simulator, Traffic Simulator, Rhythm Lab, Snake, and Spider Solitaire.",
+      "Includes The Annals, Orbital Simulator, Traffic Simulator, Rhythm Lab, Snake, and Spider Solitaire.",
     ],
     links: [
+      { label: "Open The Annals", href: "/simulations/annals" },
       { label: "Open Orbital Simulator", href: "/simulations/orbital-simulator" },
       { label: "Open Traffic Simulator", href: "/simulations/traffic-simulator" },
       { label: "Open Snake", href: "/simulations/snake" },
       { label: "Open Spider Solitaire", href: "/simulations/spider" },
       { label: "Open Rhythm Lab", href: "/simulations/rhythm-lab" },
     ],
+  },
+  "/simulations/annals": {
+    eyebrow: "Interactive Prototype",
+    heading: "The Annals",
+    highlights: [
+      "A deterministic dynastic chronicle where houses inherit grain, grudges, and consequences across generations.",
+      "Replay a seed with a different hand and compare the resulting histories. JavaScript is required for the interactive world.",
+    ],
+    links: [{ label: "Back to simulations", href: "/simulations" }],
   },
   "/simulations/orbital-simulator": {
     eyebrow: "Interactive System",
@@ -841,6 +852,10 @@ const homeDestinationPaths = [
   { path: "/case-studies", label: "Case Studies" },
   { path: "/writing", label: "Writing" },
   { path: "/experience", label: "Experience" },
+  { path: "/simulations", label: "Simulations" },
+  { path: "/procedural-animations", label: "Procedural Animations" },
+  { path: "/journey", label: "Journey" },
+  { path: "/terminal", label: "Terminal" },
 ] as const;
 
 const renderHomeBody = () => {
@@ -1051,6 +1066,11 @@ const staticRouteShellPlugin = (): Plugin => {
     // closeBundle reads the base template before any shell is written.
     routeShellFromMetadata(homeMeta, renderHomeBody()),
     ...primaryRoutes,
+    // The retained alias must declare /experience/ before JavaScript runs too.
+    routeShellFromMetadata(
+      getRouteMetadata("/work"),
+      renderPrimaryRouteBody(getRouteMetadata("/experience"))
+    ),
     routeShellFromMetadata(projectsMeta, renderProjectsBody(projectsMeta)),
     routeShellFromMetadata(caseStudiesIndexMeta, renderCaseStudiesIndexBody()),
     ...caseStudiesData.map((caseStudy) => {

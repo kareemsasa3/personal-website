@@ -14,6 +14,8 @@ execFileSync(process.execPath, ["--import", resolve(projectRoot, "scripts/route-
 execFileSync(process.execPath, ["--import", resolve(projectRoot, "scripts/route-metadata-test-loader.mjs"), resolve(projectRoot, "scripts/scroll-progress.test.mjs")], { stdio: "inherit" });
 execFileSync(process.execPath, ["--import", resolve(projectRoot, "scripts/route-metadata-test-loader.mjs"), resolve(projectRoot, "scripts/simulation-routes.test.mjs")], { stdio: "inherit" });
 
+execFileSync(process.execPath, ["--import", resolve(projectRoot, "scripts/route-metadata-test-loader.mjs"), resolve(projectRoot, "scripts/seo-output.test.mjs")], { stdio: "inherit" });
+
 const readBuildFile = async (relativePath) =>
   readFile(resolve(buildDir, relativePath), "utf8");
 
@@ -542,7 +544,7 @@ const main = async () => {
   // and links to the live simulator; the simulator links back; its media ships.
   assertIncludes(
     specificationCaseStudy,
-    "<title>Where the Specification Lived Case Study - Kareem Sasa</title>",
+    "<title>Where the Specification Lived: An AI Coding Experiment - Kareem Sasa</title>",
     "specification case study title"
   );
   assertIncludes(
@@ -587,7 +589,7 @@ const main = async () => {
 
   assertIncludes(
     erebusCaseStudy,
-    "<title>Erebus Case Study - Kareem Sasa</title>",
+    "<title>Erebus: Replayable Linux Event History - Kareem Sasa</title>",
     "Erebus case study title"
   );
   assertIncludes(
@@ -651,7 +653,7 @@ const main = async () => {
   for (const [slug, title] of proceduralAnimationPieces) {
     const path = `/procedural-animations/${slug}`;
     const shell = await readBuildFile(`procedural-animations/${slug}/index.html`);
-    assertIncludes(shell, `<title>${title} - Kareem Sasa</title>`, `${path} shell title`);
+    assertIncludes(shell, `<title>${title} - Procedural Animation - Kareem Sasa</title>`, `${path} shell title`);
     assertIncludes(shell, `href="${siteUrl}${path}/"`, `${path} canonical URL`);
     assertNotIncludes(shell, "noindex", `${path} shell`);
     assertNotIncludes(shell, 'class="homepage-fallback', `${path} shell body`);

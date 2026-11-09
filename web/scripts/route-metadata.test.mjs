@@ -9,6 +9,7 @@ import {
   routeMetadata,
 } from "../src/data/routeMetadata.ts";
 import { getStructuredDataJson } from "../src/data/structuredData.ts";
+import { simulationsData } from "../src/data/simulationsData.ts";
 
 // Production nginx redirects every route with a static shell from /path to /path/, so the
 // client must resolve both spellings to the same metadata or it overwrites the shell's
@@ -99,5 +100,19 @@ test("structured data URLs on this site point at canonical URLs", () => {
       if (!url.startsWith(`${SITE_URL}/`)) continue;
       assert.ok(url.endsWith("/"), `${metadata.path}: ${url}`);
     }
+  }
+});
+
+// The simulation registry and metadata are independent: omission used to silently
+// give The Annals the homepage's title, canonical and ProfilePage graph.
+test("every available simulation has its own metadata and WebPage", () => {
+  for (const simulation of simulationsData.filter((entry) => entry.isAvailable)) {
+    const metadata = getRouteMetadata(simulation.path);
+    assert.equal(metadata.path, simulation.path, simulation.title);
+    assert.equal(metadata.canonicalPath, simulation.path, simulation.title);
+    const graph = JSON.parse(getStructuredDataJson(simulation.path))["@graph"];
+    const webpage = graph.find((entry) => entry["@id"].endsWith("#webpage"));
+    assert.equal(webpage.url, getCanonicalUrl(simulation.path), simulation.title);
+    assert.notEqual(webpage["@type"], "ProfilePage", simulation.title);
   }
 });

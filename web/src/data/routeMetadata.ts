@@ -83,6 +83,14 @@ const staticRouteMetadata: RouteMetadata[] = [
     sitemap: { changefreq: "monthly", priority: "0.4" },
   },
   {
+    path: "/simulations/annals",
+    title: "The Annals: Deterministic Dynastic Simulation - Kareem Sasa",
+    description:
+      "A deterministic dynastic chronicle: replay a seed, intervene in the lives of its houses, and compare how grain, grudges, and consequences shape their history.",
+    canonicalPath: "/simulations/annals",
+    sitemap: { changefreq: "monthly", priority: "0.3" },
+  },
+  {
     path: "/simulations/orbital-simulator",
     title: "Orbital Simulator - Kareem Sasa",
     description: "Explore gravitational dynamics with interactive planetary orbits, binary stars, and three-body encounters. Change mass and velocity to see orbital behavior emerge.",
@@ -140,7 +148,7 @@ const staticRouteMetadata: RouteMetadata[] = [
 
 const caseStudyRouteMetadata: RouteMetadata[] = caseStudiesData.map((caseStudy) => ({
   path: `/case-studies/${caseStudy.slug}`,
-  title: `${caseStudy.title} Case Study - Kareem Sasa`,
+  title: `${caseStudy.searchTitle} - Kareem Sasa`,
   description: caseStudy.shortDescription,
   canonicalPath: `/case-studies/${caseStudy.slug}`,
   sitemap: { changefreq: "monthly", priority: "0.8" },
@@ -148,7 +156,7 @@ const caseStudyRouteMetadata: RouteMetadata[] = caseStudiesData.map((caseStudy) 
 
 const proceduralAnimationRouteMetadata: RouteMetadata[] = proceduralAnimationsData.map((piece) => ({
   path: `/procedural-animations/${piece.slug}`,
-  title: `${piece.title} - Kareem Sasa`,
+  title: `${piece.title} - Procedural Animation - Kareem Sasa`,
   description: piece.description,
   canonicalPath: `/procedural-animations/${piece.slug}`,
   sitemap: { changefreq: "monthly", priority: "0.3" },

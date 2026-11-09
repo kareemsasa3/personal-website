@@ -268,7 +268,7 @@ const createSimulationsGraph = () =>
   ]);
 
 const createSimulationDetailGraph = (
-  canonicalPath: "/simulations/snake" | "/simulations/spider" | "/simulations/rhythm-lab",
+  canonicalPath: "/simulations/annals" | "/simulations/snake" | "/simulations/spider" | "/simulations/rhythm-lab",
   simulationName: string
 ) =>
   graph([
@@ -327,6 +327,9 @@ const createDefaultRouteGraph = (pathname: string) => {
   if (canonicalPath === "/writing") return createWritingIndexGraph();
   if (canonicalPath === "/experience") return createExperienceGraph();
   if (canonicalPath === "/simulations") return createSimulationsGraph();
+  if (canonicalPath === "/simulations/annals") {
+    return createSimulationDetailGraph("/simulations/annals", "The Annals");
+  }
   if (canonicalPath === "/simulations/snake") {
     return createSimulationDetailGraph("/simulations/snake", "Snake");
   }

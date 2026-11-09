@@ -66,6 +66,12 @@
       "description": "Interactive systems exploring state, rules, feedback loops, and emergent behavior — built to model, visualize, and stress real dynamics."
     },
     {
+      "path": "/simulations/annals",
+      "url": "https://kareemsasa.dev/simulations/annals",
+      "title": "The Annals: Deterministic Dynastic Simulation - Kareem Sasa",
+      "description": "A deterministic dynastic chronicle: replay a seed, intervene in the lives of its houses, and compare how grain, grudges, and consequences shape their history."
+    },
+    {
       "path": "/simulations/orbital-simulator",
       "url": "https://kareemsasa.dev/simulations/orbital-simulator",
       "title": "Orbital Simulator - Kareem Sasa",
@@ -110,55 +116,55 @@
     {
       "path": "/case-studies/aether",
       "url": "https://kareemsasa.dev/case-studies/aether",
-      "title": "Aether Case Study - Kareem Sasa",
+      "title": "Aether: Linux Audio Analysis with Shared Memory - Kareem Sasa",
       "description": "Linux audio-analysis daemon that publishes live frequency-band state through a sequence-versioned shared-memory region for independent local consumers."
     },
     {
       "path": "/case-studies/erebus",
       "url": "https://kareemsasa.dev/case-studies/erebus",
-      "title": "Erebus Case Study - Kareem Sasa",
+      "title": "Erebus: Replayable Linux Event History - Kareem Sasa",
       "description": "Event-driven Linux coordination layer that records system context, infers higher-level state, and makes troubleshooting replayable."
     },
     {
       "path": "/case-studies/arachne",
       "url": "https://kareemsasa.dev/case-studies/arachne",
-      "title": "Arachne Case Study - Kareem Sasa",
+      "title": "Arachne: Web Research with Go and SQLite FTS5 - Kareem Sasa",
       "description": "Autonomous research platform that searches, scrapes, versions, indexes, and synthesizes web content through a Go and Next.js pipeline."
     },
     {
       "path": "/case-studies/where-the-specification-lived",
       "url": "https://kareemsasa.dev/case-studies/where-the-specification-lived",
-      "title": "Where the Specification Lived Case Study - Kareem Sasa",
+      "title": "Where the Specification Lived: An AI Coding Experiment - Kareem Sasa",
       "description": "Two agents built the same Traffic Simulator in the same repository, one from a 38-word prompt and one from a 615-word specification. A blinded review of both artifacts shows what each prompt bought, and why prompt length and specification load are different variables."
     },
     {
       "path": "/procedural-animations/mechanical-time",
       "url": "https://kareemsasa.dev/procedural-animations/mechanical-time",
-      "title": "Mechanical Time - Kareem Sasa",
+      "title": "Mechanical Time - Procedural Animation - Kareem Sasa",
       "description": "A mechanical watch movement assembles itself: components emerge, energy flows through the gear train, and the escapement releases time one tick at a time."
     },
     {
       "path": "/procedural-animations/descent",
       "url": "https://kareemsasa.dev/procedural-animations/descent",
-      "title": "DESCENT - Kareem Sasa",
+      "title": "DESCENT - Procedural Animation - Kareem Sasa",
       "description": "A descent from the ocean surface to 2,437 metres, through the sunlight, twilight, and midnight zones, past fish and glowing jellyfish."
     },
     {
       "path": "/procedural-animations/observing",
       "url": "https://kareemsasa.dev/procedural-animations/observing",
-      "title": "Observing - Kareem Sasa",
+      "title": "Observing - Procedural Animation - Kareem Sasa",
       "description": "On a rainy rooftop, an engineer and a small holographic dog look out over a cyberpunk skyline as a face built from glyphs emerges above the city."
     },
     {
       "path": "/procedural-animations/one-quiet-day",
       "url": "https://kareemsasa.dev/procedural-animations/one-quiet-day",
-      "title": "One Quiet Day - Kareem Sasa",
+      "title": "One Quiet Day - Procedural Animation - Kareem Sasa",
       "description": "A meadow in the Blue Ridge foothills through one autumn day, compressed into a minute, with optional synthesized sound."
     },
     {
       "path": "/procedural-animations/anastasis",
       "url": "https://kareemsasa.dev/procedural-animations/anastasis",
-      "title": "ANASTASIS - Kareem Sasa",
+      "title": "ANASTASIS - Procedural Animation - Kareem Sasa",
       "description": "A procedural 3D assembly of the workstation behind the work."
     },
     {

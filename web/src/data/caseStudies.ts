@@ -85,6 +85,8 @@ export interface CaseStudy {
   /** Blocks rendered before or after a section's standard content. */
   blocks?: Partial<Record<CaseStudySectionId, { before?: CaseStudyBlock[]; after?: CaseStudyBlock[] }>>;
   title: string;
+  /** Descriptive document title; the authored page heading stays unchanged. */
+  searchTitle: string;
   shortDescription: string;
   problem: string;
   constraints: {
@@ -117,6 +119,7 @@ export const caseStudiesData: CaseStudy[] = [
     slug: "aether",
     projectId: "aether",
     title: "Aether",
+    searchTitle: "Aether: Linux Audio Analysis with Shared Memory",
     sectionTitles: {
       implementation: "Tested Behavior",
       outcome: "Result and Limitations",
@@ -241,6 +244,7 @@ export const caseStudiesData: CaseStudy[] = [
     slug: "erebus",
     projectId: "erebus",
     title: "Erebus",
+    searchTitle: "Erebus: Replayable Linux Event History",
     shortDescription:
       "Event-driven Linux coordination layer that records system context, infers higher-level state, and makes troubleshooting replayable.",
     problem:
@@ -335,6 +339,7 @@ export const caseStudiesData: CaseStudy[] = [
     slug: "arachne",
     projectId: "arachne",
     title: "Arachne",
+    searchTitle: "Arachne: Web Research with Go and SQLite FTS5",
     shortDescription:
       "Autonomous research platform that searches, scrapes, versions, indexes, and synthesizes web content through a Go and Next.js pipeline.",
     problem:
@@ -435,6 +440,7 @@ export const caseStudiesData: CaseStudy[] = [
     kind: "experiment",
     status: "Completed",
     title: "Where the Specification Lived",
+    searchTitle: "Where the Specification Lived: An AI Coding Experiment",
     shortDescription:
       "Two agents built the same Traffic Simulator in the same repository, one from a 38-word prompt and one from a 615-word specification. A blinded review of both artifacts shows what each prompt bought, and why prompt length and specification load are different variables.",
     media: {
