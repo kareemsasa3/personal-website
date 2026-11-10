@@ -1,3 +1,6 @@
+import { projectsData, type Project } from "./projects";
+import { workExperienceData, type WorkExperience } from "./workExperience";
+
 // File content data for grep functionality
 export interface FileContent {
   path: string;
@@ -5,27 +8,76 @@ export interface FileContent {
   description: string;
 }
 
+const bulletList = (items: string[]) => items.map((item) => `- ${item}`);
+
+/** Terminal file name for an experience entry, e.g. "resolute consulting group". */
+export const experienceFileName = (job: WorkExperience) => job.company.toLowerCase();
+
+/** Terminal README for a project, derived from the canonical Projects data. */
+export const projectReadmeLines = (project: Project): string[] => [
+  `# ${project.title}`,
+  "",
+  project.shortDescription,
+  "",
+  `**Status:** ${project.status}`,
+  `**Category:** ${project.category}`,
+  `**Started:** ${project.date}`,
+  `**Repository:** ${project.githubUrl ?? "Private repository"}`,
+  "",
+  "## Overview",
+  project.description,
+  "",
+  "## Features",
+  ...bulletList(project.features),
+  "",
+  "## Technologies",
+  `- ${project.techStack.join(", ")}`,
+  "",
+  "## Highlights",
+  ...bulletList(project.highlights),
+];
+
+/** Terminal file for an experience entry, derived from the canonical Experience data. */
+export const experienceLines = (job: WorkExperience): string[] => [
+  `# ${job.role} - ${job.company}`,
+  "",
+  `**Duration:** ${job.dates}`,
+  ...(job.location ? [`**Location:** ${job.location}`] : []),
+  "",
+  "## Key Responsibilities",
+  ...bulletList(job.description),
+  "",
+  "## Technologies Used",
+  `- ${job.techStack.join(", ")}`,
+  ...(job.projects?.length ? ["", "## Notable Engagements", ...bulletList(job.projects)] : []),
+  ...(job.highlights?.length ? ["", "## Focus Areas", ...bulletList(job.highlights)] : []),
+];
+
+/** Approximate `ls -l` size for generated terminal files. */
+export const terminalFileSize = (lines: string[]) =>
+  `${(new TextEncoder().encode(lines.join("\n")).length / 1024).toFixed(1)}K`;
+
+const webProject = projectsData.find((project) => project.id === "web");
+
+const projectReadmeFiles: FileContent[] = projectsData
+  .filter((project) => project.id !== "web")
+  .map((project) => ({
+    path: `projects/${project.id}/README.md`,
+    content: projectReadmeLines(project),
+    description: `${project.title}: ${project.shortDescription}`,
+  }));
+
+const experienceFiles: FileContent[] = workExperienceData.map((job) => ({
+  path: `experience/${experienceFileName(job)}`,
+  content: experienceLines(job),
+  description: `${job.role} at ${job.company}, ${job.dates}`,
+}));
+
 export const fileContents: FileContent[] = [
   {
     path: "projects/web/README.md",
     content: [
-      "# Web - Interactive Developer Portfolio",
-      "",
-      "A React and TypeScript portfolio built to present projects, work history, and systems thinking through an interactive interface.",
-      "The site balances distinctive presentation with proof-of-work, including projects, professional experience, and a terminal-inspired exploration layer.",
-      "",
-      "## Features",
-      "- Homepage flow centered on projects and work first",
-      "- Interactive terminal with command history, autocomplete, and content search",
-      "- Route-based portfolio sections for projects, work, journey, simulations, and terminal",
-      "- Responsive dock navigation and animated page transitions",
-      "- Theme support, motion polish, and custom UI components",
-      "",
-      "## Tech Stack",
-      "- React 18 with TypeScript",
-      "- Vite and React Router",
-      "- Framer Motion for transitions and interaction design",
-      "- Custom terminal data layer for searchable file content",
+      ...(webProject ? projectReadmeLines(webProject) : ["# Personal Website"]),
       "",
       "## Architecture",
       "Portfolio content is driven from centralized data sources for homepage, projects, work experience, and terminal content.",
@@ -98,101 +150,8 @@ export const fileContents: FileContent[] = [
     description:
       "Intentional architecture note describing how the portfolio terminal fits into the app",
   },
-  {
-    path: "experience/resolute consulting group",
-    content: [
-      "# Lead Software Consultant - Resolute Consulting Group",
-      "",
-      "**Duration:** October 2024 - Present",
-      "**Location:** Remote",
-      "",
-      "## Key Responsibilities",
-      "- Lead modernization work on business-critical software where complexity, reliability, and maintainability are active delivery risks",
-      "- Take ownership of systems whose feature growth has outpaced architectural clarity",
-      "- Stabilize frontend behavior by replacing ad-hoc state with explicit models and clearer interaction flows",
-      "- Consolidate backend services into maintainable domain models and more predictable operational boundaries",
-      "",
-      "## Technologies Used",
-      "- ASP.NET Core, React, Next.js, TypeScript",
-      "- PostgreSQL, MongoDB, Redis",
-      "- Azure, Kubernetes, Docker, Pulumi",
-      "",
-      "## Notable Engagements",
-      "- Insurance Platform: Stabilized a tightly coupled product by replacing brittle UI state with explicit models and consolidating backend behavior into a coherent ASP.NET Core API",
-      "- Renewable Energy Platform: Reverse-engineered a 15+ microservice system across 18 repositories, clarified environment parity, and reduced onboarding friction for contributors",
-      "- Energy Forecasting: Replaced manual forecasting workflows with a structured Oracle-backed pipeline for financial reporting",
-      "- Mining Finance: Modernized spreadsheet-driven operations into auditable data structures and more reliable business workflows",
-    ],
-    description:
-      "Current consulting role focused on modernization, platform stability, and cross-stack delivery",
-  },
-  {
-    path: "experience/capgemini",
-    content: [
-      "# Full Stack Developer - Capgemini",
-      "",
-      "**Duration:** 2021 - 2022",
-      "**Location:** Remote",
-      "",
-      "## Key Responsibilities",
-      "- Built enterprise software for large client engagements across frontend and backend stacks",
-      "- Worked with modern web frameworks in delivery environments shaped by scale, process, and client requirements",
-      "- Collaborated across distributed teams and cross-functional stakeholders",
-      "- Contributed within agile delivery cycles for production-facing applications",
-      "",
-      "## Technologies Used",
-      "- React, Angular, TypeScript",
-      "- Java, Spring Boot, Node.js",
-      "- PostgreSQL, AWS, Docker, Git",
-      "",
-      "## Focus Areas",
-      "- Enterprise application delivery",
-      "- Distributed team collaboration",
-      "- Full-stack product work",
-    ],
-    description: "Enterprise full-stack delivery experience for global clients",
-  },
-  {
-    path: "experience/varsity tutors",
-    content: [
-      "# Programming Tutor - Varsity Tutors",
-      "",
-      "**Duration:** October 2023 - October 2024",
-      "**Location:** Remote",
-      "",
-      "## Responsibilities",
-      "- Provided individualized programming instruction across beginner to advanced skill levels",
-      "- Taught Python, JavaScript, React, and data structures and algorithms",
-      "- Helped students prepare for technical interviews and practical software engineering work",
-      "- Adapted explanations and exercises to different learning styles and experience levels",
-      "",
-      "## Focus Areas",
-      "- Technical interview prep",
-      "- Personalized instruction",
-      "- Strong fundamentals coaching",
-    ],
-    description: "Programming instruction focused on fundamentals, interviews, and practical problem solving",
-  },
-  {
-    path: "experience/outlier ai",
-    content: [
-      "# AI Training Specialist - Outlier AI",
-      "",
-      "**Duration:** 2022 - 2023",
-      "**Location:** Remote",
-      "",
-      "## Responsibilities",
-      "- Evaluated model outputs for reasoning quality, factual accuracy, and instruction adherence",
-      "- Identified failure modes in multi-step reasoning and ambiguous responses",
-      "- Provided corrective feedback to improve model behavior and output quality",
-      "",
-      "## Focus Areas",
-      "- AI response evaluation",
-      "- Reasoning quality analysis",
-      "- Model feedback loops",
-    ],
-    description: "AI evaluation work focused on reasoning quality and feedback loops",
-  },
+  ...projectReadmeFiles,
+  ...experienceFiles,
   {
     path: "experience/freelance",
     content: [
@@ -201,7 +160,7 @@ export const fileContents: FileContent[] = [
       "Independent and contract work is represented in the named consulting and tutoring roles elsewhere in this terminal profile.",
       "",
       "For the strongest current proof of work, review:",
-      "- work/resolute consulting group",
+      "- experience/resolute consulting group",
       "- projects/arachne",
       "- projects/web/README.md",
     ],

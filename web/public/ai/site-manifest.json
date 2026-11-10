@@ -364,15 +364,15 @@
         "SQLite",
         "systemd",
         "FTS5",
-        "Wayland",
-        "D-Bus"
+        "Wayland"
       ],
       "highlights": [
         "Belief-driven system state modeling",
         "Replayable operational history"
       ],
       "features": [
-        "Real-time system emitters (GPU, network, window focus, screen lock)",
+        "Real-time system emitters (GPU, network, window focus, thermal, UPS)",
+        "Screen-lock events currently supplied by an external wrapper, not a native emitter",
         "Belief engine with confidence-based inference",
         "Session tracking across substrate boundaries",
         "Full-text search over system event history",
@@ -450,24 +450,28 @@
       "title": "Personal Website",
       "category": "Portfolio",
       "status": "Live",
-      "date": "2024",
-      "summary": "Interactive developer portfolio built in React and TypeScript to present projects, work history, and systems thinking through a distinctive UI.",
+      "date": "2025",
+      "summary": "Personal site built in React and TypeScript that presents projects, case studies, technical writing, and interactive simulations under Darkfield, the site's own design system.",
       "technologies": [
         "React 18",
         "TypeScript",
         "Vite",
-        "Framer Motion"
+        "React Router",
+        "Framer Motion",
+        "nginx",
+        "Docker"
       ],
       "highlights": [
-        "Portfolio-first interactive UX",
-        "Modern React architecture",
-        "Custom terminal-inspired navigation"
+        "One design system governs the interface on every route",
+        "Content driven from centralized, typed data files",
+        "Route shells, structured data, and sitemap generated at build time"
       ],
       "features": [
-        "Terminal emulator with virtual filesystem",
-        "Parallax scrolling and animations",
-        "Lazy loading with minimum display time",
-        "Responsive design with theme support"
+        "Darkfield design system: token-driven type, colour, and motion on every route",
+        "Light, dark, and mono themes",
+        "Technical writing published from Markdown at build time",
+        "Browser simulations, games, and procedural animations",
+        "Terminal with a virtual filesystem, history, autocomplete, and search"
       ],
       "canonicalUrl": "https://kareemsasa.dev/projects",
       "caseStudyUrl": null,
@@ -479,7 +483,7 @@
       "id": "mnemosyne",
       "title": "Mnemosyne",
       "category": "Backend Systems",
-      "status": "Active development",
+      "status": "On Hold",
       "date": "2026",
       "summary": "Source-first documentation and traceability system for mapping documented events, rules, oversight, and source-reported claims without asserting conclusions.",
       "technologies": [
@@ -509,9 +513,9 @@
       "id": "kctl",
       "title": "kctl",
       "category": "Developer Tooling",
-      "status": "Maintenance",
+      "status": "On Hold",
       "date": "2026",
-      "summary": "Local control plane for running staged, verifiable AI-assisted development workflows across repositories.",
+      "summary": "Local control plane for running staged, verifiable AI-assisted development workflows across repositories. Development is on hold with known issues unresolved.",
       "technologies": [
         "Python",
         "Developer Tooling",
@@ -564,6 +568,149 @@
       "repositoryUrl": "https://github.com/kareemsasa/operating-system-audit",
       "repositoryStatus": "public",
       "publicEvidence": "Public repository link is listed by the site."
+    },
+    {
+      "id": "themis",
+      "title": "Themis",
+      "category": "Developer Tooling",
+      "status": "Active development",
+      "date": "2026",
+      "summary": "Governance control plane for a portfolio of projects. It keeps standards, evidence, and derived reports together so status can be inspected without treating assumptions, missing evidence, or agent output as fact.",
+      "technologies": [
+        "Python",
+        "JSON Schema",
+        "systemd",
+        "Agent Workflows"
+      ],
+      "highlights": [
+        "Agent output is a proposition about governed truth, never governed truth itself",
+        "Human authority is never inferred from commit, repository, or agent identity"
+      ],
+      "features": [
+        "Observe, derive, and render stages kept separate: repository evidence, governed judgment, deterministic Markdown reports",
+        "Activity reports for a bounded day, week, or time range",
+        "Governing standards for human deliberation, scheduled reconciliation, and architecture status",
+        "Delegated agent work bound to each target repository's own procedures",
+        "Scheduled observation through systemd units; standard-library Python only"
+      ],
+      "canonicalUrl": "https://kareemsasa.dev/projects",
+      "caseStudyUrl": null,
+      "repositoryUrl": null,
+      "repositoryStatus": "not-public",
+      "publicEvidence": "No public repository is listed. Treat public site copy as a sanitized summary."
+    },
+    {
+      "id": "wardroom",
+      "title": "Wardroom",
+      "category": "Developer Tooling",
+      "status": "On Hold",
+      "date": "2026",
+      "summary": "Local-first command-line group chat in which Claude and Codex deliberate over a project folder, with a moderator that summarizes when the room reaches consensus or a useful decision point.",
+      "technologies": [
+        "TypeScript",
+        "Node.js",
+        "Agent Workflows"
+      ],
+      "highlights": [
+        "Releases tagged through v0.2.0",
+        "Bounded transcripts keep long sessions from growing without limit"
+      ],
+      "features": [
+        "Context packs built from a project folder with file selection, size budgets, and redaction",
+        "Persistent, resumable sessions stored as JSONL event logs, with Markdown export",
+        "Mock adapters and a dry-run preview for use without CLI authentication",
+        "Claude and Codex invoked through their own command-line tools"
+      ],
+      "canonicalUrl": "https://kareemsasa.dev/projects",
+      "caseStudyUrl": null,
+      "repositoryUrl": "https://github.com/kareemsasa/wardroom",
+      "repositoryStatus": "public",
+      "publicEvidence": "Public repository link is listed by the site."
+    },
+    {
+      "id": "koine",
+      "title": "Koiné",
+      "category": "Desktop Application",
+      "status": "Development",
+      "date": "2026",
+      "summary": "Planned open-source Linux game library that gathers games from multiple launchers into one searchable collection while leaving installation, configuration, and launch to those launchers. The application core exists; the GTK interface and live launching are not built yet.",
+      "technologies": [
+        "Rust",
+        "SQLite",
+        "Linux"
+      ],
+      "highlights": [
+        "External launchers stay authoritative for configuration and execution",
+        "Unknown state is never recorded as a negative fact"
+      ],
+      "features": [
+        "Steam library discovery from explicitly configured roots, validated on synthetic libraries only",
+        "Read-only filesystem confinement during discovery",
+        "Bounded discovery scheduler with cancellation and durable recovery",
+        "Persistent library records in SQLite"
+      ],
+      "canonicalUrl": "https://kareemsasa.dev/projects",
+      "caseStudyUrl": null,
+      "repositoryUrl": "https://github.com/kareemsasa/koine",
+      "repositoryStatus": "public",
+      "publicEvidence": "Public repository link is listed by the site."
+    },
+    {
+      "id": "aeolus",
+      "title": "Aeolus",
+      "category": "Research",
+      "status": "Development",
+      "date": "2026",
+      "summary": "Experimental harness for studying whether autonomous agents can discover and interrupt a causal recurrence. So far it is a deterministic, headless simulator with a mechanical test suite; it does not show that any agent reasons or escapes.",
+      "technologies": [
+        "Python",
+        "Simulation",
+        "Autonomous Agents"
+      ],
+      "highlights": [
+        "Passing tests validate the simulator's mechanics, not the research hypothesis",
+        "Each policy sees only its own actor's observations"
+      ],
+      "features": [
+        "Deterministic headless world implementing a versioned simulator contract",
+        "Treatment and control conditions: shared records kept or erased between cycles",
+        "Replayable JSON traces and episodes with a privileged audit log",
+        "Rule-based explorer baseline; reasoning infrastructure with null and scripted reasoners only, no model calls"
+      ],
+      "canonicalUrl": "https://kareemsasa.dev/projects",
+      "caseStudyUrl": null,
+      "repositoryUrl": null,
+      "repositoryStatus": "not-public",
+      "publicEvidence": "No public repository is listed. Treat public site copy as a sanitized summary."
+    },
+    {
+      "id": "temporal-flexibility",
+      "title": "Temporal Flexibility",
+      "category": "Research",
+      "status": "Development",
+      "date": "2026",
+      "summary": "Systems-design research into how heterogeneous energy workloads, such as EV charging, HVAC, storage, and computing, could expose schedulable flexibility through a shared contract without surrendering local authority. The current work is an offline, deterministic experiment on synthetic workloads; it involves no live devices, markets, or grid signals.",
+      "technologies": [
+        "Python",
+        "C++",
+        "SciPy",
+        "Simulation"
+      ],
+      "highlights": [
+        "Instantaneous feasibility does not imply trajectory feasibility",
+        "Synthetic study: no claims about real devices, emissions, or grid outcomes"
+      ],
+      "features": [
+        "Architecture baseline and an adversarial test of the contract across five workload classes",
+        "Offline experiment comparing four ways to represent and compose flexibility at one electrical boundary",
+        "Exact reference oracle that decides whole-trajectory feasibility independently of the strategies under test",
+        "Methodology and hypotheses locked before scored runs"
+      ],
+      "canonicalUrl": "https://kareemsasa.dev/projects",
+      "caseStudyUrl": null,
+      "repositoryUrl": null,
+      "repositoryStatus": "not-public",
+      "publicEvidence": "No public repository is listed. Treat public site copy as a sanitized summary."
     }
   ],
   "caseStudies": [
@@ -812,30 +959,23 @@
       "id": "capgemini",
       "type": "Consulting",
       "company": "Capgemini",
-      "role": "Full Stack Developer",
-      "dates": "2021 - 2022",
+      "role": "Software Engineer",
+      "dates": "Jul 2021 - Oct 2022",
       "summary": [
-        "Built enterprise software for large client engagements across frontend and backend stacks",
-        "Worked with modern web frameworks in delivery environments shaped by scale, process, and client requirements",
+        "Built and maintained enterprise Java and Spring backend systems for large client engagements",
+        "Delivered within large-scale CI/CD pipelines and cross-team release processes shaped by client requirements",
         "Collaborated across distributed teams and cross-functional stakeholders",
         "Contributed within agile delivery cycles for production-facing applications"
       ],
       "technologies": [
-        "React",
-        "Angular",
-        "TypeScript",
         "Java",
-        "Spring Boot",
-        "Node.js",
-        "PostgreSQL",
-        "AWS",
-        "Docker",
-        "Git"
+        "Spring",
+        "CI/CD"
       ],
       "highlights": [
         "Enterprise application delivery",
         "Distributed team collaboration",
-        "Full-stack product work"
+        "Enterprise backend development"
       ]
     }
   ],

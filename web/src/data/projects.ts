@@ -5,6 +5,7 @@ export const STATUSES = [
   "Active development",
   "Demo-ready",
   "Maintenance",
+  "On Hold",
   "Completed",
 ] as const;
 export const CATEGORIES = [
@@ -12,6 +13,8 @@ export const CATEGORIES = [
   "Backend Systems",
   "Developer Tooling",
   "Full-Stack Web App",
+  "Desktop Application",
+  "Research",
   "Portfolio",
 ] as const;
 
@@ -66,9 +69,10 @@ export const projectsData: Project[] = [
       "Event-driven coordination layer for Linux that captures system context, tracks inferred state, and turns reactive troubleshooting into auditable operational understanding.",
     shortDescription:
       "Event-driven Linux coordination layer with replayable system state.",
-    techStack: ["Python", "SQLite", "systemd", "FTS5", "Wayland", "D-Bus"],
+    techStack: ["Python", "SQLite", "systemd", "FTS5", "Wayland"],
     features: [
-      "Real-time system emitters (GPU, network, window focus, screen lock)",
+      "Real-time system emitters (GPU, network, window focus, thermal, UPS)",
+      "Screen-lock events currently supplied by an external wrapper, not a native emitter",
       "Belief engine with confidence-based inference",
       "Session tracking across substrate boundaries",
       "Full-text search over system event history",
@@ -191,26 +195,27 @@ export const projectsData: Project[] = [
   {
     id: "web",
     category: "Portfolio",
-    date: "2024",
+    date: "2025",
     title: "Personal Website",
     description:
-      "Interactive developer portfolio built in React and TypeScript to present projects, work history, and systems thinking through a distinctive UI.",
+      "Personal site built in React and TypeScript that presents projects, case studies, technical writing, and interactive simulations under Darkfield, the site's own design system.",
     shortDescription:
-      "This site: a React and TypeScript portfolio with a terminal interface.",
-    techStack: ["React 18", "TypeScript", "Vite", "Framer Motion"],
+      "This site: case studies, writing, and simulations under its own design system.",
+    techStack: ["React 18", "TypeScript", "Vite", "React Router", "Framer Motion", "nginx", "Docker"],
     features: [
-      "Terminal emulator with virtual filesystem",
-      "Parallax scrolling and animations",
-      "Lazy loading with minimum display time",
-      "Responsive design with theme support",
+      "Darkfield design system: token-driven type, colour, and motion on every route",
+      "Light, dark, and mono themes",
+      "Technical writing published from Markdown at build time",
+      "Browser simulations, games, and procedural animations",
+      "Terminal with a virtual filesystem, history, autocomplete, and search",
     ],
     status: "Live",
     url: "https://github.com/kareemsasa3/personal-website",
     githubUrl: "https://github.com/kareemsasa3/personal-website",
     highlights: [
-      "Portfolio-first interactive UX",
-      "Modern React architecture",
-      "Custom terminal-inspired navigation",
+      "One design system governs the interface on every route",
+      "Content driven from centralized, typed data files",
+      "Route shells, structured data, and sitemap generated at build time",
     ],
   },
   {
@@ -229,7 +234,7 @@ export const projectsData: Project[] = [
       "Read-only React projection viewer",
       "Anti-bleed boundaries between context and evidence",
     ],
-    status: "Active development",
+    status: "On Hold",
     url: "#",
     highlights: [
       "Source-first traceability",
@@ -242,7 +247,7 @@ export const projectsData: Project[] = [
     date: "2026",
     title: "kctl",
     description:
-      "Local control plane for running staged, verifiable AI-assisted development workflows across repositories.",
+      "Local control plane for running staged, verifiable AI-assisted development workflows across repositories. Development is on hold with known issues unresolved.",
     shortDescription:
       "Plans, runs, and verifies AI-assisted development work as logged stages.",
     techStack: ["Python", "Developer Tooling", "Automation", "CI", "Agent Workflows"],
@@ -252,7 +257,7 @@ export const projectsData: Project[] = [
       "Durable run logs and structured artifacts",
       "Multi-repository workflow coordination",
     ],
-    status: "Maintenance",
+    status: "On Hold",
     url: "https://github.com/kareemsasa/kctl",
     githubUrl: "https://github.com/kareemsasa/kctl",
     highlights: [
@@ -282,6 +287,124 @@ export const projectsData: Project[] = [
     highlights: [
       "Read-only OS drift detection",
       "Deterministic snapshot comparisons",
+    ],
+  },
+  {
+    id: "themis",
+    category: "Developer Tooling",
+    date: "2026",
+    title: "Themis",
+    description:
+      "Governance control plane for a portfolio of projects. It keeps standards, evidence, and derived reports together so status can be inspected without treating assumptions, missing evidence, or agent output as fact.",
+    shortDescription:
+      "Portfolio governance that keeps agent output separate from human authority.",
+    techStack: ["Python", "JSON Schema", "systemd", "Agent Workflows"],
+    features: [
+      "Observe, derive, and render stages kept separate: repository evidence, governed judgment, deterministic Markdown reports",
+      "Activity reports for a bounded day, week, or time range",
+      "Governing standards for human deliberation, scheduled reconciliation, and architecture status",
+      "Delegated agent work bound to each target repository's own procedures",
+      "Scheduled observation through systemd units; standard-library Python only",
+    ],
+    status: "Active development",
+    url: "#",
+    highlights: [
+      "Agent output is a proposition about governed truth, never governed truth itself",
+      "Human authority is never inferred from commit, repository, or agent identity",
+    ],
+  },
+  {
+    id: "wardroom",
+    category: "Developer Tooling",
+    date: "2026",
+    title: "Wardroom",
+    description:
+      "Local-first command-line group chat in which Claude and Codex deliberate over a project folder, with a moderator that summarizes when the room reaches consensus or a useful decision point.",
+    shortDescription:
+      "CLI where Claude and Codex deliberate over a codebase together.",
+    techStack: ["TypeScript", "Node.js", "Agent Workflows"],
+    features: [
+      "Context packs built from a project folder with file selection, size budgets, and redaction",
+      "Persistent, resumable sessions stored as JSONL event logs, with Markdown export",
+      "Mock adapters and a dry-run preview for use without CLI authentication",
+      "Claude and Codex invoked through their own command-line tools",
+    ],
+    status: "On Hold",
+    url: "https://github.com/kareemsasa/wardroom",
+    githubUrl: "https://github.com/kareemsasa/wardroom",
+    highlights: [
+      "Releases tagged through v0.2.0",
+      "Bounded transcripts keep long sessions from growing without limit",
+    ],
+  },
+  {
+    id: "koine",
+    category: "Desktop Application",
+    date: "2026",
+    title: "Koiné",
+    description:
+      "Planned open-source Linux game library that gathers games from multiple launchers into one searchable collection while leaving installation, configuration, and launch to those launchers. The application core exists; the GTK interface and live launching are not built yet.",
+    shortDescription:
+      "Early-stage Rust core for a unified Linux game library.",
+    techStack: ["Rust", "SQLite", "Linux"],
+    features: [
+      "Steam library discovery from explicitly configured roots, validated on synthetic libraries only",
+      "Read-only filesystem confinement during discovery",
+      "Bounded discovery scheduler with cancellation and durable recovery",
+      "Persistent library records in SQLite",
+    ],
+    status: "Development",
+    url: "https://github.com/kareemsasa/koine",
+    githubUrl: "https://github.com/kareemsasa/koine",
+    highlights: [
+      "External launchers stay authoritative for configuration and execution",
+      "Unknown state is never recorded as a negative fact",
+    ],
+  },
+  {
+    id: "aeolus",
+    category: "Research",
+    date: "2026",
+    title: "Aeolus",
+    description:
+      "Experimental harness for studying whether autonomous agents can discover and interrupt a causal recurrence. So far it is a deterministic, headless simulator with a mechanical test suite; it does not show that any agent reasons or escapes.",
+    shortDescription:
+      "Deterministic simulator for autonomous-agent recurrence experiments.",
+    techStack: ["Python", "Simulation", "Autonomous Agents"],
+    features: [
+      "Deterministic headless world implementing a versioned simulator contract",
+      "Treatment and control conditions: shared records kept or erased between cycles",
+      "Replayable JSON traces and episodes with a privileged audit log",
+      "Rule-based explorer baseline; reasoning infrastructure with null and scripted reasoners only, no model calls",
+    ],
+    status: "Development",
+    url: "#",
+    highlights: [
+      "Passing tests validate the simulator's mechanics, not the research hypothesis",
+      "Each policy sees only its own actor's observations",
+    ],
+  },
+  {
+    id: "temporal-flexibility",
+    category: "Research",
+    date: "2026",
+    title: "Temporal Flexibility",
+    description:
+      "Systems-design research into how heterogeneous energy workloads, such as EV charging, HVAC, storage, and computing, could expose schedulable flexibility through a shared contract without surrendering local authority. The current work is an offline, deterministic experiment on synthetic workloads; it involves no live devices, markets, or grid signals.",
+    shortDescription:
+      "Research on a shared flexibility contract for heterogeneous energy workloads.",
+    techStack: ["Python", "C++", "SciPy", "Simulation"],
+    features: [
+      "Architecture baseline and an adversarial test of the contract across five workload classes",
+      "Offline experiment comparing four ways to represent and compose flexibility at one electrical boundary",
+      "Exact reference oracle that decides whole-trajectory feasibility independently of the strategies under test",
+      "Methodology and hypotheses locked before scored runs",
+    ],
+    status: "Development",
+    url: "#",
+    highlights: [
+      "Instantaneous feasibility does not imply trajectory feasibility",
+      "Synthetic study: no claims about real devices, emissions, or grid outcomes",
     ],
   },
 ];

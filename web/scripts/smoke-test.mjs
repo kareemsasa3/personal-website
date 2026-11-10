@@ -455,7 +455,7 @@ const main = async () => {
     }
   }
 
-  for (const privateProjectId of ["erebus", "mnemosyne"]) {
+  for (const privateProjectId of ["erebus", "mnemosyne", "themis", "aeolus", "temporal-flexibility"]) {
     if (
       projectsSourceCodeEntries.some((entry) =>
         String(entry["@id"]).endsWith(`#${privateProjectId}`)
