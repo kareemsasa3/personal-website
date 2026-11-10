@@ -329,7 +329,7 @@ export const projectsData: Project[] = [
       "Mock adapters and a dry-run preview for use without CLI authentication",
       "Claude and Codex invoked through their own command-line tools",
     ],
-    status: "Demo-ready",
+    status: "On Hold",
     url: "https://github.com/kareemsasa/wardroom",
     githubUrl: "https://github.com/kareemsasa/wardroom",
     highlights: [
@@ -382,6 +382,29 @@ export const projectsData: Project[] = [
     highlights: [
       "Passing tests validate the simulator's mechanics, not the research hypothesis",
       "Each policy sees only its own actor's observations",
+    ],
+  },
+  {
+    id: "temporal-flexibility",
+    category: "Research",
+    date: "2026",
+    title: "Temporal Flexibility",
+    description:
+      "Systems-design research into how heterogeneous energy workloads, such as EV charging, HVAC, storage, and computing, could expose schedulable flexibility through a shared contract without surrendering local authority. The current work is an offline, deterministic experiment on synthetic workloads; it involves no live devices, markets, or grid signals.",
+    shortDescription:
+      "Research on a shared flexibility contract for heterogeneous energy workloads.",
+    techStack: ["Python", "C++", "SciPy", "Simulation"],
+    features: [
+      "Architecture baseline and an adversarial test of the contract across five workload classes",
+      "Offline experiment comparing four ways to represent and compose flexibility at one electrical boundary",
+      "Exact reference oracle that decides whole-trajectory feasibility independently of the strategies under test",
+      "Methodology and hypotheses locked before scored runs",
+    ],
+    status: "Development",
+    url: "#",
+    highlights: [
+      "Instantaneous feasibility does not imply trajectory feasibility",
+      "Synthetic study: no claims about real devices, emissions, or grid outcomes",
     ],
   },
 ];
