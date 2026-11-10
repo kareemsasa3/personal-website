@@ -13,6 +13,8 @@ export const CATEGORIES = [
   "Backend Systems",
   "Developer Tooling",
   "Full-Stack Web App",
+  "Desktop Application",
+  "Research",
   "Portfolio",
 ] as const;
 
@@ -285,6 +287,101 @@ export const projectsData: Project[] = [
     highlights: [
       "Read-only OS drift detection",
       "Deterministic snapshot comparisons",
+    ],
+  },
+  {
+    id: "themis",
+    category: "Developer Tooling",
+    date: "2026",
+    title: "Themis",
+    description:
+      "Governance control plane for a portfolio of projects. It keeps standards, evidence, and derived reports together so status can be inspected without treating assumptions, missing evidence, or agent output as fact.",
+    shortDescription:
+      "Portfolio governance that keeps agent output separate from human authority.",
+    techStack: ["Python", "JSON Schema", "systemd", "Agent Workflows"],
+    features: [
+      "Observe, derive, and render stages kept separate: repository evidence, governed judgment, deterministic Markdown reports",
+      "Activity reports for a bounded day, week, or time range",
+      "Governing standards for human deliberation, scheduled reconciliation, and architecture status",
+      "Delegated agent work bound to each target repository's own procedures",
+      "Scheduled observation through systemd units; standard-library Python only",
+    ],
+    status: "Active development",
+    url: "#",
+    highlights: [
+      "Agent output is a proposition about governed truth, never governed truth itself",
+      "Human authority is never inferred from commit, repository, or agent identity",
+    ],
+  },
+  {
+    id: "wardroom",
+    category: "Developer Tooling",
+    date: "2026",
+    title: "Wardroom",
+    description:
+      "Local-first command-line group chat in which Claude and Codex deliberate over a project folder, with a moderator that summarizes when the room reaches consensus or a useful decision point.",
+    shortDescription:
+      "CLI where Claude and Codex deliberate over a codebase together.",
+    techStack: ["TypeScript", "Node.js", "Agent Workflows"],
+    features: [
+      "Context packs built from a project folder with file selection, size budgets, and redaction",
+      "Persistent, resumable sessions stored as JSONL event logs, with Markdown export",
+      "Mock adapters and a dry-run preview for use without CLI authentication",
+      "Claude and Codex invoked through their own command-line tools",
+    ],
+    status: "Demo-ready",
+    url: "https://github.com/kareemsasa/wardroom",
+    githubUrl: "https://github.com/kareemsasa/wardroom",
+    highlights: [
+      "Releases tagged through v0.2.0",
+      "Bounded transcripts keep long sessions from growing without limit",
+    ],
+  },
+  {
+    id: "koine",
+    category: "Desktop Application",
+    date: "2026",
+    title: "Koiné",
+    description:
+      "Planned open-source Linux game library that gathers games from multiple launchers into one searchable collection while leaving installation, configuration, and launch to those launchers. The application core exists; the GTK interface and live launching are not built yet.",
+    shortDescription:
+      "Early-stage Rust core for a unified Linux game library.",
+    techStack: ["Rust", "SQLite", "Linux"],
+    features: [
+      "Steam library discovery from explicitly configured roots, validated on synthetic libraries only",
+      "Read-only filesystem confinement during discovery",
+      "Bounded discovery scheduler with cancellation and durable recovery",
+      "Persistent library records in SQLite",
+    ],
+    status: "Development",
+    url: "https://github.com/kareemsasa/koine",
+    githubUrl: "https://github.com/kareemsasa/koine",
+    highlights: [
+      "External launchers stay authoritative for configuration and execution",
+      "Unknown state is never recorded as a negative fact",
+    ],
+  },
+  {
+    id: "aeolus",
+    category: "Research",
+    date: "2026",
+    title: "Aeolus",
+    description:
+      "Experimental harness for studying whether autonomous agents can discover and interrupt a causal recurrence. So far it is a deterministic, headless simulator with a mechanical test suite; it does not show that any agent reasons or escapes.",
+    shortDescription:
+      "Deterministic simulator for autonomous-agent recurrence experiments.",
+    techStack: ["Python", "Simulation", "Autonomous Agents"],
+    features: [
+      "Deterministic headless world implementing a versioned simulator contract",
+      "Treatment and control conditions: shared records kept or erased between cycles",
+      "Replayable JSON traces and episodes with a privileged audit log",
+      "Rule-based explorer baseline; reasoning infrastructure with null and scripted reasoners only, no model calls",
+    ],
+    status: "Development",
+    url: "#",
+    highlights: [
+      "Passing tests validate the simulator's mechanics, not the research hypothesis",
+      "Each policy sees only its own actor's observations",
     ],
   },
 ];
