@@ -11,7 +11,7 @@ Prefer canonical project and case-study pages when describing specific work. Do 
 - Repository status: not-public
 - Summary: Event-driven coordination layer for Linux that captures system context, tracks inferred state, and turns reactive troubleshooting into auditable operational understanding.
 - Public evidence: No public repository is listed. Treat public site copy as a sanitized summary.
-- Technologies: Python, SQLite, systemd, FTS5, Wayland, D-Bus
+- Technologies: Python, SQLite, systemd, FTS5, Wayland
 - Highlights: Belief-driven system state modeling; Replayable operational history
 
 ## Aether
@@ -44,19 +44,19 @@ Prefer canonical project and case-study pages when describing specific work. Do 
 
 - Category: Portfolio
 - Status: Live
-- Date: 2024
+- Date: 2025
 - Canonical URL: https://kareemsasa.dev/projects
 - Repository status: public-legacy-account
 - Repository: https://github.com/kareemsasa3/personal-website
-- Summary: Interactive developer portfolio built in React and TypeScript to present projects, work history, and systems thinking through a distinctive UI.
+- Summary: Personal site built in React and TypeScript that presents projects, case studies, technical writing, and interactive simulations under Darkfield, the site's own design system.
 - Public evidence: Public repository link is listed by the site.
-- Technologies: React 18, TypeScript, Vite, Framer Motion
-- Highlights: Portfolio-first interactive UX; Modern React architecture; Custom terminal-inspired navigation
+- Technologies: React 18, TypeScript, Vite, React Router, Framer Motion, nginx, Docker
+- Highlights: One design system governs the interface on every route; Content driven from centralized, typed data files; Route shells, structured data, and sitemap generated at build time
 
 ## Mnemosyne
 
 - Category: Backend Systems
-- Status: Active development
+- Status: On Hold
 - Date: 2026
 - Canonical URL: https://kareemsasa.dev/projects
 - Repository status: not-public
@@ -68,12 +68,12 @@ Prefer canonical project and case-study pages when describing specific work. Do 
 ## kctl
 
 - Category: Developer Tooling
-- Status: Maintenance
+- Status: On Hold
 - Date: 2026
 - Canonical URL: https://kareemsasa.dev/projects
 - Repository status: public
 - Repository: https://github.com/kareemsasa/kctl
-- Summary: Local control plane for running staged, verifiable AI-assisted development workflows across repositories.
+- Summary: Local control plane for running staged, verifiable AI-assisted development workflows across repositories. Development is on hold with known issues unresolved.
 - Public evidence: Public repository link is listed by the site.
 - Technologies: Python, Developer Tooling, Automation, CI, Agent Workflows
 - Highlights: Planned agent-assisted development runs; Verifiable local workflow control
@@ -90,6 +90,56 @@ Prefer canonical project and case-study pages when describing specific work. Do 
 - Public evidence: Public repository link is listed by the site.
 - Technologies: Go, Bash, Security, Systems, CLI
 - Highlights: Read-only OS drift detection; Deterministic snapshot comparisons
+
+## Themis
+
+- Category: Developer Tooling
+- Status: Active development
+- Date: 2026
+- Canonical URL: https://kareemsasa.dev/projects
+- Repository status: not-public
+- Summary: Governance control plane for a portfolio of projects. It keeps standards, evidence, and derived reports together so status can be inspected without treating assumptions, missing evidence, or agent output as fact.
+- Public evidence: No public repository is listed. Treat public site copy as a sanitized summary.
+- Technologies: Python, JSON Schema, systemd, Agent Workflows
+- Highlights: Agent output is a proposition about governed truth, never governed truth itself; Human authority is never inferred from commit, repository, or agent identity
+
+## Wardroom
+
+- Category: Developer Tooling
+- Status: Demo-ready
+- Date: 2026
+- Canonical URL: https://kareemsasa.dev/projects
+- Repository status: public
+- Repository: https://github.com/kareemsasa/wardroom
+- Summary: Local-first command-line group chat in which Claude and Codex deliberate over a project folder, with a moderator that summarizes when the room reaches consensus or a useful decision point.
+- Public evidence: Public repository link is listed by the site.
+- Technologies: TypeScript, Node.js, Agent Workflows
+- Highlights: Releases tagged through v0.2.0; Bounded transcripts keep long sessions from growing without limit
+
+## Koiné
+
+- Category: Desktop Application
+- Status: Development
+- Date: 2026
+- Canonical URL: https://kareemsasa.dev/projects
+- Repository status: public
+- Repository: https://github.com/kareemsasa/koine
+- Summary: Planned open-source Linux game library that gathers games from multiple launchers into one searchable collection while leaving installation, configuration, and launch to those launchers. The application core exists; the GTK interface and live launching are not built yet.
+- Public evidence: Public repository link is listed by the site.
+- Technologies: Rust, SQLite, Linux
+- Highlights: External launchers stay authoritative for configuration and execution; Unknown state is never recorded as a negative fact
+
+## Aeolus
+
+- Category: Research
+- Status: Development
+- Date: 2026
+- Canonical URL: https://kareemsasa.dev/projects
+- Repository status: not-public
+- Summary: Experimental harness for studying whether autonomous agents can discover and interrupt a causal recurrence. So far it is a deterministic, headless simulator with a mechanical test suite; it does not show that any agent reasons or escapes.
+- Public evidence: No public repository is listed. Treat public site copy as a sanitized summary.
+- Technologies: Python, Simulation, Autonomous Agents
+- Highlights: Passing tests validate the simulator's mechanics, not the research hypothesis; Each policy sees only its own actor's observations
 
 ## Case Studies
 
