@@ -1,4 +1,46 @@
 import { FileSystemItem } from "../types/terminal";
+import { projectsData } from "./projects";
+import { workExperienceData } from "./workExperience";
+import {
+  experienceFileName,
+  experienceLines,
+  projectReadmeLines,
+  terminalFileSize,
+} from "./fileContents";
+
+const TERMINAL_DATE = "Dec 15 10:30";
+
+/** One directory per public Projects entry (except the hand-curated `web`), each with a README. */
+const projectDirectories = (webDirectory: FileSystemItem): FileSystemItem[] =>
+  projectsData.map((project) =>
+    project.id === "web"
+      ? webDirectory
+      : {
+          name: project.id,
+          type: "directory",
+          permissions: "drwxr-xr-x",
+          size: "4096",
+          date: TERMINAL_DATE,
+          ...(project.githubUrl ? { githubUrl: project.githubUrl } : {}),
+          children: [
+            {
+              name: "README.md",
+              type: "file",
+              permissions: "-rw-r--r--",
+              size: terminalFileSize(projectReadmeLines(project)),
+              date: TERMINAL_DATE,
+            },
+          ],
+        }
+  );
+
+const experienceEntries: FileSystemItem[] = workExperienceData.map((job) => ({
+  name: experienceFileName(job),
+  type: "file",
+  permissions: "-rw-r--r--",
+  size: terminalFileSize(experienceLines(job)),
+  date: TERMINAL_DATE,
+}));
 
 export const fileSystem: FileSystemItem[] = [
   {
@@ -38,7 +80,7 @@ export const fileSystem: FileSystemItem[] = [
     size: "4096",
     date: "Dec 15 10:30",
     route: "/projects",
-    children: [
+    children: projectDirectories(
       {
         name: "web",
         type: "directory",
@@ -96,16 +138,8 @@ export const fileSystem: FileSystemItem[] = [
             ],
           },
         ],
-      },
-      {
-        name: "arachne",
-        type: "directory",
-        permissions: "drwxr-xr-x",
-        size: "4096",
-        date: "Dec 15 10:30",
-        githubUrl: "https://github.com/kareemsasa3/Arachne",
-      },
-    ],
+      }
+    ),
   },
   {
     name: "experience",
@@ -115,39 +149,12 @@ export const fileSystem: FileSystemItem[] = [
     date: "Dec 15 10:30",
     route: "/experience",
     children: [
-      {
-        name: "resolute consulting group",
-        type: "file",
-        permissions: "-rw-r--r--",
-        size: "3.2K",
-        date: "Dec 15 10:30",
-      },
-      {
-        name: "capgemini",
-        type: "file",
-        permissions: "-rw-r--r--",
-        size: "2.8K",
-        date: "Dec 15 10:30",
-      },
+      ...experienceEntries,
       {
         name: "freelance",
         type: "file",
         permissions: "-rw-r--r--",
         size: "2.5K",
-        date: "Dec 15 10:30",
-      },
-      {
-        name: "outlier ai",
-        type: "file",
-        permissions: "-rw-r--r--",
-        size: "1.9K",
-        date: "Dec 15 10:30",
-      },
-      {
-        name: "varsity tutors",
-        type: "file",
-        permissions: "-rw-r--r--",
-        size: "1.9K",
         date: "Dec 15 10:30",
       },
     ],
