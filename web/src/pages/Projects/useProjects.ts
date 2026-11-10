@@ -89,8 +89,11 @@ export function useProjects() {
     return ["All", ...cats];
   }, []);
 
+  // Offer only statuses some project currently has, in their canonical order;
+  // STATUSES keeps every supported lifecycle value.
   const statuses = useMemo(() => {
-    return ["All", ...STATUSES];
+    const used = new Set(projectsData.map((p) => p.status));
+    return ["All", ...STATUSES.filter((s) => used.has(s))];
   }, []);
 
   // Get all unique technologies
