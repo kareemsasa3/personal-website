@@ -253,7 +253,7 @@ export const caseStudiesData: CaseStudy[] = [
       technicalLimitations:
         "The platform had to ingest heterogeneous local signals, preserve ordering, and stay auditable without introducing opaque automation or high operational overhead.",
       environment:
-        "The system targets a Linux desktop with systemd, D-Bus, Wayland session signals, and local SQLite storage.",
+        "The system targets a Linux desktop with systemd, Wayland session signals, and local SQLite storage.",
       tradeoffs:
         "Erebus favors append-only event history and explicit confidence scores over brittle single-state assumptions. That increases storage and modeling work, but keeps inference inspectable.",
     },

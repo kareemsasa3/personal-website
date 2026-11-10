@@ -5,6 +5,7 @@ export const STATUSES = [
   "Active development",
   "Demo-ready",
   "Maintenance",
+  "On Hold",
   "Completed",
 ] as const;
 export const CATEGORIES = [
@@ -66,9 +67,10 @@ export const projectsData: Project[] = [
       "Event-driven coordination layer for Linux that captures system context, tracks inferred state, and turns reactive troubleshooting into auditable operational understanding.",
     shortDescription:
       "Event-driven Linux coordination layer with replayable system state.",
-    techStack: ["Python", "SQLite", "systemd", "FTS5", "Wayland", "D-Bus"],
+    techStack: ["Python", "SQLite", "systemd", "FTS5", "Wayland"],
     features: [
-      "Real-time system emitters (GPU, network, window focus, screen lock)",
+      "Real-time system emitters (GPU, network, window focus, thermal, UPS)",
+      "Screen-lock events currently supplied by an external wrapper, not a native emitter",
       "Belief engine with confidence-based inference",
       "Session tracking across substrate boundaries",
       "Full-text search over system event history",
@@ -191,26 +193,27 @@ export const projectsData: Project[] = [
   {
     id: "web",
     category: "Portfolio",
-    date: "2024",
+    date: "2025",
     title: "Personal Website",
     description:
-      "Interactive developer portfolio built in React and TypeScript to present projects, work history, and systems thinking through a distinctive UI.",
+      "Personal site built in React and TypeScript that presents projects, case studies, technical writing, and interactive simulations under Darkfield, the site's own design system.",
     shortDescription:
-      "This site: a React and TypeScript portfolio with a terminal interface.",
-    techStack: ["React 18", "TypeScript", "Vite", "Framer Motion"],
+      "This site: case studies, writing, and simulations under its own design system.",
+    techStack: ["React 18", "TypeScript", "Vite", "React Router", "Framer Motion", "nginx", "Docker"],
     features: [
-      "Terminal emulator with virtual filesystem",
-      "Parallax scrolling and animations",
-      "Lazy loading with minimum display time",
-      "Responsive design with theme support",
+      "Darkfield design system: token-driven type, colour, and motion on every route",
+      "Light, dark, and mono themes",
+      "Technical writing published from Markdown at build time",
+      "Browser simulations, games, and procedural animations",
+      "Terminal with a virtual filesystem, history, autocomplete, and search",
     ],
     status: "Live",
     url: "https://github.com/kareemsasa3/personal-website",
     githubUrl: "https://github.com/kareemsasa3/personal-website",
     highlights: [
-      "Portfolio-first interactive UX",
-      "Modern React architecture",
-      "Custom terminal-inspired navigation",
+      "One design system governs the interface on every route",
+      "Content driven from centralized, typed data files",
+      "Route shells, structured data, and sitemap generated at build time",
     ],
   },
   {
@@ -229,7 +232,7 @@ export const projectsData: Project[] = [
       "Read-only React projection viewer",
       "Anti-bleed boundaries between context and evidence",
     ],
-    status: "Active development",
+    status: "On Hold",
     url: "#",
     highlights: [
       "Source-first traceability",
@@ -242,7 +245,7 @@ export const projectsData: Project[] = [
     date: "2026",
     title: "kctl",
     description:
-      "Local control plane for running staged, verifiable AI-assisted development workflows across repositories.",
+      "Local control plane for running staged, verifiable AI-assisted development workflows across repositories. Development is on hold with known issues unresolved.",
     shortDescription:
       "Plans, runs, and verifies AI-assisted development work as logged stages.",
     techStack: ["Python", "Developer Tooling", "Automation", "CI", "Agent Workflows"],
@@ -252,7 +255,7 @@ export const projectsData: Project[] = [
       "Durable run logs and structured artifacts",
       "Multi-repository workflow coordination",
     ],
-    status: "Maintenance",
+    status: "On Hold",
     url: "https://github.com/kareemsasa/kctl",
     githubUrl: "https://github.com/kareemsasa/kctl",
     highlights: [
