@@ -106,7 +106,7 @@ Prefer canonical project and case-study pages when describing specific work. Do 
 ## Wardroom
 
 - Category: Developer Tooling
-- Status: Demo-ready
+- Status: On Hold
 - Date: 2026
 - Canonical URL: https://kareemsasa.dev/projects
 - Repository status: public
@@ -140,6 +140,18 @@ Prefer canonical project and case-study pages when describing specific work. Do 
 - Public evidence: No public repository is listed. Treat public site copy as a sanitized summary.
 - Technologies: Python, Simulation, Autonomous Agents
 - Highlights: Passing tests validate the simulator's mechanics, not the research hypothesis; Each policy sees only its own actor's observations
+
+## Temporal Flexibility
+
+- Category: Research
+- Status: Development
+- Date: 2026
+- Canonical URL: https://kareemsasa.dev/projects
+- Repository status: not-public
+- Summary: Systems-design research into how heterogeneous energy workloads, such as EV charging, HVAC, storage, and computing, could expose schedulable flexibility through a shared contract without surrendering local authority. The current work is an offline, deterministic experiment on synthetic workloads; it involves no live devices, markets, or grid signals.
+- Public evidence: No public repository is listed. Treat public site copy as a sanitized summary.
+- Technologies: Python, C++, SciPy, Simulation
+- Highlights: Instantaneous feasibility does not imply trajectory feasibility; Synthetic study: no claims about real devices, emissions, or grid outcomes
 
 ## Case Studies
 

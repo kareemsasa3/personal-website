@@ -603,7 +603,7 @@
       "id": "wardroom",
       "title": "Wardroom",
       "category": "Developer Tooling",
-      "status": "Demo-ready",
+      "status": "On Hold",
       "date": "2026",
       "summary": "Local-first command-line group chat in which Claude and Codex deliberate over a project folder, with a moderator that summarizes when the room reaches consensus or a useful decision point.",
       "technologies": [
@@ -676,6 +676,35 @@
         "Treatment and control conditions: shared records kept or erased between cycles",
         "Replayable JSON traces and episodes with a privileged audit log",
         "Rule-based explorer baseline; reasoning infrastructure with null and scripted reasoners only, no model calls"
+      ],
+      "canonicalUrl": "https://kareemsasa.dev/projects",
+      "caseStudyUrl": null,
+      "repositoryUrl": null,
+      "repositoryStatus": "not-public",
+      "publicEvidence": "No public repository is listed. Treat public site copy as a sanitized summary."
+    },
+    {
+      "id": "temporal-flexibility",
+      "title": "Temporal Flexibility",
+      "category": "Research",
+      "status": "Development",
+      "date": "2026",
+      "summary": "Systems-design research into how heterogeneous energy workloads, such as EV charging, HVAC, storage, and computing, could expose schedulable flexibility through a shared contract without surrendering local authority. The current work is an offline, deterministic experiment on synthetic workloads; it involves no live devices, markets, or grid signals.",
+      "technologies": [
+        "Python",
+        "C++",
+        "SciPy",
+        "Simulation"
+      ],
+      "highlights": [
+        "Instantaneous feasibility does not imply trajectory feasibility",
+        "Synthetic study: no claims about real devices, emissions, or grid outcomes"
+      ],
+      "features": [
+        "Architecture baseline and an adversarial test of the contract across five workload classes",
+        "Offline experiment comparing four ways to represent and compose flexibility at one electrical boundary",
+        "Exact reference oracle that decides whole-trajectory feasibility independently of the strategies under test",
+        "Methodology and hypotheses locked before scored runs"
       ],
       "canonicalUrl": "https://kareemsasa.dev/projects",
       "caseStudyUrl": null,
@@ -940,15 +969,8 @@
       ],
       "technologies": [
         "Java",
-        "Spring Boot",
-        "React",
-        "Angular",
-        "TypeScript",
-        "Node.js",
-        "PostgreSQL",
-        "AWS",
-        "Docker",
-        "Git"
+        "Spring",
+        "CI/CD"
       ],
       "highlights": [
         "Enterprise application delivery",
