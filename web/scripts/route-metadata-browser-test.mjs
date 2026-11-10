@@ -24,6 +24,7 @@ const routes = [
   "/case-studies/aether",
   "/case-studies/erebus",
   "/case-studies/arachne",
+  "/case-studies/personal-website",
   "/simulations",
   "/simulations/annals",
   "/simulations/traffic-simulator",
