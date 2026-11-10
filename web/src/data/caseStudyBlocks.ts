@@ -220,6 +220,139 @@ const whereTheSpecificationLived: NonNullable<CaseStudy["blocks"]> = {
   },
 };
 
+const personalWebsite: NonNullable<CaseStudy["blocks"]> = {
+  problem: {
+    after: [
+      {
+        kind: "list",
+        items: [
+          "A client-rendered app still had to be readable without JavaScript.",
+          "Published writing still had to be safe to inject.",
+          "A deploy must not replace a working release with a broken one.",
+          "An interface styled through hundreds of literal values had to be governed.",
+        ],
+      },
+      {
+        kind: "prose",
+        paragraphs: ["This study follows how each problem surfaced, and what now enforces the answer."],
+      },
+      {
+        kind: "prose",
+        heading: "From four services to one",
+        paragraphs: [
+          "The first commit, on 6 August 2025, wired the portfolio, the AI microservice, Arachne and Redis together, with nginx routing API paths to the backends.",
+        ],
+      },
+      {
+        kind: "list",
+        items: [
+          "December 2025: a branch integrated Arachne's own interface and web search into the portfolio. It was closed unmerged.",
+          "16 January 2026: the AI backend and Arachne were removed from the production stack and from nginx routing.",
+          "April 2026: the frontend, until then a separate submodule, moved into this repository as web/. Its earlier history is outside this study.",
+        ],
+      },
+      {
+        kind: "prose",
+        paragraphs: ["The commits record what changed, not why. In the owner's retrospective account:"],
+      },
+      {
+        kind: "list",
+        items: [
+          "The site should stay focused.",
+          "The other projects should evolve independently.",
+          "Arachne had reached the point where a dedicated interface served it better.",
+          "Integrating it into the portfolio added security complexity.",
+        ],
+      },
+      {
+        kind: "prose",
+        paragraphs: ["Arachne continued as its own project, with its own case study."],
+      },
+    ],
+  },
+  decisions: {
+    after: [
+      {
+        kind: "prose",
+        heading: "Darkfield began with a favicon",
+        paragraphs: [
+          "Darkfield did not start as a redesign. On 8 October 2026 a red dashed spiral appeared briefly on an Android phone before the site painted. The investigation traced it to the site's own favicon. The owner wanted that mark replaced with an original identity mark, and asked for a product-agnostic visual language rather than a design made for this website. On 9 October the finished R1 “Constant Seam” mark replaced the favicon, as a deliberately isolated change. Two days later the owner approved Darkfield as the governing design system for the entire site. No visitor-facing page was exempt, and independent creative work kept its own identity.",
+          "When the migration plan was written, Darkfield appeared only in the favicon. The interface ran on:",
+        ],
+      },
+      {
+        kind: "list",
+        items: [
+          "about 250 literal greens;",
+          "230 border-radius and 146 box-shadow declarations;",
+          "Courier New prose and 33 keyframe animations.",
+        ],
+      },
+      {
+        kind: "prose",
+        paragraphs: [
+          "Over four weeks the migration replaced that layer surface by surface: restraint, grammar, identity, the governed interface, then conformance. It turned a visual language into constraints: generated tokens, an export boundary, provenance records and tests. It merged on 6 November 2026.",
+        ],
+      },
+      {
+        kind: "prose",
+        heading: "Who decided what",
+        paragraphs: ["From spring 2026, AI coding agents did much of the implementation:"],
+      },
+      {
+        kind: "list",
+        items: [
+          "Codex: its sessions on this repository begin in April 2026, the month of the audit-remediation passes, and include part of the Darkfield migration in October.",
+          "Claude Code: its commits, which carry co-author trailers, begin in May 2026 and run through the security, deployment and Darkfield work.",
+          "Before April 2026: no agent records exist for the repository.",
+        ],
+      },
+      {
+        kind: "prose",
+        paragraphs: [
+          "The agents worked from the repository's AGENTS.md and per-task instructions. They investigated, planned, implemented and tested, with independent agent review between tasks. Authority stayed with the owner:",
+        ],
+      },
+      {
+        kind: "list",
+        items: [
+          "Direction and acceptance: the owner made the binding decisions: simplifying the stack, adopting Darkfield and its scope, keeping its specification private, and choosing which identity files to publish. The owner also approved the migration's final visual review.",
+          "Delegation on the record: the owner delegated some bounded Darkfield design questions. The plan records the answers as delegated rulings, “not owner approvals”, each still open to review.",
+          "Release approval: push, merge and deploy were reserved for the owner's authorization. The main branch accepts changes only through a code-owner-approved pull request with a passing build, with no bypass. Every pull request was merged from the owner's accounts, and production deploys only from main.",
+        ],
+      },
+      {
+        kind: "prose",
+        paragraphs: [
+          "The Traffic Simulator came out of a controlled comparison of two agent runs, which has its own case study.",
+        ],
+      },
+    ],
+  },
+  implementation: {
+    before: [
+      {
+        kind: "prose",
+        heading: "Hardening the release path",
+        paragraphs: ["Three weaknesses in the original pipeline were found and fixed:"],
+      },
+      {
+        kind: "list",
+        items: [
+          "Mutable tags: the deploy requested an image by commit, but a host environment file overrode it with :latest, and the old script stopped the stack before pulling. Releases are now digest-pinned and verified, and every check runs before any container is touched.",
+          "Unverified host: the deploy's SSH connection did not verify the server's identity. It now trusts only a pinned host key with strict options, and tests check every SSH option set in the repository.",
+          "Fork authorization: the deploy job accepted any successful build whose branch was named main, which a fork's pull request could satisfy. It now requires a push to this repository's main.",
+        ],
+      },
+      {
+        kind: "prose",
+        paragraphs: ["A dependency audit also gates the image build, so a high-severity advisory blocks deployment."],
+      },
+    ],
+  },
+};
+
 export const caseStudyBlocksBySlug: Record<string, CaseStudy["blocks"]> = {
+  "personal-website": personalWebsite,
   "where-the-specification-lived": whereTheSpecificationLived,
 };

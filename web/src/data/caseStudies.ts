@@ -436,6 +436,185 @@ export const caseStudiesData: CaseStudy[] = [
     focusAreas: ["Research automation", "Service design", "Search systems"],
   },
   {
+    slug: "personal-website",
+    projectId: "web",
+    kind: "system",
+    title: "Personal Website",
+    searchTitle: "Personal Website: From Service Stack to Governed Static Site",
+    shortDescription:
+      "How kareemsasa.dev went from a four-service Docker stack to a static React frontend. Its pages ship as crawlable route shells, its deploys are digest-pinned and health-checked, and its interface follows a design system that its own tests check. AI coding agents helped build it; release authority stayed with the owner.",
+    problem:
+      "In August 2025 this repository ran a Docker Compose stack behind nginx: a React portfolio, a Node.js AI backend, the Arachne web-research scraper written in Go, and Redis. By November 2026 it served one static frontend. Fewer services did not mean fewer responsibilities.",
+    constraints: {
+      technicalLimitations:
+        "The app is client-rendered, with no server rendering. The Vite config imports application data as it loads, and the Docker build context is web/. So anything the build reads must exist under web/ before the config runs. Darkfield's canonical specification is private and never enters this repository.",
+      environment:
+        "One origin host runs Docker Compose behind Cloudflare: an nginx proxy for TLS and headers, a container serving the static build, and a monitoring stack that each deploy health-checks. GitHub Actions builds and publishes the image and deploys it over SSH.",
+      tradeoffs:
+        "Generated files are committed and drift-checked. Deploys recreate containers in place, so they are not zero-downtime, and a rollback restores only the web image. The CSP's style-src allows inline styles because Font Awesome injects them. Darkfield's conformance tests run locally, not in CI.",
+    },
+    architecture: [
+      "React 18, TypeScript and Vite, with React Router 7 and pages loaded as separate chunks.",
+      "A build-time plugin writes an index.html for every public route, then writes the sitemap. Each shell carries its own title, canonical URL, Open Graph tags, JSON-LD and a fallback body with the route's real content.",
+      "Typed modules under src/data generate the pages, the shells, the sitemap, the terminal's file system and the AI-readable /llms.txt. Articles are Markdown compiled into a committed module.",
+      "Darkfield arrives as an allowlisted export of its token file, compiled into CSS custom properties. Site CSS reads visual values only through them.",
+      "Three workflows lead to production. CI runs lint, typecheck and deploy-script tests. Build & Publish runs the audit, drift check, smoke test, image build and scan. Deploy runs only after a successful push build on main.",
+    ],
+    keyTechnicalDecisions: [
+      {
+        title: "Render content into the HTML, not only into the app",
+        rationale:
+          "A client-only Markdown renderer would have left articles, “the content that most needs to be crawlable”, as the only routes with empty shells. The cost is a second renderer alongside the app. Tests check the shells' metadata, headings and reachability.",
+      },
+      {
+        title: "Commit generated content, then check it for drift",
+        rationale:
+          "The config imports data at load time, so an uncommitted module would break a fresh clone's typecheck. CI regenerates the article module and fails on any difference.",
+      },
+      {
+        title: "Fail the build instead of sanitising silently",
+        rationale:
+          "Article HTML is the one value injected into shells unescaped. If DOMPurify would remove anything from it, the build fails and names what it found. Otherwise the HTML ships byte for byte.",
+      },
+      {
+        title: "Check before disrupting, and name releases by digest",
+        rationale:
+          "Everything that can fail without touching the running site runs first, from validation to the certificate check. The release is pinned as a literal image digest, and the rendered configuration is checked against it.",
+      },
+      {
+        title: "Observe a policy before enforcing it",
+        rationale:
+          "The Content Security Policy shipped report-only. A production crawl found only two violation sources, both Cloudflare edge scripts. The policy gained a per-request nonce and an analytics host, and was enforced once the crawl came back clean.",
+      },
+      {
+        title: "Govern the interface, not the art",
+        rationale:
+          "Darkfield governs everything the site presents. Artwork, animations, project media, recorded evidence and native simulation visuals keep their own identity. The canonical specification stays private: an exporter publishes only token names and values, and public builds need no private access.",
+      },
+    ],
+    implementationHighlights: [
+      {
+        title: "Shells that stay up",
+        detail:
+          "On a cold load the static shell used to vanish when React mounted. It now stays until the route renders, and a browser test covers the swap. Themed loading screens with artificial minimum load times, flagged in a visitor audit, were removed; no speed gain is claimed.",
+      },
+      {
+        title: "Articles validated before publication",
+        detail:
+          "The build checks frontmatter against a schema, slugs against filenames, series for contiguity and heading IDs against the rendered HTML. CI rejects a stale generated module.",
+      },
+      {
+        title: "A tested release script",
+        detail:
+          "The new container must run the pinned image, report healthy and serve the site through nginx. If it doesn't, the script restores the previous image and fails the deploy. CI tests each failure path with stubbed Docker. An operator-run restore works only by digest and changes nothing without --execute.",
+      },
+      {
+        title: "A policy that cannot drift",
+        detail:
+          "The smoke test fails the build in any of these cases: an inline script's hash is missing or stale; unsafe-inline or unsafe-eval scripts are allowed; or a nonce other than the per-request one appears.",
+      },
+      {
+        title: "Darkfield enforced by tests",
+        detail:
+          "Static tests over the governed stylesheets reject literal colours, rounded corners, fonts and timings that bypass the tokens, text shadows, glass blur, hover lift and spring motion. Provenance tests pin the published tokens, fonts and identity files to manifest hashes. The deficiency ledger began with 136 accepted entries and now has none.",
+      },
+      {
+        title: "Same data, same rules",
+        detail:
+          "The terminal's project files come from the pages' typed data. The traffic and orbital simulations run on deterministic models tested in CI. Animation pieces' inline scripts are allowed only by hash. AI-readable summaries are generated from public data under a written policy: summarise conservatively, separate public from private evidence, and never infer client details or unpublished repositories.",
+      },
+    ],
+    outcome: [
+      "State at b42bee2, 10 November 2026: all four workflow runs for the merge commit succeeded. The live site served HSTS, nosniff, frame, referrer and permissions headers, and an enforced, nonce-based CSP.",
+      "Routes: every public route ships crawlable HTML before JavaScript runs. Tests check unique metadata, one h1 per page, a sitemap matching the indexable canonical routes, and that every sitemap page can be reached without JavaScript. No traffic or ranking claim is made.",
+      "Darkfield: it merged and deployed on 6 November 2026 with an empty deficiency ledger, after the owner approved screenshots in all three themes at desktop and phone widths.",
+      "Known limits: manual rollback has been rehearsed only off production, and deploys are not zero-downtime. Accessibility features are tested in Chromium only; there is no skip link and no accessibility audit on record, so no compliance claim is made. The Darkfield tests and the AI-summary regeneration run manually, outside CI.",
+    ],
+    artifacts: [
+      {
+        title: "Repository provenance",
+        kind: "Repository provenance",
+        status: "Public",
+        description: "Source for the site, infrastructure and workflows.",
+        href: "https://github.com/kareemsasa3/personal-website/tree/b42bee22788c6786fffa041f3ea19f50524e48f9",
+        note: "Pinned to commit b42bee2. Contact identity is github.com/kareemsasa; this repository has not migrated.",
+      },
+      {
+        title: "Route-shell plugin",
+        kind: "Repository provenance",
+        status: "Public",
+        description: "The build-time plugin that writes every public route's HTML, then the sitemap.",
+        href: "https://github.com/kareemsasa3/personal-website/blob/b42bee22788c6786fffa041f3ea19f50524e48f9/web/vite.config.ts",
+        note: "Pinned to commit b42bee2.",
+      },
+      {
+        title: "Article pipeline",
+        kind: "Repository provenance",
+        status: "Public",
+        description: "Frontmatter, slug, series and heading checks, and the sanitiser gate that fails the build.",
+        href: "https://github.com/kareemsasa3/personal-website/blob/b42bee22788c6786fffa041f3ea19f50524e48f9/web/scripts/build-articles.mjs",
+        note: "Pinned to commit b42bee2.",
+      },
+      {
+        title: "Release script and tests",
+        kind: "Evaluation record",
+        status: "Public",
+        description: "Release script and the stubbed-Docker tests CI runs.",
+        href: "https://github.com/kareemsasa3/personal-website/tree/b42bee22788c6786fffa041f3ea19f50524e48f9/infrastructure",
+        note: "Tests deploy logic; no production rollback is recorded.",
+      },
+      {
+        title: "Workflows",
+        kind: "Repository provenance",
+        status: "Public",
+        description: "CI, Build & Publish, Deploy and Security.",
+        href: "https://github.com/kareemsasa3/personal-website/tree/b42bee22788c6786fffa041f3ea19f50524e48f9/.github/workflows",
+        note: "Pinned to commit b42bee2.",
+      },
+      {
+        title: "Build run for b42bee2",
+        kind: "Evaluation record",
+        status: "Public",
+        description: "Build & Publish Images for the merge commit; every step passed.",
+        href: "https://github.com/kareemsasa3/personal-website/actions/runs/42878885160",
+        note: "Logs may expire; the pinned sources are the durable record.",
+      },
+      {
+        title: "Darkfield tests",
+        kind: "Evaluation record",
+        status: "Public",
+        description: "Conformance and provenance tests for the governed interface.",
+        href: "https://github.com/kareemsasa3/personal-website/tree/b42bee22788c6786fffa041f3ea19f50524e48f9/web/scripts",
+        note: "Pinned to commit b42bee2. Tests run locally.",
+      },
+      {
+        title: "Darkfield migration plan",
+        kind: "Evaluation record",
+        status: "Public",
+        description: "Plan with owner decisions and delegated rulings.",
+        href: "https://github.com/kareemsasa3/personal-website/blob/b42bee22788c6786fffa041f3ea19f50524e48f9/docs/superpowers/plans/2026-10-11-darkfield-migration.md",
+        note: "Pinned to commit b42bee2.",
+      },
+      {
+        title: "Darkfield specification",
+        kind: "Private operator artifact",
+        status: "Private",
+        description: "Canonical source of the runtime export.",
+        note: "Only the allowlisted export is published.",
+      },
+    ],
+    links: [
+      {
+        label: "GitHub Repository",
+        href: "https://github.com/kareemsasa3/personal-website",
+        external: true,
+      },
+      { label: "Related: Arachne", href: "/case-studies/arachne" },
+      { label: "Related: Where the Specification Lived", href: "/case-studies/where-the-specification-lived" },
+    ],
+    focusAreas: ["Static delivery", "Release engineering", "Design-system governance"],
+  },
+  {
     slug: "where-the-specification-lived",
     kind: "experiment",
     status: "Completed",
@@ -605,6 +784,7 @@ export const caseStudyCards: CaseStudyCard[] = [
   "erebus",
   "aether",
   "arachne",
+  "personal-website",
   "where-the-specification-lived",
 ].map((slug) => caseStudyBySlug[slug]).flatMap(
   (caseStudy) => {
