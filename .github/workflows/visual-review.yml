@@ -38,6 +38,12 @@ jobs:
   visual-review:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
+    # Official Playwright image: Chromium, its OS libraries and fonts are baked
+    # in, so no apt or browser download happens at run time. Pinned by digest.
+    # Update the image tag/digest and PLAYWRIGHT_VERSION together; the install
+    # step fails if they disagree.
+    container:
+      image: mcr.microsoft.com/playwright:v1.63.0-noble@sha256:eff16c30e6f3f4af0a03fa4b706120d5e9b0891c344a27d64559aff5900a4a27
     env:
       PLAYWRIGHT_VERSION: "1.63.0"
       INPUT_ROUTES: ${{ inputs.routes }}
@@ -48,6 +54,15 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+
+      # The container runs as root over a workspace the runner user owns; checkout
+      # trusts it only while checkout runs. ${{ runner.temp }} is the host path
+      # in a container job, so later steps take the output dir from $RUNNER_TEMP.
+      - name: Prepare container workspace
+        run: |
+          set -euo pipefail
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          echo "VISUAL_REVIEW_OUT=$RUNNER_TEMP/visual-review" >> "$GITHUB_ENV"
 
       - name: Set up Node
         uses: actions/setup-node@v6
@@ -142,15 +157,22 @@ jobs:
           npm ci
           npm run build
 
+      # Browsers come from the image (PLAYWRIGHT_BROWSERS_PATH=/ms-playwright);
+      # this installs only the matching npm package and checks the versions agree.
       - name: Install pinned Playwright outside the repository
         if: steps.plan.outputs.capture == 'true'
         run: |
           set -euo pipefail
           npm install --prefix "$RUNNER_TEMP/playwright" --no-save --no-package-lock \
             --ignore-scripts --no-audit --no-fund "playwright@$PLAYWRIGHT_VERSION"
-          echo "PLAYWRIGHT_BROWSERS_PATH=$RUNNER_TEMP/ms-playwright" >> "$GITHUB_ENV"
-          PLAYWRIGHT_BROWSERS_PATH="$RUNNER_TEMP/ms-playwright" \
-            node "$RUNNER_TEMP/playwright/node_modules/playwright/cli.js" install --with-deps --only-shell chromium
+          read_json() { node -p "JSON.parse(require('node:fs').readFileSync(process.argv[1], 'utf8'))[process.argv[2]]" "$1" "$2"; }
+          package_version="$(read_json "$RUNNER_TEMP/playwright/node_modules/playwright/package.json" version)"
+          image_version="$(read_json "$PLAYWRIGHT_BROWSERS_PATH/.docker-info" driverVersion)"
+          echo "Playwright package $package_version; image browsers for $image_version in $PLAYWRIGHT_BROWSERS_PATH"
+          if [ "$package_version" != "$PLAYWRIGHT_VERSION" ] || [ "$image_version" != "$PLAYWRIGHT_VERSION" ]; then
+            echo "::error::Playwright package ($package_version), image ($image_version) and PLAYWRIGHT_VERSION ($PLAYWRIGHT_VERSION) must match."
+            exit 1
+          fi
 
       - name: Start preview servers
         if: steps.plan.outputs.capture == 'true'
@@ -177,7 +199,7 @@ jobs:
         run: |
           node web/scripts/visual-review.mjs \
             --base-url http://127.0.0.1:4311 --head-url http://127.0.0.1:4310 \
-            --out "$RUNNER_TEMP/visual-review" --mode "$MODE" \
+            --out "$VISUAL_REVIEW_OUT" --mode "$MODE" \
             --changed-files "$RUNNER_TEMP/changed-files.txt" --routes "$INPUT_ROUTES" --theme "$INPUT_THEME" \
             --base-sha "$BASE_SHA" --head-sha "$HEAD_SHA" \
             --playwright "$RUNNER_TEMP/playwright/node_modules/playwright/index.mjs"
@@ -187,6 +209,6 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: visual-review-${{ github.run_id }}-${{ github.run_attempt }}
-          path: ${{ runner.temp }}/visual-review
-          if-no-files-found: warn
+          path: ${{ env.VISUAL_REVIEW_OUT }}
+          if-no-files-found: error
           retention-days: 7
