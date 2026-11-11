@@ -45,7 +45,7 @@ Prefer canonical project and case-study pages when describing specific work. Do 
 - Category: Portfolio
 - Status: Live
 - Date: 2025
-- Canonical URL: https://kareemsasa.dev/projects
+- Canonical URL: https://kareemsasa.dev/case-studies/personal-website
 - Repository status: public-legacy-account
 - Repository: https://github.com/kareemsasa3/personal-website
 - Summary: Personal site built in React and TypeScript that presents projects, case studies, technical writing, and interactive simulations under Darkfield, the site's own design system.
@@ -158,4 +158,5 @@ Prefer canonical project and case-study pages when describing specific work. Do 
 - [Aether](https://kareemsasa.dev/case-studies/aether): Linux audio-analysis daemon that publishes live frequency-band state through a sequence-versioned shared-memory region for independent local consumers. Focus areas: Real-time systems, IPC design, Linux integration.
 - [Erebus](https://kareemsasa.dev/case-studies/erebus): Event-driven Linux coordination layer that records system context, infers higher-level state, and makes troubleshooting replayable. Focus areas: Event modeling, Inference systems, Operational tooling.
 - [Arachne](https://kareemsasa.dev/case-studies/arachne): Autonomous research platform that searches, scrapes, versions, indexes, and synthesizes web content through a Go and Next.js pipeline. Focus areas: Research automation, Service design, Search systems.
+- [Personal Website](https://kareemsasa.dev/case-studies/personal-website): How kareemsasa.dev went from a four-service Docker stack to a static React frontend. Its pages ship as crawlable route shells, its deploys are digest-pinned and health-checked, and its interface follows a design system that its own tests check. AI coding agents helped build it; release authority stayed with the owner. Focus areas: Static delivery, Release engineering, Design-system governance.
 - [Where the Specification Lived](https://kareemsasa.dev/case-studies/where-the-specification-lived): Two agents built the same Traffic Simulator in the same repository, one from a 38-word prompt and one from a 615-word specification. A blinded review of both artifacts shows what each prompt bought, and why prompt length and specification load are different variables. Focus areas: Agent-assisted development, Specification, Blinded review.

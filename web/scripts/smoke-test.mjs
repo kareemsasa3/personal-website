@@ -218,6 +218,7 @@ const main = async () => {
   const arachneCaseStudy = await readBuildFile("case-studies/arachne/index.html");
   const erebusCaseStudy = await readBuildFile("case-studies/erebus/index.html");
   const specificationCaseStudy = await readBuildFile("case-studies/where-the-specification-lived/index.html");
+  const personalWebsiteCaseStudy = await readBuildFile("case-studies/personal-website/index.html");
   const experience = await readBuildFile("experience/index.html");
   const simulations = await readBuildFile("simulations/index.html");
   const orbital = await readBuildFile("simulations/orbital-simulator/index.html");
@@ -360,6 +361,7 @@ const main = async () => {
     { html: arachneCaseStudy, path: "/case-studies/arachne" },
     { html: erebusCaseStudy, path: "/case-studies/erebus" },
     { html: specificationCaseStudy, path: "/case-studies/where-the-specification-lived" },
+    { html: personalWebsiteCaseStudy, path: "/case-studies/personal-website" },
     { html: experience, path: "/experience" },
     { html: simulations, path: "/simulations" },
     { html: orbital, path: "/simulations/orbital-simulator" },
@@ -407,6 +409,11 @@ const main = async () => {
     "/case-studies/where-the-specification-lived",
     ["Home", "Case Studies", "Where the Specification Lived"]
   );
+  assertBreadcrumb(structuredDataNodes(personalWebsiteCaseStudy), "/case-studies/personal-website", [
+    "Home",
+    "Case Studies",
+    "Personal Website",
+  ]);
   assertBreadcrumb(structuredDataNodes(experience), "/experience", [
     "Home",
     "Experience",
@@ -539,6 +546,37 @@ const main = async () => {
   );
   assertCaseStudySourceShape(erebusCaseStudy, "erebus");
   assertCaseStudySourceShape(specificationCaseStudy, "where-the-specification-lived");
+  assertCaseStudySourceShape(
+    personalWebsiteCaseStudy,
+    "personal-website",
+    "https://github.com/kareemsasa3/personal-website"
+  );
+
+  // The site's own case study: its shell carries every long-form section, links to
+  // the Arachne study, and is listed on the index.
+  assertIncludes(
+    personalWebsiteCaseStudy,
+    "<title>Personal Website: From Service Stack to Governed Static Site - Kareem Sasa</title>",
+    "personal website case study title"
+  );
+  assertIncludes(
+    personalWebsiteCaseStudy,
+    'href="https://kareemsasa.dev/case-studies/personal-website/"',
+    "personal website case study canonical URL"
+  );
+  for (const text of [
+    "Engineering Case Study",
+    "From four services to one",
+    "In the owner&#39;s retrospective account:",
+    "Darkfield began with a favicon",
+    "Who decided what",
+    "Hardening the release path",
+    "Known limits:",
+  ]) {
+    assertIncludes(personalWebsiteCaseStudy, text, "personal website case study content");
+  }
+  assertIncludes(personalWebsiteCaseStudy, 'href="/case-studies/arachne"', "personal website case study links to Arachne");
+  assertIncludes(caseStudiesIndex, 'href="/case-studies/personal-website"', "case studies index lists the personal website study");
 
   // The experiment case study: its shell carries the argument, both exact prompts,
   // and links to the live simulator; the simulator links back; its media ships.
@@ -611,6 +649,7 @@ const main = async () => {
     "https://kareemsasa.dev/case-studies/arachne/",
     "https://kareemsasa.dev/case-studies/aether/",
     "https://kareemsasa.dev/case-studies/where-the-specification-lived/",
+    "https://kareemsasa.dev/case-studies/personal-website/",
     "https://kareemsasa.dev/experience/",
     "https://kareemsasa.dev/simulations/orbital-simulator/",
     "https://kareemsasa.dev/simulations/traffic-simulator/",

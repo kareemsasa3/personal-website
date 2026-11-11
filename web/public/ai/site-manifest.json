@@ -132,6 +132,12 @@
       "description": "Autonomous research platform that searches, scrapes, versions, indexes, and synthesizes web content through a Go and Next.js pipeline."
     },
     {
+      "path": "/case-studies/personal-website",
+      "url": "https://kareemsasa.dev/case-studies/personal-website",
+      "title": "Personal Website: From Service Stack to Governed Static Site - Kareem Sasa",
+      "description": "How kareemsasa.dev went from a four-service Docker stack to a static React frontend. Its pages ship as crawlable route shells, its deploys are digest-pinned and health-checked, and its interface follows a design system that its own tests check. AI coding agents helped build it; release authority stayed with the owner."
+    },
+    {
       "path": "/case-studies/where-the-specification-lived",
       "url": "https://kareemsasa.dev/case-studies/where-the-specification-lived",
       "title": "Where the Specification Lived: An AI Coding Experiment - Kareem Sasa",
@@ -473,8 +479,8 @@
         "Browser simulations, games, and procedural animations",
         "Terminal with a virtual filesystem, history, autocomplete, and search"
       ],
-      "canonicalUrl": "https://kareemsasa.dev/projects",
-      "caseStudyUrl": null,
+      "canonicalUrl": "https://kareemsasa.dev/case-studies/personal-website",
+      "caseStudyUrl": "https://kareemsasa.dev/case-studies/personal-website",
       "repositoryUrl": "https://github.com/kareemsasa3/personal-website",
       "repositoryStatus": "public-legacy-account",
       "publicEvidence": "Public repository link is listed by the site."
@@ -825,6 +831,92 @@
           "description": "The case study documents the search, scrape, versioning, indexing, and synthesis pipeline without publishing target lists or private datasets.",
           "href": null,
           "note": null
+        }
+      ]
+    },
+    {
+      "slug": "personal-website",
+      "projectId": "web",
+      "title": "Personal Website",
+      "url": "https://kareemsasa.dev/case-studies/personal-website",
+      "summary": "How kareemsasa.dev went from a four-service Docker stack to a static React frontend. Its pages ship as crawlable route shells, its deploys are digest-pinned and health-checked, and its interface follows a design system that its own tests check. AI coding agents helped build it; release authority stayed with the owner.",
+      "focusAreas": [
+        "Static delivery",
+        "Release engineering",
+        "Design-system governance"
+      ],
+      "publicEvidence": [
+        {
+          "title": "Repository provenance",
+          "kind": "Repository provenance",
+          "status": "Public",
+          "description": "Source for the site, infrastructure and workflows.",
+          "href": "https://github.com/kareemsasa3/personal-website/tree/b42bee22788c6786fffa041f3ea19f50524e48f9",
+          "note": "Pinned to commit b42bee2. Contact identity is github.com/kareemsasa; this repository has not migrated."
+        },
+        {
+          "title": "Route-shell plugin",
+          "kind": "Repository provenance",
+          "status": "Public",
+          "description": "The build-time plugin that writes every public route's HTML, then the sitemap.",
+          "href": "https://github.com/kareemsasa3/personal-website/blob/b42bee22788c6786fffa041f3ea19f50524e48f9/web/vite.config.ts",
+          "note": "Pinned to commit b42bee2."
+        },
+        {
+          "title": "Article pipeline",
+          "kind": "Repository provenance",
+          "status": "Public",
+          "description": "Frontmatter, slug, series and heading checks, and the sanitiser gate that fails the build.",
+          "href": "https://github.com/kareemsasa3/personal-website/blob/b42bee22788c6786fffa041f3ea19f50524e48f9/web/scripts/build-articles.mjs",
+          "note": "Pinned to commit b42bee2."
+        },
+        {
+          "title": "Release script and tests",
+          "kind": "Evaluation record",
+          "status": "Public",
+          "description": "Release script and the stubbed-Docker tests CI runs.",
+          "href": "https://github.com/kareemsasa3/personal-website/tree/b42bee22788c6786fffa041f3ea19f50524e48f9/infrastructure",
+          "note": "Tests deploy logic; no production rollback is recorded."
+        },
+        {
+          "title": "Workflows",
+          "kind": "Repository provenance",
+          "status": "Public",
+          "description": "CI, Build & Publish, Deploy and Security.",
+          "href": "https://github.com/kareemsasa3/personal-website/tree/b42bee22788c6786fffa041f3ea19f50524e48f9/.github/workflows",
+          "note": "Pinned to commit b42bee2."
+        },
+        {
+          "title": "Build run for b42bee2",
+          "kind": "Evaluation record",
+          "status": "Public",
+          "description": "Build & Publish Images for the merge commit; every step passed.",
+          "href": "https://github.com/kareemsasa3/personal-website/actions/runs/42878885160",
+          "note": "Logs may expire; the pinned sources are the durable record."
+        },
+        {
+          "title": "Darkfield tests",
+          "kind": "Evaluation record",
+          "status": "Public",
+          "description": "Conformance and provenance tests for the governed interface.",
+          "href": "https://github.com/kareemsasa3/personal-website/tree/b42bee22788c6786fffa041f3ea19f50524e48f9/web/scripts",
+          "note": "Pinned to commit b42bee2. Tests run locally."
+        },
+        {
+          "title": "Darkfield migration plan",
+          "kind": "Evaluation record",
+          "status": "Public",
+          "description": "Plan with owner decisions and delegated rulings.",
+          "href": "https://github.com/kareemsasa3/personal-website/blob/b42bee22788c6786fffa041f3ea19f50524e48f9/docs/superpowers/plans/2026-10-11-darkfield-migration.md",
+          "note": "Pinned to commit b42bee2."
+        },
+        {
+          "title": "Darkfield specification",
+          "kind": "Private operator artifact",
+          "status": "Private",
+          "description": "Canonical source of the runtime export.",
+          "href": null,
+          "note": "Only the allowlisted export is published."
         }
       ]
     },
