@@ -96,12 +96,12 @@ Prefer canonical project and case-study pages when describing specific work. Do 
 - Category: Developer Tooling
 - Status: Active development
 - Date: 2026
-- Canonical URL: https://kareemsasa.dev/projects
+- Canonical URL: https://kareemsasa.dev/case-studies/themis
 - Repository status: not-public
 - Summary: Governance control plane for a portfolio of projects. It keeps standards, evidence, and derived reports together so status can be inspected without treating assumptions, missing evidence, or agent output as fact.
 - Public evidence: No public repository is listed. Treat public site copy as a sanitized summary.
 - Technologies: Python, JSON Schema, systemd, Agent Workflows
-- Highlights: Agent output is a proposition about governed truth, never governed truth itself; Human authority is never inferred from commit, repository, or agent identity
+- Highlights: Agent output is a proposition about governed truth, never governed truth itself; Its standards forbid inferring human authority from commit, repository, or agent identity; human decisions are not yet technically attested
 
 ## Wardroom
 
@@ -159,4 +159,5 @@ Prefer canonical project and case-study pages when describing specific work. Do 
 - [Erebus](https://kareemsasa.dev/case-studies/erebus): Event-driven Linux coordination layer that records system context, infers higher-level state, and makes troubleshooting replayable. Focus areas: Event modeling, Inference systems, Operational tooling.
 - [Arachne](https://kareemsasa.dev/case-studies/arachne): Autonomous research platform that searches, scrapes, versions, indexes, and synthesizes web content through a Go and Next.js pipeline. Focus areas: Research automation, Service design, Search systems.
 - [Personal Website](https://kareemsasa.dev/case-studies/personal-website): How kareemsasa.dev went from a four-service Docker stack to a static React frontend. Its pages ship as crawlable route shells, its deploys are digest-pinned and health-checked, and its interface follows a design system that its own tests check. AI coding agents helped build it; release authority stayed with the owner. Focus areas: Static delivery, Release engineering, Design-system governance.
+- [Themis](https://kareemsasa.dev/case-studies/themis): A private governance system for a portfolio of personal and client projects. Themis treats missing evidence as uncertainty, not success. It derives status from governed records and repository observation, and it states where code enforces a rule and where the rule depends on agents following instructions and people checking their work. Focus areas: Evidence semantics, Deterministic derivation, Human and agent authority.
 - [Where the Specification Lived](https://kareemsasa.dev/case-studies/where-the-specification-lived): Two agents built the same Traffic Simulator in the same repository, one from a 38-word prompt and one from a 615-word specification. A blinded review of both artifacts shows what each prompt bought, and why prompt length and specification load are different variables. Focus areas: Agent-assisted development, Specification, Blinded review.
