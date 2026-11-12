@@ -59,6 +59,7 @@ const CASE_STUDY_ROUTES = [
   "/case-studies/erebus",
   "/case-studies/arachne",
   "/case-studies/personal-website",
+  "/case-studies/themis",
   "/case-studies/where-the-specification-lived",
 ];
 
@@ -87,6 +88,7 @@ const RULES = [
   { match: /^src\/pages\/CaseStudyErebus\//, kind: "routes", routes: ["/case-studies/erebus"] },
   { match: /^src\/pages\/CaseStudyArachne\//, kind: "routes", routes: ["/case-studies/arachne"] },
   { match: /^src\/pages\/CaseStudyPersonalWebsite\//, kind: "routes", routes: ["/case-studies/personal-website"] },
+  { match: /^src\/pages\/CaseStudyThemis\//, kind: "routes", routes: ["/case-studies/themis"] },
   { match: /^src\/(pages\/CaseStudySpecification\/|data\/specificationExperimentPrompts\.ts$)/, kind: "routes", routes: ["/case-studies/where-the-specification-lived"] },
   { match: /^src\/(components\/CaseStudyPage\/|data\/caseStudies\.ts$|data\/caseStudyBlocks\.ts$)/, kind: "routes", routes: CASE_STUDY_ROUTES },
   { match: /^src\/pages\/Writing\//, kind: "routes", routes: ["/writing"] },

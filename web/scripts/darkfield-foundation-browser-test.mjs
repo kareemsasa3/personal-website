@@ -23,11 +23,12 @@ const MONO_THEMES = [...new Set([...THEMES, "mono"])];
 const [VIEW_W, VIEW_H] = (process.env.DARKFIELD_VIEWPORT || "1440x900").split("x").map(Number);
 const ARRIVE_FROM = process.env.DARKFIELD_ARRIVE_FROM || null;
 const FIELD = { dark: "rgb(7, 11, 8)", light: "rgb(239, 244, 241)", mono: "rgb(10, 10, 10)" };
-// Every routed page (web/src/routes/index.tsx at a16c70f, plus /case-studies/personal-website) plus one 404 probe.
+// Every routed page (web/src/routes/index.tsx at a16c70f, plus /case-studies/personal-website and
+// /case-studies/themis) plus one 404 probe.
 // /work aliases /experience.
 const ROUTES = [
   "/", "/projects", "/case-studies", "/case-studies/aether", "/case-studies/erebus", "/case-studies/arachne",
-  "/case-studies/personal-website",
+  "/case-studies/personal-website", "/case-studies/themis",
   "/case-studies/where-the-specification-lived", "/writing", "/simulations", "/simulations/orbital-simulator",
   "/simulations/traffic-simulator", "/simulations/annals", "/simulations/snake", "/simulations/spider",
   "/simulations/rhythm-lab", "/procedural-animations", "/experience", "/journey", "/terminal", "/darkfield-404-probe",
@@ -3427,7 +3428,7 @@ if (MODE === "check") {
   // shows, with a fine and a coarse pointer (the coarse cell is larger), no rail cell intersects visible text or media in main
   // at any scroll position: the page is stepped through in half-viewport scrolls.
   // One context per pointer and width visits every rail route; each route is visited by the shard that owns it (Phase 6 Task 5).
-  const RAIL_ROUTES = ["/case-studies/aether", "/case-studies/erebus", "/case-studies/arachne", "/case-studies/personal-website", "/case-studies/where-the-specification-lived", "/experience", "/journey"];
+  const RAIL_ROUTES = ["/case-studies/aether", "/case-studies/erebus", "/case-studies/arachne", "/case-studies/personal-website", "/case-studies/themis", "/case-studies/where-the-specification-lived", "/experience", "/journey"];
   for (const coarse of [false, true]) for (const width of [820, 1024, 1280, 1440]) {
     if (!RAIL_ROUTES.some(owns)) break;
     const context = await browser.newContext({ viewport: { width, height: VIEW_H }, reducedMotion: "reduce", hasTouch: coarse, isMobile: coarse });
