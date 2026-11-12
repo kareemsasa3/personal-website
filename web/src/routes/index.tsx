@@ -18,6 +18,7 @@ const CaseStudyAether = React.lazy(() => import("../pages/CaseStudyAether"));
 const CaseStudyErebus = React.lazy(() => import("../pages/CaseStudyErebus"));
 const CaseStudyArachne = React.lazy(() => import("../pages/CaseStudyArachne"));
 const CaseStudyPersonalWebsite = React.lazy(() => import("../pages/CaseStudyPersonalWebsite"));
+const CaseStudyThemis = React.lazy(() => import("../pages/CaseStudyThemis"));
 const CaseStudySpecification = React.lazy(() => import("../pages/CaseStudySpecification"));
 const Writing = React.lazy(() => import("../pages/Writing"));
 const Article = React.lazy(() => import("../pages/Article"));
@@ -54,6 +55,10 @@ const routes: AppRoute[] = [
   {
     path: "case-studies/personal-website",
     element: React.createElement(CaseStudyPersonalWebsite),
+  },
+  {
+    path: "case-studies/themis",
+    element: React.createElement(CaseStudyThemis),
   },
   {
     path: "case-studies/where-the-specification-lived",
