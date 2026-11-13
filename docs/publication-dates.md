@@ -9,7 +9,7 @@ evidence reviews. Owner decisions 79, 79A and 80 set these rules.
 | Field | Applies to | Meaning |
 |---|---|---|
 | `published` | Case studies (required, a date or `"unknown"`) | The first verified successful production release carrying the study. |
-| `published` | Essays (required, a date) | Unchanged frontmatter field. Existing values are kept unless evidence establishes an error. |
+| `published` | Essays (required, a date) | The first production release carrying the essay, as for case studies. Decision 84 corrected two essays whose earlier value preceded that release. |
 | `updated` | Case studies (required, a date or `"unknown"`) | The most recent **substantive** published content change. |
 | `updated` | Essays (optional, a date) | Same meaning. Omit it when no substantive revision has been published. |
 
