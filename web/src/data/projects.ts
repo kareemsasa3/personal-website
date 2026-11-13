@@ -303,14 +303,14 @@ export const projectsData: Project[] = [
       "Observe, derive, and render stages kept separate: repository evidence, governed judgment, deterministic Markdown reports",
       "Activity reports for a bounded day, week, or time range",
       "Governing standards for human deliberation, scheduled reconciliation, and architecture status",
-      "Delegated agent work bound to each target repository's own procedures",
+      "Execution agents instructed to follow each target repository's own procedures, with results checked by a supervising agent",
       "Scheduled observation through systemd units; standard-library Python only",
     ],
     status: "Active development",
     url: "#",
     highlights: [
       "Agent output is a proposition about governed truth, never governed truth itself",
-      "Human authority is never inferred from commit, repository, or agent identity",
+      "Its standards forbid inferring human authority from commit, repository, or agent identity; human decisions are not yet technically attested",
     ],
   },
   {

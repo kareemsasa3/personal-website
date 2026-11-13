@@ -615,6 +615,133 @@ export const caseStudiesData: CaseStudy[] = [
     focusAreas: ["Static delivery", "Release engineering", "Design-system governance"],
   },
   {
+    slug: "themis",
+    projectId: "themis",
+    kind: "system",
+    title: "Themis",
+    searchTitle: "Themis: Governing What an AI-Assisted Portfolio Can Claim",
+    sectionTitles: {
+      outcome: "Outcomes and Limitations",
+    },
+    shortDescription:
+      "A private governance system for a portfolio of personal and client projects. Themis treats missing evidence as uncertainty, not success. It derives status from governed records and repository observation, and it states where code enforces a rule and where the rule depends on agents following instructions and people checking their work.",
+    problem:
+      "Themis began on 19 August 2026 as “a low-maintenance governance system” for a portfolio of personal side projects. The next day its scope widened to client and real-work projects. By then the projects shared infrastructure, dependencies and failure domains, and AI agents were working across them. The governing standard states why the system exists: “once the projects became a system, repository-local truth stopped being enough.” Collecting status was not the hard part. Keeping it honest was.",
+    constraints: {
+      technicalLimitations:
+        "Only the Python standard library and Git. Observation reads local repositories and makes no network calls. Anything that requires judgment is never computed: tier, material change, risk acceptance and authorization stay with people.",
+      environment:
+        "One Linux workstation with systemd, one operator, and a portfolio that includes client work. The system has to be shareable without revealing that any particular portfolio exists.",
+      tradeoffs:
+        "Conservative derivation reports more unknowns and fewer reassuring zeros. Observation takes no lock, so a run can read uncommitted portfolio state; it records that as a limitation instead of refusing to run. The rules that govern agents are mostly instructions and review, not code.",
+    },
+    architecture: [
+      "Two planes: the system holds the standards, schemas, tools and tests, and can be deleted and re-cloned. The portfolio data is a separate Git repository that names the exact system revision it was validated against. A system checkout names no project, client or path, its test fixtures included.",
+      "Three kinds of information: governed records hold human-authoritative facts. Observations hold machine evidence from local repositories. Derived values, such as validation currency, assessment currency, criticality and attention priority, are recomputed and never stored back.",
+      "Observe, derive, render: observation collects evidence and makes no judgment. Derivation applies the standards' algorithms and writes nothing. Rendering turns the result into deterministic Markdown. A parallel pipeline reports what happened in a bounded day, week or range.",
+      "Work control: sources, inputs and tasks carry current snapshots and an append-only event history that is committed with them and replayed to check them.",
+      "Daily observation: a systemd user timer runs a deterministic observation unit that writes content-addressed outputs and a sealed run record. It takes no lock, invokes no agent or model, and opens no network connection.",
+      "Ten governing standards: each owns its subjects exclusively. The tools are executable mirrors of the standards and add no authority of their own.",
+    ],
+    keyTechnicalDecisions: [
+      {
+        title: "Unknown is not none, and none is not “not applicable”",
+        rationale:
+          "UNKNOWN means the answer has not been established, NONE that it has and there is nothing to report, and N/A that the concept does not apply. A numeric 0 means assessed and none exist; blank means no reliable value. A count that depends on absent evidence is suppressed rather than printed as zero, and an unreadable portfolio is an error, not an all-zero report. The cost is noisier reports until evidence exists.",
+      },
+      {
+        title: "Derive, don't store",
+        rationale:
+          "Anything derivable, from currency and overdue state to ranks, gap counts and unknown counts, is recomputed from records and evidence on every run. Nobody maintains it by hand, so it cannot go stale silently. A written report needs an explicit as-of date, so it can be reproduced.",
+      },
+      {
+        title: "Validate a version, not a project",
+        rationale:
+          "A validation is recorded against an identified commit. When the current commit is known and differs, the validation derives as invalidated; when it cannot be established, it derives as unknown, never current.",
+      },
+      {
+        title: "Separate the system from the portfolio",
+        rationale:
+          "The system must be safe to hold without learning that any particular portfolio exists. When the system was extracted, its history was restarted from a single new commit, because the earlier history contained portfolio material that did not meet that bar.",
+      },
+      {
+        title: "Specify automation before enabling it",
+        rationale:
+          "Scheduled reconciliation is specified in full: agent reasoning may compare evidence and propose changes, deterministic code verifies the result, and judgment and authorization stay human. Its runner was built and tested against a deliberately synthetic executor. It is not active, and only deterministic observation runs unattended.",
+      },
+      {
+        title: "Delegation changes who acts, never whether it is authorized",
+        rationale:
+          "The supervising agent plans, delegates and verifies, and may not make a governed change itself, even when delegation is unavailable. No agent may approve work it performed, or work another agent did under the same supervisor. Advisory review is allowed, but it is never approval.",
+      },
+    ],
+    implementationHighlights: [
+      {
+        title: "Replayable work history",
+        detail:
+          "Each work-control event records the digest of the snapshot before and after it. Integrity replay rebuilds current state from the first event and must match exactly. A correction is a new event; the wrong one stays in the history.",
+      },
+      {
+        title: "Sealed observation runs",
+        detail:
+          "Each run records the stages it passed, the revisions it read, a fingerprint of the authoritative files and a clean, dirty or unknown worktree state, then seals the record with a digest.",
+      },
+      {
+        title: "Verified without a real portfolio",
+        detail:
+          "The unit suites run against three synthetic portfolios, empty, minimal and multi-project, so testing the system needs no private record. They cover how unknown, none and not-applicable values are represented, validation currency and invalidation, work-control transitions and replay, observation records and worktree states, report rendering, bootstrap, and the reconciliation runner against its synthetic executor. CI is configured to run them on Python 3.10 through 3.14; its run history is not cited here. A local run of the full suite passed at the revision this study describes. A bootstrap tool creates a new portfolio, refuses to overwrite an existing one, and mints the portfolio's identity only once.",
+      },
+      {
+        title: "Governing this website",
+        detail:
+          "The Personal Website is one of the governed projects. It is registered in the portfolio, and daily observation covers its repository. Its release controls are documented against identified website commits and re-anchored after a release, most recently after the Darkfield merge on 6 November 2026. Themis records those controls. It does not gate the website's deployments, which run in the website's own pipeline, and it does not attest the approvals behind them. The website's governance findings are not published.",
+      },
+    ],
+    outcome: [
+      "Sustained observation: as of 12 November 2026, the timer has produced a sealed observation record every day since 30 August 2026. The runs are unattended and cover personal projects, client projects and a governed environment. Every run completed. Some recorded coverage limitations, mostly from reading uncommitted portfolio state.",
+      "In use: the portfolio's records change through recorded reconciliation commits, and the report is regenerated after reconciliations, not on a schedule. The owner reads the reports and observations occasionally. No particular decision is claimed to have resulted from them.",
+      "Visible gaps: required controls that are missing or unknown stay that way in the report instead of being averaged away.",
+      "Delegation in practice: between late October and early November 2026, a documented series of supervised agent handoffs records governed changes made by execution agents and the supervisor's own checks before the work was closed. Those handoffs are agent-written.",
+    ],
+    artifacts: [
+      {
+        title: "Themis system repository",
+        kind: "Private operator artifact",
+        status: "Private",
+        description: "Governing standards, tools, schemas and the synthetic-portfolio test suite.",
+        note: "Not public. No open-source release has been made.",
+      },
+      {
+        title: "Observation run records",
+        kind: "Local system evidence",
+        status: "Private",
+        description: "Sealed daily records from the scheduled observation unit.",
+        note: "Contain portfolio data; not published.",
+      },
+      {
+        title: "Design and decision records",
+        kind: "Private operator artifact",
+        status: "Private",
+        description: "Pre-extraction history, design records and agent-written handoffs.",
+        note: "Contain confidential portfolio material.",
+      },
+    ],
+    links: [
+      {
+        label: "Public Repository",
+        href: "",
+        unavailable: true,
+        unavailableLabel: "Source is private.",
+      },
+      { label: "Related: Personal Website", href: "/case-studies/personal-website" },
+      {
+        label: "Related writing: What Should the Agent Have to Figure Out?",
+        href: "/writing/what-should-the-agent-have-to-figure-out",
+      },
+    ],
+    focusAreas: ["Evidence semantics", "Deterministic derivation", "Human and agent authority"],
+  },
+  {
     slug: "where-the-specification-lived",
     kind: "experiment",
     status: "Completed",
@@ -785,6 +912,7 @@ export const caseStudyCards: CaseStudyCard[] = [
   "aether",
   "arachne",
   "personal-website",
+  "themis",
   "where-the-specification-lived",
 ].map((slug) => caseStudyBySlug[slug]).flatMap(
   (caseStudy) => {

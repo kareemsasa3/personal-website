@@ -310,6 +310,18 @@
   .case-study-comparison td::before { content: attr(data-label) ": "; color: var(--signal-dim); }
 }
 
+/* Systems: at most three columns. A 30% minimum leaves no room for a fourth track, and
+   280px still drops to two columns on narrower containers. */
+.case-studies-grid--systems {
+  grid-template-columns: repeat(auto-fit, minmax(max(280px, 30%), 1fr));
+}
+
+@media (max-width: 768px) {
+  .case-studies-grid--systems {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Keep empty tracks so a short row of cards matches the width of a full one */
 .case-studies-grid--tracks {
   grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));

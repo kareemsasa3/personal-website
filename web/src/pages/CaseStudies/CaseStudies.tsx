@@ -64,7 +64,7 @@ const CaseStudies = () => {
           </p>
         </header>
 
-        <section id="case-studies-list" className="case-studies-grid">
+        <section id="case-studies-list" className="case-studies-grid case-studies-grid--systems">
           {systemStudies.map((caseStudy) => (
             <CaseStudyCardLink key={caseStudy.slug} caseStudy={caseStudy} />
           ))}

@@ -219,6 +219,7 @@ const main = async () => {
   const erebusCaseStudy = await readBuildFile("case-studies/erebus/index.html");
   const specificationCaseStudy = await readBuildFile("case-studies/where-the-specification-lived/index.html");
   const personalWebsiteCaseStudy = await readBuildFile("case-studies/personal-website/index.html");
+  const themisCaseStudy = await readBuildFile("case-studies/themis/index.html");
   const experience = await readBuildFile("experience/index.html");
   const simulations = await readBuildFile("simulations/index.html");
   const orbital = await readBuildFile("simulations/orbital-simulator/index.html");
@@ -362,6 +363,7 @@ const main = async () => {
     { html: erebusCaseStudy, path: "/case-studies/erebus" },
     { html: specificationCaseStudy, path: "/case-studies/where-the-specification-lived" },
     { html: personalWebsiteCaseStudy, path: "/case-studies/personal-website" },
+    { html: themisCaseStudy, path: "/case-studies/themis" },
     { html: experience, path: "/experience" },
     { html: simulations, path: "/simulations" },
     { html: orbital, path: "/simulations/orbital-simulator" },
@@ -413,6 +415,11 @@ const main = async () => {
     "Home",
     "Case Studies",
     "Personal Website",
+  ]);
+  assertBreadcrumb(structuredDataNodes(themisCaseStudy), "/case-studies/themis", [
+    "Home",
+    "Case Studies",
+    "Themis",
   ]);
   assertBreadcrumb(structuredDataNodes(experience), "/experience", [
     "Home",
@@ -578,6 +585,53 @@ const main = async () => {
   assertIncludes(personalWebsiteCaseStudy, 'href="/case-studies/arachne"', "personal website case study links to Arachne");
   assertIncludes(caseStudiesIndex, 'href="/case-studies/personal-website"', "case studies index lists the personal website study");
 
+  // Themis is private: its shell carries the long-form sections and the limitations,
+  // states that the source is private, names no repository, and emits no source-code entry.
+  assertCaseStudySourceShape(themisCaseStudy, "themis");
+  assertIncludes(
+    themisCaseStudy,
+    "<title>Themis: Governing What an AI-Assisted Portfolio Can Claim - Kareem Sasa</title>",
+    "themis case study title"
+  );
+  assertIncludes(
+    themisCaseStudy,
+    'href="https://kareemsasa.dev/case-studies/themis/"',
+    "themis case study canonical URL"
+  );
+  for (const text of [
+    "Engineering Case Study",
+    "From side projects to an estate",
+    "Where machine enforcement ends",
+    "Who decided what",
+    "Corrections that tightened the contract",
+    "Outcomes and Limitations",
+    "Known limitations",
+    "How strong each claim is",
+    "Not independently reproducible:",
+    "Source is private.",
+  ]) {
+    assertIncludes(themisCaseStudy, text, "themis case study content");
+  }
+  // Generic patterns, so the check itself names no private repository: no GitHub
+  // repository URL (the site's profile link has no repository segment), no
+  // repository-style identifier derived from the project name, and no local path.
+  for (const [pattern, reference] of [
+    [/github\.com\/[^\s"'<>/]+\/[^\s"'<>/]+/i, "a GitHub repository URL"],
+    [/\bthemis[-_][a-z0-9]/i, "a repository-style Themis identifier"],
+  ]) {
+    if (pattern.test(themisCaseStudy)) {
+      throw new Error(`Expected themis case study not to include ${reference}`);
+    }
+  }
+  assertNotIncludes(themisCaseStudy, "/home/", "themis case study private references");
+  assertIncludes(themisCaseStudy, 'href="/case-studies/personal-website"', "themis case study links to the personal website study");
+  assertIncludes(
+    themisCaseStudy,
+    'href="/writing/what-should-the-agent-have-to-figure-out"',
+    "themis case study links to its related article"
+  );
+  assertIncludes(caseStudiesIndex, 'href="/case-studies/themis"', "case studies index lists the themis study");
+
   // The experiment case study: its shell carries the argument, both exact prompts,
   // and links to the live simulator; the simulator links back; its media ships.
   assertIncludes(
@@ -650,6 +704,7 @@ const main = async () => {
     "https://kareemsasa.dev/case-studies/aether/",
     "https://kareemsasa.dev/case-studies/where-the-specification-lived/",
     "https://kareemsasa.dev/case-studies/personal-website/",
+    "https://kareemsasa.dev/case-studies/themis/",
     "https://kareemsasa.dev/experience/",
     "https://kareemsasa.dev/simulations/orbital-simulator/",
     "https://kareemsasa.dev/simulations/traffic-simulator/",

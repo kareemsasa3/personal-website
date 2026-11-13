@@ -352,7 +352,96 @@ const personalWebsite: NonNullable<CaseStudy["blocks"]> = {
   },
 };
 
+const themis: NonNullable<CaseStudy["blocks"]> = {
+  problem: {
+    after: [
+      {
+        kind: "list",
+        items: [
+          "A test that never ran, a parser that failed or an unreadable repository can each produce a confident, empty, all-clear report.",
+          "A validation describes one version of a project at one time. It is not a permanent blessing.",
+          "An agent can write that something was approved. That does not make it so.",
+        ],
+      },
+      {
+        kind: "prose",
+        heading: "From side projects to an estate",
+        paragraphs: [
+          "The first workspace was a Claude project in the browser with no repository access: the owner ran commands and pasted their output back. The first standards, register and handoff were committed on 19 August. Within a week the system gained a deterministic reporting pipeline, period-activity reports and a work-control standard. Codex joined Claude as an operator on 23 August. On 15 September the reusable system was separated from the portfolio data it governs. Since late October, the standards have required that changes made on the owner's behalf be delegated by a supervising agent to separate execution agents.",
+        ],
+      },
+    ],
+  },
+  decisions: {
+    after: [
+      {
+        kind: "list",
+        heading: "Where machine enforcement ends",
+        items: [
+          "Enforced by code: derivation never turns missing evidence into a healthy value. Work-control transitions must be legal, finished tasks are frozen, event histories must replay exactly, and the authoritative records must be committed and never rewritten. Portfolio data is checked against the system revision it pins.",
+          "Checked by code, judged by people: a completed task must carry evidence references for every required evidence class. The code checks that they exist, not that they are sufficient.",
+          "Defined by the standards, held by the owner: tier, material change, risk acceptance, judgment and authorization belong to the owner. The standards forbid inferring authority from a Git identity, write access or an agent's identity. No tooling yet enforces that for architecture judgments.",
+          "Governed through instructions and supervision: the supervisor and executor roles and the rule against self-approval live in the standards, an agent charter and an execution-agent definition. No code stops an agent from breaking them.",
+          "Confirmed by independent verification: the supervisor checks a delegated result from the resulting state, such as the diff, the test output or configuration read back from a service, not from the agent's own report.",
+          "Specified, not implemented: a protocol for capturing a human decision as an attributable, confirmed record exists only as a standard. Today, decisions attributed to the owner appear in agent-written handoffs and in event actor fields that the writing scripts can set themselves. Neither is an attestation.",
+        ],
+      },
+      {
+        kind: "prose",
+        heading: "Who decided what",
+        paragraphs: [
+          "Themis was built with AI development tools: Claude, first in a browser project and later through Claude Code, and Codex, which was introduced as an operator in the first week. Agents contributed to investigation, drafting, implementation and verification. The attribution record is incomplete. Many commits carry a Claude co-author trailer and others carry none; a missing trailer is not evidence of who wrote a commit. Codex appears in the records but in no trailer. This study does not apportion the work between people and tools.",
+          "The standards reserve judgment and authorization for the owner. The project's records of the owner's decisions, however, were written by agents, and the scripts that write its event histories can set the actor themselves. Those records show what the workflow captured, not an independent record of what the owner decided. This study therefore describes what was built and how it changed, not who approved each step. Closing that gap is the purpose of the unimplemented decision-capture protocol.",
+        ],
+      },
+    ],
+  },
+  implementation: {
+    before: [
+      {
+        kind: "list",
+        heading: "Corrections that tightened the contract",
+        items: [
+          "Day one: on the first day, a review found that a control with a zero-day validation interval could stay current forever after its code changed. The contract was repaired the same day.",
+          "A broken parse read as good news: a roster parser that returned nothing once marked every project as unadmitted and reported the failure as good news. An empty portfolio must now be declared; zero entries without a declaration is an error.",
+          "The observation unit's own defects: a review of the observation unit found five evidence defects. A failed Git probe was recorded as uncommitted changes. A run killed by a signal lost its whole record. The service timeout was shorter than the work it supervised. All five were corrected before the first scheduled run.",
+          "A test that passed on failure: a test of the work-control gate passed while the gate was rejecting its own arguments, because it only checked that a path appeared in the output. It now parses the result. Separately, a fresh portfolio that has never set up work control now reports “unobserved” instead of failing.",
+          "Two gates required, not automated: two project intakes ran the integrity gate without the unit suite, and pinned facts drifted. The standards now require both checks for any governance change, as a written obligation; nothing runs them automatically.",
+        ],
+      },
+    ],
+  },
+  outcome: {
+    after: [
+      {
+        kind: "list",
+        heading: "Known limitations",
+        items: [
+          "No attested decisions: human decisions are not technically attested. Records of approval are agent-written prose and script-assigned actor fields.",
+          "Procedural agent boundaries: the rules for supervisors and execution agents depend on instructions, supervision and verification, not enforcement.",
+          "Narrow adoption: work control has been adopted by only a small part of the portfolio.",
+          "Reconciliation is off: scheduled reconciliation is inactive, and nothing judges, authorizes or applies changes unattended.",
+          "Uncommitted reads: observation can read uncommitted portfolio state; it records the condition but does not prevent it.",
+          "No automated two-gate check: the two-gate requirement for governance changes is not automated.",
+          "An open correctness defect: activity reporting can group projects whose repository location is unknown as though they shared one repository. The defect was recorded in September 2026 and is still open.",
+          "Linux only: scheduled operation needs Linux and systemd; macOS and Windows have not been exercised.",
+          "Nothing measured: no reduction in effort, risk or error is measured or claimed.",
+          "Not independently reproducible: Themis's source code and underlying operational records are private. Public readers therefore cannot independently reproduce every claim in this case study.",
+        ],
+      },
+      {
+        kind: "prose",
+        heading: "How strong each claim is",
+        paragraphs: [
+          "The claims here rest on three kinds of evidence, and they are not equally strong. Implementation claims, such as how derivation treats missing evidence or how work history is replayed, rest on the code and its tests. Policy claims, such as the supervisor and execution-agent rules, rest on written standards: they state what should happen, not that it always does. Operational claims, such as daily observation and delegated work, rest on the system's own run records, on agent-written handoffs and on the owner's account. Where a claim depends on policy or on agent-written records, the study says so.",
+        ],
+      },
+    ],
+  },
+};
+
 export const caseStudyBlocksBySlug: Record<string, CaseStudy["blocks"]> = {
   "personal-website": personalWebsite,
+  themis,
   "where-the-specification-lived": whereTheSpecificationLived,
 };
