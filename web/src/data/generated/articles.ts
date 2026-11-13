@@ -42,6 +42,8 @@ export interface Article {
   subtitle?: string;
   kind: "essay" | "field-note";
   published: string;
+  /** Most recent substantive published change, when one is recorded. */
+  updated?: string;
   description: string;
   showDescriptionOnCard?: boolean;
   series?: ArticleSeries;

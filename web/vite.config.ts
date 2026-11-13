@@ -35,6 +35,7 @@ import {
 } from "./src/data/routeMetadata";
 import { getStructuredDataJson } from "./src/data/structuredData";
 import type { BuildInfo } from "./src/types/buildInfo";
+import { validatePublicationDates } from "./src/utils/publicationDates.mjs";
 
 const DEFAULT_DEV_HOST = "0.0.0.0";
 const DEFAULT_DEV_PORT = 5173;
@@ -162,6 +163,22 @@ const escapeHtml = (value: string) =>
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
+
+// Dates are publication history: real calendar days, none after today in
+// America/Chicago, and a known update never before a known publication.
+const assertPublicationDates = () => {
+  const errors = [
+    ...caseStudiesData.flatMap((caseStudy) =>
+      validatePublicationDates(`case study ${caseStudy.slug}`, caseStudy, { kind: "case-study" })
+    ),
+    ...articlesData.flatMap((article) =>
+      validatePublicationDates(`article ${article.slug}`, article, { kind: "essay" })
+    ),
+  ];
+  if (errors.length > 0) {
+    throw new Error(`Invalid publication dates:\n${errors.join("\n")}`);
+  }
+};
 
 const escapeScriptJson = (value: string) =>
   value.replaceAll("<", "\\u003c").replaceAll(">", "\\u003e");
@@ -1142,6 +1159,9 @@ const staticRouteShellPlugin = (): Plugin => {
 
 // https://vitejs.dev/config/
 export default defineConfig(({ command, mode }) => {
+  if (command === "build") {
+    assertPublicationDates();
+  }
   // loadEnv filters by prefix; the exact-key selection below excludes unrelated
   // CI credentials while retaining process.env precedence over .env files.
   const fileEnv = loadEnv(mode, process.cwd(), [...CONFIG_ENV_KEYS]);

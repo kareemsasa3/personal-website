@@ -25,6 +25,10 @@ const sourceFiles = [
   "src/data/proceduralAnimations.ts",
 ];
 
+// Plain JavaScript modules the sources import. They need no transpiling and
+// are copied into the temp tree as they are.
+const plainModules = ["src/utils/publicationDates.mjs"];
+
 const markdownList = (items) => items.map((item) => `- ${cleanText(item)}`).join("\n");
 
 const cleanText = (value) =>
@@ -61,7 +65,8 @@ const compileSourceFiles = async () => {
 
       const output = transpiled.outputText.replace(
         /(from\s+["'])(\.[^"']+?)(["'])/g,
-        "$1$2.mjs$3"
+        (match, start, specifier, end) =>
+          specifier.endsWith(".mjs") ? match : `${start}${specifier}.mjs${end}`
       );
       const outputPath = resolve(
         tempRoot,
@@ -70,6 +75,14 @@ const compileSourceFiles = async () => {
 
       await mkdir(dirname(outputPath), { recursive: true });
       await writeFile(outputPath, output, "utf8");
+    })
+  );
+
+  await Promise.all(
+    plainModules.map(async (modulePath) => {
+      const outputPath = resolve(tempRoot, modulePath);
+      await mkdir(dirname(outputPath), { recursive: true });
+      await writeFile(outputPath, await readFile(resolve(projectRoot, modulePath), "utf8"), "utf8");
     })
   );
 };

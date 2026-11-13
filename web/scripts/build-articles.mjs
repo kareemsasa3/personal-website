@@ -5,6 +5,7 @@ import yaml from "js-yaml";
 import { z } from "zod";
 import { JSDOM } from "jsdom";
 import createDOMPurify from "dompurify";
+import { validatePublicationDates } from "../src/utils/publicationDates.mjs";
 
 const projectRoot = resolve(import.meta.dirname, "..");
 const contentDir = resolve(projectRoot, "src/content/articles");
@@ -29,6 +30,9 @@ const frontmatterSchema = z.object({
   subtitle: z.string().min(1).optional(),
   kind: z.enum(["essay", "field-note"]),
   published: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "must be an ISO date (YYYY-MM-DD)"),
+  // Optional: the most recent substantive published change, as an
+  // America/Chicago calendar date. See docs/publication-dates.md.
+  updated: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "must be an ISO date (YYYY-MM-DD)").optional(),
   description: z.string().min(1).max(160),
   showDescriptionOnCard: z.boolean().optional(),
   // Optional membership in a reading sequence. Only name and part are
@@ -335,6 +339,11 @@ const buildArticle = async (fileName) => {
   if (frontmatter.slug !== expectedSlug) {
     fail(fileName, `frontmatter slug ${JSON.stringify(frontmatter.slug)} does not match the filename stem ${JSON.stringify(expectedSlug)}`);
   }
+  // Real calendar days, not after today in America/Chicago, updated not before published.
+  const dateErrors = validatePublicationDates("frontmatter", frontmatter, { kind: "essay" });
+  if (dateErrors.length > 0) {
+    fail(fileName, dateErrors.join("; "));
+  }
 
   const withoutHeader = stripHeader(fileName, frontmatter, rest);
   const { bodyMarkdown, provenanceMarkdown } = splitProvenance(fileName, withoutHeader);
@@ -412,6 +421,8 @@ export interface Article {
   subtitle?: string;
   kind: "essay" | "field-note";
   published: string;
+  /** Most recent substantive published change, when one is recorded. */
+  updated?: string;
   description: string;
   showDescriptionOnCard?: boolean;
   series?: ArticleSeries;
