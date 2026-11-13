@@ -624,19 +624,19 @@ export const caseStudiesData: CaseStudy[] = [
       outcome: "Outcomes and Limitations",
     },
     shortDescription:
-      "A private governance system for a portfolio of personal and client projects. Themis treats missing evidence as uncertainty, not success. It derives status from governed records and repository observation, and it states where code enforces a rule and where the rule depends on agents following instructions and people checking their work.",
+      "A private governance system for a portfolio of projects. Themis treats missing evidence as uncertainty, not success. It derives status from governed records and repository observation, and it states where code enforces a rule and where the rule depends on agents following instructions and people checking their work.",
     problem:
-      "Themis began on 19 August 2026 as “a low-maintenance governance system” for a portfolio of personal side projects. The next day its scope widened to client and real-work projects. By then the projects shared infrastructure, dependencies and failure domains, and AI agents were working across them. The governing standard states why the system exists: “once the projects became a system, repository-local truth stopped being enough.” Collecting status was not the hard part. Keeping it honest was.",
+      "Themis began on 19 August 2026 as “a low-maintenance governance system” for a portfolio of personal side projects. The next day, its scope expanded beyond side projects. By then the projects shared infrastructure, dependencies and failure domains, and AI agents were working across them. The governing standard states why the system exists: “once the projects became a system, repository-local truth stopped being enough.” Collecting status was not the hard part. Keeping it honest was.",
     constraints: {
       technicalLimitations:
         "Only the Python standard library and Git. Observation reads local repositories and makes no network calls. Anything that requires judgment is never computed: tier, material change, risk acceptance and authorization stay with people.",
       environment:
-        "One Linux workstation with systemd, one operator, and a portfolio that includes client work. The system has to be shareable without revealing that any particular portfolio exists.",
+        "One Linux workstation with systemd, one operator, and a portfolio spanning multiple projects. The system has to be shareable without revealing that any particular portfolio exists.",
       tradeoffs:
         "Conservative derivation reports more unknowns and fewer reassuring zeros. Observation takes no lock, so a run can read uncommitted portfolio state; it records that as a limitation instead of refusing to run. The rules that govern agents are mostly instructions and review, not code.",
     },
     architecture: [
-      "Two planes: the system holds the standards, schemas, tools and tests, and can be deleted and re-cloned. The portfolio data is a separate Git repository that names the exact system revision it was validated against. A system checkout names no project, client or path, its test fixtures included.",
+      "Two planes: the system holds the standards, schemas, tools and tests, and can be deleted and re-cloned. The portfolio data is a separate Git repository that names the exact system revision it was validated against. A system checkout names no project or portfolio-specific path, including in its test fixtures.",
       "Three kinds of information: governed records hold human-authoritative facts. Observations hold machine evidence from local repositories. Derived values, such as validation currency, assessment currency, criticality and attention priority, are recomputed and never stored back.",
       "Observe, derive, render: observation collects evidence and makes no judgment. Derivation applies the standards' algorithms and writes nothing. Rendering turns the result into deterministic Markdown. A parallel pipeline reports what happened in a bounded day, week or range.",
       "Work control: sources, inputs and tasks carry current snapshots and an append-only event history that is committed with them and replayed to check them.",
@@ -698,7 +698,7 @@ export const caseStudiesData: CaseStudy[] = [
       },
     ],
     outcome: [
-      "Sustained observation: as of 12 November 2026, the timer has produced a sealed observation record every day since 30 August 2026. The runs are unattended and cover personal projects, client projects and a governed environment. Every run completed. Some recorded coverage limitations, mostly from reading uncommitted portfolio state.",
+      "Sustained observation: as of 12 November 2026, the timer has produced a sealed observation record every day since 30 August 2026. The runs are unattended and cover governed projects and an operational environment. Every run completed. Some recorded coverage limitations, mostly from reading uncommitted portfolio state.",
       "In use: the portfolio's records change through recorded reconciliation commits, and the report is regenerated after reconciliations, not on a schedule. The owner reads the reports and observations occasionally. No particular decision is claimed to have resulted from them.",
       "Visible gaps: required controls that are missing or unknown stay that way in the report instead of being averaged away.",
       "Delegation in practice: between late October and early November 2026, a documented series of supervised agent handoffs records governed changes made by execution agents and the supervisor's own checks before the work was closed. Those handoffs are agent-written.",
