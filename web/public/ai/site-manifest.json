@@ -141,7 +141,7 @@
       "path": "/case-studies/themis",
       "url": "https://kareemsasa.dev/case-studies/themis",
       "title": "Themis: Governing What an AI-Assisted Portfolio Can Claim - Kareem Sasa",
-      "description": "A private governance system for a portfolio of personal and client projects. Themis treats missing evidence as uncertainty, not success. It derives status from governed records and repository observation, and it states where code enforces a rule and where the rule depends on agents following instructions and people checking their work."
+      "description": "A private governance system for a portfolio of projects. Themis treats missing evidence as uncertainty, not success. It derives status from governed records and repository observation, and it states where code enforces a rule and where the rule depends on agents following instructions and people checking their work."
     },
     {
       "path": "/case-studies/where-the-specification-lived",
@@ -931,7 +931,7 @@
       "projectId": "themis",
       "title": "Themis",
       "url": "https://kareemsasa.dev/case-studies/themis",
-      "summary": "A private governance system for a portfolio of personal and client projects. Themis treats missing evidence as uncertainty, not success. It derives status from governed records and repository observation, and it states where code enforces a rule and where the rule depends on agents following instructions and people checking their work.",
+      "summary": "A private governance system for a portfolio of projects. Themis treats missing evidence as uncertainty, not success. It derives status from governed records and repository observation, and it states where code enforces a rule and where the rule depends on agents following instructions and people checking their work.",
       "focusAreas": [
         "Evidence semantics",
         "Deterministic derivation",
