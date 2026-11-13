@@ -13,6 +13,7 @@ import {
   getCanonicalUrl,
   getRouteMetadata,
 } from "./routeMetadata";
+import { publicationStructuredData } from "../utils/publicationDates.mjs";
 
 type StructuredDataNode = Record<string, unknown>;
 
@@ -121,6 +122,7 @@ const createCaseStudyEntry = (caseStudy: CaseStudy): StructuredDataNode => ({
   headline: `${caseStudy.title} Case Study`,
   description: caseStudy.shortDescription,
   url: getCanonicalUrl(`/case-studies/${caseStudy.slug}`),
+  ...publicationStructuredData(caseStudy),
   author: { "@id": PERSON_ID },
   about: caseStudy.focusAreas,
 });
@@ -131,7 +133,7 @@ const createArticleEntry = (article: Article): StructuredDataNode => ({
   headline: article.title,
   ...(article.subtitle ? { alternativeHeadline: article.subtitle } : {}),
   description: article.description,
-  datePublished: article.published,
+  ...publicationStructuredData(article),
   wordCount: article.wordCount,
   url: getCanonicalUrl(`/writing/${article.slug}`),
   author: { "@id": PERSON_ID },
