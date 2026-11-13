@@ -636,7 +636,7 @@ export const caseStudiesData: CaseStudy[] = [
         "Conservative derivation reports more unknowns and fewer reassuring zeros. Observation takes no lock, so a run can read uncommitted portfolio state; it records that as a limitation instead of refusing to run. The rules that govern agents are mostly instructions and review, not code.",
     },
     architecture: [
-      "Two planes: the system holds the standards, schemas, tools and tests, and can be deleted and re-cloned. The portfolio data is a separate Git repository that names the exact system revision it was validated against. A system checkout names no project or portfolio-specific path, including in its test fixtures.",
+      "Two planes: the system holds the standards, schemas, tools and tests, and can be deleted and re-cloned. The portfolio data is a separate Git repository that names the exact system revision it was validated against. A system checkout is required to name no project or portfolio-specific path, and its test fixtures are synthetic, with no real project names or paths.",
       "Three kinds of information: governed records hold human-authoritative facts. Observations hold machine evidence from local repositories. Derived values, such as validation currency, assessment currency, criticality and attention priority, are recomputed and never stored back.",
       "Observe, derive, render: observation collects evidence and makes no judgment. Derivation applies the standards' algorithms and writes nothing. Rendering turns the result into deterministic Markdown. A parallel pipeline reports what happened in a bounded day, week or range.",
       "Work control: sources, inputs and tasks carry current snapshots and an append-only event history that is committed with them and replayed to check them.",
@@ -698,7 +698,7 @@ export const caseStudiesData: CaseStudy[] = [
       },
     ],
     outcome: [
-      "Sustained observation: as of 12 November 2026, the timer has produced a sealed observation record every day since 30 August 2026. The runs are unattended and cover governed projects and an operational environment. Every run completed. Some recorded coverage limitations, mostly from reading uncommitted portfolio state.",
+      "Sustained observation: as of 12 November 2026, the timer has produced a sealed observation record every day since 30 August 2026. The runs are unattended and cover governed projects and a governed environment. Every run completed. Some recorded coverage limitations, mostly from reading uncommitted portfolio state.",
       "In use: the portfolio's records change through recorded reconciliation commits, and the report is regenerated after reconciliations, not on a schedule. The owner reads the reports and observations occasionally. No particular decision is claimed to have resulted from them.",
       "Visible gaps: required controls that are missing or unknown stay that way in the report instead of being averaged away.",
       "Delegation in practice: between late October and early November 2026, a documented series of supervised agent handoffs records governed changes made by execution agents and the supervisor's own checks before the work was closed. Those handoffs are agent-written.",
