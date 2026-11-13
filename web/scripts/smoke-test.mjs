@@ -1116,8 +1116,8 @@ const main = async () => {
     "what-the-second-agent-is-for",
     "normal-is-not-inevitable",
     "when-programming-became-the-smaller-part",
-    "the-system-gets-a-brake-one-way-or-another",
     "bottlenecks-dont-disappear",
+    "the-system-gets-a-brake-one-way-or-another",
   ];
   if (JSON.stringify(indexOrder) !== JSON.stringify(expectedIndexOrder)) {
     throw new Error(

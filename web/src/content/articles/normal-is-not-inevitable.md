@@ -4,6 +4,7 @@ title: Normal Is Not Inevitable
 subtitle: How profitable markets begin shaping the preferences they once only served
 kind: essay
 published: 2026-09-27
+updated: 2026-09-28
 description: >-
   How markets built on real wants can reshape those wants, traced through
   makeup, razors, gambling, pharmaceuticals, and subscriptions.

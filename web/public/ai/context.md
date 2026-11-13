@@ -55,8 +55,8 @@ Public portfolio, project archive, case-study surface, and professional contact 
 - [What the Second Agent Is For - Kareem Sasa](https://kareemsasa.dev/writing/what-the-second-agent-is-for): "Multi-agent" now names incompatible working arrangements. What matters is how agents are related, not how many of them are running.
 - [Normal Is Not Inevitable - Kareem Sasa](https://kareemsasa.dev/writing/normal-is-not-inevitable): How markets built on real wants can reshape those wants, traced through makeup, razors, gambling, pharmaceuticals, and subscriptions.
 - [When Programming Became the Smaller Part - Kareem Sasa](https://kareemsasa.dev/writing/when-programming-became-the-smaller-part): AI lowered the barrier to producing code in my work without lowering the standard for understanding the system. The judgment is still mine.
-- [The System Gets a Brake One Way or Another - Kareem Sasa](https://kareemsasa.dev/writing/the-system-gets-a-brake-one-way-or-another): Why competitive systems can keep accelerating after everyone sees the danger-and how coordination determines whether correction is chosen or imposed.
 - [Bottlenecks Don't Disappear. They Move. - Kareem Sasa](https://kareemsasa.dev/writing/bottlenecks-dont-disappear): Improving a constrained system relocates its bottleneck rather than removing it - and generative AI moved the constraint from production to judgment.
+- [The System Gets a Brake One Way or Another - Kareem Sasa](https://kareemsasa.dev/writing/the-system-gets-a-brake-one-way-or-another): Why competitive systems can keep accelerating after everyone sees the danger-and how coordination determines whether correction is chosen or imposed.
 
 ## Assistant Guidance
 
