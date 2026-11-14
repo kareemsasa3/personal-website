@@ -18,10 +18,18 @@ import TerminalView from "./TerminalView";
 import TerminalOverlays from "./TerminalOverlays";
 import TerminalErrorBoundary from "./TerminalErrorBoundary";
 import ViewportPortal from "../common/ViewportPortal";
+import { watchKeyboardViewport, type KeyboardViewport } from "../../utils/keyboardViewport";
 
 interface TerminalProps {
   isIntro: boolean;
 }
+
+// The window's vertical box while a keyboard is open: the visible span, kept below a device inset at the top (a
+// standalone display's status bar). Its width and horizontal position are unchanged.
+const keyboardFitStyles = ({ top, bottom }: KeyboardViewport): React.CSSProperties => {
+  const visibleTop = `max(${top}px, env(safe-area-inset-top, 0px))`;
+  return { top: visibleTop, height: `calc(${bottom}px - ${visibleTop})`, maxHeight: "none" };
+};
 
 const Terminal: React.FC<TerminalProps> = ({ isIntro }) => {
   const navigate = useNavigate();
@@ -81,6 +89,21 @@ const Terminal: React.FC<TerminalProps> = ({ isIntro }) => {
   // header or the site header changes size, and on scroll.
   const [introLayout, setIntroLayout] = useState<{ bottom: number; clear: boolean } | null>(null);
   const wasMinimizedRef = useRef(false);
+  // The span an on-screen keyboard leaves visible, or null without one. The window's own sizes come from the layout
+  // viewport (100dvh), which mobile Safari and Chrome keep whole under the keyboard, so while one is open the window
+  // is fitted to this span instead, like a full-screen terminal: over the site header and the route intro, which is
+  // then hidden whole. The layout viewport's height is read from the window's own fixed layer, the box CSS sizes
+  // against.
+  const [keyboardFit, setKeyboardFit] = useState<KeyboardViewport | null>(null);
+  useEffect(
+    () =>
+      watchKeyboardViewport(
+        window,
+        () => document.querySelector(".viewport-layer--terminal")?.getBoundingClientRect().height ?? window.innerHeight,
+        setKeyboardFit
+      ),
+    []
+  );
 
   // Handle terminal close
   const handleTerminalClose = useCallback(() => {
@@ -326,7 +349,7 @@ const Terminal: React.FC<TerminalProps> = ({ isIntro }) => {
         }`}
       >
         {!isIntro && (
-          <div className={`terminal-route-intro${introLayout?.clear === false ? " terminal-route-intro--behind" : ""}`} ref={introRef}>
+          <div className={`terminal-route-intro${introLayout?.clear === false || keyboardFit ? " terminal-route-intro--behind" : ""}`} ref={introRef}>
             <h1 className="terminal-route-title df-heading-1">Terminal</h1>
             <p className="terminal-route-description df-body">
               Interactive interface for exploring parts of the site and
@@ -373,7 +396,8 @@ const Terminal: React.FC<TerminalProps> = ({ isIntro }) => {
 
           {/* Main terminal window */}
           {!windowManagement.isMinimized && <TerminalWindow
-            containerStyles={introLayout?.clear ? { ...windowManagement.containerStyles, ["--terminal-intro-bottom" as string]: `${introLayout.bottom}px` }
+            containerStyles={keyboardFit ? { ...windowManagement.containerStyles, ...keyboardFitStyles(keyboardFit) }
+              : introLayout?.clear ? { ...windowManagement.containerStyles, ["--terminal-intro-bottom" as string]: `${introLayout.bottom}px` }
               : windowManagement.containerStyles}
             isMaximized={windowManagement.isMaximized}
             isDragging={windowManagement.isDragging}

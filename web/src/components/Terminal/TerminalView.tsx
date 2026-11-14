@@ -48,6 +48,7 @@ const TerminalView: React.FC<TerminalViewProps> = ({
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const followOutputRef = useRef(true);
+  const bodyHeightRef = useRef<number | null>(null);
   const cursorRef = useRef<HTMLSpanElement>(null);
   const { theme } = useTheme();
   // The block cursor (§17 Composite recipes, Cursor): shown only while the input has focus, never during IME
@@ -123,6 +124,8 @@ const TerminalView: React.FC<TerminalViewProps> = ({
   // Remember the user's position before new output changes the scroll height.
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const container = e.currentTarget;
+    // A body that is changing size (below) is not the reader scrolling: its distance from the end is the resize's.
+    if (bodyHeightRef.current !== null && container.clientHeight !== bodyHeightRef.current) return;
     followOutputRef.current =
       container.scrollHeight - container.clientHeight - container.scrollTop <= 50;
   };
@@ -133,6 +136,20 @@ const TerminalView: React.FC<TerminalViewProps> = ({
       container.scrollTop = container.scrollHeight;
     }
   }, [commandHistory, showPrompt, terminalRef]);
+
+  // The window's height follows the visible viewport (an on-screen keyboard opening or closing, a rotation). While the
+  // transcript is following its output, its end and the prompt stay in view as the body changes size. The height is
+  // recorded so that scroll events arriving mid-resize are told apart from the reader's own scrolling.
+  useEffect(() => {
+    const container = terminalRef.current;
+    if (!container) return;
+    const observer = new ResizeObserver(() => {
+      bodyHeightRef.current = container.clientHeight;
+      if (followOutputRef.current) container.scrollTop = container.scrollHeight;
+    });
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, [terminalRef]);
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {

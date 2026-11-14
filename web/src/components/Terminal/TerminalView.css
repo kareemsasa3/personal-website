@@ -11,6 +11,8 @@
     min-height: 0;
     overflow-y: auto;
     overflow-x: hidden;
+    /* The transcript scrolls on its own: reaching its end does not go on to scroll the page behind the window. */
+    overscroll-behavior: contain;
     font-family: var(--font-mono);
 }
 
