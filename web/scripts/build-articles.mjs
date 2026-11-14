@@ -304,16 +304,22 @@ const renderSection = (markdown) => new Marked({ renderer: { ...wrapTable } }).p
 // handler, a javascript: URL...), the build fails and names it. Otherwise the
 // rendered HTML is kept byte for byte, so the gate never silently rewrites
 // published content.
-const purify = createDOMPurify(new JSDOM("").window);
+const window = new JSDOM("").window;
+const purify = createDOMPurify(window);
 const assertSafeHtml = (fileName, label, html) => {
-  purify.sanitize(html);
-  if (purify.removed.length > 0) {
+  // Both sides must use DOM serialization; raw Markdown HTML can differ
+  // harmlessly from the browser's normalized markup (e.g. quote styles).
+  // Comparing against DOMPurify.removed is not a security decision.
+  const parsed = window.document.createElement("template");
+  parsed.innerHTML = html;
+  const sanitized = purify.sanitize(html);
+  if (sanitized !== parsed.innerHTML) {
     const removed = purify.removed.map((entry) =>
       entry.attribute
         ? `attribute ${entry.attribute.name} on <${entry.from?.nodeName?.toLowerCase()}>`
         : `<${entry.element?.nodeName?.toLowerCase()}>`
     );
-    fail(fileName, `${label} contains HTML that DOMPurify would remove: ${removed.join(", ")}`);
+    fail(fileName, `${label} contains HTML that DOMPurify would remove: ${removed.join(", ") || "sanitized HTML differs from rendered HTML"}`);
   }
   return html;
 };
