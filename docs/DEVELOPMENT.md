@@ -70,6 +70,21 @@ The explicit project directory resolves build contexts and bind mounts from the 
 
 The equivalent helper is `WEB_IMAGE=personal-website-web:local ./infrastructure/dev.sh --build`; omit `--build` on later starts when no image rebuild is needed.
 
+The Vite container runs as the non-root `node` user, and fresh anonymous
+`/app/node_modules` volumes inherit the image's non-root ownership. On Linux,
+match the bind-mounted checkout owner when building, for example:
+
+```bash
+DEV_UID=$(id -u) DEV_GID=$(id -g) WEB_IMAGE=personal-website-web:local ./infrastructure/dev.sh --build
+```
+
+Use the default IDs on Docker Desktop unless your mount requires otherwise.
+When upgrading an existing root-based development container, recreate its
+anonymous dependency volume with `up --build --renew-anon-volumes` using the same
+Compose command above. This replaces installed dependency/cache data; it does not
+change source-file ownership. Avoid recursively changing ownership of the host
+checkout. If dependencies change, rebuild and renew the dependency volume too.
+
 With the default ports:
 
 - Website: `http://localhost`
