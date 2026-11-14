@@ -7,6 +7,10 @@ const projectRoot = resolve(import.meta.dirname, "..");
 const buildDir = resolve(projectRoot, "build");
 const siteUrl = "https://kareemsasa.dev";
 
+// Security regression suites execute on every npm test / CI smoke run.
+execFileSync(process.execPath, [resolve(projectRoot, "scripts/article-html-safety.test.mjs")], { stdio: "inherit" });
+execFileSync(process.execPath, [resolve(projectRoot, "scripts/grep-highlight.test.mjs")], { stdio: "inherit" });
+
 // Run the independent physics suite using the existing TypeScript compiler.
 execFileSync(process.execPath, ["--import", resolve(projectRoot, "scripts/orbital-test-loader.mjs"), resolve(projectRoot, "scripts/orbital.test.mjs")], { stdio: "inherit" });
 execFileSync(process.execPath, ["--import", resolve(projectRoot, "scripts/traffic-test-loader.mjs"), resolve(projectRoot, "scripts/traffic.test.mjs")], { stdio: "inherit" });
