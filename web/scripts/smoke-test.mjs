@@ -11,6 +11,10 @@ const siteUrl = "https://kareemsasa.dev";
 execFileSync(process.execPath, [resolve(projectRoot, "scripts/article-html-safety.test.mjs")], { stdio: "inherit" });
 execFileSync(process.execPath, [resolve(projectRoot, "scripts/grep-highlight.test.mjs")], { stdio: "inherit" });
 
+// Local file-boundary tests also exercise the canonical verifier with synthetic fixtures.
+execFileSync(process.execPath, [resolve(projectRoot, "scripts/darkfield-file-boundary.test.mjs")], { stdio: "inherit" });
+execFileSync(process.execPath, [resolve(projectRoot, "scripts/darkfield-source.test.mjs")], { stdio: "inherit" });
+
 // Run the independent physics suite using the existing TypeScript compiler.
 execFileSync(process.execPath, ["--import", resolve(projectRoot, "scripts/orbital-test-loader.mjs"), resolve(projectRoot, "scripts/orbital.test.mjs")], { stdio: "inherit" });
 execFileSync(process.execPath, ["--import", resolve(projectRoot, "scripts/traffic-test-loader.mjs"), resolve(projectRoot, "scripts/traffic.test.mjs")], { stdio: "inherit" });
