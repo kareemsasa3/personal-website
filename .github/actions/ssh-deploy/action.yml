@@ -50,11 +50,11 @@ runs:
         HOST_RAW: ${{ inputs.host }}
         PORT_RAW: ${{ inputs.port }}
         KNOWN_HOSTS_RAW: ${{ inputs.known_hosts }}
+        KEY_RAW: ${{ inputs.ssh_key }}
       run: |
         mkdir -p ~/.ssh
         chmod 700 ~/.ssh
         # Support both raw OpenSSH key and base64-encoded key in secret
-        KEY_RAW="${{ inputs.ssh_key }}"
         # Detect plaintext OpenSSH key; use -- to prevent grep from treating dashes as options
         if printf "%s" "$KEY_RAW" | grep -q -- "BEGIN OPENSSH PRIVATE KEY"; then
           # Looks like a PEM/OpenSSH key; normalize newlines
@@ -127,10 +127,11 @@ runs:
 
     - name: Sync deployment files to server
       shell: bash
+      env:
+        HOST_RAW: ${{ inputs.host }}
+        USER_RAW: ${{ inputs.user }}
+        PORT_RAW: ${{ inputs.port }}
       run: |
-        HOST_RAW='${{ inputs.host }}'
-        USER_RAW='${{ inputs.user }}'
-        PORT_RAW='${{ inputs.port }}'
         HOST=$(printf "%s" "$HOST_RAW" | tr -d ' \t\r\n')
         USER=$(printf "%s" "$USER_RAW" | tr -d ' \t\r\n')
         PORT=$(printf "%s" "$PORT_RAW" | tr -d ' \t\r\n')
