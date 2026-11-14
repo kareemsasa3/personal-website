@@ -1,10 +1,11 @@
 // web/scripts/darkfield-css-scope.mjs: the governed-CSS scope shared by the Darkfield static tests.
 import { readdir, readFile, stat } from "node:fs/promises";
 import { dirname, relative, resolve } from "node:path";
+import { confinedFile } from "./darkfield-file-boundary.mjs";
 
 export const web = resolve(import.meta.dirname, "..");
 export const src = resolve(web, "src");
-export const read = (path) => readFile(resolve(src, path), "utf8");
+export const read = async (path) => readFile(await confinedFile(src, path), "utf8");
 export const isFile = (p) => stat(p).then((s) => s.isFile(), () => false);
 
 // Governed scope: modules reachable from src/index.tsx through relative imports, minus creative-owned
