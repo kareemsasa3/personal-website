@@ -1,0 +1,30 @@
+name: Development container smoke
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "web/**"
+      - "infrastructure/dev/docker-compose.dev.yml"
+      - "infrastructure/tests/dev-container.test.sh"
+      - ".github/workflows/development-container.yml"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  development-container:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - name: Validate development Compose configuration
+        run: docker compose --project-directory . -f infrastructure/docker-compose.yml -f infrastructure/dev/docker-compose.dev.yml config --quiet
+      - name: Build for the checkout owner
+        run: docker build --file web/Dockerfile.dev --build-arg DEV_UID="$(id -u)" --build-arg DEV_GID="$(id -g)" --tag web:dev-nonroot-test ./web
+      - name: Verify non-root Vite startup, volume permissions, and source updates
+        run: bash infrastructure/tests/dev-container.test.sh web:dev-nonroot-test

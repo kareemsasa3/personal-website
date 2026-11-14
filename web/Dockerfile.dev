@@ -5,13 +5,23 @@ FROM node:20
 
 ENV NODE_ENV=development
 
+# On Linux, match the source checkout owner with DEV_UID/DEV_GID build args.
+ARG DEV_UID=1000
+ARG DEV_GID=1000
+RUN groupmod --gid "$DEV_GID" node \
+    && usermod --uid "$DEV_UID" --gid "$DEV_GID" node
+
 WORKDIR /app
+RUN chown node:node /app \
+    && chown -R node:node /home/node
+
+USER node
 
 # Install deps (cached)
-COPY package*.json ./
+COPY --chown=node:node package*.json ./
 RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
 
 # Source is bind-mounted in dev; this copy is only for npm install layer
-COPY . .
+COPY --chown=node:node . .
 
 CMD ["npm", "run", "dev", "--", "--host", "--no-open"]
