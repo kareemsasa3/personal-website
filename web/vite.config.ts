@@ -39,6 +39,19 @@ import type { BuildInfo } from "./src/types/buildInfo";
 const DEFAULT_DEV_HOST = "0.0.0.0";
 const DEFAULT_DEV_PORT = 5173;
 
+// Only the environment variables read by this configuration may enter its env object.
+const CONFIG_ENV_KEYS = [
+  "ALLOWED_HOSTS",
+  "BUILD_SHA",
+  "DEV_HOST",
+  "DEV_PORT",
+  "HMR_CLIENT_PORT",
+  "HMR_HOST",
+  "TAILSCALE_IP",
+  "VITE_HMR_CLIENT_PORT",
+  "VITE_HMR_HOST",
+] as const;
+
 const resolveDevHost = (env: Record<string, string>) =>
   env.DEV_HOST?.trim() || DEFAULT_DEV_HOST;
 
@@ -1129,8 +1142,15 @@ const staticRouteShellPlugin = (): Plugin => {
 
 // https://vitejs.dev/config/
 export default defineConfig(({ command, mode }) => {
-  const fileEnv = loadEnv(mode, process.cwd(), "");
-  const env = { ...fileEnv, ...process.env } as Record<string, string>;
+  // loadEnv filters by prefix; the exact-key selection below excludes unrelated
+  // CI credentials while retaining process.env precedence over .env files.
+  const fileEnv = loadEnv(mode, process.cwd(), [...CONFIG_ENV_KEYS]);
+  const env = Object.fromEntries(
+    CONFIG_ENV_KEYS.flatMap((key) => {
+      const value = process.env[key] ?? fileEnv[key];
+      return value === undefined ? [] : [[key, value]];
+    })
+  ) as Record<string, string>;
 
   const devHost = resolveDevHost(env);
   const devPort = resolveDevPort(env);
