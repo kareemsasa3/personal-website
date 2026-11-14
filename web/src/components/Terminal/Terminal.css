@@ -140,11 +140,6 @@
     width: min(640px, calc(100% - 1.5rem));
   }
 
-  .terminal-container {
-    --terminal-window-width: min(95%, 800px);
-    --terminal-window-height: min(80dvh, 600px, var(--terminal-available-height));
-  }
-
   .terminal-container.maximized {
     width: 100%;
     height: 100dvh;
@@ -185,3 +180,18 @@
 
 .terminal-screen.route-mode { height: calc(100dvh - var(--site-header-measured-offset, 0px) - var(--site-dock-safe-space, 0px)); min-height: 28rem; }
 .terminal-screen .terminal-sidecar { position: relative; inset: auto; width: min(90%, 36rem); height: auto; padding: var(--space-6); transform: none; }
+
+/* Phones, either way up: the window takes the whole width and all the height between the site header (or the route
+   intro) and the dock, so the transcript gets the room. */
+@media (max-width: 768px), (pointer: coarse) and (max-height: 500px) {
+  .terminal-container {
+    --terminal-window-width: 100%;
+    --terminal-window-height: var(--terminal-available-height);
+    max-width: none;
+    max-height: var(--terminal-available-height);
+  }
+
+  .terminal-container.maximized {
+    max-height: 100dvh;
+  }
+}

@@ -52,6 +52,12 @@ test("landscape: a short visible span is still reported", () => {
 
 test("pinch zoom shrinks the visual viewport without a keyboard: nothing is reported", () => {
   assert.equal(readKeyboardViewport(viewport({ height: 400, scale: 2 }), 800), null);
+  assert.equal(readKeyboardViewport(viewport({ height: 640, scale: 1.25, offsetTop: 90 }), 800), null);
+});
+
+test("a keyboard under a zoomed page (a browser may zoom to the focused field) is still reported", () => {
+  // 800 tall, 300 covered, zoomed 1.25x: 400 CSS px of the page are visible.
+  assert.deepEqual(readKeyboardViewport(viewport({ height: 400, scale: 1.25, offsetTop: 150 }), 800), { top: 150, bottom: 550 });
 });
 
 test("no visualViewport API: nothing is reported and nothing is listened to", () => {

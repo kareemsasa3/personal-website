@@ -87,6 +87,8 @@ const usableWithin = async (page, { top, bottom }, label) => {
   const box = await settled(page);
   assert.ok(box.top >= top - 1 && box.bottom <= bottom + 1, `${label}: window ${box.top}–${box.bottom} is inside the visible span ${top}–${bottom}`);
   assert.ok(Math.abs(box.top - top) <= 1 && Math.abs(box.bottom - bottom) <= 1, `${label}: window fills the visible span`);
+  await fullWidth(page, box, label);
+  await compactToolbar(page, label);
   const parts = await page.evaluate(() => {
     const hit = (el) => {
       const r = el.getBoundingClientRect();
@@ -112,6 +114,48 @@ const usableWithin = async (page, { top, bottom }, label) => {
   assert.ok(parts.overflowX <= 0, `${label}: no horizontal page overflow`);
 };
 
+// Phones: the window spans the viewport, with no margin on either side.
+const fullWidth = async (page, box, label) => {
+  const width = await page.evaluate(() => document.documentElement.clientWidth);
+  assert.ok(Math.abs(box.left) <= 0.5 && Math.abs(box.right - width) <= 0.5, `${label}: the window spans the full width (${box.left}–${box.right} of ${width})`);
+};
+
+// The toolbar is one compact row: three sign-only controls with touch-sized targets and their accessible names, and
+// everything below it belongs to the transcript.
+const compactToolbar = async (page, label) => {
+  const bar = await page.evaluate(() => {
+    const box = (el) => { const r = el.getBoundingClientRect(); return { top: r.top, bottom: r.bottom, left: r.left, right: r.right, width: r.width, height: r.height }; };
+    const shown = (el) => getComputedStyle(el).display !== "none" && el.getBoundingClientRect().width > 0;
+    const container = document.querySelector(".terminal-container");
+    return {
+      header: box(container.querySelector(".terminal-header")),
+      body: box(container.querySelector(".terminal-body")),
+      window: box(container),
+      title: box(container.querySelector(".terminal-title")),
+      buttons: [...container.querySelectorAll(".terminal-button")].map((el) => ({
+        ...box(el), name: el.getAttribute("aria-label"), label: shown(el.querySelector(".terminal-button-label")),
+        sign: box(el.querySelector(".terminal-button-sign")), signShown: shown(el.querySelector(".terminal-button-sign")),
+        signHidden: el.querySelector(".terminal-button-sign").getAttribute("aria-hidden"),
+      })),
+    };
+  });
+  assert.ok(bar.header.height <= 50, `${label}: the toolbar is one compact row (${bar.header.height}px)`);
+  assert.equal(bar.buttons.length, 3, `${label}: three window controls, none duplicated`);
+  assert.deepEqual(bar.buttons.map((b) => b.name.replace("Restore", "Maximize")), ["Close terminal", "Minimize terminal", "Maximize terminal"], `${label}: the controls keep their accessible names`);
+  for (const b of bar.buttons) {
+    assert.ok(b.width >= 44 && b.height >= 44, `${label}: ${b.name} has a touch-sized target (${b.width}x${b.height})`);
+    assert.ok(!b.label && b.signShown && b.signHidden === "true", `${label}: ${b.name} shows its sign, not its words`);
+    assert.ok(b.sign.width === 16 && b.sign.height === 16, `${label}: ${b.name}'s sign is 16 px`);
+    assert.ok(Math.abs((b.sign.left + b.sign.right) / 2 - (b.left + b.right) / 2) <= 1 && Math.abs((b.sign.top + b.sign.bottom) / 2 - (b.top + b.bottom) / 2) <= 1,
+      `${label}: ${b.name}'s sign is centred in its target`);
+    assert.ok(b.top >= bar.header.top - 0.5 && b.bottom <= bar.header.bottom + 0.5, `${label}: ${b.name} is inside the toolbar`);
+  }
+  for (let i = 1; i < bar.buttons.length; i += 1) assert.ok(bar.buttons[i].left >= bar.buttons[i - 1].right - 0.5, `${label}: controls do not overlap`);
+  assert.ok(bar.title.left >= bar.buttons[2].right - 0.5 && bar.title.right <= bar.header.right + 0.5 && bar.title.height <= bar.header.height, `${label}: the title stays on the toolbar's row`);
+  // Header and transcript take the whole window between them: no other band, no gap.
+  assert.ok(Math.abs(bar.body.top - bar.header.bottom) <= 1 && bar.window.bottom - bar.body.bottom <= 2, `${label}: the transcript takes all the height below the toolbar`);
+};
+
 const submit = async (page, command) => {
   const before = await page.locator(".terminal-container .history-line").count();
   await page.keyboard.type(command);
@@ -135,6 +179,19 @@ try {
       const input = page.locator(".terminal-container .command-input");
       const closed = await settled(page);
       const scrollY = await page.evaluate(() => scrollY);
+      // No keyboard: full width, compact toolbar, and all the height the site header (or route intro) and dock leave.
+      await fullWidth(page, closed, `${label} closed`);
+      await compactToolbar(page, `${label} closed`);
+      assert.ok(closed.bottom <= height + 0.5 && closed.top >= 0, `${label} closed: the window is inside the viewport`);
+      const room = await page.evaluate(() => {
+        const probe = document.createElement("i");
+        probe.style.cssText = "position: absolute; visibility: hidden; block-size: var(--terminal-available-height);";
+        document.querySelector(".terminal-container").append(probe);
+        const available = probe.getBoundingClientRect().height;
+        probe.remove();
+        return available;
+      });
+      assert.ok(Math.abs(closed.height - room) <= 1, `${label} closed: the window takes all the available height (${closed.height} of ${room})`);
       await input.tap();
       assert.ok(await input.evaluate((el) => document.activeElement === el), `${label}: tapping the prompt focuses it`);
 
@@ -146,8 +203,7 @@ try {
       await page.screenshot({ path: `${artifacts}/${label}-open.png` });
 
       // Commands still run, and their output keeps the prompt in view.
-      await submit(page, "help");
-      await submit(page, "ls");
+      for (const command of ["help", "ls", "help", "history"]) await submit(page, command);
       await usableWithin(page, { top: 0, bottom: height - inset }, `${label} after output`);
 
       // The transcript scrolls on its own; the page behind it does not move.
@@ -156,11 +212,14 @@ try {
         el.scrollTop = 0;
         return { scrollable: el.scrollHeight > el.clientHeight, end, contain: getComputedStyle(el).overscrollBehaviorY };
       });
-      assert.ok(scroll.scrollable && scroll.end > 0, `${label}: the transcript overflows its body and was following its end`);
+      // Well past the distance from the end that still counts as following it.
+      assert.ok(scroll.scrollable && scroll.end > 200, `${label}: the transcript overflows its body and was following its end (${scroll.end})`);
       assert.equal(scroll.contain, "contain", `${label}: transcript scrolling does not chain to the page`);
       assert.equal(await page.evaluate(() => scrollY), scrollY, `${label}: the page did not scroll`);
-      // Scrolled back by the reader: a keyboard change must not pull the transcript away from where they are reading.
+      // Scrolled back by the reader: the prompt stays at the bottom of the transcript, visible and tappable, and a
+      // keyboard change must not pull the transcript away from where they are reading.
       await page.waitForFunction(() => document.querySelector(".terminal-body").scrollTop === 0);
+      await usableWithin(page, { top: 0, bottom: height - inset }, `${label} transcript scrolled to its start`);
       await setKeyboard(page, inset + 44);
       await settled(page);
       assert.equal(await page.locator(".terminal-body").evaluate((el) => el.scrollTop), 0, `${label}: a reader's scroll position is kept`);
@@ -182,6 +241,21 @@ try {
       await submit(page, "whoami");
       await page.screenshot({ path: `${artifacts}/${label}-closed.png` });
 
+      // Minimize and reopen with the keyboard open: the window comes back fitted.
+      await setKeyboard(page, inset);
+      await settled(page);
+      await page.getByRole("button", { name: "Minimize terminal", exact: true }).tap();
+      await page.locator(".terminal-container").waitFor({ state: "detached" });
+      await page.getByRole("button", { name: "Terminal minimized — reopen", exact: true }).tap();
+      await page.locator(".terminal-container .command-input").waitFor();
+      await input.tap();
+      await usableWithin(page, { top: 0, bottom: height - inset }, `${label} reopened`);
+      await setKeyboard(page, 0);
+      const afterMinimize = await settled(page);
+      for (const side of ["top", "bottom", "left", "right"]) {
+        assert.ok(Math.abs(afterMinimize[side] - closed[side]) <= 0.5, `${label}: after minimize and reopen the window's ${side} is back`);
+      }
+
       // Maximized: the same fit while the keyboard is open, the whole layout viewport once it closes.
       await page.getByRole("button", { name: "Maximize terminal", exact: true }).tap();
       await input.tap();
@@ -191,6 +265,13 @@ try {
       const full = await settled(page);
       assert.ok(Math.abs(full.top) <= 0.5 && Math.abs(full.height - height) <= 0.5 && Math.abs(full.width - width) <= 0.5,
         `${label}: maximized fills the viewport again after dismissal`);
+      await compactToolbar(page, `${label} maximized`);
+      // Restore: back to the box from before.
+      await page.getByRole("button", { name: "Restore terminal", exact: true }).tap();
+      const restored = await settled(page);
+      for (const side of ["top", "bottom", "left", "right"]) {
+        assert.ok(Math.abs(restored[side] - closed[side]) <= 0.5, `${label}: restore returns the window's ${side}`);
+      }
     });
   }
 
@@ -235,7 +316,14 @@ try {
   // Desktop: the window's box and behaviour do not depend on any of this.
   await withPage({ width: 1440, height: 900, mobile: false }, async (page) => {
     const box = await settled(page);
-    assert.ok(box.height <= 600 && box.width <= 800 && box.top > 0, `desktop: the window keeps its floating box (${JSON.stringify(box)})`);
+    assert.ok(box.height === 600 && box.width === 800 && box.top > 0 && Math.abs(box.left - 320) <= 0.5, `desktop: the window keeps its floating box (${JSON.stringify(box)})`);
+    // Desktop keeps the worded controls; the signs are for the compact toolbar only.
+    const controls = await page.locator(".terminal-container .terminal-button").evaluateAll((els) => els.map((el) => ({
+      text: el.innerText.trim().toLowerCase(), name: el.getAttribute("aria-label").toLowerCase(),
+      sign: getComputedStyle(el.querySelector(".terminal-button-sign")).display,
+    })));
+    assert.deepEqual(controls.map((c) => c.text), controls.map((c) => c.name), "desktop: each control shows its name as its label");
+    assert.ok(controls.length === 3 && controls.every((c) => c.sign === "none"), "desktop: no signs");
     assert.ok(!(await page.locator(".terminal-route-intro").evaluate((el) => el.classList.contains("terminal-route-intro--behind"))), "desktop: the intro is shown");
     await page.locator(".terminal-container .command-input").click();
     await submit(page, "help");

@@ -219,3 +219,17 @@
     background-color: var(--signal-deep);
     color: var(--fg);
 }
+
+/* Small or coarse-pointer screens: the prompt stays at the bottom edge of the transcript's scrollport wherever the
+   transcript is scrolled to, by the reader or by the browser as an on-screen keyboard opens, so the field being typed
+   in is never scrolled out of the window. It covers the lines behind it. */
+@media (max-width: 768px), (pointer: coarse) {
+    .command-prompt {
+        position: sticky;
+        /* Its ground runs through the body's bottom padding, so no line shows under it. */
+        bottom: calc(-1 * var(--space-2));
+        margin-block-end: calc(-1 * var(--space-2));
+        padding-block-end: var(--space-2);
+        background-color: var(--field-deep);
+    }
+}

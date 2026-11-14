@@ -21,9 +21,10 @@ type ViewportLike = Pick<VisualViewport, "offsetTop" | "height" | "scale">;
 /** The visible span, or null when no keyboard is covering the layout viewport (or it cannot be known). */
 export function readKeyboardViewport(viewport: ViewportLike | null | undefined, layoutHeight: number): KeyboardViewport | null {
   if (!viewport) return null;
-  // Pinch zoom also shrinks the visual viewport. It is the reader's own framing, not an obstruction: leave it alone.
-  if (Math.abs(viewport.scale - 1) > 0.01) return null;
-  if (layoutHeight - viewport.height < KEYBOARD_MIN_INSET) return null;
+  // Pinch zoom also shrinks the visual viewport, by its scale, and is the reader's own framing, not an obstruction:
+  // only what is missing at the current scale counts. A zoomed page with a keyboard open (a browser may zoom to the
+  // focused field) is still fitted.
+  if (layoutHeight - viewport.height * viewport.scale < KEYBOARD_MIN_INSET) return null;
   // Rounded inwards, so the span never reaches under the keyboard; an overscrolled offset can be negative.
   const top = Math.max(0, Math.ceil(viewport.offsetTop));
   const bottom = Math.floor(viewport.offsetTop + viewport.height);

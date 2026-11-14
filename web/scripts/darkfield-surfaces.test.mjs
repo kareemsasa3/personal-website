@@ -830,8 +830,11 @@ test("P5 terminal: shell, cell grid and window chrome", async () => {
     ["terminal-button close df-control df-label", "terminal-button minimize df-control df-label", "terminal-button maximize df-control df-label"], "close, minimise, maximise, in that order");
   for (const [, attrs, body] of buttons) {
     assert.doesNotMatch(attrs, /\btitle=/, "no tooltip repeats the label");
-    // The visible words are the accessible name, unchanged.
-    const name = attrs.match(/aria-label=(\{[^}]*\}|"[^"]*")/)?.[1], text = body.trim();
+    // The visible words are the accessible name, unchanged. Each control also carries its sign (§14), which stands in
+    // for the words on the compact toolbar and is hidden from assistive technology: the name is the aria-label.
+    const name = attrs.match(/aria-label=(\{[^}]*\}|"[^"]*")/)?.[1];
+    const text = body.match(/<span className="terminal-button-label">([\s\S]*?)<\/span>/)?.[1].trim();
+    assert.match(body, /\{sign\(/, "the control carries its sign");
     assert.ok(name && (name === `"${text}"` || name === text), `visible text ${text} is the accessible name ${name}`);
   }
   assert.match(win, /"Close terminal"/); assert.match(win, /"Minimize terminal"/); assert.match(win, /isMaximized \? "Restore terminal" : "Maximize terminal"/);
@@ -861,11 +864,20 @@ test("P5 terminal: shell, cell grid and window chrome", async () => {
   // The window is clipped, never scrollable, so focus cannot push its header out; its controls keep one row.
   want(winCss, ".terminal-container", { overflow: "clip" });
   want(winCss, ".terminal-buttons", { "flex-wrap": "nowrap" });
-  // The dots are gone: the buttons take their look from the control model. Only their phone target is set here, a
-  // minimum height for a label that wraps.
+  // The dots are gone: the buttons take their look from the control model. Only the compact toolbar is set here: on
+  // small or coarse-pointer screens each control is a square three-cell target showing its sign, divided by a hairline.
+  const compact = "@media (max-width: 768px), (pointer: coarse) >> ";
   assert.deepEqual(winCss.filter((d) => /\.terminal-button(?![\w-])/.test(d.selector)).map((d) => `${d.selector} ${d.prop}: ${d.value}`),
-    ["@media (max-width: 768px), (pointer: coarse) >> .terminal-buttons .terminal-button min-block-size: calc(3 * var(--cell-h))",
-      "@media (max-width: 768px), (pointer: coarse) >> .terminal-buttons .terminal-button padding-block: var(--space-1)"]);
+    ["display: flex", "align-items: center", "justify-content: center", "inline-size: calc(3 * var(--cell-h))", "block-size: calc(3 * var(--cell-h))",
+      "padding: 0", "border-block: 0", "border-inline-start: 0"].map((d) => `${compact}.terminal-buttons .terminal-button ${d}`));
+  // Words by default, signs on the compact toolbar; never both, never neither.
+  want(winCss, ".terminal-button-sign", { display: "none" });
+  assert.deepEqual(winCss.filter((d) => /\.terminal-button-(label|sign)/.test(d.selector)).map((d) => `${d.selector} ${d.prop}: ${d.value}`),
+    [".terminal-button-sign display: none", `${compact}.terminal-button-label display: none`, `${compact}.terminal-button-sign display: block`]);
+  const signs = [...win.matchAll(/^  (\w+): "([^"]+)",$/gm)];
+  assert.deepEqual(signs.map((m) => m[1]), ["close", "minimize", "maximize", "restore"], "one sign per control state");
+  assert.match(win, /className="terminal-button-sign" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"/, "signs are 16 px and hidden from assistive technology");
+  assert.match(win, /fill="currentColor"/, "one colour, taken from the control (§14)");
   const shellCss = await rules("components/Terminal/Terminal.css");
   assert.deepEqual(shellCss.filter((d) => /terminal-route-(title|description)/.test(d.selector) && /^(font|font-size|line-height|letter-spacing|font-weight|text-transform)$/.test(d.prop))
     .map((d) => where({ file: "Terminal.css", ...d })), [], "the route intro takes the Narrator styles");
