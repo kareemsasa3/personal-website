@@ -13,6 +13,7 @@ const yaml = createRequire(new URL("web/package.json", root))("js-yaml");
 const read = (path) => readFileSync(new URL(path, root), "utf8");
 
 const workflow = yaml.load(read(".github/workflows/deploy.yml"));
+const buildWorkflow = yaml.load(read(".github/workflows/web-ci.yml"));
 const action = yaml.load(read(".github/actions/ssh-deploy/action.yml"));
 const job = workflow.jobs.deploy;
 const deployStep = job.steps.find((step) => step.uses === "./.github/actions/ssh-deploy");
@@ -199,4 +200,63 @@ test("rendered compose configuration, which holds secrets, is never uploaded", (
   const text = read(".github/actions/ssh-deploy/action.yml");
   assert.doesNotMatch(text, /upload-artifact/);
   assert.doesNotMatch(text, /compose\.rendered/);
+});
+
+test("package writes are isolated from PR validation and granted only to the main publisher", () => {
+  assert.deepEqual(buildWorkflow.permissions, {});
+  const build = buildWorkflow.jobs["build-web"];
+  const publish = buildWorkflow.jobs["publish-web"];
+  assert.deepEqual(build.permissions, { contents: "read" });
+  assert.deepEqual(publish.permissions, { contents: "read", packages: "write" });
+  assert.equal(publish.needs, "build-web");
+  for (const [event_name, ref, expected] of [
+    ["push", "refs/heads/main", true],
+    ["push", "refs/heads/feature", false],
+    ["pull_request", "refs/pull/123/merge", false],
+    ["pull_request", "refs/heads/main", false],
+    ["pull_request_target", "refs/heads/main", false],
+    ["workflow_dispatch", "refs/heads/main", false],
+  ]) {
+    const context = { github: { event_name, ref } };
+    assert.equal(Boolean(evaluate(publish.if, context)), expected, `${event_name} ${ref}`);
+    for (const step of build.steps.filter((s) => /Save validated|Upload validated/.test(s.name))) {
+      assert.equal(Boolean(evaluate(step.if, context)), expected, step.name);
+    }
+  }
+  assert.ok(!publish.steps.some((s) => s.uses?.startsWith("actions/checkout@")), "publisher never executes checked-out project code");
+});
+
+test("the publisher consumes the same-run image only after validation and scanning", () => {
+  const build = buildWorkflow.jobs["build-web"];
+  const publish = buildWorkflow.jobs["publish-web"];
+  const imageBuild = build.steps.find((s) => s.uses?.startsWith("docker/build-push-action@"));
+  assert.equal(imageBuild.with.push, false);
+  assert.equal(imageBuild.with.load, true);
+  assert.equal(imageBuild.with["build-args"].trim(), "BUILD_SHA=${{ github.sha }}");
+  const scan = build.steps.findIndex((s) => s.uses?.startsWith("aquasecurity/trivy-action@"));
+  const upload = build.steps.findIndex((s) => s.uses?.startsWith("actions/upload-artifact@"));
+  assert.ok(scan >= 0 && upload > scan, "failed scan cannot publish an artifact");
+  assert.equal(build.steps[scan].with["image-ref"], imageBuild.with.tags);
+  const download = publish.steps.find((s) => s.uses?.startsWith("actions/download-artifact@"));
+  assert.equal(download.with.name, build.steps[upload].with.name);
+  assert.equal(download.with["run-id"], undefined, "download defaults to this workflow run");
+  assert.equal(download.with["repository"], undefined);
+  assert.ok(!publish.steps.some((s) => s.uses?.startsWith("docker/build-push-action@")), "no unvalidated rebuild with package-write credentials");
+});
+
+test("checkout credentials are not persisted by any workflow", () => {
+  let checkouts = 0;
+  for (const name of readdirSync(new URL(".github/workflows/", root))) {
+    const file = `.github/workflows/${name}`;
+    const parsed = yaml.load(read(file));
+    for (const job of Object.values(parsed.jobs)) {
+      for (const step of job.steps ?? []) {
+        if (step.uses?.startsWith("actions/checkout@")) {
+          checkouts += 1;
+          assert.equal(step.with?.["persist-credentials"], false, file);
+        }
+      }
+    }
+  }
+  assert.ok(checkouts >= 5, "all existing checkout callers were examined");
 });
