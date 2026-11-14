@@ -275,6 +275,64 @@ try {
     });
   }
 
+  // The geometry recorded on a device (Chrome 157, Android, edge to edge) on 2026-11-14, replayed: a 443x864 layout
+  // viewport with a 37 px bottom safe-area inset; with the keyboard open visualViewport.height is 464.41 while the
+  // inset reads 0, and the page is in fact visible only down to 464.41 - 37. The input must be inside THAT span, in
+  // both orders the two changes can arrive in. The inset is emulated through the DevTools protocol; the keyboard is
+  // still simulated, and this replays one device's numbers, not a native keyboard.
+  const DEVICE = { width: 443, height: 864, inset: 37, vvHeight: 464.41 };
+  for (const order of ["viewport first, then the inset is withdrawn", "inset withdrawn first, then the viewport"]) {
+    await withPage({ width: DEVICE.width, height: DEVICE.height }, async (page) => {
+      const cdp = await page.context().newCDPSession(page);
+      const setInset = async (bottom) => {
+        await cdp.send("Emulation.setSafeAreaInsetsOverride", { insets: { bottom } });
+        await page.waitForFunction((want) => {
+          const probe = document.createElement("i");
+          probe.style.cssText = "position: fixed; visibility: hidden; block-size: env(safe-area-inset-bottom, 0px);";
+          document.body.append(probe);
+          const got = probe.getBoundingClientRect().height;
+          probe.remove();
+          return got === want;
+        }, bottom);
+      };
+      const label = `device replay (${order})`;
+      await setInset(DEVICE.inset);
+      const closed = await settled(page);
+      await page.locator(".terminal-container .command-input").tap();
+      const keyboard = () => setKeyboard(page, DEVICE.height - DEVICE.vvHeight);
+      if (order.startsWith("viewport")) {
+        await keyboard();
+        await setInset(0);
+      } else {
+        await setInset(0);
+        await keyboard();
+      }
+      const visibleBottom = DEVICE.vvHeight - DEVICE.inset;
+      const inside = async (when) => {
+        await page.waitForFunction((bottom) => document.querySelector(".terminal-container").getBoundingClientRect().bottom <= bottom, visibleBottom);
+        const box = await settled(page);
+        const parts = await page.evaluate(() => {
+          const vv = window.visualViewport;
+          const r = document.querySelector(".terminal-container .command-input").getBoundingClientRect();
+          return { top: r.top, bottom: r.bottom, reportedBottom: vv.offsetTop + vv.height };
+        });
+        assert.ok(parts.reportedBottom > visibleBottom + 30, `${label}: the browser reports more than is visible (${parts.reportedBottom})`);
+        assert.ok(box.bottom <= visibleBottom && box.bottom >= visibleBottom - 1.5, `${label} ${when}: the window ends at the truly visible bottom (${box.bottom} of ${visibleBottom})`);
+        assert.ok(parts.top >= 49 && parts.bottom <= visibleBottom, `${label} ${when}: the input ${parts.top}–${parts.bottom} is above ${visibleBottom}`);
+      };
+      await inside("open");
+      for (const command of ["help", "ls"]) await submit(page, command);
+      await inside("after commands");
+      // Dismissed: the keyboard goes, then the inset returns.
+      await setKeyboard(page, 0);
+      await setInset(DEVICE.inset);
+      const reopened = await settled(page);
+      for (const side of ["top", "bottom", "left", "right"]) {
+        assert.ok(Math.abs(reopened[side] - closed[side]) <= 0.5, `${label}: after dismissal the window's ${side} is back (${closed[side]} → ${reopened[side]})`);
+      }
+    });
+  }
+
   // Pinch zoom is not a keyboard: the window keeps its layout.
   await withPage({ width: 390, height: 844 }, async (page) => {
     const before = await settled(page);

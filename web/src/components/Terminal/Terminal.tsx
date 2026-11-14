@@ -95,15 +95,27 @@ const Terminal: React.FC<TerminalProps> = ({ isIntro }) => {
   // then hidden whole. The layout viewport's height is read from the window's own fixed layer, the box CSS sizes
   // against.
   const [keyboardFit, setKeyboardFit] = useState<KeyboardViewport | null>(null);
-  useEffect(
-    () =>
-      watchKeyboardViewport(
-        window,
-        () => document.querySelector(".viewport-layer--terminal")?.getBoundingClientRect().height ?? window.innerHeight,
-        setKeyboardFit
-      ),
-    []
-  );
+  useEffect(() => {
+    const layer = document.querySelector<HTMLElement>(".viewport-layer--terminal");
+    // The bottom safe-area inset, as a box whose height is the inset: read on demand, and observed, because the inset
+    // is withdrawn when a keyboard opens without any viewport event of its own (see keyboardViewport.ts).
+    const inset = document.createElement("i");
+    inset.style.cssText = "position: absolute; visibility: hidden; pointer-events: none; inline-size: 1px; block-size: env(safe-area-inset-bottom, 0px);";
+    layer?.append(inset);
+    const watch = watchKeyboardViewport(
+      window,
+      () => layer?.getBoundingClientRect().height ?? window.innerHeight,
+      setKeyboardFit,
+      () => inset.getBoundingClientRect().height
+    );
+    const observer = new ResizeObserver(watch.update);
+    observer.observe(inset);
+    return () => {
+      observer.disconnect();
+      watch.stop();
+      inset.remove();
+    };
+  }, []);
 
   // Handle terminal close
   const handleTerminalClose = useCallback(() => {
