@@ -1,4 +1,5 @@
 import { projectsData, type Project, type ProjectMedia, type ProjectMediaAsset } from "./projects";
+import type { PublicationDate } from "../utils/publicationDates.mjs";
 
 export interface CaseStudyDecision {
   title: string;
@@ -87,6 +88,13 @@ export interface CaseStudy {
   title: string;
   /** Descriptive document title; the authored page heading stays unchanged. */
   searchTitle: string;
+  /**
+   * First verified successful production release carrying the study, as an
+   * America/Chicago calendar date, or "unknown". See docs/publication-dates.md.
+   */
+  published: PublicationDate;
+  /** Most recent substantive published content change, same rules. */
+  updated: PublicationDate;
   shortDescription: string;
   problem: string;
   constraints: {
@@ -117,6 +125,8 @@ export const sectionTitle = (caseStudy: CaseStudy, id: CaseStudySectionId, fallb
 export const caseStudiesData: CaseStudy[] = [
   {
     slug: "aether",
+    published: "2026-04-08",
+    updated: "2026-10-09",
     projectId: "aether",
     title: "Aether",
     searchTitle: "Aether: Linux Audio Analysis with Shared Memory",
@@ -242,6 +252,8 @@ export const caseStudiesData: CaseStudy[] = [
   },
   {
     slug: "erebus",
+    published: "2026-04-08",
+    updated: "2026-11-10",
     projectId: "erebus",
     title: "Erebus",
     searchTitle: "Erebus: Replayable Linux Event History",
@@ -337,6 +349,8 @@ export const caseStudiesData: CaseStudy[] = [
   },
   {
     slug: "arachne",
+    published: "2026-04-08",
+    updated: "2026-09-29",
     projectId: "arachne",
     title: "Arachne",
     searchTitle: "Arachne: Web Research with Go and SQLite FTS5",
@@ -437,6 +451,8 @@ export const caseStudiesData: CaseStudy[] = [
   },
   {
     slug: "personal-website",
+    published: "2026-11-11",
+    updated: "2026-11-11",
     projectId: "web",
     kind: "system",
     title: "Personal Website",
@@ -616,6 +632,8 @@ export const caseStudiesData: CaseStudy[] = [
   },
   {
     slug: "themis",
+    published: "2026-11-12",
+    updated: "2026-11-13",
     projectId: "themis",
     kind: "system",
     title: "Themis",
@@ -743,6 +761,8 @@ export const caseStudiesData: CaseStudy[] = [
   },
   {
     slug: "where-the-specification-lived",
+    published: "2026-10-05",
+    updated: "2026-10-05",
     kind: "experiment",
     status: "Completed",
     title: "Where the Specification Lived",

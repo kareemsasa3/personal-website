@@ -39,6 +39,16 @@
   overflow-wrap: anywhere;
 }
 
+.case-study-dates {
+  margin: var(--space-3) 0 0;
+  color: var(--fg-muted);
+}
+
+/* Break at the separator between "Published …" and "Updated …", never inside a date. */
+.case-study-dates > span:not([aria-hidden="true"]) {
+  white-space: nowrap;
+}
+
 .case-study-focus-list {
   display: flex;
   flex-wrap: wrap;

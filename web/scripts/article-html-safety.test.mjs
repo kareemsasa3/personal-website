@@ -21,6 +21,12 @@ const builderFile = join(scriptsDir, "build-articles.mjs");
 await mkdir(scriptsDir, { recursive: true });
 await mkdir(contentDir, { recursive: true });
 await copyFile(join(projectRoot, "scripts/build-articles.mjs"), builderFile);
+// The builder validates frontmatter dates with the shared publication-date module.
+await mkdir(join(isolatedWeb, "src/utils"), { recursive: true });
+await copyFile(
+  join(projectRoot, "src/utils/publicationDates.mjs"),
+  join(isolatedWeb, "src/utils/publicationDates.mjs")
+);
 // Resolve the exact installed dependencies, without installing or downloading anything.
 await symlink(join(projectRoot, "node_modules"), join(isolatedWeb, "node_modules"), "dir");
 

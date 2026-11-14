@@ -2,6 +2,7 @@ import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { readdir, readFile, stat } from "node:fs/promises";
 import { dirname, resolve, sep } from "node:path";
+import { isCalendarDate, publicationDisplay } from "../src/utils/publicationDates.mjs";
 
 const projectRoot = resolve(import.meta.dirname, "..");
 const buildDir = resolve(projectRoot, "build");
@@ -215,6 +216,57 @@ const checkLocalScriptReferences = async () => {
   }
   if (missing.length) {
     throw new Error(`Built pages reference local scripts that are missing or empty in the build: ${missing.join(", ")}`);
+  }
+};
+
+// Publication dates: JSON-LD carries only real calendar dates (never a
+// placeholder for an unknown date), and each shell displays exactly the dates
+// its JSON-LD implies, so the shell, the hydrated page and the metadata agree.
+const shellDateTimes = (html, paragraphPattern, label) => {
+  const paragraph = html.match(paragraphPattern);
+  return paragraph ? [...paragraph[0].matchAll(/<time datetime="([^"]*)">/g)].map((match) => match[1]) : [];
+};
+
+const assertDatesAgree = (node, displayed, label) => {
+  for (const field of ["datePublished", "dateModified"]) {
+    if (field in node && !isCalendarDate(node[field])) {
+      throw new Error(`${label}: JSON-LD ${field} must be a calendar date, got ${JSON.stringify(node[field])}`);
+    }
+  }
+  const shown = publicationDisplay({ published: node.datePublished, updated: node.dateModified });
+  const expected = [shown.published, shown.updated].filter(Boolean);
+  if (JSON.stringify(displayed) !== JSON.stringify(expected)) {
+    throw new Error(
+      `${label}: shell shows dates ${JSON.stringify(displayed)}, JSON-LD implies ${JSON.stringify(expected)}`
+    );
+  }
+};
+
+const checkPublicationDates = async () => {
+  const caseStudySlugs = (await readdir(resolve(buildDir, "case-studies"), { withFileTypes: true }))
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name);
+  if (caseStudySlugs.length === 0) throw new Error("No case-study shells found");
+
+  for (const slug of caseStudySlugs) {
+    const html = await readBuildFile(`case-studies/${slug}/index.html`);
+    const node = findNodeById(structuredDataNodes(html), `${siteUrl}/case-studies/${slug}#case-study`);
+    if (!node) throw new Error(`case study ${slug}: missing CreativeWork node`);
+    const displayed = shellDateTimes(html, /<p class="route-fallback__meta route-fallback__dates">[\s\S]*?<\/p>/, slug);
+    assertDatesAgree(node, displayed, `case study ${slug}`);
+  }
+
+  const articleSlugs = (await readdir(resolve(buildDir, "writing"), { withFileTypes: true }))
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name);
+  for (const slug of articleSlugs) {
+    const html = await readBuildFile(`writing/${slug}/index.html`);
+    const [node] = findNodesByType(structuredDataNodes(html), "Article");
+    if (!node || !isCalendarDate(node.datePublished)) {
+      throw new Error(`article ${slug}: Article node needs a calendar datePublished`);
+    }
+    const displayed = shellDateTimes(html, /<p class="route-fallback__meta">(?:(?!<\/p>)[\s\S])*?min read[\s\S]*?<\/p>/, slug);
+    assertDatesAgree(node, displayed, `article ${slug}`);
   }
 };
 
@@ -1064,8 +1116,8 @@ const main = async () => {
     "what-the-second-agent-is-for",
     "normal-is-not-inevitable",
     "when-programming-became-the-smaller-part",
-    "the-system-gets-a-brake-one-way-or-another",
     "bottlenecks-dont-disappear",
+    "the-system-gets-a-brake-one-way-or-another",
   ];
   if (JSON.stringify(indexOrder) !== JSON.stringify(expectedIndexOrder)) {
     throw new Error(
@@ -1106,6 +1158,8 @@ const main = async () => {
   if (Date.parse(expires) <= Date.now()) {
     throw new Error(`security.txt expired on ${expires}; set a new Expires date within the next year`);
   }
+
+  await checkPublicationDates();
 
   console.log("Smoke test passed.");
 };

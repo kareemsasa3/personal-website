@@ -80,6 +80,7 @@ Development setup and infrastructure commands are documented in `docs/DEVELOPMEN
 - Navigation items live in `web/src/data/navigation.ts`; route definitions live separately in `web/src/routes/index.tsx`.
 - SEO, canonical paths, sitemap route metadata, and social image constants live in `web/src/data/routeMetadata.ts`.
 - JSON-LD structured data lives in `web/src/data/structuredData.ts`.
+- Case-study `published`/`updated` and essay `published`/`updated` dates follow `docs/publication-dates.md`: America/Chicago dates of verified production releases, `"unknown"` rather than estimates, and `updated` only for substantive changes.
 - Case study content lives in `web/src/data/caseStudies.ts` and renders through page/component code under `web/src/pages/CaseStudies`, `web/src/pages/CaseStudy*`, and `web/src/components/CaseStudyPage`.
 - Project, work, simulations, journey, terminal, and virtual file-system content are centralized under `web/src/data/`.
 - Shared layout and navigation components live under `web/src/components/Layout` and `web/src/components/Navigation`.

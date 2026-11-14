@@ -5,6 +5,8 @@ import { projectsData } from "../../data/projects";
 import ProjectMedia from "../ProjectMedia";
 import CaseStudyBlocks from "./CaseStudyBlocks";
 import { useLayoutContext, PageSection } from "../../contexts/LayoutContext";
+import PublicationDates from "../PublicationDates/PublicationDates";
+import { publicationDisplay } from "../../utils/publicationDates.mjs";
 import "./CaseStudyPage.css";
 
 interface CaseStudyPageProps {
@@ -42,6 +44,8 @@ const CaseStudyPage = ({ caseStudy }: CaseStudyPageProps) => {
     (project) => project.id === caseStudy.projectId
   )?.media;
 
+  const shownDates = publicationDisplay(caseStudy);
+
   useEffect(() => {
     setSections(sections);
     return () => setSections([]);
@@ -64,6 +68,11 @@ const CaseStudyPage = ({ caseStudy }: CaseStudyPageProps) => {
               {caseStudy.title}
             </h1>
             <p className="case-study-summary df-prose df-body-lg">{caseStudy.shortDescription}</p>
+            {shownDates.published || shownDates.updated ? (
+              <p className="case-study-dates df-data">
+                <PublicationDates published={caseStudy.published} updated={caseStudy.updated} labelPublished />
+              </p>
+            ) : null}
           </header>
           <div className="case-study-focus-list">
             {caseStudy.focusAreas.map((focusArea) => (

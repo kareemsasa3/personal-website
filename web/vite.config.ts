@@ -35,6 +35,11 @@ import {
 } from "./src/data/routeMetadata";
 import { getStructuredDataJson } from "./src/data/structuredData";
 import type { BuildInfo } from "./src/types/buildInfo";
+import {
+  formatCalendarDate,
+  publicationDisplay,
+  validatePublicationDates,
+} from "./src/utils/publicationDates.mjs";
 
 const DEFAULT_DEV_HOST = "0.0.0.0";
 const DEFAULT_DEV_PORT = 5173;
@@ -162,6 +167,43 @@ const escapeHtml = (value: string) =>
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
+
+// Mirrors src/components/PublicationDates: unknown dates are omitted and
+// "Updated" appears only for a distinct known revision, so the shell and the
+// hydrated page show the same dates.
+const renderPublicationDates = (
+  dates: { published?: string; updated?: string },
+  { labelPublished = false } = {}
+) => {
+  const shown = publicationDisplay(dates);
+  const parts = [
+    shown.published
+      ? `${labelPublished ? "Published " : ""}<time datetime="${shown.published}">${formatCalendarDate(
+          shown.published
+        )}</time>`
+      : "",
+    shown.updated
+      ? `Updated <time datetime="${shown.updated}">${formatCalendarDate(shown.updated)}</time>`
+      : "",
+  ].filter(Boolean);
+  return parts.join(" · ");
+};
+
+// Dates are publication history: real calendar days, none after today in
+// America/Chicago, and a known update never before a known publication.
+const assertPublicationDates = () => {
+  const errors = [
+    ...caseStudiesData.flatMap((caseStudy) =>
+      validatePublicationDates(`case study ${caseStudy.slug}`, caseStudy, { kind: "case-study" })
+    ),
+    ...articlesData.flatMap((article) =>
+      validatePublicationDates(`article ${article.slug}`, article, { kind: "essay" })
+    ),
+  ];
+  if (errors.length > 0) {
+    throw new Error(`Invalid publication dates:\n${errors.join("\n")}`);
+  }
+};
 
 const escapeScriptJson = (value: string) =>
   value.replaceAll("<", "\\u003c").replaceAll(">", "\\u003e");
@@ -608,6 +650,13 @@ const renderCaseStudyBody = (slug: string) => {
       <p class="route-fallback__summary">${escapeHtml(
         caseStudy.shortDescription
       )}</p>
+      ${
+        renderPublicationDates(caseStudy, { labelPublished: true })
+          ? `<p class="route-fallback__meta route-fallback__dates">${renderPublicationDates(caseStudy, {
+              labelPublished: true,
+            })}</p>`
+          : ""
+      }
       <div class="route-fallback__meta">
         ${caseStudy.focusAreas
           .map(
@@ -796,9 +845,9 @@ const renderArticleBody = (slug: string) => {
           ? `<p class="route-fallback__summary">${escapeHtml(article.subtitle)}</p>`
           : ""
       }
-      <p class="route-fallback__meta">${escapeHtml(
-        article.published
-      )} · ${article.readingMinutes} min read · ${article.wordCount} words</p>
+      <p class="route-fallback__meta">${renderPublicationDates(article)} · ${
+        article.readingMinutes
+      } min read · ${article.wordCount} words</p>
 
       ${
         article.toc.length > 0
@@ -1142,6 +1191,9 @@ const staticRouteShellPlugin = (): Plugin => {
 
 // https://vitejs.dev/config/
 export default defineConfig(({ command, mode }) => {
+  if (command === "build") {
+    assertPublicationDates();
+  }
   // loadEnv filters by prefix; the exact-key selection below excludes unrelated
   // CI credentials while retaining process.env precedence over .env files.
   const fileEnv = loadEnv(mode, process.cwd(), [...CONFIG_ENV_KEYS]);

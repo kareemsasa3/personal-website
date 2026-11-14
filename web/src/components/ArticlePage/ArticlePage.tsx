@@ -6,9 +6,9 @@ import {
 } from "../../data/generated/articles";
 import {
   KIND_LABELS,
-  formatPublished,
   formatSeriesPosition,
 } from "../../utils/articleFormatting";
+import PublicationDates from "../PublicationDates/PublicationDates";
 import "./ArticlePage.css";
 
 const MIN_TOC_ENTRIES = 5;
@@ -80,9 +80,7 @@ const ArticlePage = ({ article }: ArticlePageProps) => {
             <p className="article-subtitle df-body-lg">{article.subtitle}</p>
           ) : null}
           <p className="article-meta df-data">
-            <time dateTime={article.published}>
-              {formatPublished(article.published)}
-            </time>
+            <PublicationDates published={article.published} updated={article.updated} />
             <span aria-hidden="true"> · </span>
             <span>{article.readingMinutes} min read</span>
             <span> · {article.provenance.sourceCount} sources · {article.provenance.factCheckRowCount} checked claims</span>
