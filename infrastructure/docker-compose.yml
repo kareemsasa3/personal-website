@@ -18,6 +18,10 @@ services:
 
   # Web - Main portfolio application
   web:
+    # Permit nginx's non-root user to bind the established internal port 80.
+    # This setting is confined to the container network namespace.
+    sysctls:
+      net.ipv4.ip_unprivileged_port_start: "0"
     image: ${WEB_IMAGE:-web:local}
     build:
       context: ./web
