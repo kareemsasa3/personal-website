@@ -306,14 +306,16 @@ const renderSection = (markdown) => new Marked({ renderer: { ...wrapTable } }).p
 // published content.
 const purify = createDOMPurify(new JSDOM("").window);
 const assertSafeHtml = (fileName, label, html) => {
-  purify.sanitize(html);
-  if (purify.removed.length > 0) {
+  // DOMPurify.removed is diagnostic-only; some rejected markup is not listed
+  // there. Fail closed when sanitization changes the rendered HTML at all.
+  const sanitized = purify.sanitize(html);
+  if (sanitized !== html) {
     const removed = purify.removed.map((entry) =>
       entry.attribute
         ? `attribute ${entry.attribute.name} on <${entry.from?.nodeName?.toLowerCase()}>`
         : `<${entry.element?.nodeName?.toLowerCase()}>`
     );
-    fail(fileName, `${label} contains HTML that DOMPurify would remove: ${removed.join(", ")}`);
+    fail(fileName, `${label} contains HTML that DOMPurify would remove: ${removed.join(", ") || "sanitized HTML differs from rendered HTML"}`);
   }
   return html;
 };
