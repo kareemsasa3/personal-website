@@ -16,6 +16,7 @@ import { fileURLToPath } from "node:url";
 import { exportRuntime, parseCanonical } from "./darkfield-export.mjs";
 import { stripC2pa } from "./darkfield-r1.mjs";
 import { compileTokens } from "./darkfield-tokens.mjs";
+import { confinedFile, FileBoundaryError } from "./darkfield-file-boundary.mjs";
 
 const COMMIT = /^[0-9a-f]{40}$/;
 const TAG = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
@@ -54,7 +55,15 @@ export const verifyCanonical = async (canonicalDir, source, web) => {
   const pinned = (path) => (BLOB_PATH.test(path) ? git("cat-file", "blob", `${commit}:${path}`) : null);
 
   for (const [vendored, entry] of Object.entries(source.files)) {
-    const local = await readFile(resolve(web, vendored));
+    let path;
+    try {
+      path = await confinedFile(web, vendored);
+    } catch (error) {
+      if (!(error instanceof FileBoundaryError)) throw error;
+      fail(`${vendored}: path escapes authorized directory`);
+      continue;
+    }
+    const local = await readFile(path);
     if (entry.transform === "c2pa-strip") {
       // Registered R1 files: the local bytes are exactly the C2PA strip of the pinned canonical file.
       const canonical = pinned(entry.from);
