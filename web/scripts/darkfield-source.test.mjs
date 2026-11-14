@@ -6,7 +6,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { exportRuntime, RUNTIME_PATH } from "./darkfield-export.mjs";
@@ -232,4 +232,36 @@ test("a c2pa-strip entry whose canonical file cannot be stripped fails without t
   const source = sourceFor(pinned);
   source.files = { ...files, "public/placeholder.png": { ...strippedEntry(STRIPPED_PNG), from: NOT_PNG_FROM, sourceSha256: sha(NOT_PNG) } };
   assert.deepEqual(await verifyCanonical(cloneAtTag(dir), source, web), [`public/placeholder.png: no strip of ${NOT_PNG_FROM}`]);
+});
+
+test("manifest path traversal is rejected before the filesystem read", async () => {
+  const { dir, pinned } = await repo();
+  const source = sourceFor(pinned);
+  source.files = { "../outside-secret.txt": { from: "fonts/Placeholder.woff2", sha256: sha(FONT) } };
+  assert.deepEqual(await verifyCanonical(cloneAtTag(dir), source, web), [
+    "../outside-secret.txt: path escapes authorized directory",
+  ]);
+});
+
+test("manifest absolute path is rejected before the filesystem read", async () => {
+  const { dir, pinned } = await repo();
+  const source = sourceFor(pinned);
+  const absolute = join(root, "outside-secret.txt");
+  source.files = { [absolute]: { from: "fonts/Placeholder.woff2", sha256: sha(FONT) } };
+  assert.deepEqual(await verifyCanonical(cloneAtTag(dir), source, web), [
+    `${absolute}: path escapes authorized directory`,
+  ]);
+});
+
+test("manifest symlink into another directory is rejected", async () => {
+  const { dir, pinned } = await repo();
+  const outside = join(root, "outside-secret.txt");
+  const link = "public/escape-fixture.txt";
+  await writeFile(outside, "synthetic secret");
+  await symlink(outside, join(web, link));
+  const source = sourceFor(pinned);
+  source.files = { [link]: { from: "fonts/Placeholder.woff2", sha256: sha(FONT) } };
+  assert.deepEqual(await verifyCanonical(cloneAtTag(dir), source, web), [
+    `${link}: path escapes authorized directory`,
+  ]);
 });
