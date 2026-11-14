@@ -60,16 +60,51 @@
     overflow-wrap: anywhere;
 }
 
-/* Small or coarse-pointer screens: the band is tighter, and a control whose label wraps keeps the three-cell target
-   from a minimum height rather than from padding sized for one line. */
+/* A control's sign (§14) stands in for its words on the compact toolbar only. */
+.terminal-button-sign {
+    display: none;
+}
+
+/* Small or coarse-pointer screens: a compact toolbar, so the transcript gets the room. The band is one row with no
+   padding: each control is a square three-cell target showing its sign, divided from the next by a hairline in place
+   of a boundary of its own, and the title keeps to the row, cut short if it is long (the prompt shows the same
+   directory). */
 @media (max-width: 768px), (pointer: coarse) {
     .terminal-header {
-        padding-block: var(--space-1);
-        row-gap: var(--space-1);
+        flex-wrap: nowrap;
+        gap: 0;
+        padding: 0;
+    }
+
+    .terminal-buttons {
+        flex: none;
+        gap: 0;
     }
 
     .terminal-buttons .terminal-button {
-        min-block-size: calc(3 * var(--cell-h));
-        padding-block: var(--space-1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        inline-size: calc(3 * var(--cell-h));
+        block-size: calc(3 * var(--cell-h));
+        padding: 0;
+        border-block: 0;
+        border-inline-start: 0;
+    }
+
+    .terminal-button-label {
+        display: none;
+    }
+
+    .terminal-button-sign {
+        display: block;
+    }
+
+    .terminal-title {
+        padding-inline: var(--space-3);
+        overflow: hidden;
+        overflow-wrap: normal;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 }
