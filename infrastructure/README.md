@@ -77,6 +77,20 @@ The infrastructure layer deploys the frontend site behind nginx using Docker Com
 
 GitHub Actions builds and publishes the web image to GHCR. The production deployment consumes that image through the compose configuration. There are no backend API, database, queue, or session services in the active deployment model.
 
+## Web container privileges
+
+The production web image runs nginx (master and workers) as the non-root `nginx`
+user. Its PID is written under `/tmp`, and its cache directory is owned by that
+user; application files and nginx configuration remain root-owned and readable.
+The base Compose file explicitly permits binding low ports inside the web
+container's network namespace. Internal port 80 is retained so existing proxy
+configuration and rollback images remain compatible.
+
+When running the image directly, pass
+`--sysctl net.ipv4.ip_unprivileged_port_start=0` (Docker already defaults to this
+on current versions). Validate a built image with
+`bash infrastructure/tests/web-container.test.sh <image>`.
+
 ## Monitoring
 
 Monitoring is optional and focused on infrastructure-level visibility for the frontend deployment.

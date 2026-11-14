@@ -1,0 +1,30 @@
+name: Production container smoke
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "web/**"
+      - "infrastructure/docker-compose.yml"
+      - "infrastructure/tests/web-container.test.sh"
+      - ".github/workflows/production-container.yml"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  production-container:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - name: Validate Compose configuration
+        run: docker compose --project-directory . -f infrastructure/docker-compose.yml config --quiet
+      - name: Build production image
+        run: docker build --tag web:nonroot-test ./web
+      - name: Verify non-root startup, health, and route responses
+        run: bash infrastructure/tests/web-container.test.sh web:nonroot-test

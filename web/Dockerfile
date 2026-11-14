@@ -39,6 +39,14 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 # Copy the built application from the builder stage
 COPY --from=builder /app/build /usr/share/nginx/html
 
+# The master process also runs without root. Keep the established internal port
+# so previously published releases remain compatible with deployment/rollback.
+# Compose explicitly permits low-port binding in this container's network namespace.
+RUN sed -i '/^user[[:space:]]/d; s|pid[[:space:]].*;|pid /tmp/nginx.pid;|' /etc/nginx/nginx.conf \
+    && chown -R nginx:nginx /var/cache/nginx
+
+USER nginx
+
 # Expose port
 EXPOSE 80
 
